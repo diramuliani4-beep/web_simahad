@@ -2,9 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Kamar;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,11 +17,18 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call(KamarSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        $kamar = Kamar::where('nomor_kamar', '102')->first();
+
+        User::updateOrCreate(
+            ['email' => 'mahasiswa@asrama.ac.id'],
+            [
+                'name' => 'Ahmad Mahasiswa',
+                'nim' => '240101',
+                'kamar_id' => $kamar?->id,
+                'password' => Hash::make('password123'),
+            ]
+        );
     }
 }
