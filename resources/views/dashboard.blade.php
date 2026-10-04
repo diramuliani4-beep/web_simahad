@@ -572,7 +572,7 @@
                         </a>
 
                         <!-- 2. Pendaftaran -->
-                        <a href="javascript:void(0)" class="nav-item" onclick="openInfoModal('Pendaftaran Asrama', 'Status pendaftaran Anda telah disetujui. Anda terdaftar sebagai mahasiswa aktif Ma\'had Al-Jami\'ah.')">
+                        <a href="{{ route('pendaftaran.pribadi') }}" class="nav-item">
                             <span class="nav-icon">
                                 <svg width="32" height="32" viewBox="0 0 36 36" fill="none">
                                     <circle cx="18" cy="18" r="16" fill="#ffffff" stroke="#1a1a1a" stroke-width="2.2" />
