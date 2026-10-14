@@ -609,7 +609,7 @@
                         </a>
 
                         <!-- 4. Pembayaran -->
-                        <a href="javascript:void(0)" class="nav-item" onclick="openInfoModal('Status Pembayaran', 'Status: <strong>Pembayaran Belum Lunas</strong>.<br>Tagihan: Uang Asrama & Program Pembinaan Semester Ini.<br>Batas Pembayaran: 15 Oktober 2026.')">
+                        <a href="{{ route('pembayaran') }}" class="nav-item">
                             <span class="nav-icon">
                                 <span class="icon-circle-blue">
                                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -705,7 +705,7 @@
                 </div>
 
                 <!-- Card 3: Pembayaran Belum Lunas -->
-                <div class="status-card" onclick="openInfoModal('Pembayaran Asrama', 'Status: <strong>Pembayaran Belum Lunas</strong>.<br>Silakan lakukan pelunasan sebelum tanggal 15 bulan ini melalui nomor Virtual Account yang telah dikirimkan.')">
+                <div class="status-card" onclick="window.location.href='{{ route('pembayaran') }}'" style="cursor: pointer;">
                     <div class="card-inner-text">
                         <div>Pembayaran Belum Lunas</div>
                     </div>

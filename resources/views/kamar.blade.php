@@ -728,7 +728,7 @@
                         </a>
 
                         <!-- 4. Pembayaran -->
-                        <a href="{{ route('dashboard') }}" class="nav-item">
+                        <a href="{{ route('pembayaran') }}" class="nav-item">
                             <span class="nav-icon">
                                 <span class="icon-circle-blue">
                                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

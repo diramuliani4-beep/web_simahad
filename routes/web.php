@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\PendaftaranController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +23,17 @@ Route::post('/kamar/pilih', [AuthController::class, 'pilihKamar'])
     ->name('kamar.pilih')
     ->middleware('auth');
 
+Route::get('/pembayaran', [PembayaranController::class, 'index'])
+    ->name('pembayaran')
+    ->middleware('auth');
+
+Route::post('/pembayaran/bayar', [PembayaranController::class, 'bayar'])
+    ->name('pembayaran.bayar')
+    ->middleware('auth');
+
+Route::post('/pembayaran/reset', [PembayaranController::class, 'reset'])
+    ->name('pembayaran.reset')
+    ->middleware('auth');
 
 /*
 |--------------------------------------------------------------------------
