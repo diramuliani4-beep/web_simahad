@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
 class AuthController extends Controller
@@ -30,28 +32,25 @@ class AuthController extends Controller
             'login' => ['required', 'string'],
             'password' => ['required', 'string'],
         ], [
-            'login.required' => 'Email atau NIM wajib diisi.',
-            'password.required' => 'Password wajib diisi.',
+            'login.required' => 'Email atau username wajib diisi.',
+            'password.required' => 'Kata sandi wajib diisi.',
         ]);
 
         $loginInput = trim($credentials['login']);
         $password = $credentials['password'];
         $remember = $request->boolean('remember');
 
-        // Determine if login is via email or NIM
-        $fieldType = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'nim';
-
-        // Attempt login with determined field
-        if (Auth::attempt([$fieldType => $loginInput, 'password' => $password], $remember)) {
-            $request->session()->regenerate();
-
-            return redirect()->intended(route('dashboard'))
-                ->with('status', 'Selamat datang kembali, '.Auth::user()->name.'!');
+        // Check fields in preferred order based on input format
+        if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
+            $fieldsToTry = ['email', 'nim', 'name'];
+        } elseif (ctype_digit($loginInput)) {
+            $fieldsToTry = ['nim', 'email', 'name'];
+        } else {
+            $fieldsToTry = ['name', 'email', 'nim'];
         }
 
-        // If fieldType was nim but not matched, let's also try email just in case
-        if ($fieldType === 'nim') {
-            if (Auth::attempt(['email' => $loginInput, 'password' => $password], $remember)) {
+        foreach ($fieldsToTry as $field) {
+            if (Auth::attempt([$field => $loginInput, 'password' => $password], $remember)) {
                 $request->session()->regenerate();
 
                 return redirect()->intended(route('dashboard'))
@@ -62,8 +61,102 @@ class AuthController extends Controller
         return back()
             ->withInput($request->only('login', 'remember'))
             ->withErrors([
-                'login' => 'Email/NIM atau password yang Anda masukkan salah.',
+                'login' => 'Email/Username atau kata sandi yang Anda masukkan salah.',
             ]);
+    }
+
+    /**
+     * Show user registration form.
+     */
+    public function showRegisterForm(): View|RedirectResponse
+    {
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
+
+        return view('auth.register');
+    }
+
+    /**
+     * Handle new user registration.
+     */
+    public function register(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'nim' => ['required', 'string', 'max:20', 'unique:users,nim'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
+        ], [
+            'name.required' => 'Nama lengkap wajib diisi.',
+            'nim.required' => 'NIM wajib diisi.',
+            'nim.unique' => 'NIM sudah terdaftar dalam sistem.',
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Email sudah terdaftar.',
+            'password.required' => 'Kata sandi wajib diisi.',
+            'password.min' => 'Kata sandi minimal 6 karakter.',
+            'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
+        ]);
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'nim' => $validated['nim'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        Auth::login($user);
+
+        return redirect()->route('dashboard')
+            ->with('status', 'Pendaftaran berhasil! Selamat datang di SIMAHAD, '.$user->name.'!');
+    }
+
+    /**
+     * Show forgot password form.
+     */
+    public function showForgotPasswordForm(): View|RedirectResponse
+    {
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
+
+        return view('auth.forgot-password');
+    }
+
+    /**
+     * Handle password reset request.
+     */
+    public function resetPassword(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'identifier' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
+        ], [
+            'identifier.required' => 'Email atau NIM wajib diisi.',
+            'password.required' => 'Kata sandi baru wajib diisi.',
+            'password.min' => 'Kata sandi minimal 6 karakter.',
+            'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
+        ]);
+
+        $identifier = trim($validated['identifier']);
+        $user = User::where('email', $identifier)
+            ->orWhere('nim', $identifier)
+            ->first();
+
+        if (! $user) {
+            return back()
+                ->withInput($request->only('identifier'))
+                ->withErrors([
+                    'identifier' => 'Akun dengan Email atau NIM tersebut tidak ditemukan.',
+                ]);
+        }
+
+        $user->password = Hash::make($validated['password']);
+        $user->save();
+
+        return redirect()->route('login')
+            ->with('status', 'Kata sandi untuk akun '.$user->name.' berhasil diperbarui! Silakan masuk dengan kata sandi baru Anda.');
     }
 
     /**
@@ -89,7 +182,10 @@ class AuthController extends Controller
             return redirect()->route('login');
         }
 
-        return view('dashboard');
+        $user = Auth::user();
+        $kamar = $user->kamar;
+
+        return view('dashboard', compact('user', 'kamar'));
     }
 
     /**

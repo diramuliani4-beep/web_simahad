@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Dashboard - Sistem Informasi Asrama Mahasiswa</title>
+    <title>Dashboard - SIMAHAD UIN Imam Bonjol</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
 
     <style>
         *, *::before, *::after {
@@ -21,58 +21,159 @@
         :root {
             --primary-maroon: #6e001b;
             --primary-maroon-hover: #580015;
-            --text-dark: #1a1a1a;
-            --text-muted: #596573;
-            --bg-main: #fbfbfa;
-            --bg-schedule: #faedf0;
-            --sidebar-width: 250px;
+            --maroon-tint: #faedf0;
+            --maroon-border: #7c1a2e;
+            --text-dark: #111827;
+            --text-secondary: #4b5563;
+            --text-muted: #6b7280;
+            --bg-page: #ffffff;
+            --sidebar-width: 280px;
+            --header-height: 66px;
         }
 
         body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-main);
+            background-color: var(--bg-page);
             color: var(--text-dark);
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             overflow-x: hidden;
         }
 
-        /* Dashboard Container */
-        .dashboard-layout {
+        /* ================= TOP NAVBAR ================= */
+        .top-navbar {
+            height: var(--header-height);
+            background-color: #ffffff;
+            border-bottom: 1.5px solid var(--maroon-border);
             display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .navbar-brand-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            text-decoration: none;
+        }
+
+        .brand-logo-img {
+            height: 44px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .brand-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.65rem;
+            font-weight: 800;
+            color: var(--primary-maroon);
+            letter-spacing: -0.01em;
+            text-transform: uppercase;
+        }
+
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.15rem;
+        }
+
+        /* Circular Action Buttons */
+        .btn-circle-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+            text-decoration: none;
+        }
+
+        .btn-circle-action:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-bell-badge {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background-color: var(--primary-maroon);
+            color: #ffffff;
+            position: relative;
+        }
+
+        .btn-bell-badge svg {
+            width: 20px;
+            height: 20px;
+            stroke: #ffffff;
+        }
+
+        .btn-profile-badge {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #262626;
+            color: #262626;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+        }
+
+        .btn-profile-badge svg {
+            width: 26px;
+            height: 26px;
+        }
+
+        /* Hamburger for mobile */
+        .mobile-toggle-btn {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--primary-maroon);
+            cursor: pointer;
+            padding: 0.4rem;
+        }
+
+        /* ================= BODY WRAPPER ================= */
+        .dashboard-body {
+            display: flex;
+            flex: 1;
+            min-height: calc(100vh - var(--header-height));
             width: 100vw;
-            min-height: 100vh;
         }
 
         /* ================= SIDEBAR ================= */
         .sidebar {
             width: var(--sidebar-width);
             min-width: var(--sidebar-width);
-            min-height: 100vh;
             position: relative;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 1.5rem 1.25rem 2rem 1.5rem;
-            z-index: 10;
+            border-right: 1.5px solid var(--maroon-border);
             overflow: hidden;
-            border-right: 1px solid rgba(0, 0, 0, 0.08);
-            background-color: #dbeafe;
+            background-color: #f1f5f9;
         }
 
-        /* Realistic Campus Building & Sky Backdrop */
+        /* Campus building background image */
         .sidebar-bg {
             position: absolute;
             inset: 0;
             z-index: 1;
-            background-image: url('{{ asset("images/sidebar_bg.jpg") }}');
+            background-image: url('{{ asset("images/mahad_al_jamiah.jpeg") }}');
             background-size: cover;
             background-position: center top;
             background-repeat: no-repeat;
-            opacity: 0.92;
         }
 
-        /* Light gradient tint to ensure maximum text readability */
+        /* Semi-transparent overlay to keep sky & building visible while ensuring text contrast */
         .sidebar-overlay {
             position: absolute;
             inset: 0;
@@ -80,50 +181,41 @@
             background: linear-gradient(
                 180deg, 
                 rgba(219, 234, 254, 0.45) 0%, 
-                rgba(241, 245, 249, 0.65) 35%, 
-                rgba(255, 255, 255, 0.82) 65%, 
-                rgba(255, 255, 255, 0.94) 100%
+                rgba(241, 245, 249, 0.55) 30%, 
+                rgba(255, 255, 255, 0.85) 65%, 
+                rgba(255, 255, 255, 0.95) 100%
             );
-            backdrop-filter: blur(0.5px);
         }
 
-        /* Campus Watermark in center of sidebar */
+        /* Campus Watermark */
         .sidebar-watermark {
             position: absolute;
-            top: 54%;
+            top: 55%;
             left: 50%;
             transform: translate(-50%, -50%);
             z-index: 3;
             pointer-events: none;
             text-align: center;
-            opacity: 0.35;
+            opacity: 0.28;
             width: 100%;
             padding: 0 10px;
         }
 
         .watermark-emblem {
-            margin: 0 auto 6px;
+            margin: 0 auto 4px;
             display: block;
-        }
-
-        .watermark-text-1 {
-            font-family: 'Lora', Georgia, serif;
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: #334155;
-            letter-spacing: -0.01em;
-            line-height: 1.2;
         }
 
         .watermark-text-2 {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 0.95rem;
+            font-size: 1.05rem;
             font-weight: 800;
             color: #334155;
             letter-spacing: -0.01em;
             line-height: 1.2;
         }
 
+        /* Sidebar Navigation Container */
         .sidebar-content {
             position: relative;
             z-index: 4;
@@ -131,324 +223,485 @@
             flex-direction: column;
             height: 100%;
             justify-content: space-between;
+            padding: 1.25rem 1.15rem 1.5rem 1.15rem;
         }
 
-        /* Logo Emblem Top */
-        .sidebar-logo {
-            margin-bottom: 2rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .logo-emblem {
-            width: 58px;
-            height: 58px;
-            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
-            transition: transform 0.2s ease;
-        }
-
-        .logo-emblem:hover {
-            transform: scale(1.04);
-        }
-
-        /* Navigation List */
         .sidebar-nav {
             display: flex;
             flex-direction: column;
-            gap: 1.15rem;
+            gap: 0.75rem;
             flex-grow: 1;
         }
 
-        .nav-item {
+        /* Pill Navigation Button */
+        .nav-pill {
             display: flex;
             align-items: center;
-            gap: 1.1rem;
+            gap: 0.85rem;
+            height: 46px;
+            padding: 0 1rem;
+            background-color: #ffffff;
+            border: 1.5px solid var(--maroon-border);
+            border-radius: 12px;
             text-decoration: none;
             color: #1a1a1a;
-            padding: 0.25rem 0.4rem;
-            border-radius: 8px;
+            font-size: 0.92rem;
+            font-weight: 700;
             transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
             cursor: pointer;
+            width: 100%;
         }
 
-        .nav-item:hover {
-            transform: translateX(4px);
-            background: rgba(255, 255, 255, 0.4);
+        .nav-pill:hover {
+            transform: translateX(3px);
+            background-color: #fff8f9;
+        }
+
+        /* Active Nav Pill (Dashboard) */
+        .nav-pill.active {
+            background-color: var(--maroon-tint);
+            border-color: var(--primary-maroon);
+            color: var(--primary-maroon);
+        }
+
+        .nav-pill.active .nav-icon svg {
+            stroke: var(--primary-maroon);
+        }
+
+        .nav-pill.active .nav-chevron {
+            color: var(--primary-maroon);
         }
 
         .nav-icon {
-            width: 34px;
-            height: 34px;
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 22px;
+            height: 22px;
             flex-shrink: 0;
         }
 
         .nav-icon svg {
             display: block;
+            stroke: #262626;
         }
 
-        /* Specific icon badges */
-        .icon-circle-blue {
-            width: 34px;
-            height: 34px;
-            background: #1e70bf;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            box-shadow: 0 2px 5px rgba(30, 112, 191, 0.35);
+        .nav-label {
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .icon-circle-cyan {
-            width: 34px;
-            height: 34px;
-            background: #0ea5e9;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            box-shadow: 0 2px 5px rgba(14, 165, 233, 0.35);
-        }
-
-        .icon-circle-avatar {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #ffffff;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-        }
-
-        .nav-text {
-            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+        .nav-chevron {
             font-size: 1.15rem;
             font-weight: 800;
-            color: #1a1a1a;
-            letter-spacing: -0.01em;
+            color: var(--primary-maroon);
+            line-height: 1;
+            margin-left: auto;
         }
 
-        /* Logout button at bottom */
-        .sidebar-footer {
-            margin-top: 2rem;
-            padding-top: 1rem;
+        .sidebar-nav-bottom {
+            margin-top: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
         }
 
-        .btn-keluar {
-            background: transparent;
-            border: none;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: #d90429;
-            cursor: pointer;
-            padding: 0.25rem 0.5rem;
+        .btn-keluar-pill {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.85rem;
+            height: 46px;
+            padding: 0 1rem;
+            background-color: #ffffff;
+            border: 1.5px solid var(--maroon-border);
+            border-radius: 12px;
+            color: #1a1a1a;
+            font-family: inherit;
+            font-size: 0.92rem;
+            font-weight: 700;
             transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
         }
 
-        .btn-keluar:hover {
-            color: #9f021c;
-            transform: translateX(4px);
+        .btn-keluar-pill:hover {
+            background-color: #fff1f2;
+            color: #be123c;
+            transform: translateX(3px);
+        }
+
+        .btn-keluar-pill:hover svg {
+            stroke: #be123c;
         }
 
         /* ================= MAIN CONTENT ================= */
         .main-content {
             flex: 1;
-            padding: 3.5rem 4rem 3rem 4.5rem;
+            padding: 2rem 2.75rem 3rem 2.75rem;
             display: flex;
             flex-direction: column;
-            background-color: var(--bg-main);
+            background-color: #ffffff;
             overflow-y: auto;
         }
 
-        @media (max-width: 1024px) {
-            .main-content {
-                padding: 2rem 2rem 2rem 2.5rem;
-            }
+        /* Assalamu'alaikum Heading */
+        .welcome-heading {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: #111827;
+            margin-bottom: 1.35rem;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
         }
 
-        /* Welcome Header */
-        .welcome-title {
-            font-family: 'Bebas Neue', 'Oswald', sans-serif;
-            font-size: clamp(2.4rem, 4.5vw, 3.6rem);
-            color: #1a1a1a;
-            letter-spacing: 0.03em;
-            margin-bottom: 2.8rem;
-            text-transform: uppercase;
-            line-height: 1.1;
+        /* Card Container with Maroon Outline */
+        .simahad-card {
+            border: 1.5px solid var(--maroon-border);
+            border-radius: 16px;
+            background-color: #ffffff;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
         }
 
-        /* 3 Maroon Status Cards */
-        .cards-row {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 2.2rem;
-            margin-bottom: 5.5rem;
-            max-width: 1050px;
+        .simahad-card:hover {
+            box-shadow: 0 4px 14px rgba(110, 0, 27, 0.06);
         }
 
-        @media (max-width: 960px) {
-            .cards-row {
-                grid-template-columns: 1fr;
-                gap: 1.25rem;
-                margin-bottom: 3.5rem;
-            }
+        /* Top Student Summary Card */
+        .student-summary-card {
+            padding: 1.25rem 1.65rem;
+            margin-bottom: 1.35rem;
         }
 
-        .status-card {
-            background-color: var(--primary-maroon);
-            border-radius: 6px;
-            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.24);
-            height: 145px;
+        .card-heading-maroon {
+            color: var(--primary-maroon);
+            font-size: 0.98rem;
+            font-weight: 700;
+            margin-bottom: 0.85rem;
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .student-profile-row {
+            display: flex;
+            align-items: center;
+            gap: 1.15rem;
+        }
+
+        .student-avatar-box {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            background-color: #fdf2f4;
             display: flex;
             align-items: center;
             justify-content: center;
-            text-align: center;
-            padding: 1.25rem 1.5rem;
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
-            cursor: pointer;
-            text-decoration: none;
+            flex-shrink: 0;
+            color: var(--primary-maroon);
         }
 
-        .status-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 22px rgba(110, 0, 27, 0.35);
-            background-color: var(--primary-maroon-hover);
+        .student-info-col {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
         }
 
-        .card-inner-text {
-            font-family: 'Lora', Georgia, serif;
-            color: #ffffff;
-            font-size: 1.18rem;
+        .student-name {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #111827;
+            letter-spacing: -0.01em;
+            line-height: 1.2;
+        }
+
+        .student-program {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
             font-weight: 500;
-            line-height: 1.45;
-            letter-spacing: -0.01em;
+            line-height: 1.3;
         }
 
-        /* Schedule Section */
-        .schedule-container {
-            max-width: 1050px;
+        .student-status {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #16a34a;
+            line-height: 1.3;
         }
 
-        .schedule-heading {
-            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-            font-size: 1.7rem;
-            font-weight: 800;
-            color: #1a1a1a;
-            margin-bottom: 1.5rem;
-            letter-spacing: -0.02em;
-        }
-
-        /* Soft Pastel Pink Schedule Card */
-        .schedule-card {
-            background-color: var(--bg-schedule);
-            border-radius: 20px;
-            padding: 2.2rem 3rem;
+        /* 2-Column Grid */
+        .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.35rem;
+            margin-bottom: 1.35rem;
+        }
+
+        .grid-card {
+            padding: 1.25rem 1.45rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 220px;
+        }
+
+        .grid-card.compact-height {
+            min-height: 175px;
+        }
+
+        .card-header-flex {
+            display: flex;
             align-items: center;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-            transition: all 0.25s ease;
+            justify-content: space-between;
+            gap: 0.75rem;
         }
 
-        @media (max-width: 768px) {
-            .schedule-card {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-                padding: 1.5rem;
-            }
+        .card-date-badge {
+            color: var(--primary-maroon);
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            cursor: pointer;
+            user-select: none;
         }
 
-        .schedule-item {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 1.25rem;
+        /* Jadwal Subcard */
+        .jadwal-inner-box {
+            border: 1.2px solid var(--maroon-border);
+            border-radius: 10px;
+            padding: 0.75rem 0.95rem;
+            margin-top: 0.95rem;
+            background-color: #ffffff;
+        }
+
+        .jadwal-inner-header {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            color: var(--primary-maroon);
+            font-size: 0.74rem;
+            font-weight: 700;
+            margin-bottom: 0.35rem;
+        }
+
+        .jadwal-inner-title {
+            font-size: 0.85rem;
             font-weight: 800;
-            color: #526071;
+            color: #1f2937;
+            margin-bottom: 0.2rem;
+            line-height: 1.2;
+        }
+
+        .jadwal-inner-subtitle {
+            font-size: 0.74rem;
+            color: var(--text-muted);
+            line-height: 1.35;
+        }
+
+        .jadwal-meta-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            margin-top: 0.75rem;
+        }
+
+        .jadwal-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.76rem;
+            color: var(--text-secondary);
+        }
+
+        .jadwal-meta-icon {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            background-color: #fdf2f4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-maroon);
+            flex-shrink: 0;
+        }
+
+        .jadwal-meta-label {
+            font-weight: 700;
+            color: #374151;
+        }
+
+        .jadwal-meta-val {
+            color: var(--text-muted);
+        }
+
+        /* Tagihan Center Content */
+        .tagihan-center-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 1.25rem 0.5rem;
+            flex-grow: 1;
+        }
+
+        .tagihan-empty-title {
+            color: var(--primary-maroon);
+            font-size: 1.15rem;
+            font-weight: 800;
+            margin-bottom: 0.4rem;
             letter-spacing: -0.01em;
         }
 
-        .schedule-item.time {
-            text-align: left;
-            padding-left: 1.5rem;
+        .tagihan-empty-desc {
+            color: #1f2937;
+            font-size: 0.92rem;
+            font-weight: 500;
+            max-width: 290px;
+            line-height: 1.45;
         }
 
-        .schedule-item.subject {
+        /* Absensi Badges */
+        .absensi-badges-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 0.85rem 0 0.65rem 0;
+        }
+
+        .stat-pill {
+            flex: 1;
             text-align: center;
-        }
-
-        .schedule-item.room {
-            text-align: right;
-            padding-right: 1.5rem;
-        }
-
-        @media (max-width: 768px) {
-            .schedule-item.time,
-            .schedule-item.subject,
-            .schedule-item.room {
-                text-align: center;
-                padding: 0;
-            }
-        }
-
-        /* Responsive Mobile Toggle */
-        .mobile-nav-toggle {
-            display: none;
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            z-index: 99;
-            background: var(--primary-maroon);
-            color: #ffffff;
-            border: none;
+            padding: 0.45rem 0.5rem;
             border-radius: 8px;
-            padding: 0.6rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-pill.hadir {
+            background-color: #bbf7d0;
+            border: 1.2px solid #22c55e;
+            color: #15803d;
+        }
+
+        .stat-pill.izin {
+            background-color: #fee2e2;
+            border: 1.2px solid #f87171;
+            color: #b91c1c;
+        }
+
+        .stat-pill.alpa {
+            background-color: #fce7f3;
+            border: 1.2px solid #f472b6;
+            color: #9d174d;
+        }
+
+        .stat-number {
+            font-size: 1.15rem;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+
+        .stat-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .absensi-meeting-count {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 0.35rem;
+        }
+
+        .attendance-progress-track {
+            width: 100%;
+            height: 5px;
+            background-color: #e2e8f0;
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-bottom: 0.3rem;
+        }
+
+        .attendance-progress-bar {
+            height: 100%;
+            background-color: #15803d;
+            border-radius: 9999px;
+            transition: width 0.3s ease;
+        }
+
+        .attendance-progress-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .attendance-percentage-val {
+            font-weight: 700;
+            color: #15803d;
+        }
+
+        /* Detail Link in Card Footer */
+        .card-detail-footer {
+            text-align: right;
+            margin-top: 0.75rem;
+        }
+
+        .link-card-detail {
+            color: var(--primary-maroon);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: color 0.15s ease, transform 0.15s ease;
+        }
+
+        .link-card-detail:hover {
+            color: var(--primary-maroon-hover);
+            transform: translateX(2px);
+            text-decoration: underline;
+        }
+
+        /* Bottom Full-width Cards */
+        .bottom-card {
+            padding: 1.15rem 1.45rem;
+            margin-bottom: 1.35rem;
+            min-height: 76px;
+            display: flex;
+            align-items: flex-start;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
 
-        @media (max-width: 820px) {
-            .mobile-nav-toggle {
-                display: block;
-            }
-            .sidebar {
-                position: fixed;
-                left: -270px;
-                transition: left 0.3s ease;
-            }
-            .sidebar.active {
-                left: 0;
-            }
-            .sidebar-backdrop {
-                display: none;
-                position: fixed;
-                inset: 0;
-                background: rgba(0, 0, 0, 0.4);
-                z-index: 9;
-            }
-            .sidebar-backdrop.active {
-                display: block;
-            }
-            .main-content {
-                padding: 4.5rem 1.5rem 2rem 1.5rem;
-            }
+        .bottom-card-icon {
+            color: var(--primary-maroon);
+            width: 26px;
+            height: 26px;
+            flex-shrink: 0;
         }
 
-        /* Modal Dialog for info */
+        /* ================= MODAL ================= */
         .modal-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(3px);
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(2px);
             z-index: 100;
             align-items: center;
             justify-content: center;
@@ -464,28 +717,28 @@
             border-radius: 16px;
             max-width: 480px;
             width: 100%;
-            padding: 2rem;
+            padding: 1.85rem;
             box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15);
             position: relative;
             animation: modalFadeIn 0.2s ease-out;
+            border: 1.5px solid var(--maroon-border);
         }
 
         @keyframes modalFadeIn {
-            from { opacity: 0; transform: translateY(10px) scale(0.98); }
+            from { opacity: 0; transform: translateY(8px) scale(0.98); }
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .modal-title {
-            font-family: 'Lora', Georgia, serif;
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: #1e293b;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-maroon);
             margin-bottom: 0.75rem;
         }
 
         .modal-body {
             font-size: 0.95rem;
-            color: #475569;
+            color: #374151;
             line-height: 1.6;
             margin-bottom: 1.5rem;
         }
@@ -510,170 +763,245 @@
             border-radius: 10px;
             border: none;
             font-weight: 700;
+            font-size: 0.92rem;
             cursor: pointer;
             transition: background-color 0.2s;
+        }
+
+        .btn-modal-action:hover {
+            background-color: var(--primary-maroon-hover);
+        }
+
+        /* Backdrop for Mobile Sidebar */
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 45;
+        }
+
+        /* ================= RESPONSIVE ================= */
+        @media (max-width: 992px) {
+            .mobile-toggle-btn {
+                display: block;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: var(--header-height);
+                bottom: 0;
+                left: -300px;
+                z-index: 46;
+                transition: left 0.3s ease;
+                box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .sidebar-backdrop.active {
+                display: block;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .main-content {
+                padding: 1.5rem 1.25rem 2.5rem 1.25rem;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Mobile Hamburger Toggle -->
-    <button type="button" class="mobile-nav-toggle" id="mobileMenuBtn" aria-label="Toggle Menu">
-        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
-        </svg>
-    </button>
+
+    <!-- ================= TOP NAVBAR ================= -->
+    <header class="top-navbar">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <!-- Mobile Menu Toggle Button -->
+            <button type="button" class="mobile-toggle-btn" id="mobileMenuBtn" aria-label="Buka Menu">
+                <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+
+            <!-- Brand SIMAHAD -->
+            <a href="{{ route('dashboard') }}" class="navbar-brand-wrap">
+                <img src="{{ asset('images/logo_uin.png') }}" alt="Logo SIMAHAD" class="brand-logo-img">
+                <span class="brand-title">SIMAHAD</span>
+            </a>
+        </div>
+
+        <!-- Right Header Icons -->
+        <div class="navbar-actions">
+            <!-- Notification Bell Icon (Maroon circle with white bell) -->
+            <button type="button" class="btn-circle-action btn-bell-badge" title="Pemberitahuan" onclick="openInfoModal('Pemberitahuan', 'Tidak ada pemberitahuan baru saat ini. Semua tagihan dan absensi Anda dalam keadaan terkini.')">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+            </button>
+
+            <!-- User Avatar Icon (Dark circle with silhouette) -->
+            <button type="button" class="btn-circle-action btn-profile-badge" title="Profil Pengguna" onclick="openInfoModal('Profil Pengguna', '<strong>Nama:</strong> {{ Auth::user()->name }}<br><strong>NIM:</strong> {{ Auth::user()->nim ?? '-' }}<br><strong>Email:</strong> {{ Auth::user()->email }}<br><strong>Status:</strong> Penghuni Ma\'had Al-Jami\'ah')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#262626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Backdrop -->
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-    <div class="dashboard-layout">
+    <div class="dashboard-body">
         <!-- ================= SIDEBAR ================= -->
         <aside class="sidebar" id="sidebar">
             <!-- Architectural Campus Photo Background -->
             <div class="sidebar-bg"></div>
-            <!-- Translucent Overlay for readability -->
+            <!-- Translucent Overlay -->
             <div class="sidebar-overlay"></div>
 
             <!-- Campus Watermark matching the design -->
             <div class="sidebar-watermark">
-                <svg class="watermark-emblem" width="64" height="64" viewBox="0 0 100 100" fill="none">
+                <svg class="watermark-emblem" width="60" height="60" viewBox="0 0 100 100" fill="none">
                     <polygon points="50,4 92,25 92,75 50,96 8,75 8,25" stroke="#a16207" stroke-width="3" fill="none" />
                     <polygon points="50,14 82,30 82,70 50,86 18,70 18,30" stroke="#64748b" stroke-width="2.5" fill="none" />
                     <path d="M50 20 L50 80 M25 50 L75 50" stroke="#64748b" stroke-width="2" />
                 </svg>
-                <div class="watermark-text-1">ma'had al-jami'ah</div>
                 <div class="watermark-text-2">UIN Imam Bonjol</div>
             </div>
 
             <!-- Sidebar Navigation Content -->
             <div class="sidebar-content">
-                <div>
-                    <!-- Top Logo Emblem -->
-                    <div class="sidebar-logo">
-                        <svg class="logo-emblem" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <!-- Outer Red Shield -->
-                            <path d="M60 4 L110 24 L110 74 C110 98 60 116 60 116 C60 116 10 98 10 74 L10 24 Z" fill="#800020" stroke="#500014" stroke-width="4" />
-                            <!-- Inner Black Shield Cut -->
-                            <path d="M60 16 L98 32 L98 70 C98 88 60 104 60 104 C60 104 22 88 22 70 L22 32 Z" fill="#18181b" />
-                            <!-- Geometric Monogram (UIN / IB) -->
-                            <path d="M36 38 L48 38 L48 68 C48 74 54 78 60 78 C66 78 72 74 72 68 L72 38 L84 38 L84 68 C84 82 72 90 60 90 C48 90 36 82 36 68 Z" fill="#ffffff" />
-                            <polygon points="60,26 68,38 52,38" fill="#eab308" />
-                        </svg>
-                    </div>
+                <nav class="sidebar-nav">
+                    <!-- 1. Dashboard (Active) -->
+                    <a href="{{ route('dashboard') }}" class="nav-pill active">
+                        <span class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                                <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                                <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                                <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                            </svg>
+                        </span>
+                        <span class="nav-label">Dashboard</span>
+                        <span class="nav-chevron">&gt;</span>
+                    </a>
 
-                    <!-- Navigation Items List -->
-                    <nav class="sidebar-nav">
-                        <!-- 1. Home -->
-                        <a href="{{ route('dashboard') }}" class="nav-item">
-                            <span class="nav-icon">
-                                <svg width="28" height="28" viewBox="0 0 24 24" fill="#1a1a1a">
-                                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-                                </svg>
-                            </span>
-                            <span class="nav-text">Home</span>
-                        </a>
+                    <!-- 2. Pendaftaran -->
+                    <a href="{{ route('pendaftaran.pribadi') }}" class="nav-pill">
+                        <span class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-label">Pendaftaran</span>
+                    </a>
 
-                        <!-- 2. Pendaftaran -->
-                        <a href="{{ route('pendaftaran.pribadi') }}" class="nav-item">
-                            <span class="nav-icon">
-                                <svg width="32" height="32" viewBox="0 0 36 36" fill="none">
-                                    <circle cx="18" cy="18" r="16" fill="#ffffff" stroke="#1a1a1a" stroke-width="2.2" />
-                                    <rect x="12" y="10" width="12" height="15" rx="1.5" stroke="#1a1a1a" stroke-width="2" />
-                                    <line x1="15" y1="14" x2="21" y2="14" stroke="#1a1a1a" stroke-width="1.8" stroke-linecap="round" />
-                                    <line x1="15" y1="18" x2="21" y2="18" stroke="#1a1a1a" stroke-width="1.8" stroke-linecap="round" />
-                                    <line x1="15" y1="22" x2="19" y2="22" stroke="#1a1a1a" stroke-width="1.8" stroke-linecap="round" />
-                                    <!-- Pencil -->
-                                    <path d="M22 23 L26 19 L28 21 L24 25 Z" fill="#1a1a1a" />
-                                </svg>
-                            </span>
-                            <span class="nav-text">Pendaftaran</span>
-                        </a>
+                    <!-- 3. Pembelajaran -->
+                    <a href="javascript:void(0)" class="nav-pill" onclick="openInfoModal('Pembelajaran', 'Program Pembelajaran Ma\'had:<br>• Bahasa Arab & Studi Islam<br>• Tahsin & Tahfidz Al-Qur\'an<br>• Kajian Fiqih & Akhlak')">
+                        <span class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-label">Pembelajaran</span>
+                    </a>
 
-                        <!-- 3. Kamar -->
-                        <a href="{{ route('kamar') }}" class="nav-item">
-                            <span class="nav-icon">
-                                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                                    <!-- Bed frame -->
-                                    <rect x="3" y="16" width="17" height="10" rx="1.5" stroke="#1a1a1a" stroke-width="2" />
-                                    <!-- Pillow -->
-                                    <rect x="5" y="18" width="5" height="4" rx="1" fill="#1a1a1a" />
-                                    <!-- Bed headboard -->
-                                    <line x1="3" y1="12" x2="3" y2="26" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round" />
-                                    <!-- Nightstand with lamp -->
-                                    <rect x="22" y="18" width="7" height="8" rx="1" stroke="#1a1a1a" stroke-width="1.8" />
-                                    <line x1="22" y1="22" x2="29" y2="22" stroke="#1a1a1a" stroke-width="1.5" />
-                                    <!-- Lamp -->
-                                    <polygon points="23.5,15 27.5,15 28.5,12 22.5,12" fill="#1a1a1a" />
-                                    <line x1="25.5" y1="15" x2="25.5" y2="18" stroke="#1a1a1a" stroke-width="1.5" />
-                                </svg>
-                            </span>
-                            <span class="nav-text">Kamar</span>
-                        </a>
+                    <!-- 3. Informasi Kamar -->
+                    <a href="{{ route('kamar') }}" class="nav-pill">
+                        <span class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 4v16"></path>
+                                <path d="M2 8h18a2 2 0 0 1 2 2v10"></path>
+                                <path d="M2 17h20"></path>
+                                <path d="M6 8v9"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-label">Informasi Kamar</span>
+                    </a>
 
-                        <!-- 4. Pembayaran -->
-                        <a href="{{ route('pembayaran') }}" class="nav-item">
-                            <span class="nav-icon">
-                                <span class="icon-circle-blue">
-                                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                        <rect x="2" y="5" width="20" height="14" rx="2" />
-                                        <line x1="2" y1="10" x2="22" y2="10" />
-                                    </svg>
-                                </span>
-                            </span>
-                            <span class="nav-text">Pembayaran</span>
-                        </a>
+                    <!-- 4. Pembayaran -->
+                    <a href="{{ route('pembayaran') }}" class="nav-pill">
+                        <span class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"></path>
+                                <path d="M16 3H4a2 2 0 0 0-2 2v2"></path>
+                                <circle cx="16" cy="14" r="1.5" fill="#262626"></circle>
+                            </svg>
+                        </span>
+                        <span class="nav-label">Pembayaran</span>
+                    </a>
 
-                        <!-- 5. Pembalajaran (sesuai teks referensi) -->
-                        <a href="javascript:void(0)" class="nav-item" onclick="openInfoModal('Pembalajaran Asrama', 'Program Taklim Ma\'had:<br>• Bahasa Arab (Senin - Rabu, 08:00 - 10:00)<br>• Tahsin & Tahfidz Al-Qur\'an (Ba\'da Subuh)<br>• Kajian Fiqih & Akhlak (Ba\'da Maghrib)')">
-                            <span class="nav-icon">
-                                <span class="icon-circle-cyan">
-                                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                    </svg>
-                                </span>
-                            </span>
-                            <span class="nav-text">Pembalajaran</span>
-                        </a>
+                    <!-- 5. Absensi -->
+                    <a href="javascript:void(0)" class="nav-pill" onclick="openInfoModal('Absensi', 'Data Kehadiran Ma\'had:<br>• Hadir: 10 kali<br>• Izin: 2 kali<br>• Alpa: 1 kali<br>• Persentase: 75%')">
+                        <span class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="8" y="2" width="8" height="4" rx="1"></rect>
+                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                                <path d="m9 14 2 2 4-4"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-label">Absensi</span>
+                    </a>
 
-                        <!-- 6. Perizinan -->
-                        <a href="javascript:void(0)" class="nav-item" onclick="openInfoModal('Perizinan Keluar Asrama', 'Ajukan perizinan keluar malam, izin pulang kampung (weekend), atau dispensasi kegiatan kampus melalui bagian musyrif/musyrifah.')">
-                            <span class="nav-icon">
-                                <svg width="30" height="30" fill="none" stroke="#1a1a1a" stroke-width="2.2" viewBox="0 0 24 24">
-                                    <rect x="3" y="5" width="18" height="14" rx="2" />
-                                    <polyline points="3 7 12 13 21 7" />
-                                </svg>
-                            </span>
-                            <span class="nav-text">Perizinan</span>
-                        </a>
+                    <!-- 6. Surat dan Perizinan -->
+                    <a href="javascript:void(0)" class="nav-pill" onclick="openInfoModal('Surat dan Perizinan', 'Ajukan surat izin keluar asrama, izin pulang, atau surat keterangan tinggal di asrama.')">
+                        <span class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                        </span>
+                        <span class="nav-label">Surat dan Perizinan</span>
+                    </a>
 
-                        <!-- 7. Profil -->
-                        <a href="javascript:void(0)" class="nav-item" onclick="openInfoModal('Profil Mahasiswa', 'Nama: {{ Auth::user()->name }}<br>NIM: {{ Auth::user()->nim ?? '-' }}<br>Email: {{ Auth::user()->email }}<br>Status: Mahasiswa Aktif')">
-                            <span class="nav-icon">
-                                <span class="icon-circle-avatar">
-                                    <svg width="24" height="24" fill="#1a1a1a" viewBox="0 0 24 24">
-                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-4.43-.82-6.14-2.88C7.55 15.8 9.68 15 12 15s4.45.8 6.14 2.12C16.43 19.18 14.03 20 12 20z" />
-                                    </svg>
-                                </span>
-                            </span>
-                            <span class="nav-text">Profil</span>
-                        </a>
+                    <!-- 7. Pengumuman -->
+                    <a href="javascript:void(0)" class="nav-pill" onclick="openInfoModal('Pengumuman', 'Belum ada pengumuman mendesak. Pantau selalu informasi kegiatan asrama di sini.')">
+                        <span class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m3 11 18-5v12L3 14v-3z"></path>
+                                <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-label">Pengumuman</span>
+                    </a>
+                </nav>
 
-                        <!-- 8. Pengaturan -->
-                        <a href="javascript:void(0)" class="nav-item" onclick="openInfoModal('Pengaturan Akun', 'Ubah kata sandi, pengaturan notifikasi pengumuman asrama, dan sinkronisasi kontak darurat wali mahasiswa.')">
-                            <span class="nav-icon">
-                                <svg width="28" height="28" fill="#1a1a1a" viewBox="0 0 24 24">
-                                    <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
-                                </svg>
-                            </span>
-                            <span class="nav-text">Pengaturan</span>
-                        </a>
-                    </nav>
-                </div>
+                <!-- Bottom Section -->
+                <div class="sidebar-nav-bottom">
+                    <!-- 8. Pengaturan Akun -->
+                    <a href="javascript:void(0)" class="nav-pill" onclick="openInfoModal('Pengaturan Akun', 'Pengaturan Profil Mahasiswa:<br>• Ubah Kata Sandi<br>• Kontak Darurat Wali<br>• Preferensi Notifikasi')">
+                        <span class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-label">Pengaturan Akun</span>
+                    </a>
 
-                <!-- Keluar (Logout) -->
-                <div class="sidebar-footer">
-                    <form action="{{ route('logout') }}" method="POST" id="logoutForm">
+                    <!-- 9. Keluar -->
+                    <form action="{{ route('logout') }}" method="POST" id="logoutForm" style="margin: 0;">
                         @csrf
-                        <button type="submit" class="btn-keluar">
-                            Keluar
+                        <button type="submit" class="btn-keluar-pill">
+                            <span class="nav-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                            </span>
+                            <span class="nav-label">Keluar</span>
                         </button>
                     </form>
                 </div>
@@ -682,50 +1010,232 @@
 
         <!-- ================= MAIN CONTENT ================= -->
         <main class="main-content">
-            <!-- Header Welcome matching visual: SELAMAT DATANG, (NAMA MAHASISWA) -->
-            <h1 class="welcome-title">
-                SELAMAT DATANG, {{ strtoupper(Auth::user()->name ?? '(NAMA MAHASISWA)') }}
+            <!-- Greeting Header -->
+            <h1 class="welcome-heading">
+                Assalamu’alaikum <span>👋</span>
             </h1>
 
-            <!-- 3 Maroon Status Cards Row -->
-            <section class="cards-row">
-                <!-- Card 1: Pendaftaran Disetujui -->
-                <div class="status-card" onclick="openInfoModal('Pendaftaran Asrama', 'Pendaftaran Anda telah diverifikasi dan <strong>Disetujui</strong> oleh pihak administrasi asrama.')">
-                    <div class="card-inner-text">
-                        <div>Pendaftaran</div>
-                        <div>Disetujui</div>
-                    </div>
+            <!-- Section 1: Ringkasan Mahasiswa -->
+            <section class="simahad-card student-summary-card">
+                <div class="card-heading-maroon">
+                    Ringkasan Mahasiswa
                 </div>
-
-                <!-- Card 2: Kamar A-102 -->
-                <div class="status-card" onclick="window.location.href='{{ route('kamar') }}'">
-                    <div class="card-inner-text">
-                        <div>Kamar A-102</div>
+                <div class="student-profile-row">
+                    <div class="student-avatar-box">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
                     </div>
-                </div>
-
-                <!-- Card 3: Pembayaran Belum Lunas -->
-                <div class="status-card" onclick="window.location.href='{{ route('pembayaran') }}'" style="cursor: pointer;">
-                    <div class="card-inner-text">
-                        <div>Pembayaran Belum Lunas</div>
+                    <div class="student-info-col">
+                        <div class="student-name">
+                            {{ Auth::user()->name ?? 'Nama Mahasiswa' }}
+                        </div>
+                        <div class="student-program">
+                            Program studi – Angkatan
+                        </div>
+                        <div class="student-status">
+                            Status: Penghuni Ma'had
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Jadwal Hari Ini Section -->
-            <section class="schedule-container">
-                <h2 class="schedule-heading">Jadwal Hari Ini</h2>
+            <!-- Section 2: 2x2 Grid of Cards -->
+            <div class="dashboard-grid">
+                <!-- Card 1: Jadwal Pembelajaran -->
+                <div class="simahad-card grid-card">
+                    <div>
+                        <div class="card-header-flex">
+                            <div class="card-heading-maroon" style="margin-bottom: 0;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                <span>Jadwal Pembelajaran</span>
+                            </div>
+                            <div class="card-date-badge" onclick="openInfoModal('Kalender Pembelajaran', 'Jadwal aktif untuk semester ganjil tahun ajaran 2026/2027.')">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                <span>{{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM Y') }}</span>
+                                <span style="font-size: 0.8rem;">&#9662;</span>
+                            </div>
+                        </div>
 
-                <div class="schedule-card">
-                    <div class="schedule-item time">08:00-10:00</div>
-                    <div class="schedule-item subject">Bahasa Arab</div>
-                    <div class="schedule-item room">Kelas-A</div>
+                        <!-- Inner Box: Belum ada jadwal -->
+                        <div class="jadwal-inner-box">
+                            <div class="jadwal-inner-header">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                <span>Jadwal Pembelajaran</span>
+                            </div>
+                            <div class="jadwal-inner-title">Tidak Ada Jadwal Saat Ini</div>
+                            <div class="jadwal-inner-subtitle">Belum ada jadwal pembelajaran. Tetap semangat belajar mandiri, ya!</div>
+                        </div>
+
+                        <!-- Meta Row -->
+                        <div class="jadwal-meta-row">
+                            <div class="jadwal-meta-item">
+                                <span class="jadwal-meta-icon">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="9" cy="7" r="4"></circle>
+                                    </svg>
+                                </span>
+                                <span class="jadwal-meta-label">Kelompok Belajar</span>
+                                <span class="jadwal-meta-val">Kelompok mahasiswa</span>
+                            </div>
+                            <div class="jadwal-meta-item">
+                                <span class="jadwal-meta-icon">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                    </svg>
+                                </span>
+                                <span class="jadwal-meta-label">Mata Pelajaran</span>
+                                <a href="javascript:void(0)" onclick="openInfoModal('Mata Pelajaran Asrama', '1. Bahasa Arab Dasar & Lanjutan<br>2. Tahsin Tilawah Al-Qur\'an<br>3. Fiqih Ibadah & Muamalah<br>4. Akhlak & Adab Santri')" style="color: var(--primary-maroon); text-decoration: none; font-weight: 600;" class="jadwal-meta-val">Lihat Mata Pelajaran</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-detail-footer">
+                        <a href="javascript:void(0)" onclick="openInfoModal('Detail Pembelajaran', 'Kalender & Jadwal Pembelajaran Ma\'had:<br>• Subuh: Kajian Al-Qur\'an & Tahsin (05:30 - 06:30)<br>• Pagi: Bahasa Arab (08:00 - 10:00)<br>• Maghrib: Kajian Kitab Kuning / Akhlak (18:45 - 19:45)')" class="link-card-detail">Detail pembelajaran &rarr;</a>
+                    </div>
+                </div>
+
+                <!-- Card 2: Total Tagihan -->
+                <div class="simahad-card grid-card">
+                    <div>
+                        <div class="card-heading-maroon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"></path>
+                                <path d="M16 3H4a2 2 0 0 0-2 2v2"></path>
+                                <circle cx="16" cy="14" r="1.5" fill="currentColor"></circle>
+                            </svg>
+                            <span>Total Tagihan</span>
+                        </div>
+
+                        <!-- Center Empty Notice -->
+                        <div class="tagihan-center-wrap">
+                            <div class="tagihan-empty-title">Belum Ada Tagihan Baru</div>
+                            <div class="tagihan-empty-desc">Terimakasih telah melunasi tagihan periode ini</div>
+                        </div>
+                    </div>
+
+                    <div class="card-detail-footer">
+                        <a href="{{ route('pembayaran') }}" class="link-card-detail">Detail pembayaran &rarr;</a>
+                    </div>
+                </div>
+
+                <!-- Card 3: Informasi Kamar -->
+                <div class="simahad-card grid-card compact-height">
+                    <div>
+                        <div class="card-heading-maroon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 4v16"></path>
+                                <path d="M2 8h18a2 2 0 0 1 2 2v10"></path>
+                                <path d="M2 17h20"></path>
+                                <path d="M6 8v9"></path>
+                            </svg>
+                            <span>Informasi Kamar</span>
+                        </div>
+
+                        <!-- Room Content / Empty Placeholder matching screenshot -->
+                        <div style="min-height: 48px; display: flex; align-items: center; padding: 0.25rem 0;">
+                            @if(isset($kamar) && $kamar)
+                                <div style="font-size: 0.92rem; color: #1f2937;">
+                                    <strong>{{ $kamar->nama_kamar }}</strong> - Gedung {{ $kamar->gedung ?? 'Utama' }} (Lantai {{ $kamar->lantai ?? '1' }})
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="card-detail-footer">
+                        <a href="{{ route('kamar') }}" class="link-card-detail">Detail informasi kamar &rarr;</a>
+                    </div>
+                </div>
+
+                <!-- Card 4: Absensi -->
+                <div class="simahad-card grid-card compact-height">
+                    <div>
+                        <div class="card-heading-maroon" style="margin-bottom: 0.45rem;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="8" y="2" width="8" height="4" rx="1"></rect>
+                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                                <path d="m9 14 2 2 4-4"></path>
+                            </svg>
+                            <span>Absensi</span>
+                        </div>
+
+                        <!-- 3 Badges: Hadir, Izin, Alpa -->
+                        <div class="absensi-badges-row">
+                            <div class="stat-pill hadir">
+                                <span class="stat-number">10</span>
+                                <span class="stat-label">Hadir</span>
+                            </div>
+                            <div class="stat-pill izin">
+                                <span class="stat-number">2</span>
+                                <span class="stat-label">Izin</span>
+                            </div>
+                            <div class="stat-pill alpa">
+                                <span class="stat-number">1</span>
+                                <span class="stat-label">Alpa</span>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar & Count -->
+                        <div class="absensi-meeting-count">Total pertemuan: 16 kali</div>
+                        <div class="attendance-progress-track">
+                            <div class="attendance-progress-bar" style="width: 75%;"></div>
+                        </div>
+                        <div class="attendance-progress-footer">
+                            <span>Persentase kehadiran</span>
+                            <span class="attendance-percentage-val">75%</span>
+                        </div>
+                    </div>
+
+                    <div class="card-detail-footer">
+                        <a href="javascript:void(0)" onclick="openInfoModal('Detail Absensi', 'Statistik Kehadiran Mahasiswa:<br>• Total Pertemuan: 16 Pertemuan<br>• Kehadiran: 10 Pertemuan<br>• Izin: 2 Pertemuan<br>• Alpa: 1 Pertemuan<br>• Persentase: 75% (Status: Memenuhi Syarat Minimal 70%)')" class="link-card-detail">Detail absensi &rarr;</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Bottom Full-Width Card (Pengumuman) -->
+            <section class="simahad-card bottom-card" onclick="openInfoModal('Pengumuman Asrama', 'Belum ada pengumuman terbaru hari ini. Silakan periksa kembali secara berkala.')">
+                <div class="bottom-card-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m3 11 18-5v12L3 14v-3z"></path>
+                        <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path>
+                    </svg>
+                </div>
+            </section>
+
+            <!-- Section 4: Bottom Full-Width Card (Surat dan Perizinan) -->
+            <section class="simahad-card bottom-card" onclick="openInfoModal('Surat dan Perizinan', 'Tidak ada pengajuan perizinan aktif. Klik untuk mengajukan izin bermalam atau keluar asrama.')">
+                <div class="bottom-card-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- Interactive Info Modal -->
+    <!-- ================= INFO MODAL DIALOG ================= -->
     <div id="infoModal" class="modal-overlay" onclick="closeModalOnBackdrop(event)">
         <div class="modal-box">
             <button type="button" class="btn-modal-close" onclick="closeModal()">&times;</button>

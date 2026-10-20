@@ -11,6 +11,14 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Pendaftaran Akun (Daftar di sini)
+Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
+Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+
+// Lupa Kata Sandi
+Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.request');
+Route::post('/forgot-password', [AuthController::class, 'resetPassword'])->name('password.update');
+
 Route::get('/dashboard', [AuthController::class, 'dashboard'])
     ->name('dashboard')
     ->middleware('auth');
@@ -51,6 +59,22 @@ Route::post('/pendaftaran/pribadi', [PendaftaranController::class, 'simpanPribad
 
 Route::get('/pendaftaran/akademik', [PendaftaranController::class, 'akademik'])
     ->name('pendaftaran.akademik')
+    ->middleware('auth');
+
+Route::post('/pendaftaran/akademik', [PendaftaranController::class, 'simpanAkademik'])
+    ->name('pendaftaran.simpanAkademik')
+    ->middleware('auth');
+
+Route::get('/pendaftaran/dokumen', [PendaftaranController::class, 'dokumen'])
+    ->name('pendaftaran.dokumen')
+    ->middleware('auth');
+
+Route::post('/pendaftaran/dokumen', [PendaftaranController::class, 'simpanDokumen'])
+    ->name('pendaftaran.simpanDokumen')
+    ->middleware('auth');
+
+Route::get('/pendaftaran/konfirmasi', [PendaftaranController::class, 'konfirmasi'])
+    ->name('pendaftaran.konfirmasi')
     ->middleware('auth');
 
 Route::post('/pendaftaran/selesai', [PendaftaranController::class, 'selesai'])

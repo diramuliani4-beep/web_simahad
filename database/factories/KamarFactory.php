@@ -21,7 +21,7 @@ class KamarFactory extends Factory
         $floor = (int) substr((string) $number, 0, 1);
 
         return [
-            'nama_kamar' => 'Kamar ' . $number,
+            'nama_kamar' => 'Kamar '.$number,
             'nomor_kamar' => (string) $number,
             'gedung' => 'Gedung A',
             'lantai' => $floor,

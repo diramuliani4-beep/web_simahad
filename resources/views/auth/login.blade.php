@@ -4,14 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Sistem Informasi Asrama Mahasiswa - Login</title>
+    <title>SIMAHAD - Masuk & Akses Layanan Ma'had</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@1,500;1,600;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Styles -->
     <style>
         *, *::before, *::after {
             box-sizing: border-box;
@@ -20,300 +19,492 @@
         }
 
         :root {
-            --primary-maroon: #6e001b;
-            --primary-maroon-hover: #560015;
-            --primary-maroon-active: #450011;
-            --text-dark: #1f2327;
-            --text-serif: #222222;
-            --bg-page: #fbfbfa;
-            --shadow-maroon: 0 6px 14px rgba(0, 0, 0, 0.28);
-            --shadow-button: 0 6px 15px rgba(0, 0, 0, 0.35);
+            --brand-maroon: #781023;
+            --brand-maroon-hover: #600c1b;
+            --brand-maroon-dark: #460914;
+            --brand-gold: #F5A623;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --bg-canvas: #f3f4f6;
+            --border-maroon: #781023;
         }
 
         body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-page);
-            color: var(--text-dark);
+            background-color: var(--bg-canvas);
+            color: var(--text-main);
             min-height: 100vh;
-            display: flex;
-            align-items: stretch;
-            overflow-x: hidden;
-        }
-
-        .login-layout {
-            display: flex;
-            width: 100vw;
-            min-height: 100vh;
-        }
-
-        /* Left Empty/Hero Section */
-        .hero-section {
-            flex: 1.15;
-            display: none;
-            background-color: var(--bg-page);
-            position: relative;
-        }
-
-        @media (min-width: 900px) {
-            .hero-section {
-                display: block;
-            }
-        }
-
-        /* Right Form Section */
-        .form-section {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 3rem 2rem;
-            position: relative;
-        }
-
-        @media (min-width: 900px) {
-            .form-section {
-                padding: 4rem 5rem 4rem 2rem;
-            }
-        }
-
-        .form-container {
-            width: 100%;
-            max-width: 440px;
-            margin: 0 auto;
-        }
-
-        @media (min-width: 900px) {
-            .form-container {
-                margin: 0;
-            }
-        }
-
-        /* Title Styling */
-        .portal-title {
-            font-family: 'Bebas Neue', 'Oswald', sans-serif;
-            font-size: clamp(2.3rem, 4vw, 3.1rem);
-            line-height: 1.08;
-            letter-spacing: 0.03em;
-            color: #1a1a1a;
-            margin-bottom: 2.8rem;
-            text-transform: uppercase;
-        }
-
-        .title-line {
-            display: block;
-            white-space: nowrap;
-        }
-
-        /* Stylized 'O' matching the design */
-        .stylized-o {
-            display: inline-block;
-            vertical-align: 0.02em;
-            width: 0.72em;
-            height: 0.72em;
-            margin: 0 0.04em;
-        }
-
-        .stylized-o svg {
-            display: block;
-            width: 100%;
-            height: 100%;
-        }
-
-        /* Form Controls */
-        .form-group {
-            margin-bottom: 1.6rem;
-            position: relative;
-        }
-
-        .form-label {
-            display: block;
-            font-family: 'Lora', Georgia, serif;
-            font-size: 1.05rem;
-            font-weight: 500;
-            color: var(--text-serif);
-            margin-bottom: 0.45rem;
-            letter-spacing: -0.01em;
-        }
-
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .maroon-input {
-            width: 100%;
-            height: 52px;
-            background-color: var(--primary-maroon);
-            color: #ffffff;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 1.02rem;
-            padding: 0 1.25rem;
-            border: none;
-            border-radius: 14px;
-            box-shadow: var(--shadow-maroon);
-            outline: none;
-            transition: all 0.25s ease;
-        }
-
-        .maroon-input::placeholder {
-            color: rgba(255, 255, 255, 0.55);
-            font-size: 0.95rem;
-        }
-
-        .maroon-input:focus {
-            box-shadow: 0 0 0 3px rgba(110, 0, 27, 0.35), 0 8px 18px rgba(0, 0, 0, 0.35);
-            transform: translateY(-1px);
-        }
-
-        .password-toggle-btn {
-            position: absolute;
-            right: 14px;
-            background: transparent;
-            border: none;
-            color: rgba(255, 255, 255, 0.75);
-            cursor: pointer;
-            padding: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 8px;
-            transition: color 0.2s, background-color 0.2s;
+            padding: 1.5rem 1rem;
         }
 
-        .password-toggle-btn:hover {
-            color: #ffffff;
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        /* Action Section */
-        .action-area {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 3.2rem;
-        }
-
-        .btn-login {
-            background-color: var(--primary-maroon);
-            color: #ffffff;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-weight: 700;
-            font-size: 1.15rem;
-            letter-spacing: 0.08em;
-            padding: 0.75rem 3.2rem;
-            min-width: 210px;
-            height: 48px;
-            border: none;
+        /* Outer Frame Container */
+        .login-card {
+            width: 100%;
+            max-width: 1080px;
+            background: #ffffff;
+            border: 1.5px solid var(--border-maroon);
             border-radius: 12px;
-            box-shadow: var(--shadow-button);
-            cursor: pointer;
-            transition: all 0.25s ease;
-            display: inline-flex;
+            overflow: hidden;
+            box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.12);
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 860px) {
+            .login-card {
+                flex-direction: row;
+                min-height: 640px;
+            }
+        }
+
+        /* ================= LEFT COLUMN ================= */
+        
+.hero-panel {
+    position: relative;
+    flex: 1.05;
+    background-color: #d1d5db;
+    background-image: url('{{ asset('images/mahad_al_jamiah.jpeg') }}');
+    background-size: cover;
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 2.25rem 2.25rem 2rem;
+    min-height: 480px;
+    overflow: hidden;
+    border-bottom: 1.5px solid var(--border-maroon);
+}
+
+
+        @media (min-width: 860px) {
+            .hero-panel {
+                border-bottom: none;
+                border-right: 1.5px solid var(--border-maroon);
+                min-height: 640px;
+            }
+        }
+
+        /* Subtle gradient to preserve sky & foreground clarity */
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                180deg, 
+                rgba(255, 255, 255, 0.35) 0%, 
+                rgba(255, 255, 255, 0.15) 30%, 
+                rgba(255, 255, 255, 0.5) 65%, 
+                rgba(255, 255, 255, 0.2) 100%
+            );
+            pointer-events: none;
+        }
+
+        .hero-content-top {
+            position: relative;
+            z-index: 2;
+            display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 12px;
+        }
+
+        .hero-brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hero-brand-title {
+            font-size: 1.45rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            color: #111827;
+            line-height: 1.1;
+        }
+
+        .hero-brand-sub {
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: #1f2937;
+            line-height: 1.25;
+            margin-top: 2px;
+        }
+
+        .hero-brand-inst {
+            font-size: 0.74rem;
+            font-weight: 500;
+            color: #374151;
+            line-height: 1.25;
+        }
+
+        .hero-content-middle {
+            position: relative;
+            z-index: 2;
+            margin-top: 2.5rem;
+            margin-bottom: auto;
+            max-width: 440px;
+        }
+
+        .hero-welcome {
+            font-family: 'Lora', Georgia, serif;
+            font-style: italic;
+            font-weight: 600;
+            font-size: 1.7rem;
+            color: var(--brand-maroon);
+            margin-bottom: 2px;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+        }
+
+        .hero-simahad {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: var(--brand-maroon-dark);
+            line-height: 1.05;
+            margin-bottom: 0.65rem;
+            letter-spacing: -0.01em;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+        }
+
+        .hero-tagline {
+            font-size: 0.96rem;
+            font-weight: 500;
+            color: #111827;
+            line-height: 1.45;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7);
+        }
+
+        /* Building Signage matching the facade in the screenshot */
+        .building-sign-overlay {
+            position: relative;
+            z-index: 2;
+            align-self: center;
+            text-align: center;
+            margin-top: 1rem;
+            padding: 0.65rem 1.25rem;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(2px);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .building-sign-logo {
+            display: inline-flex;
+            margin-bottom: 4px;
+        }
+
+        .building-sign-text {
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: #27303f;
+            letter-spacing: 0.08em;
+            line-height: 1.2;
             text-transform: uppercase;
         }
 
-        .btn-login:hover {
-            background-color: var(--primary-maroon-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        .building-sign-sub {
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: #334155;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
         }
 
-        .btn-login:active {
-            transform: translateY(1px);
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+        /* ================= RIGHT COLUMN ================= */
+        .form-panel {
+            flex: 1.05;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 1.75rem 2rem 2rem;
         }
 
-        /* Links */
-        .links-group {
-            margin-top: 1.35rem;
+        @media (min-width: 600px) {
+            .form-panel {
+                padding: 2rem 2.75rem 2rem;
+            }
+        }
+
+        .motto-bar {
+            text-align: right;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #374151;
+            letter-spacing: 0.02em;
+            margin-bottom: 1rem;
+        }
+
+        /* Framed Card on right with rounded top */
+        .inner-frame {
+            border: 1.5px solid var(--border-maroon);
+            border-radius: 36px 36px 28px 28px;
+            padding: 2.25rem 2rem 2rem;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0.65rem;
+            position: relative;
+        }
+
+        @media (min-width: 600px) {
+            .inner-frame {
+                padding: 2.5rem 2.5rem 2.25rem;
+            }
+        }
+
+        .center-emblem {
+            margin-bottom: 0.75rem;
+        }
+
+        .form-headline {
+            color: var(--brand-maroon);
+            font-size: 1.18rem;
+            font-weight: 700;
             text-align: center;
+            margin-bottom: 0.35rem;
         }
 
-        .auth-link {
-            font-family: 'Lora', Georgia, serif;
-            font-size: 0.95rem;
-            color: var(--text-serif);
-            text-decoration: none;
-            transition: color 0.2s, text-decoration 0.2s;
-            cursor: pointer;
-        }
-
-        .auth-link:hover {
-            color: var(--primary-maroon);
-            text-decoration: underline;
+        .form-subheadline {
+            color: #4b5563;
+            font-size: 0.82rem;
+            line-height: 1.35;
+            text-align: center;
+            max-width: 320px;
+            margin-bottom: 1.5rem;
         }
 
         /* Alerts */
-        .alert-error {
-            background-color: #fee2e2;
-            border-left: 4px solid #b91c1c;
-            color: #991b1b;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .alert-status {
-            background-color: #ecfdf5;
-            border-left: 4px solid #059669;
-            color: #065f46;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* Quick Demo Account helper badge */
-        .demo-badge-container {
-            margin-top: 2rem;
-            padding-top: 1.25rem;
-            border-top: 1px dashed #e2e8f0;
+        .alert-box {
             width: 100%;
+            padding: 0.65rem 0.85rem;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            line-height: 1.3;
+        }
+
+        .alert-error {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        .alert-success {
+            background-color: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+        }
+
+        /* Form elements */
+        .auth-form {
+            width: 100%;
+        }
+
+        .form-row {
+            margin-bottom: 0.9rem;
+            width: 100%;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.35rem;
+        }
+
+        .field-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .field-input {
+            width: 100%;
+            height: 42px;
+            border: 1.5px solid var(--border-maroon);
+            border-radius: 8px;
+            padding: 0 14px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            color: #111827;
+            background-color: #ffffff;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .field-input::placeholder {
+            color: #9ca3af;
+            font-size: 0.83rem;
+        }
+
+        .field-input:focus {
+            box-shadow: 0 0 0 3px rgba(120, 16, 35, 0.15);
+            border-color: var(--brand-maroon);
+        }
+
+        .field-input.has-icon {
+            padding-right: 42px;
+        }
+
+        .toggle-pwd-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: color 0.15s;
+        }
+
+        .toggle-pwd-btn:hover {
+            color: var(--brand-maroon);
+        }
+
+        .forgot-link-wrap {
+            text-align: right;
+            margin-top: -0.2rem;
+            margin-bottom: 1.15rem;
+        }
+
+        .forgot-link {
+            color: var(--brand-maroon);
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: text-decoration 0.2s;
+        }
+
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Buttons */
+        .btn-submit {
+            width: 100%;
+            height: 42px;
+            background-color: var(--brand-maroon);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 0.92rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(120, 16, 35, 0.2);
+        }
+
+        .btn-submit:hover {
+            background-color: var(--brand-maroon-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(120, 16, 35, 0.25);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .divider-atau {
+            text-align: center;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #374151;
+            letter-spacing: 0.06em;
+            margin: 0.75rem 0;
+            text-transform: uppercase;
+        }
+
+        .btn-google {
+            width: 100%;
+            height: 42px;
+            background-color: #ffffff;
+            border: 1.2px solid #374151;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.84rem;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-google:hover {
+            background-color: #f9fafb;
+            border-color: var(--brand-maroon);
+            color: var(--brand-maroon);
+        }
+
+        .register-footer {
+            text-align: center;
+            font-size: 0.78rem;
+            color: #1f2937;
+            margin-top: 1.15rem;
+        }
+
+        .register-link {
+            color: var(--brand-maroon);
+            font-weight: 700;
+            text-decoration: none;
+            margin-left: 2px;
+        }
+
+        .register-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Demo credentials pill */
+        .demo-pill-wrap {
+            margin-top: 0.85rem;
             text-align: center;
         }
 
-        .demo-badge {
+        .demo-pill {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: #f1f5f9;
-            border: 1px solid #cbd5e1;
-            padding: 6px 12px;
+            background-color: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            padding: 4px 10px;
             border-radius: 20px;
-            font-size: 0.8rem;
-            color: #475569;
+            font-size: 0.72rem;
+            color: #64748b;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s;
         }
 
-        .demo-badge:hover {
-            background: #e2e8f0;
+        .demo-pill:hover {
+            background-color: #e2e8f0;
             color: #1e293b;
         }
 
-        /* Modal styling for Lupa Password / Daftar */
+        /* Google notice modal */
         .modal-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(3px);
-            z-index: 100;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(2px);
+            z-index: 1000;
             align-items: center;
             justify-content: center;
             padding: 1.5rem;
@@ -325,90 +516,102 @@
 
         .modal-box {
             background: #ffffff;
-            border-radius: 16px;
-            max-width: 420px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border-maroon);
+            max-width: 400px;
             width: 100%;
-            padding: 2rem;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            padding: 1.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15);
+            text-align: center;
             position: relative;
-            animation: modalFadeIn 0.25s ease-out;
-        }
-
-        @keyframes modalFadeIn {
-            from { opacity: 0; transform: translateY(12px) scale(0.97); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .modal-title {
-            font-family: 'Lora', Georgia, serif;
-            font-size: 1.35rem;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 0.75rem;
+            color: var(--brand-maroon);
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
         }
 
         .modal-desc {
-            font-size: 0.9rem;
-            color: #64748b;
-            line-height: 1.5;
-            margin-bottom: 1.5rem;
+            font-size: 0.84rem;
+            color: #4b5563;
+            line-height: 1.45;
+            margin-bottom: 1.25rem;
         }
 
         .btn-modal-close {
-            position: absolute;
-            top: 1.25rem;
-            right: 1.25rem;
-            background: none;
-            border: none;
-            font-size: 1.4rem;
-            cursor: pointer;
-            color: #94a3b8;
-            line-height: 1;
-        }
-
-        .btn-modal-close:hover {
-            color: #1e293b;
-        }
-
-        .btn-modal-action {
-            width: 100%;
-            background-color: var(--primary-maroon);
+            background: var(--brand-maroon);
             color: #ffffff;
-            padding: 0.75rem;
-            border-radius: 10px;
+            padding: 0.5rem 1.5rem;
+            border-radius: 6px;
             border: none;
             font-weight: 600;
+            font-size: 0.85rem;
             cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .btn-modal-action:hover {
-            background-color: var(--primary-maroon-hover);
         }
     </style>
 </head>
 <body>
-    <div class="login-layout">
-        <!-- Left Side: Spacious Layout matching original design -->
-        <div class="hero-section"></div>
+    <div class="login-card">
+        <!-- ================= LEFT HERO PANEL ================= -->
+        <div class="hero-panel">
+            <div class="hero-overlay"></div>
 
-        <!-- Right Side: Login Form -->
-        <div class="form-section">
-            <div class="form-container">
-                <!-- Header Title -->
-                <div class="portal-title">
-                    <span class="title-line">SISTEM INF<span class="stylized-o" title="O">
-                        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="50" cy="50" r="39" stroke="#1a1a1a" stroke-width="19" />
-                        </svg>
-                    </span>RMASI</span>
-                    <span class="title-line">ASRAMA MAHASISWA</span>
+            <!-- Top Left Logo & Title -->
+            <div class="hero-content-top">
+                <x-simahad-emblem size="46" />
+                <div class="hero-brand-text">
+                    <span class="hero-brand-title">SIMAHAD</span>
+                    <span class="hero-brand-sub">Sistem Informasi Manajemen Ma'had</span>
+                    <span class="hero-brand-inst">Al-Jami'ah Tuanku Imam Bonjol</span>
+                </div>
+            </div>
+
+            <!-- Middle Text -->
+            <div class="hero-content-middle">
+                <div class="hero-welcome">Selamat Datang di</div>
+                <div class="hero-simahad">SIMAHAD</div>
+                <p class="hero-tagline">
+                    Akses informasi, kelola data,<br>
+                    wujudkan layanan Ma'had yang lebih baik.
+                </p>
+            </div>
+
+            <!-- Building Facade Signage matching screenshot -->
+            <div class="building-sign-overlay">
+                <div class="building-sign-logo">
+                    <x-simahad-emblem size="26" />
+                </div>
+                <div class="building-sign-text">MA'HAD AL-JAMI'AH</div>
+                <div class="building-sign-sub">TUANKU IMAM BONJOL</div>
+            </div>
+        </div>
+
+        <!-- ================= RIGHT FORM PANEL ================= -->
+        <div class="form-panel">
+            <!-- Top Motto Tagline -->
+            <div class="motto-bar">
+                Berakhlak | Berilmu | Berprestasi
+            </div>
+
+            <!-- Framed Login Form Card -->
+            <div class="inner-frame">
+                <!-- Center Emblem Logo -->
+                <div class="center-emblem">
+                    <x-simahad-emblem size="54" />
                 </div>
 
-                <!-- Session / Status Flash -->
+                <!-- Titles -->
+                <h1 class="form-headline">Masuk & Akses Layanan Ma'had</h1>
+                <p class="form-subheadline">
+                    Temukan kemudahan dalam mengakses layanan Ma'had melalui satu sistem.
+                </p>
+
+                <!-- Status Flash Message -->
                 @if (session('status'))
-                    <div class="alert-status">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="alert-box alert-success">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
                         <span>{{ session('status') }}</span>
@@ -417,27 +620,28 @@
 
                 <!-- Validation Errors Flash -->
                 @if ($errors->any())
-                    <div class="alert-error">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="alert-box alert-error">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                         </svg>
                         <span>{{ $errors->first() }}</span>
                     </div>
                 @endif
 
-                <!-- Form -->
-                <form action="{{ route('login.post') }}" method="POST" id="loginForm" autocomplete="on">
+                <!-- Login Form -->
+                <form action="{{ route('login.post') }}" method="POST" id="loginForm" class="auth-form" autocomplete="on">
                     @csrf
 
-                    <!-- Email / NIM Field -->
-                    <div class="form-group">
-                        <label for="login" class="form-label">Email/NIM</label>
-                        <div class="input-wrapper">
+                    <!-- Field: Email atau Username -->
+                    <div class="form-row">
+                        <label for="login" class="field-label">Email atau Username</label>
+                        <div class="field-input-wrapper">
                             <input 
                                 type="text" 
                                 id="login" 
                                 name="login" 
-                                class="maroon-input" 
+                                class="field-input" 
+                                placeholder="Masukkan email atau username"
                                 value="{{ old('login') }}" 
                                 required 
                                 autofocus 
@@ -446,80 +650,84 @@
                         </div>
                     </div>
 
-                    <!-- Password Field -->
-                    <div class="form-group">
-                        <label for="password" class="form-label">Password</label>
-                        <div class="input-wrapper">
+                    <!-- Field: Kata Sandi -->
+                    <div class="form-row">
+                        <label for="password" class="field-label">Kata Sandi</label>
+                        <div class="field-input-wrapper">
                             <input 
                                 type="password" 
                                 id="password" 
                                 name="password" 
-                                class="maroon-input" 
+                                class="field-input has-icon" 
+                                placeholder="Masukkan kata sandi"
                                 required
                             >
-                            <button type="button" class="password-toggle-btn" id="togglePasswordBtn" aria-label="Lihat Password">
-                                <svg id="eyeIcon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <button type="button" class="toggle-pwd-btn" id="togglePasswordBtn" aria-label="Lihat Kata Sandi">
+                                <!-- Eye Icon -->
+                                <svg id="eyeIcon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
-                                <svg id="eyeOffIcon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display: none;">
+                                <!-- Eye Off Icon -->
+                                <svg id="eyeOffIcon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display: none;">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
                                 </svg>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Submit Button & Links -->
-                    <div class="action-area">
-                        <button type="submit" class="btn-login" id="submitBtn">
-                            LOGIN
-                        </button>
+                    <!-- Lupa Kata Sandi Link -->
+                    <div class="forgot-link-wrap">
+                        <a href="{{ route('password.request') }}" class="forgot-link">Lupa Kata Sandi?</a>
+                    </div>
 
-                        <div class="links-group">
-                            <a href="javascript:void(0)" class="auth-link" onclick="openModal('forgotPasswordModal')">
-                                Lupa Password?
-                            </a>
-                            <a href="javascript:void(0)" class="auth-link" onclick="openModal('registerModal')">
-                                Belum punya akun? Daftar!
-                            </a>
-                        </div>
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        Masuk
+                    </button>
+
+                    <!-- Divider -->
+                    <div class="divider-atau">ATAU</div>
+
+                    <!-- Google Sign-In Button -->
+                    <button type="button" class="btn-google" onclick="openGoogleNotice()">
+                        <!-- Google Multi-Color G Icon -->
+                        <svg width="18" height="18" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                        </svg>
+                        <span>Lanjutkan dengan Google</span>
+                    </button>
+
+                    <!-- Footer: Daftar di sini -->
+                    <div class="register-footer">
+                        Mahasiswa baru? <a href="{{ route('register') }}" class="register-link">Daftar di sini</a>
                     </div>
                 </form>
 
-                <!-- Demo helper -->
-                <div class="demo-badge-container">
-                    <button type="button" class="demo-badge" onclick="fillDemoCredentials()">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <!-- Quick Demo Pill for fast testing -->
+                <div class="demo-pill-wrap">
+                    <button type="button" class="demo-pill" onclick="fillDemoCredentials()">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        <span>Gunakan Akun Demo (NIM: <strong>240101</strong>)</span>
+                        <span>Isi Akun Demo (NIM: <strong>240101</strong> / <strong>mahasiswa@asrama.ac.id</strong>)</span>
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal Lupa Password -->
-    <div id="forgotPasswordModal" class="modal-overlay" onclick="closeModalOnBackdrop(event, 'forgotPasswordModal')">
+    <!-- Google Login Notice Modal -->
+    <div id="googleModal" class="modal-overlay" onclick="closeGoogleModalOnBackdrop(event)">
         <div class="modal-box">
-            <button type="button" class="btn-modal-close" onclick="closeModal('forgotPasswordModal')">&times;</button>
-            <h3 class="modal-title">Lupa Password</h3>
-            <p class="modal-desc">Silakan hubungi administrator asrama atau masukkan Email/NIM Anda untuk mengajukan reset kata sandi akun.</p>
-            <div style="margin-bottom: 1.25rem;">
-                <label style="display:block; font-size: 0.85rem; color: #475569; margin-bottom: 0.4rem; font-weight: 500;">Email atau NIM Terdaftar</label>
-                <input type="text" id="resetInput" placeholder="Contoh: 240101 / mahasiswa@asrama.ac.id" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; font-size: 0.95rem;">
-            </div>
-            <button type="button" class="btn-modal-action" onclick="handleResetPassword()">Kirim Permintaan Reset</button>
-        </div>
-    </div>
-
-    <!-- Modal Pendaftaran -->
-    <div id="registerModal" class="modal-overlay" onclick="closeModalOnBackdrop(event, 'registerModal')">
-        <div class="modal-box">
-            <button type="button" class="btn-modal-close" onclick="closeModal('registerModal')">&times;</button>
-            <h3 class="modal-title">Pendaftaran Akun Asrama</h3>
-            <p class="modal-desc">Akun mahasiswa asrama didaftarkan secara otomatis melalui bagian administrasi asrama kampus. Jika NIM Anda belum terdaftar, silakan hubungi pengelola asrama dengan membawa Kartu Tanda Mahasiswa (KTM).</p>
-            <button type="button" class="btn-modal-action" onclick="closeModal('registerModal')">Mengerti</button>
+            <h3 class="modal-title">Integrasi Google Akun</h3>
+            <p class="modal-desc">
+                Fitur autentikasi Google Single Sign-On (SSO) sedang dipersiapkan khusus untuk domain <strong>@uinib.ac.id</strong>. Silakan gunakan <strong>Email atau Username</strong> Anda untuk masuk ke sistem.
+            </p>
+            <button type="button" class="btn-modal-close" onclick="closeGoogleModal()">Mengerti</button>
         </div>
     </div>
 
@@ -544,34 +752,24 @@
 
         // Quick demo filler
         function fillDemoCredentials() {
-            document.getElementById('login').value = '240101';
+            document.getElementById('login').value = 'mahasiswa@asrama.ac.id';
             document.getElementById('password').value = 'password123';
             document.getElementById('password').focus();
         }
 
-        // Modal Helpers
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.add('active');
+        // Google Modal Helpers
+        function openGoogleNotice() {
+            document.getElementById('googleModal').classList.add('active');
         }
 
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
+        function closeGoogleModal() {
+            document.getElementById('googleModal').classList.remove('active');
         }
 
-        function closeModalOnBackdrop(event, modalId) {
-            if (event.target === document.getElementById(modalId)) {
-                closeModal(modalId);
+        function closeGoogleModalOnBackdrop(event) {
+            if (event.target === document.getElementById('googleModal')) {
+                closeGoogleModal();
             }
-        }
-
-        function handleResetPassword() {
-            const val = document.getElementById('resetInput').value.trim();
-            if (!val) {
-                alert('Silakan masukkan Email atau NIM terlebih dahulu.');
-                return;
-            }
-            alert('Permintaan reset password telah dicatat. Pengelola asrama akan memverifikasi data Anda.');
-            closeModal('forgotPasswordModal');
         }
 
         // Form Submit Loading Feedback
