@@ -4,1058 +4,334 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Pembayaran - Sistem Informasi Asrama Mahasiswa</title>
+    <title>Pembayaran - SIMAHAD</title>
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
-            --primary-maroon: #6e001b;
-            --primary-maroon-hover: #580015;
-            --primary-maroon-active: #450011;
-            --text-dark: #1a1a1a;
-            --text-muted: #596573;
-            --bg-main: #fbfbfa;
-            --bg-card: #f8eaec;
-            --bg-card-hover: #f5e4e7;
-            --sidebar-width: 250px;
+            --maroon: #79051d;
+            --maroon-dark: #5f0016;
+            --text: #171717;
+            --muted: #737373;
+            --page: #f8f7f6;
+            --soft-maroon: #f9ecef;
+            --line: #8a0b22;
         }
-
         body {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-dark);
+            font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+            color: var(--text);
+            background: var(--page);
             min-height: 100vh;
-            display: flex;
             overflow-x: hidden;
         }
-
-        /* Layout */
-        .dashboard-layout {
+        button, input { font: inherit; }
+        .top-header {
+            height: 88px;
+            width: 100%;
             display: flex;
-            width: 100vw;
-            min-height: 100vh;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px 0 20px;
+            background: #fff;
+            border: 1px solid var(--line);
+            position: relative;
+            z-index: 20;
         }
-
-        /* ================= SIDEBAR ================= */
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--maroon);
+            font-size: 30px;
+            font-weight: 800;
+            letter-spacing: -.7px;
+        }
+        .brand img { width: 64px; height: 64px; object-fit: contain; }
+        .header-actions { display: flex; align-items: center; gap: 26px; }
+        .notification-button {
+            width: 40px; height: 40px; border: 0; border-radius: 50%;
+            background: var(--maroon); color: white; display: grid; place-items: center;
+            cursor: pointer;
+        }
+        .profile-button {
+            width: 60px; height: 60px; border: 1.5px solid #333; border-radius: 50%;
+            background: #fff; color: #444; display: grid; place-items: center;
+        }
+        .app-content { display: flex; min-height: calc(100vh - 88px); }
         .sidebar {
-            width: var(--sidebar-width);
-            min-width: var(--sidebar-width);
-            min-height: 100vh;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 1.5rem 1.25rem 2rem 1.5rem;
-            z-index: 10;
-            overflow: hidden;
-            border-right: 1px solid rgba(0, 0, 0, 0.08);
-            background-color: #dbeafe;
+            width: 407px; flex: 0 0 407px; min-height: calc(100vh - 88px);
+            padding: 28px 14px 28px; position: relative; overflow: hidden;
+            border-right: 1px solid var(--line); display: flex; flex-direction: column;
+            background: #dbeafe;
         }
-
         .sidebar-bg {
-            position: absolute;
-            inset: 0;
-            z-index: 1;
-            background-image: url('{{ asset("images/sidebar_bg.jpg") }}');
-            background-size: cover;
-            background-position: center top;
-            background-repeat: no-repeat;
-            opacity: 0.92;
+            position: absolute; inset: 0; z-index: 0;
+            background-image: url('{{ asset("images/mahad_al_jamiah.jpeg") }}');
+            background-position: center top; background-size: cover; background-repeat: no-repeat;
         }
-
         .sidebar-overlay {
-            position: absolute;
-            inset: 0;
-            z-index: 2;
-            background: linear-gradient(
-                180deg, 
-                rgba(219, 234, 254, 0.45) 0%, 
-                rgba(241, 245, 249, 0.65) 35%, 
-                rgba(255, 255, 255, 0.82) 65%, 
-                rgba(255, 255, 255, 0.94) 100%
-            );
-            backdrop-filter: blur(0.5px);
+            position: absolute; inset: 0; z-index: 1;
+            background: linear-gradient(180deg, rgba(219,234,254,.45), rgba(255,255,255,.56) 48%, rgba(255,255,255,.78));
         }
-
-        .sidebar-watermark {
-            position: absolute;
-            top: 54%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 3;
-            pointer-events: none;
-            text-align: center;
-            opacity: 0.35;
-            width: 100%;
-            padding: 0 10px;
-        }
-
-        .watermark-emblem {
-            margin: 0 auto 6px;
-            display: block;
-        }
-
-        .watermark-text-1 {
-            font-family: 'Lora', Georgia, serif;
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: #334155;
-            letter-spacing: -0.01em;
-            line-height: 1.2;
-        }
-
-        .watermark-text-2 {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 800;
-            color: #334155;
-            letter-spacing: -0.01em;
-            line-height: 1.2;
-        }
-
-        .sidebar-content {
-            position: relative;
-            z-index: 4;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            justify-content: space-between;
-        }
-
-        .sidebar-logo {
-            margin-bottom: 2rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .logo-emblem {
-            width: 58px;
-            height: 58px;
-            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
-            transition: transform 0.2s ease;
-        }
-
-        .logo-emblem:hover {
-            transform: scale(1.04);
-        }
-
-        .sidebar-nav {
-            display: flex;
-            flex-direction: column;
-            gap: 1.15rem;
-            flex-grow: 1;
-        }
-
+        .sidebar-content { position: relative; z-index: 2; display: flex; flex: 1; flex-direction: column; }
+        .sidebar-nav { display: flex; flex-direction: column; gap: 32px; }
         .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 1.1rem;
-            text-decoration: none;
-            color: #1a1a1a;
-            padding: 0.35rem 0.6rem;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            cursor: pointer;
+            min-height: 50px; padding: 9px 12px; display: flex; align-items: center; gap: 12px;
+            text-decoration: none; color: #171717; background: #fff;
+            border: 1px solid #222; border-radius: 14px; transition: .18s ease;
         }
-
-        .nav-item:hover {
-            transform: translateX(4px);
-            background: rgba(255, 255, 255, 0.5);
-        }
-
-        .nav-item.active {
-            background: rgba(110, 0, 27, 0.12);
-            color: var(--primary-maroon);
-        }
-
-        .nav-item.active .nav-text {
-            color: var(--primary-maroon);
-        }
-
-        .nav-icon {
-            width: 34px;
-            height: 34px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .icon-circle-blue {
-            width: 34px;
-            height: 34px;
-            background: #1e70bf;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            box-shadow: 0 2px 5px rgba(30, 112, 191, 0.35);
-        }
-
-        .nav-item.active .icon-circle-blue {
-            background: var(--primary-maroon);
-            box-shadow: 0 2px 6px rgba(110, 0, 27, 0.35);
-        }
-
-        .icon-circle-cyan {
-            width: 34px;
-            height: 34px;
-            background: #0ea5e9;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            box-shadow: 0 2px 5px rgba(14, 165, 233, 0.35);
-        }
-
-        .icon-circle-avatar {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #ffffff;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-        }
-
-        .nav-text {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 1.15rem;
-            font-weight: 800;
-            color: #1a1a1a;
-            letter-spacing: -0.01em;
-        }
-
-        .sidebar-footer {
-            margin-top: 2rem;
-            padding-top: 1rem;
-        }
-
+        .nav-item:hover { background: #fff4f5; border-color: var(--maroon); }
+        .nav-item.active { background: #f9ecef; border-color: var(--maroon); color: var(--maroon); }
+        .nav-icon { width: 24px; height: 24px; flex: 0 0 24px; display: grid; place-items: center; color: #5c6677; }
+        .nav-item.active .nav-icon { color: var(--maroon); }
+        .nav-text { font-size: 16px; font-weight: 500; line-height: 1.25; }
+        .nav-arrow { margin-left: auto; color: var(--maroon); font-size: 23px; font-weight: 800; }
+        .sidebar-footer { margin-top: auto; padding-top: 32px; }
         .btn-keluar {
-            background: transparent;
-            border: none;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: #d90429;
-            cursor: pointer;
-            padding: 0.25rem 0.5rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s ease;
+            width: 100%; min-height: 50px; display: flex; align-items: center; gap: 12px;
+            padding: 9px 12px; background: #fff; color: #171717;
+            border: 1px solid #222; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer;
         }
-
-        .btn-keluar:hover {
-            color: #9f021c;
-            transform: translateX(4px);
+        .btn-keluar:hover { background: #fff4f5; color: var(--maroon); }
+        .main-content { flex: 1; min-width: 0; padding: 29px 42px 34px; }
+        .breadcrumb { font-size: 20px; font-weight: 600; color: var(--maroon); margin-bottom: 12px; }
+        .page-title { font-size: 32px; line-height: 1.25; font-weight: 800; margin-bottom: 3px; color: #111; }
+        .page-description { font-size: 19px; line-height: 1.5; margin-bottom: 28px; }
+        .payment-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; margin-bottom: 28px; }
+        .summary-card {
+            min-height: 98px; border: 1px solid var(--line); border-radius: 10px;
+            background: #fff; padding: 13px 14px;
         }
-
-        /* ================= MAIN CONTENT ================= */
-        .main-content {
-            flex: 1;
-            padding: 3.5rem 4.5rem 4rem 4.5rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            background-color: var(--bg-main);
-            overflow-y: auto;
-            position: relative;
-        }
-
-        @media (max-width: 1024px) {
-            .main-content {
-                padding: 2.5rem 2rem 3rem 2rem;
-            }
-        }
-
-        .pembayaran-container {
-            width: 100%;
-            max-width: 1080px;
-        }
-
-        /* Page Title */
-        .page-title {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-size: 2.75rem;
-            font-weight: 800;
-            color: #111111;
-            letter-spacing: -0.03em;
-            line-height: 1.15;
-            margin-bottom: 3.25rem;
-        }
-
-        @media (max-width: 768px) {
-            .page-title {
-                font-size: 2.2rem;
-                margin-bottom: 2rem;
-            }
-        }
-
-        /* Section Group */
-        .section-group {
-            margin-bottom: 3.5rem;
-        }
-
-        .section-label {
-            font-family: 'Lora', Georgia, 'Times New Roman', serif;
-            font-size: 1.1rem;
-            font-weight: 500;
-            color: #1a1a1a;
-            margin-bottom: 0.95rem;
-            letter-spacing: -0.01em;
-        }
-
-        /* Payment Card - Exactly matching the reference image */
+        .summary-card:first-child { background: #fff0f2; color: var(--maroon); }
+        .summary-label { color: #737373; font-size: 14px; margin-bottom: 8px; }
+        .summary-card:first-child .summary-label { color: var(--maroon); font-weight: 600; }
+        .summary-value { font-size: 25px; line-height: 1.3; font-weight: 700; }
+        .summary-icon { display: inline-block; margin-right: 6px; font-weight: 800; }
+        .section-title { font-size: 19px; font-weight: 600; color: #414141; margin: 25px 5px 16px; }
         .payment-card {
-            background-color: var(--bg-card);
-            border-radius: 8px;
-            padding: 2.25rem 3rem 2.25rem 3rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            display: flex; justify-content: space-between; align-items: center; gap: 20px;
+            padding: 20px 16px; margin-bottom: 16px; background: #fff; border-radius: 12px;
         }
-
-        @media (max-width: 768px) {
-            .payment-card {
-                flex-direction: column;
-                align-items: flex-start;
-                padding: 1.75rem 1.5rem;
-                gap: 1.25rem;
-            }
+        .card-left { min-width: 0; }
+        .bill-name { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+        .bill-description { font-size: 15px; color: #777; margin-bottom: 12px; }
+        .bill-row { font-size: 15px; color: #777; margin-bottom: 8px; }
+        .bill-row:last-child { margin-bottom: 0; }
+        .card-right { flex: 0 0 auto; text-align: right; }
+        .amount { font-size: 18px; font-weight: 700; color: #222; margin-bottom: 12px; }
+        .status-pill {
+            display: inline-flex; align-items: center; border-radius: 20px;
+            padding: 5px 10px; background: #ffe6d9; color: #e65b13;
+            font-size: 13px; font-weight: 700;
         }
-
-        .card-left {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .bill-name {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 1.15rem;
-            font-weight: 500;
-            color: #1a1a1a;
-            margin-bottom: 1.15rem;
-            line-height: 1.2;
-        }
-
-        .bill-row {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 500;
-            color: #1a1a1a;
-            margin-bottom: 1.15rem;
-            line-height: 1.2;
-        }
-
-        .bill-row:last-child {
-            margin-bottom: 0;
-        }
-
-        /* Bayar Sekarang Button */
+        .status-pill.paid { background: #dcfce7; color: #15803d; }
         .btn-bayar {
-            display: inline-block;
-            background-color: var(--primary-maroon);
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            padding: 0.65rem 1.85rem;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 0.65rem;
-            transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
-            box-shadow: 0 2px 6px rgba(110, 0, 27, 0.2);
-            text-align: center;
-            text-decoration: none;
-            width: fit-content;
+            display: inline-block; margin-top: 12px; padding: 10px 18px; border: 0; border-radius: 8px;
+            background: var(--maroon); color: #fff; font-weight: 700; cursor: pointer;
         }
-
-        .btn-bayar:hover {
-            background-color: var(--primary-maroon-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 10px rgba(110, 0, 27, 0.3);
+        .btn-bayar:hover { background: var(--maroon-dark); }
+        .history-card { display: flex; gap: 16px; align-items: flex-start; padding: 16px; background: #fff; border-radius: 12px; margin-bottom: 16px; }
+        .history-icon { width: 50px; height: 50px; flex: 0 0 50px; display: grid; place-items: center; border-radius: 10px; background: #f9ecef; color: var(--maroon); }
+        .history-content { flex: 1; min-width: 0; }
+        .history-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+        .history-detail { color: #777; font-size: 14px; margin-bottom: 7px; }
+        .history-arrow { font-size: 28px; color: #777; }
+        .history-note { border-top: 1px solid #e5dedc; padding-top: 22px; margin-top: 24px; color: #777; font-size: 13px; line-height: 1.6; }
+        .information-box { background: #f8ecef; color: #505050; border-radius: 12px; padding: 18px 16px; line-height: 1.6; margin-top: 14px; }
+        .information-box h3 { color: var(--maroon); font-size: 18px; margin-bottom: 7px; }
+        .alert-status { background: #ecfdf5; border-left: 4px solid #10b981; padding: 12px 16px; border-radius: 8px; color: #065f46; margin-bottom: 20px; font-weight: 600; }
+        .simulation-bar { display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding-top: 16px; border-top: 1px dashed #ddd; margin-top: 16px; }
+        .btn-reset-simulasi { border: 1px solid #ddd; border-radius: 6px; background: #fff; padding: 8px 12px; cursor: pointer; color: #64748b; }
+        /* Modal pembayaran */
+        .modal-backdrop { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,.55); align-items: center; justify-content: center; padding: 16px; }
+        .modal-backdrop.active { display: flex; }
+        .payment-modal-box { width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; background: #fff; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,.25); }
+        .modal-header { padding: 18px 24px; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: space-between; }
+        .modal-header-title { font-size: 20px; font-weight: 800; color: #111; }
+        .modal-header-close { border: 0; background: transparent; font-size: 28px; color: #777; cursor: pointer; }
+        .modal-body-content { padding: 24px; }
+        .order-summary-box { padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 22px; }
+        .order-row { display: flex; justify-content: space-between; gap: 16px; font-size: 14px; color: #475569; margin-bottom: 12px; }
+        .order-row:last-child { border-top: 1px dashed #cbd5e1; padding-top: 12px; margin-bottom: 0; font-weight: 700; color: #111; }
+        .order-total-amount { color: var(--maroon); font-size: 17px; }
+        .methods-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+        .payment-methods-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .method-choice { border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 13px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; gap: 10px; }
+        .method-choice.selected { border-color: var(--maroon); background: #fdf2f4; }
+        .method-left { display: flex; align-items: center; gap: 12px; }
+        .method-radio { accent-color: var(--maroon); }
+        .method-name { font-weight: 700; font-size: 14px; }
+        .method-sub { font-size: 12px; color: #64748b; margin-top: 4px; }
+        .method-badge { color: var(--maroon); background: #f9e7eb; font-size: 11px; font-weight: 700; padding: 5px 7px; border-radius: 5px; }
+        .va-display-box { background: #faf5f7; border: 1px solid #f2d2dc; border-radius: 12px; padding: 18px; margin-bottom: 18px; text-align: center; }
+        .va-label { font-size: 13px; color: #64748b; margin-bottom: 8px; }
+        .va-number-row { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+        .va-number { font-size: 21px; font-weight: 800; letter-spacing: .04em; color: var(--maroon); }
+        .btn-copy { border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; padding: 6px 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
+        .btn-copy.copied { background: #10b981; color: #fff; }
+        .va-account-name { color: #64748b; font-size: 12px; }
+        .instructions-box { background: #f8fafc; border-radius: 10px; padding: 14px 16px; color: #475569; font-size: 13px; line-height: 1.65; }
+        .instructions-box ol { padding-left: 20px; margin-top: 6px; }
+        .modal-footer { padding: 16px 24px 22px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #eee; }
+        .btn-modal-cancel, .btn-modal-confirm { border: 0; border-radius: 8px; padding: 11px 16px; font-weight: 700; cursor: pointer; }
+        .btn-modal-cancel { background: #f1f5f9; color: #475569; }
+        .btn-modal-confirm { background: var(--maroon); color: #fff; }
+        .mobile-nav-toggle { display: none; }
+        .sidebar-backdrop { display: none; }
+        @media (max-width: 1100px) {
+            .sidebar { width: 285px; flex-basis: 285px; }
+            .main-content { padding: 25px 24px; }
+            .payment-summary { gap: 12px; }
+            .summary-value { font-size: 21px; }
         }
-
-        .btn-bayar:active {
-            background-color: var(--primary-maroon-active);
-            transform: translateY(0);
-        }
-
-        /* Right Side Status */
-        .card-right {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            margin-right: 5rem;
-        }
-
-        @media (max-width: 992px) {
-            .card-right {
-                margin-right: 2rem;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .card-right {
-                margin-right: 0;
-                width: 100%;
-                justify-content: flex-start;
-                padding-top: 0.5rem;
-                border-top: 1px dashed rgba(0, 0, 0, 0.1);
-            }
-        }
-
-        .status-text {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 1.15rem;
-            font-weight: 500;
-            color: #1a1a1a;
-        }
-
-        .status-text.status-lunas {
-            color: #15803d;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        /* Alert Status / Flash notification */
-        .alert-status {
-            background: #ecfdf5;
-            border-left: 4px solid #10b981;
-            padding: 1rem 1.25rem;
-            border-radius: 8px;
-            color: #065f46;
-            font-size: 0.95rem;
-            font-weight: 600;
-            margin-bottom: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.75rem;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-6px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .alert-status-content {
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-        }
-
-        /* Simulation Reset Toolbar */
-        .simulation-bar {
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px dashed rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 1rem;
-        }
-
-        .btn-reset-simulasi {
-            background: transparent;
-            border: 1px solid rgba(0, 0, 0, 0.15);
-            border-radius: 6px;
-            padding: 0.4rem 0.85rem;
-            font-size: 0.82rem;
-            color: #64748b;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-weight: 600;
-        }
-
-        .btn-reset-simulasi:hover {
-            background: #f1f5f9;
-            color: #334155;
-            border-color: #cbd5e1;
-        }
-
-        /* ================= PAYMENT MODAL ================= */
-        .modal-backdrop {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.55);
-            backdrop-filter: blur(3px);
-            z-index: 100;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-
-        .modal-backdrop.active {
-            display: flex;
-        }
-
-        .payment-modal-box {
-            background: #ffffff;
-            border-radius: 16px;
-            max-width: 580px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
-            animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-        }
-
-        @keyframes modalPop {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        .modal-header {
-            padding: 1.25rem 1.75rem;
-            border-bottom: 1px solid #f1f5f9;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .modal-header-title {
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: #0f172a;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-        }
-
-        .modal-header-close {
-            background: transparent;
-            border: none;
-            font-size: 1.6rem;
-            color: #94a3b8;
-            cursor: pointer;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: all 0.15s ease;
-        }
-
-        .modal-header-close:hover {
-            background: #f1f5f9;
-            color: #0f172a;
-        }
-
-        .modal-body-content {
-            padding: 1.75rem;
-        }
-
-        /* Order Summary Card inside modal */
-        .order-summary-box {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 1.25rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .order-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.95rem;
-            margin-bottom: 0.5rem;
-            color: #475569;
-        }
-
-        .order-row:last-child {
-            margin-bottom: 0;
-            padding-top: 0.65rem;
-            border-top: 1px dashed #cbd5e1;
-            font-weight: 700;
-            color: #0f172a;
-            font-size: 1.15rem;
-        }
-
-        .order-total-amount {
-            color: var(--primary-maroon);
-            font-weight: 800;
-        }
-
-        /* Payment Methods list */
-        .methods-title {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: #334155;
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .payment-methods-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 0.65rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .method-choice {
-            border: 1.5px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 0.85rem 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-            transition: all 0.15s ease;
-        }
-
-        .method-choice:hover {
-            border-color: #cbd5e1;
-            background: #f8fafc;
-        }
-
-        .method-choice.selected {
-            border-color: var(--primary-maroon);
-            background: #fdf2f4;
-        }
-
-        .method-left {
-            display: flex;
-            align-items: center;
-            gap: 0.85rem;
-        }
-
-        .method-radio {
-            accent-color: var(--primary-maroon);
-            width: 18px;
-            height: 18px;
-        }
-
-        .method-name {
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: #1e293b;
-        }
-
-        .method-badge {
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--primary-maroon);
-            background: rgba(110, 0, 27, 0.08);
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-        }
-
-        /* Virtual Account Info Box */
-        .va-display-box {
-            background: #faf5f7;
-            border: 1px solid #f2d2dc;
-            border-radius: 12px;
-            padding: 1.25rem;
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-
-        .va-label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #64748b;
-            margin-bottom: 0.35rem;
-        }
-
-        .va-number-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .va-number {
-            font-family: 'Plus Jakarta Sans', monospace;
-            font-size: 1.45rem;
-            font-weight: 800;
-            letter-spacing: 0.05em;
-            color: var(--primary-maroon);
-        }
-
-        .btn-copy {
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            padding: 0.35rem 0.75rem;
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: #334155;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-
-        .btn-copy:hover {
-            background: #f1f5f9;
-            border-color: #94a3b8;
-        }
-
-        .btn-copy.copied {
-            background: #10b981;
-            color: #ffffff;
-            border-color: #10b981;
-        }
-
-        .va-account-name {
-            font-size: 0.85rem;
-            color: #64748b;
-        }
-
-        /* Instructions list */
-        .instructions-box {
-            background: #f8fafc;
-            border-radius: 10px;
-            padding: 1rem 1.25rem;
-            margin-bottom: 1.5rem;
-            font-size: 0.88rem;
-            color: #475569;
-            line-height: 1.6;
-        }
-
-        .instructions-box ol {
-            padding-left: 1.2rem;
-            margin-top: 0.35rem;
-        }
-
-        .modal-footer {
-            padding: 1rem 1.75rem 1.5rem;
-            display: flex;
-            gap: 0.75rem;
-            justify-content: flex-end;
-            border-top: 1px solid #f1f5f9;
-        }
-
-        .btn-modal-cancel {
-            background: #f1f5f9;
-            color: #475569;
-            border: none;
-            border-radius: 8px;
-            padding: 0.7rem 1.25rem;
-            font-weight: 700;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-
-        .btn-modal-cancel:hover {
-            background: #e2e8f0;
-            color: #1e293b;
-        }
-
-        .btn-modal-confirm {
-            background: var(--primary-maroon);
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            padding: 0.7rem 1.75rem;
-            font-weight: 700;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.1s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-modal-confirm:hover {
-            background: var(--primary-maroon-hover);
-            transform: translateY(-1px);
-        }
-
-        /* Generic Info Modal (Sidebar links) */
-        .info-modal-backdrop {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.45);
-            backdrop-filter: blur(2px);
-            z-index: 100;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-
-        .info-modal-backdrop.active {
-            display: flex;
-        }
-
-        .info-modal-box {
-            background: #ffffff;
-            border-radius: 12px;
-            max-width: 440px;
-            width: 100%;
-            padding: 1.75rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-            position: relative;
-        }
-
-        .btn-info-close {
-            position: absolute;
-            top: 1rem;
-            right: 1.25rem;
-            background: transparent;
-            border: none;
-            font-size: 1.5rem;
-            color: #94a3b8;
-            cursor: pointer;
-        }
-
-        .info-modal-title {
-            font-size: 1.25rem;
-            font-weight: 800;
-            margin-bottom: 0.75rem;
-            color: #0f172a;
-        }
-
-        .info-modal-body {
-            font-size: 0.95rem;
-            line-height: 1.6;
-            color: #475569;
-            margin-bottom: 1.25rem;
-        }
-
-        .btn-info-ok {
-            background: var(--primary-maroon);
-            color: #ffffff;
-            border: none;
-            border-radius: 6px;
-            padding: 0.6rem 1.25rem;
-            font-weight: 700;
-            cursor: pointer;
-            float: right;
-        }
-
-        /* Mobile Responsive Sidebar Toggle */
-        .mobile-nav-toggle {
-            display: none;
-            position: fixed;
-            top: 1rem;
-            left: 1rem;
-            z-index: 50;
-            background: #ffffff;
-            border: 1px solid rgba(0, 0, 0, 0.12);
-            border-radius: 8px;
-            padding: 0.5rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            cursor: pointer;
-        }
-
-        .sidebar-backdrop {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 9;
-        }
-
-        @media (max-width: 900px) {
-            .mobile-nav-toggle {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .sidebar {
-                position: fixed;
-                top: 0;
-                bottom: 0;
-                left: 0;
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-                box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
-            }
-
-            .sidebar.active {
-                transform: translateX(0);
-            }
-
-            .sidebar-backdrop.active {
-                display: block;
-            }
-
-            .main-content {
-                padding-top: 5rem;
-            }
+        @media (max-width: 800px) {
+            .top-header { height: 74px; padding: 0 14px; }
+            .brand { font-size: 22px; gap: 8px; }
+            .brand img { width: 46px; height: 46px; }
+            .header-actions { gap: 12px; }
+            .profile-button { width: 44px; height: 44px; }
+            .app-content { min-height: calc(100vh - 74px); }
+            .sidebar { position: fixed; top: 74px; bottom: 0; left: 0; height: calc(100vh - 74px); min-height: 0; z-index: 40; transform: translateX(-105%); transition: transform .25s ease; overflow-y: auto; width: 280px; }
+            .sidebar.active { transform: translateX(0); }
+            .sidebar-backdrop.active { display: block; position: fixed; inset: 74px 0 0; z-index: 35; background: rgba(0,0,0,.35); }
+            .mobile-nav-toggle { display: grid; place-items: center; position: fixed; z-index: 50; left: 12px; bottom: 14px; width: 46px; height: 46px; border: 0; border-radius: 50%; background: var(--maroon); color: white; box-shadow: 0 3px 12px #0003; cursor: pointer; }
+            .main-content { padding: 24px 16px 30px; width: 100%; }
+            .breadcrumb { font-size: 16px; }
+            .page-title { font-size: 28px; }
+            .page-description { font-size: 15px; margin-bottom: 20px; }
+            .payment-summary { grid-template-columns: 1fr; }
+            .payment-card { align-items: flex-start; flex-direction: column; }
+            .card-right { text-align: left; }
         }
     </style>
 </head>
 <body>
-    <!-- Mobile Hamburger Button & Backdrop -->
-    <button type="button" class="mobile-nav-toggle" id="mobileMenuBtn" aria-label="Toggle Menu">
+    <header class="top-header">
+        <div class="brand">
+            <img src="{{ asset('images/logo_uin.png') }}" alt="Logo UIN Imam Bonjol">
+            <span>SIMAHAD</span>
+        </div>
+        <div class="header-actions">
+            <button class="notification-button" type="button" aria-label="Notifikasi" title="Notifikasi">
+                <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+                    <path d="M10 21h4"></path>
+                </svg>
+            </button>
+            <button class="profile-button" type="button" aria-label="Profil pengguna" title="{{ Auth::user()->name }}">
+                <svg width="42" height="42" viewBox="0 0 24 24" fill="#444">
+                    <circle cx="12" cy="8" r="4"></circle>
+                    <path d="M4 21a8 8 0 0 1 16 0z"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <button type="button" class="mobile-nav-toggle" id="mobileMenuBtn" aria-label="Buka menu">
         <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
         </svg>
     </button>
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-    <div class="dashboard-layout">
-        <!-- ================= SIDEBAR ================= -->
+    <div class="app-content">
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-bg"></div>
             <div class="sidebar-overlay"></div>
-
-            <div class="sidebar-watermark">
-                <svg class="watermark-emblem" width="64" height="64" viewBox="0 0 100 100" fill="none">
-                    <polygon points="50,4 92,25 92,75 50,96 8,75 8,25" stroke="#a16207" stroke-width="3" fill="none" />
-                    <polygon points="50,14 82,30 82,70 50,86 18,70 18,30" stroke="#64748b" stroke-width="2.5" fill="none" />
-                    <path d="M50 20 L50 80 M25 50 L75 50" stroke="#64748b" stroke-width="2" />
-                </svg>
-                <div class="watermark-text-1">ma'had al-jami'ah</div>
-                <div class="watermark-text-2">UIN Imam Bonjol</div>
-            </div>
-
             <div class="sidebar-content">
-                <div>
-                    <!-- Top Logo Emblem -->
-                    <div class="sidebar-logo">
-                        <svg class="logo-emblem" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M60 4 L110 24 L110 74 C110 98 60 116 60 116 C60 116 10 98 10 74 L10 24 Z" fill="#800020" stroke="#500014" stroke-width="4" />
-                            <path d="M60 16 L98 32 L98 70 C98 88 60 104 60 104 C60 104 22 88 22 70 L22 32 Z" fill="#18181b" />
-                            <path d="M36 38 L48 38 L48 68 C48 74 54 78 60 78 C66 78 72 74 72 68 L72 38 L84 38 L84 68 C84 82 72 90 60 90 C48 90 36 82 36 68 Z" fill="#ffffff" />
-                            <polygon points="60,26 68,38 52,38" fill="#eab308" />
-                        </svg>
-                    </div>
+                <nav class="sidebar-nav" aria-label="Navigasi utama">
+                    <a href="{{ route('dashboard') }}" class="nav-item">
+                        <span class="nav-icon">
+                            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7" rx="2"></rect><rect x="14" y="3" width="7" height="7" rx="2"></rect>
+                                <rect x="3" y="14" width="7" height="7" rx="2"></rect><rect x="14" y="14" width="7" height="7" rx="2"></rect>
+                            </svg>
+                        </span>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
 
-                    <!-- Navigation Items List -->
-                    <nav class="sidebar-nav">
-                        <!-- 1. Home -->
-                        <a href="{{ route('dashboard') }}" class="nav-item">
-                            <span class="nav-icon">
-                                <svg width="28" height="28" viewBox="0 0 24 24" fill="#1a1a1a">
-                                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-                                </svg>
-                            </span>
-                            <span class="nav-text">Home</span>
-                        </a>
+                    <a href="{{ route('pembelajaran.mhs') }}" class="nav-item">
+                        <span class="nav-icon">
+                            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 7v14"></path><path d="M3 5.5A2.5 2.5 0 0 1 5.5 3H12v18H5.5A2.5 2.5 0 0 1 3 18.5z"></path>
+                                <path d="M21 5.5A2.5 2.5 0 0 0 18.5 3H12v18h6.5a2.5 2.5 0 0 0 2.5-2.5z"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-text">Pembelajaran</span>
+                    </a>
 
-                        <!-- 2. Pendaftaran -->
-                        <a href="{{ route('pendaftaran.pribadi') }}" class="nav-item">
-                            <span class="nav-icon">
-                                <svg width="32" height="32" viewBox="0 0 36 36" fill="none">
-                                    <circle cx="18" cy="18" r="16" fill="#ffffff" stroke="#1a1a1a" stroke-width="2.2" />
-                                    <rect x="12" y="10" width="12" height="15" rx="1.5" stroke="#1a1a1a" stroke-width="2" />
-                                    <line x1="15" y1="14" x2="21" y2="14" stroke="#1a1a1a" stroke-width="1.8" stroke-linecap="round" />
-                                    <line x1="15" y1="18" x2="21" y2="18" stroke="#1a1a1a" stroke-width="1.8" stroke-linecap="round" />
-                                    <line x1="15" y1="22" x2="19" y2="22" stroke="#1a1a1a" stroke-width="1.8" stroke-linecap="round" />
-                                    <path d="M22 23 L26 19 L28 21 L24 25 Z" fill="#1a1a1a" />
-                                </svg>
-                            </span>
-                            <span class="nav-text">Pendaftaran</span>
-                        </a>
+                    <a href="{{ route('kamar') }}" class="nav-item">
+                        <span class="nav-icon">
+                            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 18v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5"></path><path d="M3 18v3M21 18v3M3 15h18"></path>
+                                <path d="M5 11V7a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v4"></path><path d="M12 11V9a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-text">Informasi Kamar</span>
+                    </a>
 
-                        <!-- 3. Kamar -->
-                        <a href="{{ route('kamar') }}" class="nav-item">
-                            <span class="nav-icon">
-                                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                                    <rect x="3" y="16" width="17" height="10" rx="1.5" stroke="#1a1a1a" stroke-width="2" />
-                                    <rect x="5" y="18" width="5" height="4" rx="1" fill="#1a1a1a" />
-                                    <line x1="3" y1="12" x2="3" y2="26" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round" />
-                                    <rect x="22" y="18" width="7" height="8" rx="1" stroke="#1a1a1a" stroke-width="1.8" />
-                                    <line x1="22" y1="22" x2="29" y2="22" stroke="#1a1a1a" stroke-width="1.5" />
-                                    <polygon points="23.5,15 27.5,15 28.5,12 22.5,12" fill="#1a1a1a" />
-                                    <line x1="25.5" y1="15" x2="25.5" y2="18" stroke="#1a1a1a" stroke-width="1.5" />
-                                </svg>
-                            </span>
-                            <span class="nav-text">Kamar</span>
-                        </a>
+                    <a href="{{ route('pembayaran') }}" class="nav-item active" aria-current="page">
+                        <span class="nav-icon">
+                            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="4" y="3" width="16" height="18" rx="2"></rect><path d="M8 7h8M8 11h5M8 15h5"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-text">Pembayaran</span>
+                        <span class="nav-arrow">&rsaquo;</span>
+                    </a>
 
-                        <!-- 4. Pembayaran (ACTIVE) -->
-                        <a href="{{ route('pembayaran') }}" class="nav-item active">
-                            <span class="nav-icon">
-                                <span class="icon-circle-blue">
-                                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                        <rect x="2" y="5" width="20" height="14" rx="2" />
-                                        <line x1="2" y1="10" x2="22" y2="10" />
-                                    </svg>
-                                </span>
-                            </span>
-                            <span class="nav-text">Pembayaran</span>
-                        </a>
+                    <a href="{{ route('absensi.mhs') }}" class="nav-item">
+    <span class="nav-icon">
+        <svg width="23" height="23" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2">
+            <rect x="4" y="5" width="16" height="16" rx="2"></rect>
+            <path d="M8 3v4M16 3v4M8 13l2.5 2.5L16 10"></path>
+        </svg>
+    </span>
+    <span class="nav-text">Absensi</span>
+</a>
 
-                        <!-- 5. Pembalajaran -->
-                        <a href="javascript:void(0)" class="nav-item" onclick="openInfoModal('Pembalajaran Asrama', 'Program Taklim Ma\'had:<br>• Bahasa Arab (Senin - Rabu, 08:00 - 10:00)<br>• Tahsin & Tahfidz Al-Qur\'an (Ba\'da Subuh)<br>• Kajian Fiqih & Akhlak (Ba\'da Maghrib)')">
-                            <span class="nav-icon">
-                                <span class="icon-circle-cyan">
-                                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                    </svg>
-                                </span>
-                            </span>
-                            <span class="nav-text">Pembalajaran</span>
-                        </a>
+                    <a href="javascript:void(0)" class="nav-item" onclick="openInfoModal('Surat dan Perizinan', 'Fitur pengajuan surat dan perizinan Ma’had akan ditampilkan di bagian ini.')">
+                        <span class="nav-icon">
+                            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 3h9l4 4v14H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path><path d="M14 3v5h5M8 12h8M8 16h6"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-text">Surat dan Perizinan</span>
+                    </a>
 
-                        <!-- 6. Perizinan -->
-                        <a href="javascript:void(0)" class="nav-item" onclick="openInfoModal('Perizinan Keluar Asrama', 'Ajukan perizinan keluar malam, izin pulang kampung (weekend), atau dispensasi kegiatan kampus melalui bagian musyrif/musyrifah.')">
-                            <span class="nav-icon">
-                                <svg width="30" height="30" fill="none" stroke="#1a1a1a" stroke-width="2.2" viewBox="0 0 24 24">
-                                    <rect x="3" y="5" width="18" height="14" rx="2" />
-                                    <polyline points="3 7 12 13 21 7" />
-                                </svg>
-                            </span>
-                            <span class="nav-text">Perizinan</span>
-                        </a>
+                    <a href="javascript:void(0)" class="nav-item" onclick="openInfoModal('Pengumuman', 'Informasi pengumuman Ma’had akan ditampilkan di bagian ini.')">
+                        <span class="nav-icon">
+                            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 11v2a2 2 0 0 0 2 2h2l11 4V5L7 9H5a2 2 0 0 0-2 2z"></path><path d="M7 15l2 5h4l-2-6"></path><path d="M21 9l2-2M21 15l2 2"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-text">Pengumuman</span>
+                    </a>
 
-                        <!-- 7. Profil -->
-                        <a href="javascript:void(0)" class="nav-item" onclick="openInfoModal('Profil Mahasiswa', 'Nama: {{ Auth::user()->name }}<br>NIM: {{ Auth::user()->nim ?? '-' }}<br>Email: {{ Auth::user()->email }}<br>Status: Mahasiswa Aktif')">
-                            <span class="nav-icon">
-                                <span class="icon-circle-avatar">
-                                    <svg width="24" height="24" fill="#1a1a1a" viewBox="0 0 24 24">
-                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-4.43-.82-6.14-2.88C7.55 15.8 9.68 15 12 15s4.45.8 6.14 2.12C16.43 19.18 14.03 20 12 20z" />
-                                    </svg>
-                                </span>
-                            </span>
-                            <span class="nav-text">Profil</span>
-                        </a>
+                    <a href="javascript:void(0)" class="nav-item" onclick="openInfoModal('Pengaturan Akun', 'Pengaturan akun dan notifikasi akan ditampilkan di bagian ini.')">
+                        <span class="nav-icon">
+                            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 3.1-.2-.1a1.7 1.7 0 0 0-1.8-.1 1.7 1.7 0 0 0-1 1.5v.2h-3.6v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.1l-.2.1-1.8-3.1.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H5v-3.6h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-3.1.2.1a1.7 1.7 0 0 0 1.8.1 1.7 1.7 0 0 0 1-1.5v-.2h3.6v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.1l.2-.1 1.8 3.1-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1z"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-text">Pengaturan Akun</span>
+                    </a>
+                </nav>
 
-                        <!-- 8. Pengaturan -->
-                        <a href="javascript:void(0)" class="nav-item" onclick="openInfoModal('Pengaturan Akun', 'Ubah kata sandi, pengaturan notifikasi pengumuman asrama, dan sinkronisasi kontak darurat wali mahasiswa.')">
-                            <span class="nav-icon">
-                                <svg width="28" height="28" fill="#1a1a1a" viewBox="0 0 24 24">
-                                    <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
-                                </svg>
-                            </span>
-                            <span class="nav-text">Pengaturan</span>
-                        </a>
-                    </nav>
-                </div>
-
-                <!-- Keluar (Logout) -->
                 <div class="sidebar-footer">
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
                         <button type="submit" class="btn-keluar">
+                            <span class="nav-icon">
+                                <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10 17l5-5-5-5M15 12H3"></path><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"></path>
+                                </svg>
+                            </span>
                             Keluar
                         </button>
                     </form>
@@ -1063,315 +339,235 @@
             </div>
         </aside>
 
-        <!-- ================= MAIN CONTENT ================= -->
         <main class="main-content">
-            <div class="pembayaran-container">
-                <!-- Flash Notification Banner -->
-                @if (session('status'))
-                    <div class="alert-status">
-                        <div class="alert-status-content">
-                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>{{ session('status') }}</span>
-                        </div>
-                    </div>
-                @endif
+            <div class="breadcrumb">Dashboard / Pembayaran</div>
+            <h1 class="page-title">Pembayaran</h1>
+            <p class="page-description">Pantau informasi biaya dan status pembayaran Ma’had kamu.</p>
 
-                <!-- Page Header: Pembayaran -->
-                <h1 class="page-title">Pembayaran</h1>
+            @if (session('status'))
+                <div class="alert-status">{{ session('status') }}</div>
+            @endif
 
-                <!-- Section 1: Tagihan saat ini -->
-                <section class="section-group">
-                    <h2 class="section-label">Tagihan saat ini</h2>
+            <section class="payment-summary" aria-label="Ringkasan pembayaran">
+                <div class="summary-card">
+                    <div class="summary-label">Total Biaya Ma’had per Tahun</div>
+                    <div class="summary-value">Rp5.000.000</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label"><span class="summary-icon" style="color:#258653;">✓</span> Total Terkonfirmasi</div>
+                    <div class="summary-value">Rp—</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label"><span class="summary-icon" style="color:#c88718;">◷</span> Belum Terkonfirmasi</div>
+                    <div class="summary-value">Rp—</div>
+                </div>
+            </section>
 
-                    <div class="payment-card">
-                        <div class="card-left">
-                            <div class="bill-name">{{ $tagihan['nama'] }}</div>
-                            <div class="bill-row">Periode : {{ $tagihan['periode'] }}</div>
-                            <div class="bill-row">RP: {{ $tagihan['nominal'] }}</div>
-                            <div class="card-action">
-                                @if ($status === 'lunas')
-                                    <button type="button" class="btn-bayar" style="background-color: #15803d; cursor: default;" disabled>
-                                        Sudah Dibayar
-                                    </button>
-                                @else
-                                    <button type="button" class="btn-bayar" onclick="openPaymentModal()">
-                                        Bayar Sekarang
-                                    </button>
-                                @endif
-                            </div>
-                        </div>
-
-                        <div class="card-right">
-                            @if ($status === 'lunas')
-                                <span class="status-text status-lunas">
-                                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                    Lunas
-                                </span>
-                            @else
-                                <span class="status-text">
-                                    Belum lunas
-                                </span>
-                            @endif
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Section 2: Riwayat Pembayaran -->
-                <section class="section-group">
-                    <h2 class="section-label">Riwayat Pembayaran</h2>
-
-                    @foreach ($riwayat as $item)
-                        <div class="payment-card" style="margin-bottom: 1.25rem;">
-                            <div class="card-left">
-                                <div class="bill-row">Periode : {{ $item['periode'] }}</div>
-                                <div class="bill-row">Nominal: {{ $item['nominal'] }}</div>
-                                <div class="bill-row">Status: {{ $item['status'] }}</div>
-                            </div>
-                        </div>
-                    @endforeach
-
-                    @if ($status === 'lunas')
-                        <div class="payment-card" style="margin-bottom: 1.25rem;">
-                            <div class="card-left">
-                                <div class="bill-row">Periode : {{ $tagihan['periode'] }}</div>
-                                <div class="bill-row">Nominal: 2.500.000,00</div>
-                                <div class="bill-row" style="color: #15803d; font-weight: 700;">Status: Lunas</div>
-                            </div>
-                        </div>
+            <h2 class="section-title">Status Pembayaran</h2>
+            <section class="payment-card">
+                <div class="card-left">
+                    <div class="bill-name">{{ $tagihan['nama'] ?? 'Pembayaran Awal' }}</div>
+                    <div class="bill-description">Pembayaran saat pendaftaran</div>
+                    <div class="bill-row">Periode: {{ $tagihan['periode'] ?? '—' }}</div>
+                    <div class="bill-row">Nominal: Rp{{ $tagihan['nominal'] ?? '1.000.000' }}</div>
+                    @if (($status ?? '') !== 'lunas')
+                        <button type="button" class="btn-bayar" onclick="openPaymentModal()">Bayar Sekarang</button>
                     @endif
-                </section>
+                </div>
+                <div class="card-right">
+                    <div class="amount">Rp{{ $tagihan['nominal'] ?? '1.000.000' }}</div>
+                    <span class="status-pill {{ ($status ?? '') === 'lunas' ? 'paid' : '' }}">
+                        {{ ($status ?? '') === 'lunas' ? 'Lunas' : 'Menunggu Konfirmasi' }}
+                    </span>
+                </div>
+            </section>
 
-                <!-- Simulasi Helper Toolbar (opsional jika pengguna ingin reset ke belum lunas untuk demo) -->
-                @if ($status === 'lunas')
-                    <div class="simulation-bar">
-                        <span style="font-size: 0.85rem; color: #64748b;">Mode Simulasi Aktif:</span>
-                        <form action="{{ route('pembayaran.reset') }}" method="POST">
-                            @csrf
-                            <button type="submit" class="btn-reset-simulasi">
-                                ↺ Reset ke "Belum lunas"
-                            </button>
-                        </form>
-                    </div>
-                @endif
-            </div>
+            <h2 class="section-title">Riwayat Pembayaran</h2>
+            <section class="history-card">
+                <div class="history-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6M9 12h6M9 16h3"></path>
+                    </svg>
+                </div>
+                <div class="history-content">
+                    <div class="history-title">Pembayaran Awal Pendaftaran</div>
+                    <div class="history-detail">Nominal: Rp{{ $tagihan['nominal'] ?? '1.000.000' }}</div>
+                    <div class="history-detail">Bukti transfer: {{ ($status ?? '') === 'lunas' ? 'Sudah dikonfirmasi' : 'Menunggu konfirmasi' }}</div>
+                    <span class="status-pill {{ ($status ?? '') === 'lunas' ? 'paid' : '' }}">
+                        {{ ($status ?? '') === 'lunas' ? 'Terkonfirmasi' : 'Menunggu Konfirmasi' }}
+                    </span>
+
+                    @if (!empty($riwayat))
+                        @foreach ($riwayat as $item)
+                            <div class="history-note">
+                                <strong>{{ $item['periode'] ?? 'Riwayat pembayaran' }}</strong><br>
+                                Nominal: Rp{{ $item['nominal'] ?? '—' }}<br>
+                                Status: {{ $item['status'] ?? '—' }}
+                            </div>
+                        @endforeach
+                    @endif
+                    <div class="history-note">Riwayat dan status pembayaran diperbarui berdasarkan data yang tersedia dari pihak kampus.</div>
+                </div>
+                <div class="history-arrow">&rsaquo;</div>
+            </section>
+
+            @if (($status ?? '') === 'lunas')
+                <div class="simulation-bar">
+                    <span style="font-size:13px;color:#64748b;">Mode Simulasi Aktif:</span>
+                    <form action="{{ route('pembayaran.reset') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn-reset-simulasi">↺ Reset ke "Belum lunas"</button>
+                    </form>
+                </div>
+            @endif
+
+            <section class="information-box">
+                <h3>ⓘ &nbsp;Informasi</h3>
+                <p>SIMAHAD hanya menampilkan informasi pembayaran. Transaksi dan konfirmasi pembayaran ditangani oleh pihak kampus/rektorat.</p>
+            </section>
         </main>
     </div>
 
-    <!-- ================= PAYMENT INSTRUCTION MODAL ================= -->
+    <!-- Modal pembayaran: alur form tetap memakai route Laravel yang sudah ada -->
     <div class="modal-backdrop" id="paymentModal" onclick="closePaymentModalOnBackdrop(event)">
-        <div class="payment-modal-box">
-            <!-- Modal Header -->
+        <div class="payment-modal-box" role="dialog" aria-modal="true" aria-labelledby="paymentModalTitle" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <div class="modal-header-title">
-                    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: var(--primary-maroon);">
-                        <rect x="2" y="5" width="20" height="14" rx="2" />
-                        <line x1="2" y1="10" x2="22" y2="10" />
-                    </svg>
-                    <span>Pembayaran Asrama</span>
-                </div>
-                <button type="button" class="modal-header-close" onclick="closePaymentModal()">&times;</button>
+                <div class="modal-header-title" id="paymentModalTitle">Pembayaran Ma’had</div>
+                <button type="button" class="modal-header-close" onclick="closePaymentModal()" aria-label="Tutup">&times;</button>
             </div>
-
-            <!-- Modal Content -->
             <div class="modal-body-content">
-                <!-- Summary Card -->
                 <div class="order-summary-box">
-                    <div class="order-row">
-                        <span>Jenis Tagihan</span>
-                        <span style="font-weight: 600;">Pembayaran Asrama Mahasiswa</span>
-                    </div>
-                    <div class="order-row">
-                        <span>Periode Tagihan</span>
-                        <span style="font-weight: 600;">Januari 2027</span>
-                    </div>
-                    <div class="order-row">
-                        <span>Nama Mahasiswa</span>
-                        <span style="font-weight: 600;">{{ Auth::user()->name }}</span>
-                    </div>
-                    <div class="order-row">
-                        <span>Total Pembayaran</span>
-                        <span class="order-total-amount">Rp 2.500.000</span>
-                    </div>
+                    <div class="order-row"><span>Jenis Tagihan</span><strong>Pembayaran Awal Pendaftaran</strong></div>
+                    <div class="order-row"><span>Periode Tagihan</span><strong>{{ $tagihan['periode'] ?? '—' }}</strong></div>
+                    <div class="order-row"><span>Nama Mahasiswa</span><strong>{{ Auth::user()->name }}</strong></div>
+                    <div class="order-row"><span>Total Pembayaran</span><span class="order-total-amount">Rp{{ $tagihan['nominal'] ?? '1.000.000' }}</span></div>
                 </div>
 
-                <!-- Payment Methods Selection -->
-                <div class="methods-title">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                        <line x1="1" y1="10" x2="23" y2="10"></line>
-                    </svg>
-                    <span>Pilih Metode Pembayaran Virtual Account</span>
-                </div>
-
+                <div class="methods-title">Pilih Metode Pembayaran</div>
                 <div class="payment-methods-grid">
-                    <label class="method-choice selected" onclick="selectPaymentMethod('bsi', '900 2317 0201 3401', 'Bank Syariah Indonesia (BSI)')">
+                    <label class="method-choice selected" onclick="selectPaymentMethod(this, '900 2317 0201 3401', 'Bank Syariah Indonesia (BSI)')">
                         <div class="method-left">
-                            <input type="radio" name="payment_method_radio" value="BSI" class="method-radio" checked>
-                            <div>
-                                <div class="method-name">BSI Virtual Account</div>
-                                <div style="font-size: 0.8rem; color: #64748b;">Bank Syariah Indonesia</div>
-                            </div>
+                            <input type="radio" name="payment_method_radio" class="method-radio" value="BSI" checked>
+                            <div><div class="method-name">BSI Virtual Account</div><div class="method-sub">Bank Syariah Indonesia</div></div>
                         </div>
-                        <span class="method-badge">Otomatis Terverifikasi</span>
+                        <span class="method-badge">Virtual Account</span>
                     </label>
-
-                    <label class="method-choice" onclick="selectPaymentMethod('mandiri', '88708 2317020134', 'Bank Mandiri')">
+                    <label class="method-choice" onclick="selectPaymentMethod(this, '88708 2317020134', 'Bank Mandiri')">
                         <div class="method-left">
-                            <input type="radio" name="payment_method_radio" value="Mandiri" class="method-radio">
-                            <div>
-                                <div class="method-name">Mandiri Virtual Account</div>
-                                <div style="font-size: 0.8rem; color: #64748b;">Bank Mandiri</div>
-                            </div>
+                            <input type="radio" name="payment_method_radio" class="method-radio" value="Mandiri">
+                            <div><div class="method-name">Mandiri Virtual Account</div><div class="method-sub">Bank Mandiri</div></div>
                         </div>
                     </label>
-
-                    <label class="method-choice" onclick="selectPaymentMethod('bri', '12890 2317020134', 'Bank BRI')">
+                    <label class="method-choice" onclick="selectPaymentMethod(this, '12890 2317020134', 'Bank BRI')">
                         <div class="method-left">
-                            <input type="radio" name="payment_method_radio" value="BRI" class="method-radio">
-                            <div>
-                                <div class="method-name">BRIVA (BRI Virtual Account)</div>
-                                <div style="font-size: 0.8rem; color: #64748b;">Bank Rakyat Indonesia</div>
-                            </div>
+                            <input type="radio" name="payment_method_radio" class="method-radio" value="BRI">
+                            <div><div class="method-name">BRIVA</div><div class="method-sub">Bank Rakyat Indonesia</div></div>
                         </div>
                     </label>
                 </div>
 
-                <!-- Dynamic Virtual Account Display -->
                 <div class="va-display-box">
-                    <div class="va-label" id="vaBankLabel">Nomor Virtual Account BSI:</div>
+                    <div class="va-label" id="vaBankLabel">Nomor Virtual Account Bank Syariah Indonesia (BSI):</div>
                     <div class="va-number-row">
                         <span class="va-number" id="vaNumberText">900 2317 0201 3401</span>
-                        <button type="button" class="btn-copy" id="btnCopyVA" onclick="copyVirtualAccount()">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                            </svg>
-                            <span id="copyBtnText">Salin</span>
-                        </button>
+                        <button type="button" class="btn-copy" id="btnCopyVA" onclick="copyVirtualAccount()"><span id="copyBtnText">Salin</span></button>
                     </div>
                     <div class="va-account-name">Atas Nama: <strong>MAHAD UIN IB - {{ strtoupper(Auth::user()->name) }}</strong></div>
                 </div>
 
-                <!-- Payment Instructions -->
                 <div class="instructions-box">
-                    <strong style="color: #0f172a;">Petunjuk Pembayaran Mobile Banking:</strong>
+                    <strong>Petunjuk Pembayaran:</strong>
                     <ol>
-                        <li>Buka aplikasi Mobile Banking pilihan Anda (misal: BSI Mobile).</li>
-                        <li>Pilih menu <strong>Bayar / Pembayaran</strong> &gt; <strong>Akademik / Institusi</strong>.</li>
-                        <li>Masukkan kode institusi Ma'had atau nomor Virtual Account di atas.</li>
-                        <li>Periksa rincian tagihan (Nominal: <strong>Rp 2.500.000</strong>).</li>
-                        <li>Masukkan PIN dan simpan bukti transaksi Anda.</li>
+                        <li>Buka aplikasi mobile banking sesuai metode yang dipilih.</li>
+                        <li>Pilih menu pembayaran atau Virtual Account.</li>
+                        <li>Masukkan nomor Virtual Account yang ditampilkan.</li>
+                        <li>Periksa rincian pembayaran sebelum melanjutkan.</li>
+                        <li>Simpan bukti transaksi untuk keperluan konfirmasi.</li>
                     </ol>
+                    <p style="margin-top:8px;">Nomor Virtual Account di atas merupakan contoh tampilan/demo. Pastikan nomor resmi diperoleh dari pihak kampus sebelum melakukan transaksi.</p>
                 </div>
             </div>
-
-            <!-- Modal Action Footer -->
             <form action="{{ route('pembayaran.bayar') }}" method="POST" id="confirmPaymentForm">
                 @csrf
-                <input type="hidden" name="metode" id="selectedMetodeInput" value="Virtual Account BSI">
+                <input type="hidden" name="metode" id="selectedMetodeInput" value="Virtual Account Bank Syariah Indonesia (BSI)">
                 <div class="modal-footer">
                     <button type="button" class="btn-modal-cancel" onclick="closePaymentModal()">Tutup</button>
-                    <button type="submit" class="btn-modal-confirm">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        <span>Konfirmasi Sudah Bayar</span>
-                    </button>
+                    <button type="submit" class="btn-modal-confirm">Konfirmasi Sudah Bayar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- ================= GENERIC INFO MODAL (Sidebar Features) ================= -->
-    <div class="info-modal-backdrop" id="infoModal" onclick="closeInfoModalOnBackdrop(event)">
-        <div class="info-modal-box">
-            <button type="button" class="btn-info-close" onclick="closeInfoModal()">&times;</button>
-            <h3 class="info-modal-title" id="infoModalTitle">Informasi</h3>
-            <div class="info-modal-body" id="infoModalBody">Konten</div>
-            <button type="button" class="btn-info-ok" onclick="closeInfoModal()">Tutup</button>
+    <!-- Modal informasi untuk menu sidebar yang belum memiliki halaman tersendiri -->
+    <div class="modal-backdrop" id="infoModal" onclick="closeInfoModalOnBackdrop(event)">
+        <div class="payment-modal-box" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 class="modal-header-title" id="infoModalTitle">Informasi</h2>
+                <button type="button" class="modal-header-close" onclick="closeInfoModal()" aria-label="Tutup">&times;</button>
+            </div>
+            <div class="modal-body-content" id="infoModalBody">Informasi menu.</div>
+            <div class="modal-footer"><button type="button" class="btn-modal-confirm" onclick="closeInfoModal()">Tutup</button></div>
         </div>
     </div>
 
     <script>
-        // Modal Payment logic
         function openPaymentModal() {
             document.getElementById('paymentModal').classList.add('active');
         }
-
         function closePaymentModal() {
             document.getElementById('paymentModal').classList.remove('active');
         }
-
         function closePaymentModalOnBackdrop(e) {
-            if (e.target === document.getElementById('paymentModal')) {
-                closePaymentModal();
-            }
+            if (e.target.id === 'paymentModal') closePaymentModal();
         }
-
-        function selectPaymentMethod(key, vaNumber, bankName) {
-            document.getElementById('vaBankLabel').innerText = 'Nomor Virtual Account ' + bankName + ':';
-            document.getElementById('vaNumberText').innerText = vaNumber;
-            document.getElementById('selectedMetodeInput').value = 'Virtual Account ' + bankName;
-
-            const choices = document.querySelectorAll('.method-choice');
-            choices.forEach(c => c.classList.remove('selected'));
-
-            const selectedChoice = event.currentTarget;
-            if (selectedChoice) {
-                selectedChoice.classList.add('selected');
-                const radio = selectedChoice.querySelector('input[type="radio"]');
-                if (radio) radio.checked = true;
-            }
-        }
-
-        function copyVirtualAccount() {
-            const rawText = document.getElementById('vaNumberText').innerText.replace(/\s+/g, '');
-            navigator.clipboard.writeText(rawText).then(() => {
-                const btn = document.getElementById('btnCopyVA');
-                const textSpan = document.getElementById('copyBtnText');
-                btn.classList.add('copied');
-                textSpan.innerText = 'Tersalin!';
-                setTimeout(() => {
-                    btn.classList.remove('copied');
-                    textSpan.innerText = 'Salin';
-                }, 2000);
-            }).catch(() => {
-                alert('Nomor VA: ' + rawText);
+        function selectPaymentMethod(element, vaNumber, bankName) {
+            document.querySelectorAll('.method-choice').forEach(function (choice) {
+                choice.classList.remove('selected');
             });
+            element.classList.add('selected');
+            const radio = element.querySelector('input[type="radio"]');
+            if (radio) radio.checked = true;
+            document.getElementById('vaBankLabel').textContent = 'Nomor Virtual Account ' + bankName + ':';
+            document.getElementById('vaNumberText').textContent = vaNumber;
+            document.getElementById('selectedMetodeInput').value = 'Virtual Account ' + bankName;
         }
-
-        // Generic Info modal for sidebar links
+        function copyVirtualAccount() {
+            const value = document.getElementById('vaNumberText').textContent.replace(/\s+/g, '');
+            const button = document.getElementById('btnCopyVA');
+            const label = document.getElementById('copyBtnText');
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(value).then(function () {
+                    button.classList.add('copied');
+                    label.textContent = 'Tersalin!';
+                    setTimeout(function () {
+                        button.classList.remove('copied');
+                        label.textContent = 'Salin';
+                    }, 1800);
+                }).catch(function () { window.prompt('Salin nomor Virtual Account:', value); });
+            } else {
+                window.prompt('Salin nomor Virtual Account:', value);
+            }
+        }
         function openInfoModal(title, content) {
-            document.getElementById('infoModalTitle').innerHTML = title;
+            document.getElementById('infoModalTitle').textContent = title;
             document.getElementById('infoModalBody').innerHTML = content;
             document.getElementById('infoModal').classList.add('active');
         }
-
         function closeInfoModal() {
             document.getElementById('infoModal').classList.remove('active');
         }
-
         function closeInfoModalOnBackdrop(e) {
-            if (e.target === document.getElementById('infoModal')) {
-                closeInfoModal();
-            }
+            if (e.target.id === 'infoModal') closeInfoModal();
         }
 
-        // Mobile sidebar toggle
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const sidebar = document.getElementById('sidebar');
         const sidebarBackdrop = document.getElementById('sidebarBackdrop');
-
-        if (mobileMenuBtn) {
+        if (mobileMenuBtn && sidebar && sidebarBackdrop) {
             mobileMenuBtn.addEventListener('click', function () {
                 sidebar.classList.toggle('active');
                 sidebarBackdrop.classList.toggle('active');
             });
-
             sidebarBackdrop.addEventListener('click', function () {
                 sidebar.classList.remove('active');
                 sidebarBackdrop.classList.remove('active');

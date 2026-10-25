@@ -903,16 +903,20 @@
                         <span class="nav-label">Pendaftaran</span>
                     </a>
 
-                    <!-- 3. Pembelajaran -->
-                    <a href="javascript:void(0)" class="nav-pill" onclick="openInfoModal('Pembelajaran', 'Program Pembelajaran Ma\'had:<br>• Bahasa Arab & Studi Islam<br>• Tahsin & Tahfidz Al-Qur\'an<br>• Kajian Fiqih & Akhlak')">
-                        <span class="nav-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                            </svg>
-                        </span>
-                        <span class="nav-label">Pembelajaran</span>
-                    </a>
+                    
+<!-- Pembelajaran -->
+<a href="{{ route('pembelajaran.mhs') }}" class="nav-pill">
+    <span class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+    </span>
+    <span class="nav-label">Pembelajaran</span>
+</a>
+
 
                     <!-- 3. Informasi Kamar -->
                     <a href="{{ route('kamar') }}" class="nav-pill">
@@ -940,16 +944,20 @@
                     </a>
 
                     <!-- 5. Absensi -->
-                    <a href="javascript:void(0)" class="nav-pill" onclick="openInfoModal('Absensi', 'Data Kehadiran Ma\'had:<br>• Hadir: 10 kali<br>• Izin: 2 kali<br>• Alpa: 1 kali<br>• Persentase: 75%')">
-                        <span class="nav-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="8" y="2" width="8" height="4" rx="1"></rect>
-                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                                <path d="m9 14 2 2 4-4"></path>
-                            </svg>
-                        </span>
-                        <span class="nav-label">Absensi</span>
-                    </a>
+                    
+<a href="{{ route('absensi.mhs') }}" class="nav-pill">
+    <span class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+            <rect x="8" y="2" width="8" height="4" rx="1"></rect>
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+            <path d="m9 14 2 2 4-4"></path>
+        </svg>
+    </span>
+    <span class="nav-label">Absensi</span>
+</a>
+
 
                     <!-- 6. Surat dan Perizinan -->
                     <a href="javascript:void(0)" class="nav-pill" onclick="openInfoModal('Surat dan Perizinan', 'Ajukan surat izin keluar asrama, izin pulang, atau surat keterangan tinggal di asrama.')">

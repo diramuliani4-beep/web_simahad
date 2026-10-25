@@ -3,6 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\PendaftaranController;
+use App\Http\Controllers\PembelajaranController;
+use App\Http\Controllers\AbsensiMhsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [AuthController::class, 'showLoginForm']);
@@ -80,3 +82,15 @@ Route::get('/pendaftaran/konfirmasi', [PendaftaranController::class, 'konfirmasi
 Route::post('/pendaftaran/selesai', [PendaftaranController::class, 'selesai'])
     ->name('pendaftaran.selesai')
     ->middleware('auth');
+
+Route::get('/dashboard', [AuthController::class, 'dashboard'])
+    ->name('dashboard')
+    ->middleware('auth');
+
+
+Route::get('/pembelajaran-mhs', [PembelajaranController::class, 'index'])
+    ->name('pembelajaran.mhs')
+    ->middleware('auth');
+
+Route::get('/absensi-mhs', [AbsensiMhsController::class, 'index'])
+    ->name('absensi.mhs');
