@@ -98,3 +98,4 @@ Route::get('/absensi-mhs', [AbsensiMhsController::class, 'index'])
 
 Route::get('/pengumuman-mhs', [PengumumanMhsController::class, 'index'])
     ->name('pengumuman.mhs');
+

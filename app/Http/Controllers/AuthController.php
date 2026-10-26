@@ -14,14 +14,10 @@ class AuthController extends Controller
     /**
      * Show the login form.
      */
-    public function showLoginForm(): View|RedirectResponse
-    {
-        if (Auth::check()) {
-            return redirect()->route('dashboard');
-        }
-
-        return view('auth.login');
-    }
+    public function showLoginForm(): View
+{
+    return view('auth.login');
+}
 
     /**
      * Handle an incoming authentication request.
