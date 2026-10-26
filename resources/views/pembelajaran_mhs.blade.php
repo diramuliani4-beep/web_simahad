@@ -864,20 +864,22 @@
                 <span class="nav-label">Pengumuman</span>
             </a>
 
-            <!-- Surat dan Perizinan -->
-            <a
-                href="#"
-                class="nav-pill"
-                onclick="event.preventDefault(); alert('Halaman Surat dan Perizinan belum tersedia.');"
-            >
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M6 3h9l5 5v13H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/>
-                        <path d="M14 3v6h6M8 13h8M8 17h6"/>
-                    </svg>
-                </span>
-                <span class="nav-label">Surat dan Perizinan</span>
-            </a>
+            
+<!-- Surat dan Perizinan -->
+<a
+    href="{{ route('surat.perizinan.mhs') }}"
+    class="nav-pill {{ request()->routeIs('surat.perizinan.mhs*') ? 'active' : '' }}"
+    @if(request()->routeIs('surat.perizinan.mhs*')) aria-current="page" @endif
+>
+    <span class="nav-icon">
+        <svg viewBox="0 0 24 24">
+            <path d="M6 3h9l5 5v13H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/>
+            <path d="M14 3v6h6M8 13h8M8 17h6"/>
+        </svg>
+    </span>
+    <span class="nav-label">Surat dan Perizinan</span>
+</a>
+
         </nav>
 
         <!-- PENGATURAN DAN KELUAR -->

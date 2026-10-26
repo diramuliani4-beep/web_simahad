@@ -631,19 +631,20 @@
                 <span class="nav-label">Pengumuman</span>
             </a>
 
-            <a
-                href="#"
-                class="nav-item"
-                onclick="event.preventDefault(); alert('Halaman Surat dan Perizinan belum tersedia.');"
-            >
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M6 3h9l4 4v14H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
-                        <path d="M14 3v5h5M8 13h8M8 17h6"/>
-                    </svg>
-                </span>
-                <span class="nav-label">Surat dan Perizinan</span>
-            </a>
+            
+<a
+    href="{{ route('surat.perizinan.mhs') }}"
+    class="nav-item {{ request()->routeIs('surat.perizinan.mhs*') ? 'active' : '' }}"
+>
+    <span class="nav-icon">
+        <svg viewBox="0 0 24 24">
+            <path d="M6 3h9l4 4v14H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
+            <path d="M14 3v5h5M8 13h8M8 17h6"/>
+        </svg>
+    </span>
+    <span class="nav-label">Surat dan Perizinan</span>
+</a>
+
 
             <a
                 href="#"

@@ -974,19 +974,21 @@
                         <span class="nav-text">Absensi</span>
                     </a>
 
-                    <!-- Surat dan Perizinan: modal informasi sementara -->
-                    <a href="#"
-                       class="nav-item"
-                       onclick="openInfoModal('Surat dan Perizinan', 'Fitur pengajuan surat dan perizinan Ma’had akan ditampilkan di bagian ini.'); return false;">
-                        <span class="nav-icon">
-                            <svg width="23" height="23" viewBox="0 0 24 24"
-                                 fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M6 3h9l4 4v14H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
-                                <path d="M14 3v5h5M8 12h8M8 16h6"></path>
-                            </svg>
-                        </span>
-                        <span class="nav-text">Surat dan Perizinan</span>
-                    </a>
+                    
+<!-- Surat dan Perizinan -->
+<a href="{{ route('surat.perizinan.mhs') }}"
+   class="nav-item {{ request()->routeIs('surat.perizinan.mhs*') ? 'active' : '' }}"
+   @if(request()->routeIs('surat.perizinan.mhs*')) aria-current="page" @endif>
+    <span class="nav-icon">
+        <svg width="23" height="23" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 3h9l4 4v14H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
+            <path d="M14 3v5h5M8 12h8M8 16h6"></path>
+        </svg>
+    </span>
+    <span class="nav-text">Surat dan Perizinan</span>
+</a>
+
 
                     <!-- Pengumuman -->
                     <a href="{{ route('pengumuman.mhs') }}"

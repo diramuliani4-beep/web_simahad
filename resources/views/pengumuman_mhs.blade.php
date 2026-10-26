@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -884,19 +883,25 @@
                         <span class="nav-label">Absensi</span>
                     </a>
 
-                    <a href="javascript:void(0)" class="nav-pill"
-                       onclick="openInfoModal('Surat & Perizinan', 'Fitur Surat & Perizinan belum terhubung ke halaman tersendiri.')">
-                        <span class="nav-icon">
-                            <svg viewBox="0 0 24 24" fill="none"
-                                 stroke-width="2" stroke-linecap="round"
-                                 stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <path d="M14 2v6h6"/>
-                                <path d="M8 13h8M8 17h8"/>
-                            </svg>
-                        </span>
-                        <span class="nav-label">Surat &amp; Perizinan</span>
-                    </a>
+                    
+<!-- Surat dan Perizinan -->
+<a
+    href="{{ route('surat.perizinan.mhs') }}"
+    class="nav-pill {{ request()->routeIs('surat.perizinan.mhs*') ? 'active' : '' }}"
+    @if(request()->routeIs('surat.perizinan.mhs*')) aria-current="page" @endif
+>
+    <span class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none"
+             stroke-width="2" stroke-linecap="round"
+             stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <path d="M14 2v6h6"/>
+            <path d="M8 13h8M8 17h8"/>
+        </svg>
+    </span>
+    <span class="nav-label">Surat &amp; Perizinan</span>
+</a>
+
 
                     <a href="{{ route('pengumuman.mhs') }}"
                        class="nav-pill {{ request()->routeIs('pengumuman.mhs') ? 'active' : '' }}">
