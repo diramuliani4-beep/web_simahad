@@ -974,15 +974,27 @@
                     </a>
 
                     <!-- 7. Pengumuman -->
-                    <a href="javascript:void(0)" class="nav-pill" onclick="openInfoModal('Pengumuman', 'Belum ada pengumuman mendesak. Pantau selalu informasi kegiatan asrama di sini.')">
-                        <span class="nav-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="m3 11 18-5v12L3 14v-3z"></path>
-                                <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path>
-                            </svg>
-                        </span>
-                        <span class="nav-label">Pengumuman</span>
-                    </a>
+                    
+<a href="{{ route('pengumuman.mhs') }}" class="nav-pill">
+    <span class="nav-icon">
+        <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        >
+            <path d="m3 11 18-5v12L3 14v-3z"></path>
+            <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path>
+        </svg>
+    </span>
+
+    <span class="nav-label">Pengumuman</span>
+</a>
+
                 </nav>
 
                 <!-- Bottom Section -->

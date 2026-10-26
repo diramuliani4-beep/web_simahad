@@ -5,6 +5,7 @@ use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\PendaftaranController;
 use App\Http\Controllers\PembelajaranController;
 use App\Http\Controllers\AbsensiMhsController;
+use App\Http\Controllers\PengumumanMhsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [AuthController::class, 'showLoginForm']);
@@ -94,3 +95,6 @@ Route::get('/pembelajaran-mhs', [PembelajaranController::class, 'index'])
 
 Route::get('/absensi-mhs', [AbsensiMhsController::class, 'index'])
     ->name('absensi.mhs');
+
+Route::get('/pengumuman-mhs', [PengumumanMhsController::class, 'index'])
+    ->name('pengumuman.mhs');
