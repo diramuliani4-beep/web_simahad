@@ -92,7 +92,7 @@
             top: 89px;
             left: 0;
             bottom: 0;
-            width: 407px;
+            width: 300px;
             overflow-y: auto;
             border: 1px solid var(--border);
             background: #b8d7ef;
@@ -117,22 +117,22 @@
         .nav-list {
             display: flex;
             flex-direction: column;
-            gap: 24px;
-            padding: 30px 14px;
+            gap: 12px;
+            padding: 22px 12px;
         }
 
         .nav-link {
-            min-height: 50px;
-            padding: 10px 13px;
+            min-height: 46px;
+            padding: 10px 12px;
             display: flex;
             align-items: center;
-            gap: 13px;
+            gap: 11px;
             border: 1px solid #202020;
-            border-radius: 15px;
+            border-radius: 12px;
             background: #fff;
             color: #111;
             text-decoration: none;
-            font-size: 16px;
+            font-size: 14px;
             transition: .18s ease;
         }
 
@@ -140,13 +140,14 @@
             color: #667080;
             width: 20px;
             text-align: center;
-            font-size: 18px;
+            font-size: 17px;
             flex-shrink: 0;
         }
 
         .nav-link:hover {
             border-color: var(--maroon);
             background: #fff7f8;
+            color: var(--maroon);
         }
 
         .nav-link.active {
@@ -165,19 +166,7 @@
             margin-left: auto;
         }
 
-        .nav-link.disabled {
-            opacity: .65;
-            cursor: not-allowed;
-            background: #f2f2f2;
-        }
-
-        .nav-link.disabled:hover {
-            border-color: #202020;
-            background: #f2f2f2;
-        }
-
         .nav-link.logout {
-            margin-top: 0;
             font-weight: 600;
         }
 
@@ -193,13 +182,13 @@
         }
 
         .main {
-            margin-left: 407px;
+            margin-left: 300px;
             padding-top: 89px;
             min-height: 100vh;
         }
 
         .page-heading {
-            padding: 27px 45px 12px;
+            padding: 27px 35px 12px;
             border-bottom: 1px solid var(--border);
             background: #f8f8f8;
         }
@@ -223,7 +212,7 @@
         }
 
         .content {
-            padding: 15px 45px 35px;
+            padding: 15px 35px 35px;
         }
 
         .section-title {
@@ -443,11 +432,11 @@
 
         @media (max-width: 1100px) {
             .sidebar {
-                width: 280px;
+                width: 260px;
             }
 
             .main {
-                margin-left: 280px;
+                margin-left: 260px;
             }
 
             .page-heading,
@@ -571,64 +560,84 @@
         <div class="sidebar-bg"></div>
 
         <nav class="nav-list" aria-label="Menu utama">
-            <a class="nav-link" href="{{ route('dashboard') }}">
+
+            <a
+                class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
+                href="{{ route('dashboard') }}"
+            >
                 <i class="fa-solid fa-border-all"></i>
                 <span>Dashboard</span>
             </a>
 
-            <a class="nav-link" href="{{ route('pembelajaran.mhs') }}">
+            <a
+                class="nav-link {{ request()->routeIs('pendaftaran.*') ? 'active' : '' }}"
+                href="{{ route('pendaftaran.pribadi') }}"
+            >
+                <i class="fa-solid fa-user-pen"></i>
+                <span>Pendaftaran</span>
+            </a>
+
+            <a
+                class="nav-link {{ request()->routeIs('pembelajaran.mhs') ? 'active' : '' }}"
+                href="{{ route('pembelajaran.mhs') }}"
+            >
                 <i class="fa-solid fa-book-open"></i>
                 <span>Pembelajaran</span>
             </a>
 
-            <a class="nav-link" href="{{ route('kamar') }}">
+            <a
+                class="nav-link {{ request()->routeIs('kamar') ? 'active' : '' }}"
+                href="{{ route('kamar') }}"
+            >
                 <i class="fa-solid fa-bed"></i>
                 <span>Informasi Kamar</span>
             </a>
 
-            <a class="nav-link" href="{{ route('pembayaran') }}">
+            <a
+                class="nav-link {{ request()->routeIs('pembayaran') ? 'active' : '' }}"
+                href="{{ route('pembayaran') }}"
+            >
                 <i class="fa-solid fa-wallet"></i>
                 <span>Pembayaran</span>
             </a>
 
             <a
-                class="nav-link active"
+                class="nav-link {{ request()->routeIs('absensi.mhs') ? 'active' : '' }}"
                 href="{{ route('absensi.mhs') }}"
-                aria-current="page"
+                @if(request()->routeIs('absensi.mhs')) aria-current="page" @endif
             >
                 <i class="fa-regular fa-clipboard"></i>
                 <span>Absensi</span>
-                <i class="fa-solid fa-angle-right nav-arrow"></i>
+                @if(request()->routeIs('absensi.mhs'))
+                    <i class="fa-solid fa-angle-right nav-arrow"></i>
+                @endif
             </a>
 
             <a
-                class="nav-link disabled"
-                href="#"
-                aria-disabled="true"
-                title="Halaman belum tersedia"
-                onclick="return false;"
-            >
-                <i class="fa-regular fa-file-lines"></i>
-                <span>Surat dan Perizinan</span>
-            </a>
-
-            <a
-                class="nav-link disabled"
-                href="#"
-                aria-disabled="true"
-                title="Halaman belum tersedia"
-                onclick="return false;"
+                class="nav-link {{ request()->routeIs('pengumuman.mhs') ? 'active' : '' }}"
+                href="{{ route('pengumuman.mhs') }}"
             >
                 <i class="fa-solid fa-bullhorn"></i>
                 <span>Pengumuman</span>
             </a>
 
+            {{-- Aktifkan tautan ini jika route surat dan perizinan sudah tersedia. --}}
             <a
-                class="nav-link disabled"
+                class="nav-link"
                 href="#"
-                aria-disabled="true"
-                title="Halaman belum tersedia"
-                onclick="return false;"
+                title="Halaman Surat dan Perizinan belum memiliki route"
+                onclick="event.preventDefault(); alert('Halaman Surat dan Perizinan belum tersedia.');"
+            >
+                <i class="fa-regular fa-file-lines"></i>
+                <span>Surat dan Perizinan</span>
+            </a>
+
+            {{-- Aktifkan tautan ini jika route pengaturan akun sudah tersedia. --}}
+            <a
+                class="nav-link"
+                href="#"
+                title="Halaman Pengaturan Akun belum memiliki route"
+                onclick="event.preventDefault(); alert('Halaman Pengaturan Akun belum tersedia.');"
             >
                 <i class="fa-solid fa-gear"></i>
                 <span>Pengaturan Akun</span>
@@ -646,6 +655,7 @@
                     <span>Keluar</span>
                 </button>
             </form>
+
         </nav>
     </aside>
 

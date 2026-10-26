@@ -7,6 +7,7 @@
     <title>Pembelajaran | SIMAHAD</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -41,6 +42,10 @@
         button {
             font: inherit;
         }
+
+        /* =========================
+           HEADER
+        ========================= */
 
         .topbar {
             height: 89px;
@@ -84,10 +89,12 @@
             width: 36px;
             height: 36px;
             background: var(--maroon);
+            border: none;
             border-radius: 50%;
             display: grid;
             place-items: center;
             color: white;
+            cursor: pointer;
         }
 
         .notification svg {
@@ -114,19 +121,23 @@
             height: 57px;
         }
 
+        /* =========================
+           SIDEBAR
+        ========================= */
+
         .sidebar {
             position: fixed;
             top: 89px;
             bottom: 0;
             left: 0;
-            width: 407px;
+            width: 300px;
             overflow-y: auto;
             border: 1px solid var(--border);
             background:
                 linear-gradient(
                     to bottom,
-                    rgba(255,255,255,.20),
-                    rgba(255,255,255,.57)
+                    rgba(255,255,255,.35),
+                    rgba(255,255,255,.68)
                 ),
                 url("{{ asset('images/mahad_al_jamiah.jpeg') }}");
             background-size: cover;
@@ -137,45 +148,51 @@
         }
 
         .sidebar-menu {
-            padding: 41px 13px 18px;
+            padding: 22px 12px 18px;
             display: flex;
             flex-direction: column;
-            gap: 36px;
+            gap: 12px;
         }
 
         .nav-pill {
-            min-height: 50px;
+            min-height: 46px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 9px 12px;
+            gap: 11px;
+            padding: 10px 12px;
             border: 1px solid var(--border);
-            border-radius: 16px;
+            border-radius: 12px;
             background: rgba(255,255,255,.97);
             color: #111;
-            font-size: 19px;
+            font-size: 14px;
             font-weight: 400;
             transition: background .2s, color .2s;
+            cursor: pointer;
         }
 
         .nav-pill:hover {
-            background: #f8edef;
+            background: var(--maroon-light);
             color: var(--maroon);
         }
 
         .nav-pill.active {
-            background: #f8edef;
+            background: var(--maroon-light);
             color: var(--maroon);
-            box-shadow: 0 3px 5px rgba(0,0,0,.14);
+            box-shadow: 0 3px 5px rgba(0,0,0,.12);
+            font-weight: 600;
         }
 
         .nav-icon {
-            width: 20px;
+            width: 22px;
             height: 22px;
             flex-shrink: 0;
             display: grid;
             place-items: center;
             color: #626d7e;
+        }
+
+        .nav-pill.active .nav-icon {
+            color: var(--maroon);
         }
 
         .nav-icon svg {
@@ -194,21 +211,45 @@
 
         .nav-arrow {
             color: var(--maroon);
-            font-size: 27px;
+            font-size: 25px;
             line-height: 1;
             font-weight: 700;
         }
 
         .sidebar-bottom {
             margin-top: auto;
-            padding: 21px 13px 30px;
+            padding: 18px 12px 20px;
             border-top: 1px solid var(--border);
         }
 
+        .sidebar-bottom .nav-pill {
+            margin-bottom: 12px;
+        }
+
+        .sidebar-bottom .nav-pill:last-child {
+            margin-bottom: 0;
+        }
+
+        .logout-form {
+            width: 100%;
+            margin: 0;
+        }
+
+        .logout-button {
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        /* =========================
+           MAIN CONTENT
+        ========================= */
+
         .main {
-            margin-left: 407px;
-            padding: 105px 45px 35px;
+            margin-left: 300px;
+            padding: 105px 35px 35px;
             min-height: 100vh;
+            min-width: 0;
         }
 
         .breadcrumb {
@@ -229,6 +270,10 @@
             line-height: 1.6;
             margin-bottom: 10px;
         }
+
+        /* =========================
+           STATISTIK
+        ========================= */
 
         .stats-grid {
             display: grid;
@@ -272,6 +317,10 @@
             font-size: 14px;
             margin-top: 5px;
         }
+
+        /* =========================
+           JADWAL PEMBELAJARAN
+        ========================= */
 
         .schedule-card {
             background: #fff;
@@ -329,6 +378,10 @@
             font-size: 15px;
             line-height: 1.9;
         }
+
+        /* =========================
+           KALENDER
+        ========================= */
 
         .calendar-card {
             width: min(596px, 100%);
@@ -441,6 +494,10 @@
             border-radius: 50%;
         }
 
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
         .mobile-toggle,
         .mobile-overlay {
             display: none;
@@ -448,21 +505,21 @@
 
         @media (max-width: 1100px) {
             .sidebar {
-                width: 285px;
+                width: 260px;
             }
 
             .main {
-                margin-left: 285px;
-                padding-left: 25px;
-                padding-right: 25px;
+                margin-left: 260px;
+                padding-left: 24px;
+                padding-right: 24px;
             }
 
             .sidebar-menu {
-                gap: 20px;
+                gap: 10px;
             }
 
             .nav-pill {
-                font-size: 16px;
+                font-size: 13px;
             }
 
             .page-title {
@@ -471,6 +528,22 @@
 
             .page-description {
                 font-size: 15px;
+            }
+
+            .stats-grid {
+                gap: 8px;
+            }
+
+            .stat-card {
+                padding: 13px;
+            }
+
+            .stat-number {
+                font-size: 21px;
+            }
+
+            .stat-label {
+                font-size: 12px;
             }
         }
 
@@ -510,6 +583,7 @@
 
             .sidebar {
                 top: 72px;
+                bottom: 0;
                 width: min(310px, 85vw);
                 transform: translateX(-100%);
                 transition: transform .25s ease;
@@ -529,9 +603,11 @@
 
             .mobile-toggle {
                 display: inline-flex;
+                align-items: center;
+                gap: 6px;
                 border: 1px solid #e5d4d8;
                 border-radius: 7px;
-                padding: 5px 9px;
+                padding: 6px 10px;
                 background: white;
                 color: var(--maroon);
                 margin-bottom: 12px;
@@ -629,9 +705,10 @@
 </head>
 
 <body>
+    <!-- HEADER -->
     <header class="topbar">
-        <a href="{{ route('dashboard') }}" class="brand">
-            <svg class="brand-logo" viewBox="0 0 70 65" fill="none" aria-label="Logo SIMAHAD">
+        <a href="{{ route('dashboard') }}" class="brand" aria-label="SIMAHAD - Dashboard">
+            <svg class="brand-logo" viewBox="0 0 70 65" fill="none" aria-label="logo_uin.png">
                 <path d="M35 3L64 25L58 53L35 63L12 53L6 25L35 3Z"
                       stroke="#B99124" stroke-width="5"/>
                 <path d="M35 13L54 28L50 47L35 56L20 47L16 28L35 13Z"
@@ -648,8 +725,8 @@
         <div class="top-actions">
             <button class="notification" type="button" aria-label="Notifikasi">
                 <svg viewBox="0 0 24 24">
-                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
-                    <path d="M10 21h4"></path>
+                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
+                    <path d="M10 21h4"/>
                 </svg>
             </button>
 
@@ -664,11 +741,23 @@
         </div>
     </header>
 
-    <div class="mobile-overlay" id="mobileOverlay" onclick="toggleSidebar()"></div>
+    <!-- OVERLAY MOBILE -->
+    <div
+        class="mobile-overlay"
+        id="mobileOverlay"
+        onclick="toggleSidebar()"
+    ></div>
 
+    <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
-        <nav class="sidebar-menu">
-            <a href="{{ route('dashboard') }}" class="nav-pill">
+        <nav class="sidebar-menu" aria-label="Navigasi utama">
+
+            <!-- Dashboard -->
+            <a
+                href="{{ route('dashboard') }}"
+                class="nav-pill {{ request()->routeIs('dashboard') ? 'active' : '' }}"
+                @if(request()->routeIs('dashboard')) aria-current="page" @endif
+            >
                 <span class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <rect x="3" y="3" width="7" height="7" rx="2"/>
@@ -680,7 +769,28 @@
                 <span class="nav-label">Dashboard</span>
             </a>
 
-            <a href="{{ route('pembelajaran.mhs') }}" class="nav-pill active">
+            <!-- Pendaftaran -->
+            <a
+                href="{{ route('pendaftaran.pribadi') }}"
+                class="nav-pill {{ request()->routeIs('pendaftaran.*') ? 'active' : '' }}"
+                @if(request()->routeIs('pendaftaran.*')) aria-current="page" @endif
+            >
+                <span class="nav-icon">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="10" cy="8" r="4"/>
+                        <path d="M3 21v-2a7 7 0 0 1 14 0v2"/>
+                        <path d="M19 8v6M16 11h6"/>
+                    </svg>
+                </span>
+                <span class="nav-label">Pendaftaran</span>
+            </a>
+
+            <!-- Pembelajaran -->
+            <a
+                href="{{ route('pembelajaran.mhs') }}"
+                class="nav-pill {{ request()->routeIs('pembelajaran.mhs') ? 'active' : '' }}"
+                @if(request()->routeIs('pembelajaran.mhs')) aria-current="page" @endif
+            >
                 <span class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <path d="M12 7L4 4v15l8 3 8-3V4l-8 3Z"/>
@@ -688,10 +798,17 @@
                     </svg>
                 </span>
                 <span class="nav-label">Pembelajaran</span>
-                <span class="nav-arrow">›</span>
+                @if(request()->routeIs('pembelajaran.mhs'))
+                    <span class="nav-arrow">&rsaquo;</span>
+                @endif
             </a>
 
-            <a href="{{ route('kamar') }}" class="nav-pill">
+            <!-- Informasi Kamar -->
+            <a
+                href="{{ route('kamar') }}"
+                class="nav-pill {{ request()->routeIs('kamar') ? 'active' : '' }}"
+                @if(request()->routeIs('kamar')) aria-current="page" @endif
+            >
                 <span class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <rect x="3" y="11" width="18" height="9" rx="1"/>
@@ -701,7 +818,12 @@
                 <span class="nav-label">Informasi Kamar</span>
             </a>
 
-            <a href="{{ route('pembayaran') }}" class="nav-pill">
+            <!-- Pembayaran -->
+            <a
+                href="{{ route('pembayaran') }}"
+                class="nav-pill {{ request()->routeIs('pembayaran') ? 'active' : '' }}"
+                @if(request()->routeIs('pembayaran')) aria-current="page" @endif
+            >
                 <span class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <rect x="3" y="5" width="18" height="15" rx="2"/>
@@ -712,7 +834,12 @@
                 <span class="nav-label">Pembayaran</span>
             </a>
 
-            <a href="#" class="nav-pill" onclick="return false;">
+            <!-- Absensi -->
+            <a
+                href="{{ route('absensi.mhs') }}"
+                class="nav-pill {{ request()->routeIs('absensi.mhs') ? 'active' : '' }}"
+                @if(request()->routeIs('absensi.mhs')) aria-current="page" @endif
+            >
                 <span class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <rect x="4" y="5" width="16" height="16" rx="2"/>
@@ -722,17 +849,12 @@
                 <span class="nav-label">Absensi</span>
             </a>
 
-            <a href="#" class="nav-pill" onclick="return false;">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M6 3h9l5 5v13H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/>
-                        <path d="M14 3v6h6M8 13h8M8 17h6"/>
-                    </svg>
-                </span>
-                <span class="nav-label">Surat dan Perizinan</span>
-            </a>
-
-            <a href="#" class="nav-pill" onclick="return false;">
+            <!-- Pengumuman -->
+            <a
+                href="{{ route('pengumuman.mhs') }}"
+                class="nav-pill {{ request()->routeIs('pengumuman.mhs') ? 'active' : '' }}"
+                @if(request()->routeIs('pengumuman.mhs')) aria-current="page" @endif
+            >
                 <span class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <path d="M3 11v-1l18-7v18L3 14v-3Z"/>
@@ -741,10 +863,31 @@
                 </span>
                 <span class="nav-label">Pengumuman</span>
             </a>
+
+            <!-- Surat dan Perizinan -->
+            <a
+                href="#"
+                class="nav-pill"
+                onclick="event.preventDefault(); alert('Halaman Surat dan Perizinan belum tersedia.');"
+            >
+                <span class="nav-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M6 3h9l5 5v13H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/>
+                        <path d="M14 3v6h6M8 13h8M8 17h6"/>
+                    </svg>
+                </span>
+                <span class="nav-label">Surat dan Perizinan</span>
+            </a>
         </nav>
 
+        <!-- PENGATURAN DAN KELUAR -->
         <div class="sidebar-bottom">
-            <a href="#" class="nav-pill" onclick="return false;" style="margin-bottom:42px;">
+
+            <a
+                href="#"
+                class="nav-pill"
+                onclick="event.preventDefault(); alert('Halaman Pengaturan Akun belum tersedia.');"
+            >
                 <span class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <circle cx="12" cy="12" r="3"/>
@@ -754,30 +897,47 @@
                 <span class="nav-label">Pengaturan Akun</span>
             </a>
 
-            <form action="{{ route('logout') }}" method="POST">
+            <form
+                action="{{ route('logout') }}"
+                method="POST"
+                class="logout-form"
+                onsubmit="return confirm('Apakah kamu yakin ingin keluar?')"
+            >
                 @csrf
-                <button type="submit" class="nav-pill" style="width:100%;cursor:pointer;text-align:left;">
+                <button type="submit" class="nav-pill logout-button">
                     <span class="nav-icon">
                         <svg viewBox="0 0 24 24">
                             <path d="M10 17l5-5-5-5M15 12H3"/>
                             <path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/>
                         </svg>
                     </span>
-                    <span class="nav-label" style="font-weight:600;">Keluar</span>
+                    <span class="nav-label">Keluar</span>
                 </button>
             </form>
+
         </div>
     </aside>
 
+    <!-- KONTEN UTAMA -->
     <main class="main">
-        <button class="mobile-toggle" type="button" onclick="toggleSidebar()">
+        <button
+            class="mobile-toggle"
+            type="button"
+            onclick="toggleSidebar()"
+            aria-controls="sidebar"
+            aria-expanded="false"
+            id="sidebarToggle"
+        >
             ☰ Menu
         </button>
 
-        <div class="breadcrumb">Dashboard / Pembayaran</div>
+        <div class="breadcrumb">Dashboard / Pembelajaran</div>
         <h1 class="page-title">Pembelajaran</h1>
-        <p class="page-description">Pantau jadwal dan informasi pembelajaran Ma’had kamu.</p>
+        <p class="page-description">
+            Pantau jadwal dan informasi pembelajaran Ma’had kamu.
+        </p>
 
+        <!-- STATISTIK PEMBELAJARAN -->
         <section class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">
@@ -815,13 +975,16 @@
             </div>
         </section>
 
+        <!-- JADWAL TERDEKAT -->
         <section class="schedule-card">
             <h2 class="section-title">Jadwal Terdekat</h2>
+
             <div class="schedule-item">
                 <div class="schedule-time">
                     <span class="schedule-day">SENIN</span>
                     <span class="schedule-hour">08.00</span>
                 </div>
+
                 <div class="schedule-info">
                     <h3>Mata Pelajaran A</h3>
                     <p>Pengajar: Nama Pengajar</p>
@@ -830,6 +993,7 @@
             </div>
         </section>
 
+        <!-- KALENDER PEMBELAJARAN -->
         <section class="calendar-card">
             <div class="calendar-heading">
                 <h2>Kalender Pembelajaran</h2>
@@ -837,9 +1001,19 @@
             </div>
 
             <div class="calendar-toolbar">
-                <button type="button" id="prevMonth" aria-label="Bulan sebelumnya">‹</button>
+                <button
+                    type="button"
+                    id="prevMonth"
+                    aria-label="Bulan sebelumnya"
+                >‹</button>
+
                 <strong id="calendarTitle">Oktober 2026</strong>
-                <button type="button" id="nextMonth" aria-label="Bulan berikutnya">›</button>
+
+                <button
+                    type="button"
+                    id="nextMonth"
+                    aria-label="Bulan berikutnya"
+                >›</button>
             </div>
 
             <div class="calendar-grid" id="calendarGrid"></div>
@@ -851,14 +1025,40 @@
         </section>
     </main>
 
+    <!-- JAVASCRIPT -->
     <script>
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('mobileOverlay').classList.toggle('open');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            const toggleButton = document.getElementById('sidebarToggle');
+
+            const isOpen = sidebar.classList.toggle('open');
+
+            overlay.classList.toggle('open', isOpen);
+
+            if (toggleButton) {
+                toggleButton.setAttribute('aria-expanded', String(isOpen));
+            }
         }
 
+        // Menutup sidebar setelah menu dipilih pada layar mobile.
+        document.querySelectorAll('#sidebar .nav-pill[href]').forEach(function (link) {
+            link.addEventListener('click', function () {
+                if (window.innerWidth <= 700 && link.getAttribute('href') !== '#') {
+                    document.getElementById('sidebar').classList.remove('open');
+                    document.getElementById('mobileOverlay').classList.remove('open');
+
+                    const toggleButton = document.getElementById('sidebarToggle');
+                    if (toggleButton) {
+                        toggleButton.setAttribute('aria-expanded', 'false');
+                    }
+                }
+            });
+        });
+
+        // Kalender pembelajaran.
         let shownYear = 2026;
-        let shownMonth = 9; // Oktober
+        let shownMonth = 9; // Oktober, indeks bulan dimulai dari 0.
 
         const eventDates = {
             '2026-10': [2, 5, 9, 12, 16, 19, 23, 26, 30]
@@ -873,65 +1073,94 @@
         function renderCalendar() {
             const grid = document.getElementById('calendarGrid');
             const title = document.getElementById('calendarTitle');
-            const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+
+            const days = [
+                'Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'
+            ];
 
             title.textContent = monthNames[shownMonth] + ' ' + shownYear;
             grid.innerHTML = '';
 
-            days.forEach(day => {
-                const el = document.createElement('div');
-                el.className = 'day-name';
-                el.textContent = day;
-                grid.appendChild(el);
+            // Nama hari.
+            days.forEach(function (day) {
+                const element = document.createElement('div');
+                element.className = 'day-name';
+                element.textContent = day;
+                grid.appendChild(element);
             });
 
-            const firstDay = new Date(shownYear, shownMonth, 1).getDay();
-            const daysInMonth = new Date(shownYear, shownMonth + 1, 0).getDate();
-            const daysInPrevMonth = new Date(shownYear, shownMonth, 0).getDate();
-            const key = shownYear + '-' + String(shownMonth + 1).padStart(2, '0');
+            const firstDay = new Date(
+                shownYear,
+                shownMonth,
+                1
+            ).getDay();
+
+            const daysInMonth = new Date(
+                shownYear,
+                shownMonth + 1,
+                0
+            ).getDate();
+
+            const daysInPrevMonth = new Date(
+                shownYear,
+                shownMonth,
+                0
+            ).getDate();
+
+            const key = shownYear + '-' +
+                String(shownMonth + 1).padStart(2, '0');
+
             const events = eventDates[key] || [];
 
-            const cells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+            const cells = Math.ceil(
+                (firstDay + daysInMonth) / 7
+            ) * 7;
 
             for (let i = 0; i < cells; i++) {
-                const el = document.createElement('div');
-                el.className = 'calendar-day';
+                const element = document.createElement('div');
+                element.className = 'calendar-day';
 
                 let day;
+
                 if (i < firstDay) {
                     day = daysInPrevMonth - firstDay + i + 1;
-                    el.classList.add('muted');
+                    element.classList.add('muted');
                 } else if (i >= firstDay + daysInMonth) {
                     day = i - firstDay - daysInMonth + 1;
-                    el.classList.add('muted');
+                    element.classList.add('muted');
                 } else {
                     day = i - firstDay + 1;
+
                     if (events.includes(day)) {
-                        el.classList.add('has-event');
-                        el.title = 'Ada jadwal pembelajaran';
+                        element.classList.add('has-event');
+                        element.title = 'Ada jadwal pembelajaran';
                     }
                 }
 
-                el.textContent = day;
-                grid.appendChild(el);
+                element.textContent = day;
+                grid.appendChild(element);
             }
         }
 
         document.getElementById('prevMonth').addEventListener('click', function () {
             shownMonth--;
+
             if (shownMonth < 0) {
                 shownMonth = 11;
                 shownYear--;
             }
+
             renderCalendar();
         });
 
         document.getElementById('nextMonth').addEventListener('click', function () {
             shownMonth++;
+
             if (shownMonth > 11) {
                 shownMonth = 0;
                 shownYear++;
             }
+
             renderCalendar();
         });
 

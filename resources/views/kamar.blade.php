@@ -15,18 +15,18 @@
             box-sizing: border-box;
         }
 
-        body {
-            margin: 0;
-            font-family: 'Poppins', sans-serif;
-            background: #f8f8f8;
-            color: #171717;
-        }
-
         :root {
             --maroon: #790c20;
             --border: #8a1428;
             --soft-pink: #f8edef;
             --muted: #777;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: #f8f8f8;
+            color: #171717;
         }
 
         /* HEADER */
@@ -109,44 +109,50 @@
 
         /* SIDEBAR */
         .sidebar {
-            width: 407px;
-            flex: 0 0 407px;
+            width: 300px;
+            flex: 0 0 300px;
             min-height: calc(100vh - 89px);
-            padding: 41px 14px 30px;
+            padding: 22px 12px 30px;
             border: 1px solid var(--border);
             border-top: 0;
             background:
-                linear-gradient(rgba(255,255,255,.36), rgba(255,255,255,.57)),
+                linear-gradient(
+                    rgba(222,237,248,.56),
+                    rgba(255,255,255,.62)
+                ),
                 url("{{ asset('images/mahad_al_jamiah.jpeg') }}")
                 center center / cover no-repeat;
             display: flex;
             flex-direction: column;
-            gap: 36px;
+            gap: 12px;
         }
 
         .nav-item {
-            min-height: 50px;
+            min-height: 46px;
             padding: 10px 12px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 11px;
             background: #fff;
             border: 1px solid var(--border);
-            border-radius: 15px;
+            border-radius: 12px;
             text-decoration: none;
             color: #111;
-            font-size: 19px;
-            transition: background .2s ease;
+            font-size: 14px;
+            font-family: inherit;
+            transition: background .2s ease, color .2s ease;
         }
 
         .nav-item:hover {
-            background: #f8edef;
+            background: var(--soft-pink);
+            color: var(--maroon);
         }
 
         .nav-item.active {
-            background: #f8edef;
+            background: var(--soft-pink);
             color: var(--maroon);
             box-shadow: 0 2px 4px #00000020;
+            font-weight: 600;
         }
 
         .nav-icon {
@@ -154,6 +160,10 @@
             height: 22px;
             flex-shrink: 0;
             color: #606b7e;
+        }
+
+        .nav-item.active .nav-icon {
+            color: var(--maroon);
         }
 
         .nav-icon svg {
@@ -171,14 +181,27 @@
         }
 
         .nav-arrow {
-            font-size: 25px;
+            font-size: 22px;
             font-weight: 700;
             color: var(--maroon);
         }
 
-        .logout {
+        .logout-form {
             margin-top: auto;
+            width: 100%;
+        }
+
+        .logout {
+            margin-top: 0;
             font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .logout-form button {
+            width: 100%;
         }
 
         /* MAIN CONTENT */
@@ -376,9 +399,9 @@
 
         @media (max-width: 1050px) {
             .sidebar {
-                width: 270px;
-                flex-basis: 270px;
-                gap: 24px;
+                width: 260px;
+                flex-basis: 260px;
+                gap: 10px;
             }
 
             .main-content {
@@ -429,14 +452,14 @@
                 min-height: auto;
                 padding: 12px;
                 background-position: center;
-                gap: 10px;
+                gap: 8px;
             }
 
             .nav-item {
-                font-size: 15px;
+                font-size: 14px;
             }
 
-            .logout {
+            .logout-form {
                 margin-top: 0;
             }
 
@@ -479,10 +502,11 @@
 <body>
     <header class="topbar">
         <div class="brand">
-            <!-- Sesuaikan nama file logo dengan logo di project kamu -->
-            <img src="{{ asset('images/logo_uin.png') }}"
-                 alt="Logo SIMAHAD"
-                 onerror="this.style.display='none'">
+            <img
+                src="{{ asset('images/logo_uin.png') }}"
+                alt="Logo SIMAHAD"
+                onerror="this.style.display='none'"
+            >
             <span>SIMAHAD</span>
         </div>
 
@@ -504,8 +528,12 @@
     </header>
 
     <div class="layout">
-        <aside class="sidebar">
-            <a href="{{ route('dashboard') }}" class="nav-item">
+        <aside class="sidebar" aria-label="Menu navigasi">
+
+            <a
+                href="{{ route('dashboard') }}"
+                class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}"
+            >
                 <span class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <rect x="3" y="3" width="7" height="7" rx="2"/>
@@ -517,7 +545,24 @@
                 <span class="nav-label">Dashboard</span>
             </a>
 
-            <a href="{{ route('pembelajaran.mhs') }}" class="nav-item">
+            <a
+                href="{{ route('pendaftaran.pribadi') }}"
+                class="nav-item {{ request()->routeIs('pendaftaran.*') ? 'active' : '' }}"
+            >
+                <span class="nav-icon">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="10" cy="8" r="4"/>
+                        <path d="M3 21v-2a7 7 0 0 1 14 0v2"/>
+                        <path d="M19 8v6M16 11h6"/>
+                    </svg>
+                </span>
+                <span class="nav-label">Pendaftaran</span>
+            </a>
+
+            <a
+                href="{{ route('pembelajaran.mhs') }}"
+                class="nav-item {{ request()->routeIs('pembelajaran.mhs') ? 'active' : '' }}"
+            >
                 <span class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <path d="M12 7v14"/>
@@ -528,7 +573,11 @@
                 <span class="nav-label">Pembelajaran</span>
             </a>
 
-            <a href="{{ route('kamar') }}" class="nav-item active">
+            <a
+                href="{{ route('kamar') }}"
+                class="nav-item {{ request()->routeIs('kamar') ? 'active' : '' }}"
+                @if(request()->routeIs('kamar')) aria-current="page" @endif
+            >
                 <span class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <path d="M3 18V7a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v11"/>
@@ -537,10 +586,15 @@
                     </svg>
                 </span>
                 <span class="nav-label">Informasi Kamar</span>
-                <span class="nav-arrow">&rsaquo;</span>
+                @if(request()->routeIs('kamar'))
+                    <span class="nav-arrow">&rsaquo;</span>
+                @endif
             </a>
 
-            <a href="{{ route('pembayaran') }}" class="nav-item">
+            <a
+                href="{{ route('pembayaran') }}"
+                class="nav-item {{ request()->routeIs('pembayaran') ? 'active' : '' }}"
+            >
                 <span class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <rect x="3" y="5" width="18" height="15" rx="2"/>
@@ -551,7 +605,10 @@
                 <span class="nav-label">Pembayaran</span>
             </a>
 
-            <a href="#" class="nav-item">
+            <a
+                href="{{ route('absensi.mhs') }}"
+                class="nav-item {{ request()->routeIs('absensi.mhs') ? 'active' : '' }}"
+            >
                 <span class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <rect x="4" y="4" width="16" height="18" rx="2"/>
@@ -561,17 +618,10 @@
                 <span class="nav-label">Absensi</span>
             </a>
 
-            <a href="#" class="nav-item">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M6 3h9l4 4v14H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
-                        <path d="M14 3v5h5M8 13h8M8 17h6"/>
-                    </svg>
-                </span>
-                <span class="nav-label">Surat dan Perizinan</span>
-            </a>
-
-            <a href="#" class="nav-item">
+            <a
+                href="{{ route('pengumuman.mhs') }}"
+                class="nav-item {{ request()->routeIs('pengumuman.mhs') ? 'active' : '' }}"
+            >
                 <span class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <path d="M3 11 21 4l-4 16-5-6-9-3z"/>
@@ -581,7 +631,25 @@
                 <span class="nav-label">Pengumuman</span>
             </a>
 
-            <a href="#" class="nav-item">
+            <a
+                href="#"
+                class="nav-item"
+                onclick="event.preventDefault(); alert('Halaman Surat dan Perizinan belum tersedia.');"
+            >
+                <span class="nav-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M6 3h9l4 4v14H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
+                        <path d="M14 3v5h5M8 13h8M8 17h6"/>
+                    </svg>
+                </span>
+                <span class="nav-label">Surat dan Perizinan</span>
+            </a>
+
+            <a
+                href="#"
+                class="nav-item"
+                onclick="event.preventDefault(); alert('Halaman Pengaturan Akun belum tersedia.');"
+            >
                 <span class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <circle cx="12" cy="12" r="3"/>
@@ -591,10 +659,14 @@
                 <span class="nav-label">Pengaturan Akun</span>
             </a>
 
-            <form action="{{ route('logout') }}" method="POST" class="logout-form">
+            <form
+                action="{{ route('logout') }}"
+                method="POST"
+                class="logout-form"
+                onsubmit="return confirm('Apakah kamu yakin ingin keluar?')"
+            >
                 @csrf
-                <button type="submit" class="nav-item logout"
-                        style="width:100%;cursor:pointer;text-align:left;font-family:inherit;">
+                <button type="submit" class="nav-item logout">
                     <span class="nav-icon">
                         <svg viewBox="0 0 24 24">
                             <path d="M10 17l5-5-5-5M15 12H3"/>
@@ -604,6 +676,7 @@
                     <span class="nav-label">Keluar</span>
                 </button>
             </form>
+
         </aside>
 
         <main class="main-content">
