@@ -12,15 +12,19 @@ use Illuminate\View\View;
 class AuthController extends Controller
 {
     /**
-     * Show the login form.
+     * Menampilkan halaman login.
      */
-    public function showLoginForm(): View
-{
-    return view('auth.login');
-}
+    public function showLoginForm(): View|RedirectResponse
+    {
+        if (Auth::check()) {
+            return $this->redirectToRoleDashboard();
+        }
+
+        return view('auth.login');
+    }
 
     /**
-     * Handle an incoming authentication request.
+     * Proses login pengguna.
      */
     public function login(Request $request): RedirectResponse
     {
@@ -36,7 +40,6 @@ class AuthController extends Controller
         $password = $credentials['password'];
         $remember = $request->boolean('remember');
 
-        // Check fields in preferred order based on input format
         if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
             $fieldsToTry = ['email', 'nim', 'name'];
         } elseif (ctype_digit($loginInput)) {
@@ -46,11 +49,17 @@ class AuthController extends Controller
         }
 
         foreach ($fieldsToTry as $field) {
-            if (Auth::attempt([$field => $loginInput, 'password' => $password], $remember)) {
+            if (Auth::attempt([
+                $field => $loginInput,
+                'password' => $password,
+            ], $remember)) {
                 $request->session()->regenerate();
 
-                return redirect()->intended(route('dashboard'))
-                    ->with('status', 'Selamat datang kembali, '.Auth::user()->name.'!');
+                return $this->redirectToRoleDashboard()
+                    ->with(
+                        'status',
+                        'Selamat datang kembali, '.Auth::user()->name.'!'
+                    );
             }
         }
 
@@ -62,19 +71,67 @@ class AuthController extends Controller
     }
 
     /**
-     * Show user registration form.
+     * Menentukan dashboard sesuai role pengguna.
+     */
+    protected function redirectToRoleDashboard(): RedirectResponse
+    {
+        $user = Auth::user();
+
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        $role = strtolower(trim((string) $user->role));
+
+        $routes = [
+            'mahasiswa' => 'dashboard',
+            'musyrifah' => 'musyrifah.dashboard',
+            'admin' => 'admin.dashboard',
+            'guru' => 'guru.dashboard',
+            'pimpinan' => 'pimpinan.dashboard',
+        ];
+
+        $route = $routes[$role] ?? 'dashboard';
+
+        return redirect()->route($route);
+    }
+
+    /**
+     * Memastikan pengguna memiliki role yang sesuai.
+     */
+    protected function authorizeRole(string $role): ?RedirectResponse
+    {
+        if (! Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $userRole = strtolower(trim((string) Auth::user()->role));
+
+        if ($userRole !== $role) {
+            return $this->redirectToRoleDashboard()
+                ->with(
+                    'error',
+                    'Anda tidak memiliki akses ke halaman tersebut.'
+                );
+        }
+
+        return null;
+    }
+
+    /**
+     * Menampilkan formulir pendaftaran akun.
      */
     public function showRegisterForm(): View|RedirectResponse
     {
         if (Auth::check()) {
-            return redirect()->route('dashboard');
+            return $this->redirectToRoleDashboard();
         }
 
         return view('auth.register');
     }
 
     /**
-     * Handle new user registration.
+     * Memproses pendaftaran akun baru.
      */
     public function register(Request $request): RedirectResponse
     {
@@ -103,25 +160,29 @@ class AuthController extends Controller
         ]);
 
         Auth::login($user);
+        $request->session()->regenerate();
 
-        return redirect()->route('dashboard')
-            ->with('status', 'Pendaftaran berhasil! Selamat datang di SIMAHAD, '.$user->name.'!');
+        return $this->redirectToRoleDashboard()
+            ->with(
+                'status',
+                'Pendaftaran berhasil! Selamat datang di SIMAHAD, '.$user->name.'!'
+            );
     }
 
     /**
-     * Show forgot password form.
+     * Menampilkan formulir lupa kata sandi.
      */
     public function showForgotPasswordForm(): View|RedirectResponse
     {
         if (Auth::check()) {
-            return redirect()->route('dashboard');
+            return $this->redirectToRoleDashboard();
         }
 
         return view('auth.forgot-password');
     }
 
     /**
-     * Handle password reset request.
+     * Memproses perubahan kata sandi.
      */
     public function resetPassword(Request $request): RedirectResponse
     {
@@ -136,6 +197,7 @@ class AuthController extends Controller
         ]);
 
         $identifier = trim($validated['identifier']);
+
         $user = User::where('email', $identifier)
             ->orWhere('nim', $identifier)
             ->first();
@@ -152,11 +214,15 @@ class AuthController extends Controller
         $user->save();
 
         return redirect()->route('login')
-            ->with('status', 'Kata sandi untuk akun '.$user->name.' berhasil diperbarui! Silakan masuk dengan kata sandi baru Anda.');
+            ->with(
+                'status',
+                'Kata sandi untuk akun '.$user->name.
+                ' berhasil diperbarui! Silakan masuk dengan kata sandi baru Anda.'
+            );
     }
 
     /**
-     * Log the user out of the application.
+     * Logout pengguna.
      */
     public function logout(Request $request): RedirectResponse
     {
@@ -170,7 +236,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Show user dashboard after login.
+     * Dashboard Mahasiswa yang lama.
      */
     public function dashboard(): View|RedirectResponse
     {
@@ -179,13 +245,75 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
+        $role = strtolower(trim((string) $user->role));
+
+        if ($role !== 'mahasiswa') {
+            return $this->redirectToRoleDashboard();
+        }
+
         $kamar = $user->kamar;
 
         return view('dashboard', compact('user', 'kamar'));
     }
 
     /**
-     * Show kamar (rooms) selection page.
+     * Dashboard Musyrifah.
+     */
+    public function dashboardMusyrifah(): View|RedirectResponse
+    {
+        $redirect = $this->authorizeRole('musyrifah');
+
+        if ($redirect) {
+            return $redirect;
+        }
+
+        return view('musyrifah.dashboard');
+    }
+
+    /**
+     * Dashboard Admin.
+     */
+    public function dashboardAdmin(): View|RedirectResponse
+    {
+        $redirect = $this->authorizeRole('admin');
+
+        if ($redirect) {
+            return $redirect;
+        }
+
+        return view('admin.dashboard');
+    }
+
+    /**
+     * Dashboard Guru.
+     */
+    public function dashboardGuru(): View|RedirectResponse
+    {
+        $redirect = $this->authorizeRole('guru');
+
+        if ($redirect) {
+            return $redirect;
+        }
+
+        return view('guru.dashboard');
+    }
+
+    /**
+     * Dashboard Pimpinan.
+     */
+    public function dashboardPimpinan(): View|RedirectResponse
+    {
+        $redirect = $this->authorizeRole('pimpinan');
+
+        if ($redirect) {
+            return $redirect;
+        }
+
+        return view('pimpinan.dashboard');
+    }
+
+    /**
+     * Menampilkan halaman pemilihan kamar.
      */
     public function kamar(): View|RedirectResponse
     {
@@ -242,7 +370,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Handle room selection.
+     * Memproses pemilihan kamar.
      */
     public function pilihKamar(Request $request): RedirectResponse
     {
@@ -250,6 +378,10 @@ class AuthController extends Controller
             'room_name' => ['required', 'string'],
         ]);
 
-        return redirect()->route('kamar')->with('status', 'Berhasil memilih '.$validated['room_name'].'!');
+        return redirect()->route('kamar')
+            ->with(
+                'status',
+                'Berhasil memilih '.$validated['room_name'].'!'
+            );
     }
 }
