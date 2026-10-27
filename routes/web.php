@@ -146,45 +146,29 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::get('/pendaftaran/pribadi', [
-        PendaftaranController::class,
-        'pribadi',
-    ])->name('pendaftaran.pribadi');
+    Route::get('/pendaftaran/pribadi', [PendaftaranController::class, 'pribadi'])
+        ->name('pendaftaran.pribadi');
 
-    Route::post('/pendaftaran/pribadi', [
-        PendaftaranController::class,
-        'simpanPribadi',
-    ])->name('pendaftaran.simpanPribadi');
+    Route::post('/pendaftaran/pribadi', [PendaftaranController::class, 'simpanPribadi'])
+        ->name('pendaftaran.simpanPribadi');
 
-    Route::get('/pendaftaran/akademik', [
-        PendaftaranController::class,
-        'akademik',
-    ])->name('pendaftaran.akademik');
+    Route::get('/pendaftaran/akademik', [PendaftaranController::class, 'akademik'])
+        ->name('pendaftaran.akademik');
 
-    Route::post('/pendaftaran/akademik', [
-        PendaftaranController::class,
-        'simpanAkademik',
-    ])->name('pendaftaran.simpanAkademik');
+    Route::post('/pendaftaran/akademik', [PendaftaranController::class, 'simpanAkademik'])
+        ->name('pendaftaran.simpanAkademik');
 
-    Route::get('/pendaftaran/dokumen', [
-        PendaftaranController::class,
-        'dokumen',
-    ])->name('pendaftaran.dokumen');
+    Route::get('/pendaftaran/dokumen', [PendaftaranController::class, 'dokumen'])
+        ->name('pendaftaran.dokumen');
 
-    Route::post('/pendaftaran/dokumen', [
-        PendaftaranController::class,
-        'simpanDokumen',
-    ])->name('pendaftaran.simpanDokumen');
+    Route::post('/pendaftaran/dokumen', [PendaftaranController::class, 'simpanDokumen'])
+        ->name('pendaftaran.simpanDokumen');
 
-    Route::get('/pendaftaran/konfirmasi', [
-        PendaftaranController::class,
-        'konfirmasi',
-    ])->name('pendaftaran.konfirmasi');
+    Route::get('/pendaftaran/konfirmasi', [PendaftaranController::class, 'konfirmasi'])
+        ->name('pendaftaran.konfirmasi');
 
-    Route::post('/pendaftaran/selesai', [
-        PendaftaranController::class,
-        'selesai',
-    ])->name('pendaftaran.selesai');
+    Route::post('/pendaftaran/selesai', [PendaftaranController::class, 'selesai'])
+        ->name('pendaftaran.selesai');
 
     /*
     |--------------------------------------------------------------------------
@@ -192,10 +176,8 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::get('/pembelajaran-mhs', [
-        PembelajaranController::class,
-        'index',
-    ])->name('pembelajaran.mhs');
+    Route::get('/pembelajaran-mhs', [PembelajaranController::class, 'index'])
+        ->name('pembelajaran.mhs');
 
     /*
     |--------------------------------------------------------------------------
@@ -203,10 +185,8 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::get('/absensi-mhs', [
-        AbsensiMhsController::class,
-        'index',
-    ])->name('absensi.mhs');
+    Route::get('/absensi-mhs', [AbsensiMhsController::class, 'index'])
+        ->name('absensi.mhs');
 
     /*
     |--------------------------------------------------------------------------
@@ -214,36 +194,21 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::get('/pengumuman-mhs', [
-        PengumumanMhsController::class,
-        'index',
-    ])->name('pengumuman.mhs');
+    Route::get('/pengumuman-mhs', [PengumumanMhsController::class, 'index'])
+        ->name('pengumuman.mhs');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Surat dan Perizinan Mahasiswa
-    |--------------------------------------------------------------------------
-    */
+    Route::get('/surat-perizinan-mhs', [SuratPerizinanMhsController::class, 'index'])
+    ->name('surat.perizinan.mhs');
 
-    Route::get('/surat-perizinan-mhs', [
-        SuratPerizinanMhsController::class,
-        'index',
-    ])->name('surat.perizinan.mhs');
+    
+Route::get('/surat-perizinan-mhs/pengajuan-izin-pulang', [
+    PengajuanIzinPulangController::class,
+    'index'
+])->name('surat.perizinan.mhs.pengajuan');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Pengajuan Izin Pulang Mahasiswa
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get('/surat-perizinan-mhs/pengajuan-izin-pulang', [
-        PengajuanIzinPulangController::class,
-        'index',
-    ])->name('surat.perizinan.mhs.pengajuan');
-
-    Route::post('/surat-perizinan-mhs/pengajuan-izin-pulang', [
-        PengajuanIzinPulangController::class,
-        'store',
-    ])->name('surat.perizinan.mhs.pengajuan.store');
+Route::post('/surat-perizinan-mhs/pengajuan-izin-pulang', [
+    PengajuanIzinPulangController::class,
+    'store'
+])->name('surat.perizinan.mhs.pengajuan.store');
 
 });
