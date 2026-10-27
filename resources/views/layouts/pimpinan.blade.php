@@ -424,23 +424,23 @@
                 <span>Dashboard</span>
             </a>
 
-            <a href="{{ url('/pimpinan/penghuni') }}"
-                class="menu-link {{ request()->is('pimpinan/penghuni*') ? 'active' : '' }}">
+            
+<a href="{{ route('pimpinan.data-penghuni') }}"
+    class="menu-link {{ request()->is('pimpinan/data-penghuni*') ? 'active' : '' }}">
+    <svg viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round">
+        <circle cx="9" cy="8" r="3"/>
+        <path d="M3 20v-2a6 6 0 0 1 12 0v2"/>
+        <circle cx="18" cy="9" r="2"/>
+        <path d="M17 15a5 5 0 0 1 4 5"/>
+    </svg>
+    <span>Data Penghuni</span>
+</a>
 
-                <svg viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <circle cx="9" cy="8" r="3"/>
-                    <path d="M3 20v-2a6 6 0 0 1 12 0v2"/>
-                    <circle cx="18" cy="9" r="2"/>
-                    <path d="M17 15a5 5 0 0 1 4 5"/>
-                </svg>
-
-                <span>Data Penghuni</span>
-            </a>
 
             <a href="{{ url('/pimpinan/laporan') }}"
                 class="menu-link {{ request()->is('pimpinan/laporan*') ? 'active' : '' }}">

@@ -12,6 +12,11 @@ use App\Http\Controllers\PengajuanIzinPulangController;
 use App\Http\Controllers\AdminManajemenPenggunaController;
 use App\Http\Controllers\AdminHakAksesController;
 use App\Http\Controllers\AdminPengaturanSistemController;
+use App\Http\Controllers\GuruJadwalSayaController;
+use App\Http\Controllers\GuruAbsensiController;
+use App\Http\Controllers\GuruKegiatanDokumentasiController;
+use App\Http\Controllers\PimpinanDataPenghuniController;
+use App\Http\Controllers\PimpinanLaporanMahadController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -228,5 +233,34 @@ Route::get('/admin/pengaturan-sistem', [
     AdminPengaturanSistemController::class,
     'index',
 ])->name('admin.pengaturan-sistem');
+
+Route::get('/guru/jadwal-saya', [
+    GuruJadwalSayaController::class,
+    'index',
+])->name('guru.jadwal-saya');
+
+Route::get('/guru/absensi', [
+    GuruAbsensiController::class,
+    'index',
+])->name('guru.absensi');
+
+Route::get('/guru/kegiatan-dokumentasi', [
+    GuruKegiatanDokumentasiController::class,
+    'index',
+])->name('guru.kegiatan-dokumentasi');
+
+
+
+Route::get('/pimpinan/data-penghuni', [
+    PimpinanDataPenghuniController::class,
+    'index',
+])->name('pimpinan.data-penghuni');
+
+
+Route::get('/pimpinan/laporan-mahad', [
+    PimpinanLaporanMahadController::class,
+    'index',
+])->name('pimpinan/laporan_mahad');
+
 
 });

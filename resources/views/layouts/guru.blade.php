@@ -350,23 +350,27 @@
                 <span>Dashboard</span>
             </a>
 
-            <a href="{{ url('/guru/jadwal') }}"
-                class="{{ request()->is('guru/jadwal*') ? 'active' : '' }}">
-                <span class="menu-icon">▤</span>
-                <span>Jadwal Saya</span>
-            </a>
+            
+<a href="{{ route('guru.jadwal-saya') }}"
+    class="{{ request()->is('guru/jadwal-saya*') ? 'active' : '' }}">
+    <span class="menu-icon">▤</span>
+    <span>Jadwal Saya</span>
+</a>
 
-            <a href="{{ url('/guru/absensi') }}"
-                class="{{ request()->is('guru/absensi*') ? 'active' : '' }}">
-                <span class="menu-icon">▣</span>
-                <span>Absensi</span>
-            </a>
 
-            <a href="{{ url('/guru/kegiatan') }}"
-                class="{{ request()->is('guru/kegiatan*') ? 'active' : '' }}">
-                <span class="menu-icon">▯</span>
-                <span>Kegiatan &amp; Dokumentasi</span>
-            </a>
+            
+<a href="{{ route('guru.absensi') }}"
+    class="{{ request()->is('guru/absensi*') ? 'active' : '' }}">
+    <span class="menu-icon">▣</span>
+    <span>Absensi</span>
+</a>
+
+        
+<a href="{{ route('guru.kegiatan-dokumentasi') }}"
+    class="{{ request()->is('guru/kegiatan-dokumentasi*') ? 'active' : '' }}">
+    <span class="menu-icon">▯</span>
+    <span>Kegiatan &amp; Dokumentasi</span>
+</a>
 
             <a href="{{ url('/guru/pengaturan-akun') }}"
                 class="{{ request()->is('guru/pengaturan-akun*') ? 'active' : '' }}">
