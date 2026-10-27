@@ -9,6 +9,9 @@ use App\Http\Controllers\AbsensiMhsController;
 use App\Http\Controllers\PengumumanMhsController;
 use App\Http\Controllers\SuratPerizinanMhsController;
 use App\Http\Controllers\PengajuanIzinPulangController;
+use App\Http\Controllers\AdminManajemenPenggunaController;
+use App\Http\Controllers\AdminHakAksesController;
+use App\Http\Controllers\AdminPengaturanSistemController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -210,5 +213,20 @@ Route::post('/surat-perizinan-mhs/pengajuan-izin-pulang', [
     PengajuanIzinPulangController::class,
     'store'
 ])->name('surat.perizinan.mhs.pengajuan.store');
+
+Route::get('/admin/manajemen-pengguna', [
+    AdminManajemenPenggunaController::class,
+    'index',
+])->name('admin.manajemen-pengguna');
+
+Route::get('/admin/hak-akses', [
+    AdminHakAksesController::class,
+    'index',
+])->name('admin.hak-akses');
+
+Route::get('/admin/pengaturan-sistem', [
+    AdminPengaturanSistemController::class,
+    'index',
+])->name('admin.pengaturan-sistem');
 
 });

@@ -400,45 +400,49 @@
                 <span>Dashboard</span>
             </a>
 
-            <a href="{{ url('/admin/manajemen-pengguna') }}"
-                class="menu-link {{ request()->is('admin/manajemen-pengguna*') ? 'active' : '' }}">
-                <svg viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="9" cy="8" r="3"/>
-                    <path d="M3 20v-2a6 6 0 0 1 12 0v2"/>
-                    <circle cx="18" cy="9" r="2"/>
-                    <path d="M17 15a5 5 0 0 1 4 5"/>
-                </svg>
-                <span>Manajemen Pengguna</span>
-            </a>
+            <a href="{{ route('admin.manajemen-pengguna') }}"
+   class="menu-link {{ request()->is('admin/manajemen-pengguna*') ? 'active' : '' }}">
+    <svg viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="9" cy="8" r="3"/>
+        <path d="M3 20v-2a6 6 0 0 1 12 0v2"/>
+        <circle cx="18" cy="9" r="2"/>
+        <path d="M17 15a5 5 0 0 1 4 5"/>
+    </svg>
+    <span>Manajemen Pengguna</span>
+</a>
 
-            <a href="{{ url('/admin/hak-akses') }}"
-                class="menu-link {{ request()->is('admin/hak-akses*') ? 'active' : '' }}">
-                <svg viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="4" y="10" width="16" height="11" rx="2"/>
-                    <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
-                    <path d="M12 14v3"/>
-                </svg>
-                <span>Hak Akses</span>
-            </a>
+            
+<a href="{{ route('admin.hak-akses') }}"
+    class="menu-link {{ request()->is('admin/hak-akses*') ? 'active' : '' }}">
+    <svg viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="10" width="16" height="11" rx="2"/>
+        <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+        <path d="M12 14v3"/>
+    </svg>
+    <span>Hak Akses</span>
+</a>
+
 
         </nav>
 
         <div class="sidebar-bottom">
 
-            <a href="{{ url('/admin/pengaturan-sistem') }}"
-                class="menu-link {{ request()->is('admin/pengaturan-sistem*') ? 'active' : '' }}">
-                <svg viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="3"/>
-                    <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 3.1-.2-.1a1.7 1.7 0 0 0-1.9.2l-.2.1h-3.5l-.1-.2a1.7 1.7 0 0 0-1.6-1l-.3.1-3.1-1.8.1-.2a1.7 1.7 0 0 0-.2-1.9l-.1-.2v-3.5l.2-.1a1.7 1.7 0 0 0 1-1.6l-.1-.3 1.8-3.1.2.1a1.7 1.7 0 0 0 1.9-.2l.2-.1h3.5l.1.2a1.7 1.7 0 0 0 1.6 1l.3-.1 3.1 1.8-.1.2a1.7 1.7 0 0 0 .2 1.9l.1.2V15z"/>
-                </svg>
-                <span>Pengaturan Sistem</span>
-            </a>
+            
+<a href="{{ route('admin.pengaturan-sistem') }}"
+    class="menu-link {{ request()->is('admin/pengaturan-sistem*') ? 'active' : '' }}">
+    <svg viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 3.1-.2-.1a1.7 1.7 0 0 0-1.9.2l-.2.1h-3.5l-.1-.2a1.7 1.7 0 0 0-1.6-1l-.3.1-3.1-1.8.1-.2a1.7 1.7 0 0 0-.2-1.9l-.1-.2v-3.5l.2-.1a1.7 1.7 0 0 0 1-1.6l-.1-.3 1.8-3.1.2.1a1.7 1.7 0 0 0 1.9-.2l.2-.1h3.5l.1.2a1.7 1.7 0 0 0 1.6 1l.3-.1 3.1 1.8-.1.2a1.7 1.7 0 0 0 .2 1.9l.1.2V15z"/>
+    </svg>
+    <span>Pengaturan Sistem</span>
+</a>
+
 
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
