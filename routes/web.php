@@ -26,6 +26,10 @@ Route::get('/dashboard', [AuthController::class, 'dashboard'])
     ->name('dashboard')
     ->middleware('auth');
 
+Route::get('/dashboard_admin', [AuthController::class, 'dashboard'])
+    ->middleware('auth')
+    ->name('dashboard_admin');
+
 Route::get('/kamar', [AuthController::class, 'kamar'])
     ->name('kamar')
     ->middleware('auth');

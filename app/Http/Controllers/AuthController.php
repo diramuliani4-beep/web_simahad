@@ -187,6 +187,14 @@ class AuthController extends Controller
 
         return view('dashboard', compact('user', 'kamar'));
     }
+    
+public function dashboardAdmin()
+{
+    $user = Auth::user();
+    $kamar = $user->kamar;
+
+    return view('Admin.dashboard_admin', compact('user', 'kamar'));
+}
 
     /**
      * Show kamar (rooms) selection page.
