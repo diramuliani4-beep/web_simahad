@@ -24,6 +24,7 @@ use App\Http\Controllers\MusyrifahPembayaranController;
 use App\Http\Controllers\MusyrifahManajemenPembelajaranController;
 use App\Http\Controllers\MusyrifahSuratPerizinanController;
 use App\Http\Controllers\MusyrifahLaporanController;
+use App\Http\Controllers\MusyrifahPengaturanAkunController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -303,5 +304,10 @@ Route::get(
     '/musyrifah/laporan',
     [MusyrifahLaporanController::class, 'index']
 )->name('musyrifah.laporan');
+
+Route::get(
+    '/musyrifah/pengaturan-akun',
+    [MusyrifahPengaturanAkunController::class, 'index']
+)->name('musyrifah.pengaturan_akun');
 
 });

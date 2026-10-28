@@ -64,7 +64,7 @@
             position: relative;
             flex: 1.05;
             background-color: #d1d5db;
-            background-image: url('{{ asset('images/mahad_building.jpg') }}');
+            background-image: url('{{ asset('images/mahad_al_jamiah.jpeg') }}');
             background-size: cover;
             background-position: center bottom;
             background-repeat: no-repeat;

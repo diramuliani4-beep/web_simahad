@@ -504,7 +504,10 @@
                 <span>Laporan</span>
             </a>
 
-            <a href="#">
+            <a
+                href="{{ route('musyrifah.pengaturan_akun') }}"
+                class="{{ request()->routeIs('musyrifah.pengaturan_akun') ? 'active' : '' }}"
+            >
                 <span class="menu-icon">⚙</span>
                 <span>Pengaturan Akun</span>
             </a>
