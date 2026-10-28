@@ -437,25 +437,41 @@
                 <span>Dashboard</span>
             </a>
 
-            <a href="#">
-                <span class="menu-icon">▤</span>
+            <a
+                href="{{ route('musyrifah.pendaftaran') }}"
+                class="{{ request()->routeIs('musyrifah.pendaftaran') ? 'active' : '' }}"
+            >
+                 <span class="menu-icon">▤</span>
                 <span>Pendaftaran</span>
             </a>
 
-            <a href="#">
+            <a
+                href="{{ route('musyrifah.data_kamar') }}"
+                class="{{ request()->routeIs('musyrifah.data_kamar') ? 'active' : '' }}"
+            >
                 <span class="menu-icon">▣</span>
                 <span>Data Kamar</span>
             </a>
 
-            <a href="#">
+            
+            <a
+                href="{{ route('musyrifah.pembayaran') }}"
+                class="{{ request()->routeIs('musyrifah.pembayaran') ? 'active' : '' }}"
+            >
                 <span class="menu-icon">▱</span>
                 <span>Pembayaran</span>
             </a>
 
-            <a href="#">
+
+            
+            <a
+                href="{{ route('musyrifah.manajemen_pembelajaran') }}"
+                class="{{ request()->routeIs('musyrifah.manajemen_pembelajaran') ? 'active' : '' }}"
+            >
                 <span class="menu-icon">♙</span>
                 <span>Manajemen Pembelajaran</span>
             </a>
+
 
             <a href="#">
                 <span class="menu-icon">♙</span>
@@ -467,7 +483,10 @@
                 <span>Absensi</span>
             </a>
 
-            <a href="#">
+            <a
+                href="{{ route('musyrifah.surat_perizinan') }}"
+                class="{{ request()->routeIs('musyrifah.surat_perizinan') ? 'active' : '' }}"
+            >
                 <span class="menu-icon">▯</span>
                 <span>Surat &amp; Perizinan</span>
             </a>
@@ -477,7 +496,10 @@
                 <span>Pengumuman</span>
             </a>
 
-            <a href="#">
+            <a
+                href="{{ route('musyrifah.laporan') }}"
+                class="{{ request()->routeIs('musyrifah.laporan') ? 'active' : '' }}"
+            >
                 <span class="menu-icon">▤</span>
                 <span>Laporan</span>
             </a>

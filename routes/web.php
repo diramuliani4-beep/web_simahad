@@ -17,6 +17,13 @@ use App\Http\Controllers\GuruAbsensiController;
 use App\Http\Controllers\GuruKegiatanDokumentasiController;
 use App\Http\Controllers\PimpinanDataPenghuniController;
 use App\Http\Controllers\PimpinanLaporanMahadController;
+use App\Http\Controllers\PimpinanPembelajaranController;
+use App\Http\Controllers\MusyrifahPendaftaranController;
+use App\Http\Controllers\MusyrifahDataKamarController;
+use App\Http\Controllers\MusyrifahPembayaranController;
+use App\Http\Controllers\MusyrifahManajemenPembelajaranController;
+use App\Http\Controllers\MusyrifahSuratPerizinanController;
+use App\Http\Controllers\MusyrifahLaporanController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -260,7 +267,41 @@ Route::get('/pimpinan/data-penghuni', [
 Route::get('/pimpinan/laporan-mahad', [
     PimpinanLaporanMahadController::class,
     'index',
-])->name('pimpinan/laporan_mahad');
+])->name('pimpinan.laporan-mahad');
 
+Route::get(
+    '/pimpinan/pembelajaran',
+    [PimpinanPembelajaranController::class, 'index']
+)->name('pimpinan.pembelajaran');
+
+Route::get(
+    '/musyrifah/pendaftaran',
+    [MusyrifahPendaftaranController::class, 'index']
+)->name('musyrifah.pendaftaran');
+
+Route::get(
+    '/musyrifah/data-kamar',
+    [MusyrifahDataKamarController::class, 'index']
+)->name('musyrifah.data_kamar');
+
+Route::get(
+    '/musyrifah/pembayaran',
+    [MusyrifahPembayaranController::class, 'index']
+)->name('musyrifah.pembayaran');
+
+Route::get(
+    '/musyrifah/manajemen-pembelajaran',
+    [MusyrifahManajemenPembelajaranController::class, 'index']
+)->name('musyrifah.manajemen_pembelajaran');
+
+Route::get(
+    '/musyrifah/surat-perizinan',
+    [MusyrifahSuratPerizinanController::class, 'index']
+)->name('musyrifah.surat_perizinan');
+
+Route::get(
+    '/musyrifah/laporan',
+    [MusyrifahLaporanController::class, 'index']
+)->name('musyrifah.laporan');
 
 });

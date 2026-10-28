@@ -442,24 +442,24 @@
 </a>
 
 
-            <a href="{{ url('/pimpinan/laporan') }}"
-                class="menu-link {{ request()->is('pimpinan/laporan*') ? 'active' : '' }}">
+           
+<a href="{{ route('pimpinan.laporan-mahad') }}"
+   class="menu-link {{ request()->is('pimpinan/laporan-mahad*') ? 'active' : '' }}">
 
-                <svg viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path d="M4 3h16v15H8l-4 3z"/>
-                    <path d="M8 8h8M8 12h8"/>
-                </svg>
+    <svg viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round"
+         aria-hidden="true">
+        <path d="M4 3h16v18l-4-3H4z"/>
+        <path d="M8 8h8M8 12h8"/>
+    </svg>
 
-                <span>Laporan Ma’had</span>
-            </a>
+    <span>Laporan Ma’had</span>
+</a>
 
-            <a href="{{ url('/pimpinan/pembelajaran') }}"
-                class="menu-link {{ request()->is('pimpinan/pembelajaran*') ? 'active' : '' }}">
+
+            <a href="{{ route('pimpinan.pembelajaran') }}"
+                class="menu-link {{ request()->routeIs('pimpinan.pembelajaran') ? 'active' : '' }}">
 
                 <svg viewBox="0 0 24 24"
                     fill="none"
