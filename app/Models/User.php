@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -11,7 +10,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'nim', 'kamar_id', 'password'])]
+#[Fillable([
+    'name',
+    'email',
+    'nim',
+    'kamar_id',
+    'password',
+    'role',
+])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -19,7 +25,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
-     * Get the room (kamar) that the user belongs to.
+     * Relasi pengguna dengan kamar.
      */
     public function kamar(): BelongsTo
     {
@@ -27,7 +33,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the attributes that should be cast.
+     * Mendapatkan atribut yang harus di-cast.
      *
      * @return array<string, string>
      */

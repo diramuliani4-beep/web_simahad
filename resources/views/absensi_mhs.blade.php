@@ -622,15 +622,15 @@
             </a>
 
             {{-- Aktifkan tautan ini jika route surat dan perizinan sudah tersedia. --}}
-            <a
-                class="nav-link"
-                href="#"
-                title="Halaman Surat dan Perizinan belum memiliki route"
-                onclick="event.preventDefault(); alert('Halaman Surat dan Perizinan belum tersedia.');"
-            >
-                <i class="fa-regular fa-file-lines"></i>
-                <span>Surat dan Perizinan</span>
-            </a>
+            
+<a
+    class="nav-link {{ request()->routeIs('surat.perizinan.mhs*') ? 'active' : '' }}"
+    href="{{ route('surat.perizinan.mhs') }}"
+>
+    <i class="fa-regular fa-file-lines"></i>
+    <span>Surat dan Perizinan</span>
+</a>
+
 
             {{-- Aktifkan tautan ini jika route pengaturan akun sudah tersedia. --}}
             <a
