@@ -1040,19 +1040,20 @@
                     <span class="nav-label">Pengaturan Akun</span>
                 </a>
 
-                <form action="{{ route('logout') }}" method="POST" style="margin:0;">
-                    @csrf
-                    <button type="submit" class="btn-keluar-pill">
-                        <span class="nav-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                                <polyline points="16 17 21 12 16 7"></polyline>
-                                <line x1="21" y1="12" x2="9" y2="12"></line>
-                            </svg>
-                        </span>
-                        <span class="nav-label">Keluar</span>
-                    </button>
-                </form>
+<a href="{{ route('logout.confirm') }}"
+   class="btn-keluar-pill"
+   style="text-decoration: none;">
+    <span class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24"
+             fill="none" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+    </span>
+    <span class="nav-label">Keluar</span>
+</a>
             </div>
         </div>
     </aside>

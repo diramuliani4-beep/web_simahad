@@ -444,20 +444,18 @@
 </a>
 
 
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="menu-link"
-                    style="width:100%; cursor:pointer; text-align:left;">
-                    <svg viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M10 17l5-5-5-5"/>
-                        <path d="M15 12H3"/>
-                        <path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/>
-                    </svg>
-                    <span>Keluar</span>
-                </button>
-            </form>
+            
+<a href="{{ route('logout.confirm') }}" class="menu-link">
+    <svg viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10 17l5-5-5-5"/>
+        <path d="M15 12H3"/>
+        <path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/>
+    </svg>
+    <span>Keluar</span>
+</a>
+
 
         </div>
     </aside>

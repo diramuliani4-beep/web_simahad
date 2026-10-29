@@ -560,7 +560,7 @@
 
             <!-- Top Left Logo & Title -->
             <div class="hero-content-top">
-                <x-simahad-emblem size="46" />
+                <img src="{{ asset('images/logo_uin.png') }}" alt="Logo UIN Imam Bonjol" style="width: 46px; height: 46px; object-fit: contain;">
                 <div class="hero-brand-text">
                     <span class="hero-brand-title">SIMAHAD</span>
                     <span class="hero-brand-sub">Sistem Informasi Manajemen Ma'had</span>
@@ -581,7 +581,7 @@
             <!-- Building Facade Signage matching screenshot -->
             <div class="building-sign-overlay">
                 <div class="building-sign-logo">
-                    <x-simahad-emblem size="26" />
+                    <img src="{{ asset('images/logo_uin.png') }}" alt="Logo UIN Imam Bonjol" style="width: 26px; height: 26px; object-fit: contain;">
                 </div>
                 <div class="building-sign-text">MA'HAD AL-JAMI'AH</div>
                 <div class="building-sign-sub">TUANKU IMAM BONJOL</div>
@@ -599,7 +599,7 @@
             <div class="inner-frame">
                 <!-- Center Emblem Logo -->
                 <div class="center-emblem">
-                    <x-simahad-emblem size="54" />
+                    <img src="{{ asset('images/logo_uin.png') }}" alt="Logo UIN Imam Bonjol" style="width: 54px; height: 54px; object-fit: contain;">
                 </div>
 
                 <!-- Titles -->

@@ -44,6 +44,10 @@ Route::post('/login', [AuthController::class, 'login'])
 Route::post('/logout', [AuthController::class, 'logout'])
     ->name('logout');
 
+Route::get('/konfirmasi-keluar', function () {
+    return view('auth.confirm-logout');
+})->middleware('auth')->name('logout.confirm');
+
 /*
 |--------------------------------------------------------------------------
 | Pendaftaran Akun

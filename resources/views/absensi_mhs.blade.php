@@ -643,18 +643,12 @@
                 <span>Pengaturan Akun</span>
             </a>
 
-            <form
-                class="logout-form"
-                action="{{ route('logout') }}"
-                method="POST"
-                onsubmit="return confirm('Apakah kamu yakin ingin keluar?')"
-            >
-                @csrf
-                <button type="submit" class="nav-link logout">
-                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                    <span>Keluar</span>
-                </button>
-            </form>
+            
+<a href="{{ route('logout.confirm') }}" class="nav-link logout">
+    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+    <span>Keluar</span>
+</a>
+
 
         </nav>
     </aside>
