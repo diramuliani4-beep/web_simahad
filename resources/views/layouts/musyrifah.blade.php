@@ -473,12 +473,12 @@
             </a>
 
 
-            <a href="#">
+            <a href="{{ route('musyrifah.jadwal-saya') }}">
                 <span class="menu-icon">♙</span>
                 <span>Jadwal Saya</span>
             </a>
 
-            <a href="#">
+            <a href="{{ route('musyrifah.absensi') }}">
                 <span class="menu-icon">▤</span>
                 <span>Absensi</span>
             </a>
@@ -491,7 +491,7 @@
                 <span>Surat &amp; Perizinan</span>
             </a>
 
-            <a href="#">
+            <a href="{{ route('musyrifah.pengumuman') }}">
                 <span class="menu-icon">⚑</span>
                 <span>Pengumuman</span>
             </a>

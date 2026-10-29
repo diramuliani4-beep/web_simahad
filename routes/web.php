@@ -25,6 +25,8 @@ use App\Http\Controllers\MusyrifahManajemenPembelajaranController;
 use App\Http\Controllers\MusyrifahSuratPerizinanController;
 use App\Http\Controllers\MusyrifahLaporanController;
 use App\Http\Controllers\MusyrifahPengaturanAkunController;
+use App\Http\Controllers\MusyrifahPengumumanController;
+use App\Http\Controllers\MusyrifahDetailPengumumanController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -256,6 +258,16 @@ Route::get('/guru/absensi', [
     'index',
 ])->name('guru.absensi');
 
+Route::get('/musyrifah/jadwal-saya', [
+    GuruJadwalSayaController::class,
+    'index',
+])->name('musyrifah.jadwal-saya');
+
+Route::get('/musyrifah/absensi', [
+    GuruAbsensiController::class,
+    'index',
+])->name('musyrifah.absensi');
+
 Route::get('/guru/kegiatan-dokumentasi', [
     GuruKegiatanDokumentasiController::class,
     'index',
@@ -313,5 +325,15 @@ Route::get(
     '/musyrifah/pengaturan-akun',
     [MusyrifahPengaturanAkunController::class, 'index']
 )->name('musyrifah.pengaturan_akun');
+
+Route::get('/musyrifah/pengumuman', [
+    MusyrifahPengumumanController::class,
+    'index',
+])->name('musyrifah.pengumuman');
+
+Route::get('/musyrifah/detail-pengumuman', [
+    MusyrifahDetailPengumumanController::class,
+    'index',
+])->name('musyrifah.detail-pengumuman');
 
 });

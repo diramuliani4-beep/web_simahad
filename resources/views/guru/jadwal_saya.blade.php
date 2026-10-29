@@ -1,4 +1,4 @@
-@extends('layouts.guru')
+@extends(request()->is('musyrifah/*') ? 'layouts.musyrifah' : 'layouts.guru')
 
 @section('content')
 <style>
