@@ -473,12 +473,12 @@
             </a>
 
 
-            <a href="#">
+            <a href="{{ route('musyrifah.jadwal-saya') }}">
                 <span class="menu-icon">♙</span>
                 <span>Jadwal Saya</span>
             </a>
 
-            <a href="#">
+            <a href="{{ route('musyrifah.absensi') }}">
                 <span class="menu-icon">▤</span>
                 <span>Absensi</span>
             </a>
@@ -491,7 +491,7 @@
                 <span>Surat &amp; Perizinan</span>
             </a>
 
-            <a href="#">
+            <a href="{{ route('musyrifah.pengumuman') }}">
                 <span class="menu-icon">⚑</span>
                 <span>Pengumuman</span>
             </a>
@@ -504,24 +504,18 @@
                 <span>Laporan</span>
             </a>
 
-            <a href="#">
+            <a
+                href="{{ route('musyrifah.pengaturan_akun') }}"
+                class="{{ request()->routeIs('musyrifah.pengaturan_akun') ? 'active' : '' }}"
+            >
                 <span class="menu-icon">⚙</span>
                 <span>Pengaturan Akun</span>
             </a>
 
-            <!-- LOGOUT -->
-            <form
-                method="POST"
-                action="{{ route('logout') }}"
-                class="logout-form"
-            >
-                @csrf
-
-                <button type="submit" class="logout-button">
-                    <span class="menu-icon">⇥</span>
-                    <span>Keluar</span>
-                </button>
-            </form>
+            <a href="{{ route('logout.confirm') }}" class="logout-button">
+                <span class="menu-icon">⇥</span>
+                <span>Keluar</span>
+            </a>
 
         </nav>
 

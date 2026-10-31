@@ -660,23 +660,17 @@
                 <span class="nav-label">Pengaturan Akun</span>
             </a>
 
-            <form
-                action="{{ route('logout') }}"
-                method="POST"
-                class="logout-form"
-                onsubmit="return confirm('Apakah kamu yakin ingin keluar?')"
-            >
-                @csrf
-                <button type="submit" class="nav-item logout">
-                    <span class="nav-icon">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M10 17l5-5-5-5M15 12H3"/>
-                            <path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/>
-                        </svg>
-                    </span>
-                    <span class="nav-label">Keluar</span>
-                </button>
-            </form>
+            
+<a href="{{ route('logout.confirm') }}" class="nav-item logout">
+    <span class="nav-icon">
+        <svg viewBox="0 0 24 24">
+            <path d="M10 17l5-5-5-5M15 12H3"/>
+            <path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/>
+        </svg>
+    </span>
+    <span class="nav-label">Keluar</span>
+</a>
+
 
         </aside>
 

@@ -378,13 +378,10 @@
                 <span>Pengaturan Akun</span>
             </a>
 
-            <form method="POST" action="{{ route('logout') }}" class="logout-form">
-                @csrf
-                <button type="submit" class="logout-button">
-                    <span class="menu-icon">⇥</span>
-                    <span>Keluar</span>
-                </button>
-            </form>
+            <a href="{{ route('logout.confirm') }}" class="logout-button">
+                <span class="menu-icon">⇥</span>
+                <span>Keluar</span>
+            </a>
         </nav>
     </aside>
 

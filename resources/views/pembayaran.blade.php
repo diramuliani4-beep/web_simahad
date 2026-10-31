@@ -1021,20 +1021,17 @@
                 </nav>
 
                 <div class="sidebar-footer">
-                    <form action="{{ route('logout') }}" method="POST"
-                          onsubmit="return confirm('Apakah Anda yakin ingin keluar?')">
-                        @csrf
-                        <button type="submit" class="btn-keluar">
-                            <span class="nav-icon">
-                                <svg width="23" height="23" viewBox="0 0 24 24"
-                                     fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M10 17l5-5-5-5M15 12H3"></path>
-                                    <path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"></path>
-                                </svg>
-                            </span>
-                            <span>Keluar</span>
-                        </button>
-                    </form>
+<a href="{{ route('logout.confirm') }}" class="btn-keluar"
+   style="text-decoration: none;">
+    <span class="nav-icon">
+        <svg width="23" height="23" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 17l5-5-5-5M15 12H3"></path>
+            <path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"></path>
+        </svg>
+    </span>
+    <span>Keluar</span>
+</a>
                 </div>
             </div>
         </aside>

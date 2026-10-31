@@ -1012,20 +1012,22 @@
                         <span class="nav-label">Pengaturan Akun</span>
                     </a>
 
-                    <!-- 9. Keluar -->
-                    <form action="{{ route('logout') }}" method="POST" id="logoutForm" style="margin: 0;">
-                        @csrf
-                        <button type="submit" class="btn-keluar-pill">
-                            <span class="nav-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                                    <polyline points="16 17 21 12 16 7"></polyline>
-                                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                                </svg>
-                            </span>
-                            <span class="nav-label">Keluar</span>
-                        </button>
-                    </form>
+                    
+<!-- 9. Keluar -->
+<a href="{{ route('logout.confirm') }}" class="btn-keluar-pill" style="text-decoration: none;">
+    <!-- Pertahankan ikon SVG keluar yang sudah ada -->
+    <span class="nav-icon">
+        <svg viewBox="0 0 24 24" width="22" height="22"
+             fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 17l5-5-5-5"/>
+            <path d="M15 12H3"/>
+            <path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/>
+        </svg>
+    </span>
+    <span class="nav-label">Keluar</span>
+</a>
+
                 </div>
             </div>
         </aside>

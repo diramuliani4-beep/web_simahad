@@ -64,7 +64,7 @@
             position: relative;
             flex: 1.05;
             background-color: #d1d5db;
-            background-image: url('{{ asset('images/mahad_building.jpg') }}');
+            background-image: url('{{ asset('images/mahad_al_jamiah.jpeg') }}');
             background-size: cover;
             background-position: center bottom;
             background-repeat: no-repeat;
@@ -104,6 +104,25 @@
             display: flex;
             align-items: center;
             gap: 12px;
+        }
+
+        .brand-logo-img {
+            width: 46px;
+            height: 46px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .building-logo-img {
+            width: 26px;
+            height: 26px;
+            object-fit: contain;
+        }
+
+        .center-logo-img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
         }
 
         .hero-brand-text {
@@ -377,7 +396,7 @@
             <div class="hero-overlay"></div>
 
             <div class="hero-content-top">
-                <x-simahad-emblem size="46" />
+                <img src="{{ asset('images/logo_uin.png') }}" alt="Logo UIN Imam Bonjol" class="brand-logo-img">
                 <div class="hero-brand-text">
                     <span class="hero-brand-title">SIMAHAD</span>
                     <span class="hero-brand-sub">Sistem Informasi Manajemen Ma'had</span>
@@ -396,7 +415,7 @@
 
             <div class="building-sign-overlay">
                 <div class="building-sign-logo">
-                    <x-simahad-emblem size="26" />
+                    <img src="{{ asset('images/logo_uin.png') }}" alt="Logo UIN Imam Bonjol" class="building-logo-img">
                 </div>
                 <div class="building-sign-text">MA'HAD AL-JAMI'AH</div>
                 <div class="building-sign-sub">TUANKU IMAM BONJOL</div>
@@ -411,7 +430,7 @@
 
             <div class="inner-frame">
                 <div class="center-emblem">
-                    <x-simahad-emblem size="50" />
+                    <img src="{{ asset('images/logo_uin.png') }}" alt="Logo UIN Imam Bonjol" class="center-logo-img">
                 </div>
 
                 <h1 class="form-headline">Pendaftaran Akun Mahasiswa</h1>
