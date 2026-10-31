@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
+use App\Models\ActivityLog;
 
 class AuthController extends Controller
 {
@@ -86,7 +87,7 @@ class AuthController extends Controller
         $routes = [
             'mahasiswa' => 'dashboard',
             'musyrifah' => 'musyrifah.dashboard',
-            'admin' => 'admin.dashboard',
+            'admin' => 'admin.dashboard_admin',
             'guru' => 'guru.dashboard',
             'pimpinan' => 'pimpinan.dashboard',
         ];
@@ -273,18 +274,44 @@ class AuthController extends Controller
     /**
      * Dashboard Admin.
      */
-    public function dashboardAdmin(): View|RedirectResponse
-    {
-        $redirect = $this->authorizeRole('admin');
+    
+public function dashboardAdmin()
+{
+    $user = auth()->user();
 
-        if ($redirect) {
-            return $redirect;
-        }
-        $user = Auth::user();
-        $kamar =  $user->kamar;
+    // Menghitung total seluruh pengguna
+    $totalPengguna = User::count();
 
-        return view('admin.dashboard', compact('user','kamar'));
-    }
+    // Menghitung akun aktif
+    $akunAktif = User::where('status', 'aktif')->count();
+
+    // Menghitung akun yang menunggu aktivasi
+    $menungguAktivasi = User::where(
+        'status',
+        'menunggu aktivasi'
+    )->count();
+
+    // Menghitung akun nonaktif
+    $akunNonaktif = User::where(
+        'status',
+        'nonaktif'
+    )->count();
+
+    // Mengambil 5 aktivitas terbaru
+    $aktivitasTerbaru = ActivityLog::latest()
+        ->take(5)
+        ->get();
+
+    return view('Admin.dashboard_admin', compact(
+        'user',
+        'totalPengguna',
+        'akunAktif',
+        'menungguAktivasi',
+        'akunNonaktif',
+        'aktivitasTerbaru'
+    ));
+}
+
 
     /**
      * Dashboard Guru.

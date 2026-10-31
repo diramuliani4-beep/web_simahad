@@ -174,13 +174,20 @@
             font-size: 16px;
             font-weight: 500;
             font-family: inherit;
-            transition: background .2s, color .2s;
+            transition: background-color .2s ease, box-shadow .2s ease;
         }
 
-        .menu-link:hover,
+        /* Warna ketika mouse diarahkan ke menu */
+        .menu-link:hover {
+            background-color: #f9eded;
+            color: var(--maroon);
+        }
+
+        /* Warna menu yang sedang dibuka */
         .menu-link.active {
-            background: #f9eded;
-            color: #111;
+            background-color: #f3dfe3;
+            color: var(--maroon);
+            border: 1px solid var(--maroon);
             box-shadow: 0 2px 5px rgba(0,0,0,.12);
         }
 
@@ -216,14 +223,17 @@
             transition: margin-left .25s ease;
         }
 
-        body.sidebar-collapsed .sidebar {
-            width: 0;
-            transform: translateX(-100%);
-            border-right: none;
-        }
+        /* SIDEBAR TERTUTUP KHUSUS LAYAR PC */
+        @media (min-width: 1001px) {
+            body.sidebar-collapsed .sidebar {
+                width: 0;
+                transform: translateX(-100%);
+                border-right: none;
+            }
 
-        body.sidebar-collapsed .main-content {
-            margin-left: 0;
+            body.sidebar-collapsed .main-content {
+                margin-left: 0;
+            }
         }
 
         /* TABLET */
@@ -327,7 +337,7 @@
     @stack('styles')
 </head>
 
-<body class="sidebar-collapsed">
+<body>
 
     <header class="admin-header">
         <div class="header-left">
@@ -388,8 +398,8 @@
     <aside class="sidebar" id="sidebar">
         <nav class="sidebar-menu">
 
-            <a href="{{ url('/admin/dashboard') }}"
-                class="menu-link {{ request()->is('admin/dashboard') ? 'active' : '' }}">
+            <a href="{{ url('/admin/dashboard_admin') }}"
+               class="menu-link {{ request()->is('admin/dashboard_admin') ? 'active' : '' }}">
                 <svg viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2">
                     <rect x="3" y="3" width="7" height="7" rx="2"/>
@@ -401,47 +411,41 @@
             </a>
 
             <a href="{{ route('admin.manajemen-pengguna') }}"
-   class="menu-link {{ request()->is('admin/manajemen-pengguna*') ? 'active' : '' }}">
-    <svg viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="9" cy="8" r="3"/>
-        <path d="M3 20v-2a6 6 0 0 1 12 0v2"/>
-        <circle cx="18" cy="9" r="2"/>
-        <path d="M17 15a5 5 0 0 1 4 5"/>
-    </svg>
-    <span>Manajemen Pengguna</span>
-</a>
-
-            
-<a href="{{ route('admin.hak-akses') }}"
-    class="menu-link {{ request()->is('admin/hak-akses*') ? 'active' : '' }}">
-    <svg viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round">
-        <rect x="4" y="10" width="16" height="11" rx="2"/>
-        <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
-        <path d="M12 14v3"/>
-    </svg>
-    <span>Hak Akses</span>
-</a>
-
-
+                class="menu-link {{ request()->is('admin/manajemen-pengguna*') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="8" r="3"/>
+                        <path d="M3 20v-2a6 6 0 0 1 12 0v2"/>
+                        <circle cx="18" cy="9" r="2"/>
+                        <path d="M17 15a5 5 0 0 1 4 5"/>
+                    </svg>
+                    <span>Manajemen Pengguna</span>
+                </a>
+                <a href="{{ route('admin.log-aktivitas') }}"
+                    class="menu-link {{ request()->is('admin/log-aktivitas*') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 12a9 9 0 1 0 3-6.7"/>
+                        <path d="M3 4v5h5"/>
+                        <path d="M12 7v5l3 2"/>
+                    </svg>
+                    <span>Log Aktivitas</span>
+                </a>
         </nav>
 
         <div class="sidebar-bottom">
-
-            
-<a href="{{ route('admin.pengaturan-sistem') }}"
-    class="menu-link {{ request()->is('admin/pengaturan-sistem*') ? 'active' : '' }}">
-    <svg viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"/>
-        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 3.1-.2-.1a1.7 1.7 0 0 0-1.9.2l-.2.1h-3.5l-.1-.2a1.7 1.7 0 0 0-1.6-1l-.3.1-3.1-1.8.1-.2a1.7 1.7 0 0 0-.2-1.9l-.1-.2v-3.5l.2-.1a1.7 1.7 0 0 0 1-1.6l-.1-.3 1.8-3.1.2.1a1.7 1.7 0 0 0 1.9-.2l.2-.1h3.5l.1.2a1.7 1.7 0 0 0 1.6 1l.3-.1 3.1 1.8-.1.2a1.7 1.7 0 0 0 .2 1.9l.1.2V15z"/>
-    </svg>
-    <span>Pengaturan Sistem</span>
-</a>
+        <a href="{{ route('admin.pengaturan-sistem') }}"
+        class="menu-link {{ request()->is('admin/pengaturan-sistem*') ? 'active' : '' }}">
+            <svg viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 3.1-.2-.1a1.7 1.7 0 0 0-1.9.2l-.2.1h-3.5l-.1-.2a1.7 1.7 0 0 0-1.6-1l-.3.1-3.1-1.8.1-.2a1.7 1.7 0 0 0-.2-1.9l-.1-.2v-3.5l.2-.1a1.7 1.7 0 0 0 1-1.6l-.1-.3 1.8-3.1.2.1a1.7 1.7 0 0 0 1.9-.2l.2-.1h3.5l.1.2a1.7 1.7 0 0 0 1.6 1l.3-.1 3.1 1.8-.1.2a1.7 1.7 0 0 0 .2 1.9l.1.2V15z"/>
+            </svg>
+            <span>Pengaturan Sistem</span>
+        </a>
 
 
             <form method="POST" action="{{ route('logout') }}">
@@ -467,29 +471,59 @@
     </main>
 
     <script>
+                
         document.addEventListener('DOMContentLoaded', function () {
             const menuToggle = document.getElementById('menuToggle');
 
             if (!menuToggle) return;
 
+            const STORAGE_KEY = 'simahad_sidebar_collapsed';
+
             function updateExpanded() {
-                const isOpen = window.innerWidth <= 700
-                    ? document.body.classList.contains('sidebar-mobile-open')
-                    : !document.body.classList.contains('sidebar-collapsed');
+                let isOpen;
+
+                if (window.innerWidth <= 700) {
+                    isOpen = document.body.classList.contains('sidebar-mobile-open');
+                } else if (window.innerWidth > 1000) {
+                    isOpen = !document.body.classList.contains('sidebar-collapsed');
+                } else {
+                    isOpen = true;
+                }
 
                 menuToggle.setAttribute('aria-expanded', String(isOpen));
             }
 
+            // Mengembalikan kondisi sidebar PC yang terakhir dipilih
+            function restoreSidebar() {
+                if (window.innerWidth > 1000) {
+                    const isCollapsed = localStorage.getItem(STORAGE_KEY) === 'true';
+
+                    document.body.classList.toggle('sidebar-collapsed', isCollapsed);
+                    document.body.classList.remove('sidebar-mobile-open');
+                } else {
+                    document.body.classList.remove('sidebar-collapsed');
+                }
+
+                updateExpanded();
+            }
+
+            // Tombol buka/tutup sidebar
             menuToggle.addEventListener('click', function () {
                 if (window.innerWidth <= 700) {
                     document.body.classList.toggle('sidebar-mobile-open');
-                } else {
+                } else if (window.innerWidth > 1000) {
                     document.body.classList.toggle('sidebar-collapsed');
+
+                    localStorage.setItem(
+                        STORAGE_KEY,
+                        document.body.classList.contains('sidebar-collapsed')
+                    );
                 }
 
                 updateExpanded();
             });
 
+            // Menutup sidebar saat klik area luar khusus HP
             document.addEventListener('click', function (event) {
                 if (
                     window.innerWidth <= 700 &&
@@ -502,13 +536,11 @@
                 }
             });
 
-            window.addEventListener('resize', function () {
-                document.body.classList.remove('sidebar-mobile-open');
-                updateExpanded();
-            });
+            window.addEventListener('resize', restoreSidebar);
 
-            updateExpanded();
+            restoreSidebar();
         });
+
     </script>
 
     @stack('scripts')

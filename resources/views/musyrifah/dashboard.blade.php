@@ -142,7 +142,7 @@
 </style>
 
 <section class="welcome">
-    <h1>← Selamat Datang, Pengelola</h1>
+    <h1>← Selamat Datang, Musyrifah</h1>
 </section>
 
 <section class="stats-grid">

@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Support\Facades\Route;
@@ -11,13 +10,20 @@ use App\Http\Controllers\PengumumanMhsController;
 use App\Http\Controllers\SuratPerizinanMhsController;
 use App\Http\Controllers\PengajuanIzinPulangController;
 use App\Http\Controllers\AdminManajemenPenggunaController;
-use App\Http\Controllers\AdminHakAksesController;
 use App\Http\Controllers\AdminPengaturanSistemController;
 use App\Http\Controllers\GuruJadwalSayaController;
 use App\Http\Controllers\GuruAbsensiController;
 use App\Http\Controllers\GuruKegiatanDokumentasiController;
 use App\Http\Controllers\PimpinanDataPenghuniController;
 use App\Http\Controllers\PimpinanLaporanMahadController;
+use App\Http\Controllers\PimpinanPembelajaranController;
+use App\Http\Controllers\MusyrifahPendaftaranController;
+use App\Http\Controllers\MusyrifahDataKamarController;
+use App\Http\Controllers\MusyrifahPembayaranController;
+use App\Http\Controllers\MusyrifahManajemenPembelajaranController;
+use App\Http\Controllers\MusyrifahSuratPerizinanController;
+use App\Http\Controllers\MusyrifahLaporanController;
+use App\Http\Controllers\AdminLogAktivitasController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,14 +31,17 @@ use App\Http\Controllers\PimpinanLaporanMahadController;
 |--------------------------------------------------------------------------
 */
 
+// Halaman utama
 Route::get('/', [AuthController::class, 'showLoginForm']);
 
+// Login
 Route::get('/login', [AuthController::class, 'showLoginForm'])
     ->name('login');
 
 Route::post('/login', [AuthController::class, 'login'])
     ->name('login.post');
 
+// Logout
 Route::post('/logout', [AuthController::class, 'logout'])
     ->name('logout');
 
@@ -50,6 +59,7 @@ Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm']
 Route::post('/forgot-password', [AuthController::class, 'resetPassword'])
     ->name('password.update');
 
+
 /*
 |--------------------------------------------------------------------------
 | Fitur Pengguna yang Sudah Login
@@ -58,11 +68,11 @@ Route::post('/forgot-password', [AuthController::class, 'resetPassword'])
 
 Route::middleware('auth')->group(function () {
 
-    // Dashboard mahasiswa
+    // Dashboard
     Route::get('/dashboard', [AuthController::class, 'dashboard'])
         ->name('dashboard');
 
-    // Dashboard lama, dipertahankan untuk kompatibilitas
+    // Dashboard lama untuk kompatibilitas
     Route::get('/dashboard_admin', [AuthController::class, 'dashboard'])
         ->name('dashboard_admin');
 
@@ -87,12 +97,14 @@ Route::middleware('auth')->group(function () {
         'dashboardPimpinan',
     ])->name('pimpinan.dashboard');
 
+
     // Kamar mahasiswa
     Route::get('/kamar', [AuthController::class, 'kamar'])
         ->name('kamar');
 
     Route::post('/kamar/pilih', [AuthController::class, 'pilihKamar'])
         ->name('kamar.pilih');
+
 
     // Pembayaran mahasiswa
     Route::get('/pembayaran', [PembayaranController::class, 'index'])
@@ -103,6 +115,7 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/pembayaran/reset', [PembayaranController::class, 'reset'])
         ->name('pembayaran.reset');
+
 
     // Pendaftaran mahasiswa
     Route::get('/pendaftaran/pribadi', [PendaftaranController::class, 'pribadi'])
@@ -129,17 +142,21 @@ Route::middleware('auth')->group(function () {
     Route::post('/pendaftaran/selesai', [PendaftaranController::class, 'selesai'])
         ->name('pendaftaran.selesai');
 
+
     // Pembelajaran mahasiswa
     Route::get('/pembelajaran-mhs', [PembelajaranController::class, 'index'])
         ->name('pembelajaran.mhs');
+
 
     // Absensi mahasiswa
     Route::get('/absensi-mhs', [AbsensiMhsController::class, 'index'])
         ->name('absensi.mhs');
 
+
     // Pengumuman mahasiswa
     Route::get('/pengumuman-mhs', [PengumumanMhsController::class, 'index'])
         ->name('pengumuman.mhs');
+
 
     // Surat dan perizinan mahasiswa
     Route::get('/surat-perizinan-mhs', [
@@ -157,23 +174,63 @@ Route::middleware('auth')->group(function () {
         'store',
     ])->name('surat.perizinan.mhs.pengajuan.store');
 
-    // Fitur admin
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fitur Admin
+    |--------------------------------------------------------------------------
+    */
+
+    // Manajemen pengguna
     Route::get('/admin/manajemen-pengguna', [
         AdminManajemenPenggunaController::class,
         'index',
     ])->name('admin.manajemen-pengguna');
 
-    Route::get('/admin/hak-akses', [
-        AdminHakAksesController::class,
-        'index',
-    ])->name('admin.hak-akses');
+    // Verifikasi akun pengguna
+    Route::post('/admin/manajemen-pengguna/{id}/verifikasi', [
+        AdminManajemenPenggunaController::class,
+        'verifikasi',
+    ])->name('admin.manajemen-pengguna.verifikasi');
 
+    // Tolak pendaftaran akun
+    Route::post('/admin/manajemen-pengguna/{id}/tolak', [
+        AdminManajemenPenggunaController::class,
+        'tolak',
+    ])->name('admin.manajemen-pengguna.tolak');
+
+    // Pengaturan sistem
     Route::get('/admin/pengaturan-sistem', [
         AdminPengaturanSistemController::class,
         'index',
     ])->name('admin.pengaturan-sistem');
 
-    // Fitur guru
+    Route::get('/admin/manajemen-pengguna/tambah', [
+        AdminManajemenPenggunaController::class,
+        'create'
+    ])->name('admin.manajemen-pengguna.create');
+
+    Route::post('/admin/manajemen-pengguna', [
+        AdminManajemenPenggunaController::class,
+        'store'
+    ])->name('admin.manajemen-pengguna.store');
+
+    Route::get('/admin/log-aktivitas', [
+        AdminLogAktivitasController::class,
+        'index'
+    ])->name('admin.log-aktivitas');
+    
+    Route::get('/admin/dashboard_admin', [
+        AuthController::class, 'dashboardAdmin'
+        ]) ->name('admin.dashboard_admin');
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Fitur Guru
+    |--------------------------------------------------------------------------
+    */
+
     Route::get('/guru/jadwal-saya', [
         GuruJadwalSayaController::class,
         'index',
@@ -189,7 +246,13 @@ Route::middleware('auth')->group(function () {
         'index',
     ])->name('guru.kegiatan-dokumentasi');
 
-    // Fitur pimpinan
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fitur Pimpinan
+    |--------------------------------------------------------------------------
+    */
+
     Route::get('/pimpinan/data-penghuni', [
         PimpinanDataPenghuniController::class,
         'index',
@@ -198,6 +261,48 @@ Route::middleware('auth')->group(function () {
     Route::get('/pimpinan/laporan-mahad', [
         PimpinanLaporanMahadController::class,
         'index',
-    ])->name('pimpinan/laporan_mahad');
+    ])->name('pimpinan.laporan-mahad');
+
+    Route::get('/pimpinan/pembelajaran', [
+        PimpinanPembelajaranController::class,
+        'index',
+    ])->name('pimpinan.pembelajaran');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fitur Musyrifah
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/musyrifah/pendaftaran', [
+        MusyrifahPendaftaranController::class,
+        'index',
+    ])->name('musyrifah.pendaftaran');
+
+    Route::get('/musyrifah/data-kamar', [
+        MusyrifahDataKamarController::class,
+        'index',
+    ])->name('musyrifah.data_kamar');
+
+    Route::get('/musyrifah/pembayaran', [
+        MusyrifahPembayaranController::class,
+        'index',
+    ])->name('musyrifah.pembayaran');
+
+    Route::get('/musyrifah/manajemen-pembelajaran', [
+        MusyrifahManajemenPembelajaranController::class,
+        'index',
+    ])->name('musyrifah.manajemen_pembelajaran');
+
+    Route::get('/musyrifah/surat-perizinan', [
+        MusyrifahSuratPerizinanController::class,
+        'index',
+    ])->name('musyrifah.surat_perizinan');
+
+    Route::get('/musyrifah/laporan', [
+        MusyrifahLaporanController::class,
+        'index',
+    ])->name('musyrifah.laporan');
 
 });

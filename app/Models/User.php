@@ -17,7 +17,10 @@ use Illuminate\Notifications\Notifiable;
     'kamar_id',
     'password',
     'role',
+    'no_hp',
+    'status',
 ])]
+
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
