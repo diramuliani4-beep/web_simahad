@@ -226,9 +226,9 @@
                 <div class="jadwal-progress-bar" style="width: 50%;"></div>
             </div>
 
-            <a href="{{ url('/guru/jadwal-saya') }}"
-               class="jadwal-detail-link">
-                Lihat Detail &rarr;
+            <a href="{{ url('/guru/jadwal-saya/detail/alquran') }}"
+            class="jadwal-detail-link">
+             Lihat Detail &rarr;
             </a>
         </div>
 
@@ -245,10 +245,10 @@
                 <div class="jadwal-progress-bar" style="width: 37.5%;"></div>
             </div>
 
-            <a href="{{ url('/guru/jadwal-saya') }}"
-               class="jadwal-detail-link">
-                Lihat Detail &rarr;
-            </a>
+            <a href="{{ url('/guru/jadwal-saya/detail/alquran') }}"
+   class="jadwal-detail-link">
+    Lihat Detail &rarr;
+</a>
         </div>
 
         {{-- JADWAL MENGAJAR --}}

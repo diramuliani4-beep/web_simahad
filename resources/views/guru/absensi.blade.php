@@ -1,418 +1,281 @@
 
 @extends(request()->is('musyrifah/*') ? 'layouts.musyrifah' : 'layouts.guru')
 
+@section('title', 'Absensi Guru')
+
 @section('content')
+
 <style>
-    .absensi-page {
-        padding: 20px 28px;
-        color: #222;
-        font-family: inherit;
+    .absensi-home {
+        width: 100%;
+        padding: 12px 10px 25px;
+        font-family: 'Poppins', sans-serif;
+        color: #292929;
+        box-sizing: border-box;
     }
 
-    .absensi-breadcrumb {
+    .absensi-home *,
+    .absensi-home *::before,
+    .absensi-home *::after {
+        box-sizing: border-box;
+    }
+
+    /* HEADER HALAMAN */
+    .absensi-home .breadcrumb {
+        font-size: 13px;
         color: #790d20;
-        font-size: 22px;
-        font-weight: 500;
-        margin-bottom: 14px;
+        margin-bottom: 7px;
     }
 
-    .absensi-title {
-        font-size: 32px;
+    .absensi-home .page-title {
+        font-size: 23px;
         font-weight: 600;
-        margin: 0 0 7px;
+        margin: 0 0 4px;
+        color: #171717;
     }
 
-    .absensi-description {
-        font-size: 20px;
-        margin: 0;
-    }
-
-    .absensi-content {
-        border-top: 1px solid #e8dcd7;
-        margin: 28px -28px 0;
-        padding: 14px 28px 25px;
-        background: #f8f7f6;
-    }
-
-    .absensi-info-card,
-    .absensi-card {
-        background: #fff;
-        border: 1px solid #eee3de;
-        border-radius: 10px;
-        margin-bottom: 14px;
-    }
-
-    .absensi-info-card {
-        padding: 17px 15px;
-    }
-
-    .absensi-label {
-        color: #85817f;
-        font-size: 14px;
-        margin-bottom: 15px;
-        text-transform: uppercase;
-    }
-
-    .absensi-mapel {
-        font-size: 19px;
-        font-weight: 600;
-        margin-bottom: 15px;
-    }
-
-    .absensi-info-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 18px;
-    }
-
-    .absensi-info-caption {
-        color: #85817f;
-        font-size: 14px;
-        margin-bottom: 8px;
-    }
-
-    .absensi-info-value {
-        font-size: 18px;
-        font-weight: 600;
-    }
-
-    .absensi-date {
-        color: #85817f;
-        font-size: 14px;
-        margin-top: 17px;
-    }
-
-    .absensi-card {
-        padding: 19px 15px;
-    }
-
-    .absensi-section-title {
-        color: #790d20;
-        font-size: 19px;
-        font-weight: 600;
+    .absensi-home .page-description {
+        font-size: 13px;
+        color: #444;
+        line-height: 1.6;
         margin: 0 0 14px;
     }
 
-    .absensi-hint {
-        color: #85817f;
-        font-size: 14px;
-        margin-bottom: 17px;
+    /* RINGKASAN ABSENSI */
+    .absensi-home .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 13px;
     }
 
-    .absensi-table-wrapper {
-        overflow-x: auto;
-    }
-
-    .absensi-table {
-        width: 100%;
-        border-collapse: collapse;
-        min-width: 450px;
-    }
-
-    .absensi-table th,
-    .absensi-table td {
-        text-align: left;
-        padding: 12px 5px;
-        border-bottom: 1px solid #eee;
-        font-size: 15px;
-    }
-
-    .absensi-table th {
-        font-size: 16px;
-        font-weight: 600;
-    }
-
-    .absensi-select {
-        min-width: 120px;
-        padding: 7px 10px;
-        border: 1px solid #e5ddd8;
-        border-radius: 7px;
+    .absensi-home .summary-card {
+        min-height: 60px;
+        padding: 11px 12px;
         background: #fff;
-        font: inherit;
-        font-size: 14px;
+        border: 1px solid #e9e5e3;
+        border-radius: 7px;
     }
 
-    .absensi-rekap-row {
+    .absensi-home .summary-card.pending {
+        background: #f9edef;
+        border-color: #f3e4e7;
+    }
+
+    .absensi-home .summary-label {
+        font-size: 10px;
+        color: #777;
+        margin-bottom: 7px;
+    }
+
+    .absensi-home .summary-card.pending .summary-label {
+        color: #790d20;
+    }
+
+    .absensi-home .summary-number {
+        font-size: 17px;
+        font-weight: 600;
+        color: #292929;
+    }
+
+    .absensi-home .summary-card.pending .summary-number {
+        color: #790d20;
+    }
+
+    /* PILIH PERTEMUAN */
+    .absensi-home .section-title {
+        font-size: 13px;
+        font-weight: 600;
+        margin: 0 0 7px;
+        color: #222;
+    }
+
+    .absensi-home .meeting-card {
+        background: #f8f7f6;
+        border: 1px solid #f0ebe8;
+        border-radius: 7px;
+        padding: 11px 12px 9px;
+        margin-bottom: 12px;
+    }
+
+    .absensi-home .meeting-field {
+        padding: 0 0 11px;
+        margin-bottom: 11px;
+        border-bottom: 1px solid #e9e5e2;
+    }
+
+    .absensi-home .meeting-field:last-of-type {
+        border-bottom: none;
+        margin-bottom: 5px;
+        padding-bottom: 5px;
+    }
+
+    .absensi-home .field-label {
+        display: block;
+        font-size: 10px;
+        color: #85817f;
+        margin-bottom: 7px;
+    }
+
+    .absensi-home .field-value {
+        font-size: 12px;
+        font-weight: 600;
+        color: #333;
+        line-height: 1.5;
+    }
+
+    /* TOMBOL MULAI ABSENSI */
+    .absensi-home .btn-start {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 15px;
-        margin: 22px 0;
-        font-size: 17px;
-    }
-
-    .rekap-label {
-        color: #85817f;
-    }
-
-    .rekap-hadir {
-        color: #4d9c75;
-    }
-
-    .rekap-izin {
-        color: #d59a35;
-    }
-
-    .rekap-alpa {
-        color: #d56d6d;
-    }
-
-    .rekap-value {
-        font-weight: 600;
-        text-align: right;
-    }
-
-    .absensi-total-tidak-hadir {
-        border-top: 1px solid #e8dcd7;
-        margin-top: 25px;
-        padding-top: 24px;
-        color: #85817f;
-        font-size: 16px;
-    }
-
-    .absensi-save {
+        justify-content: center;
         width: 100%;
-        padding: 16px;
-        border: 1px solid #790d20;
-        border-radius: 9px;
+        min-height: 39px;
+        padding: 10px 12px;
         background: #790d20;
         color: #fff;
-        font-size: 17px;
+        border: 1px solid #790d20;
+        border-radius: 6px;
+        text-decoration: none;
+        text-align: center;
+        font-family: inherit;
+        font-size: 12px;
         font-weight: 600;
-        cursor: pointer;
+        transition: background 0.2s ease;
     }
 
-    .absensi-save:hover {
-        background: #5f0a19;
+    .absensi-home .btn-start:hover {
+        background: #5e0a19;
     }
 
-    @media (max-width: 768px) {
-        .absensi-page {
-            padding: 16px;
+    .absensi-home .btn-start:focus-visible {
+        outline: 2px solid #790d20;
+        outline-offset: 3px;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 480px) {
+        .absensi-home {
+            padding: 10px 4px 20px;
         }
 
-        .absensi-breadcrumb {
-            font-size: 18px;
+        .absensi-home .page-title {
+            font-size: 21px;
         }
 
-        .absensi-title {
-            font-size: 27px;
+        .absensi-home .page-description {
+            font-size: 12px;
         }
 
-        .absensi-description {
-            font-size: 16px;
-        }
-
-        .absensi-content {
-            margin-left: -16px;
-            margin-right: -16px;
-            padding: 14px 16px 22px;
-        }
-
-        .absensi-info-grid {
-            gap: 10px;
-        }
-
-        .absensi-rekap-row {
-            font-size: 15px;
+        .absensi-home .summary-card {
+            padding: 10px;
         }
     }
 </style>
 
-<div class="absensi-page">
-    <div class="absensi-breadcrumb">
+<div class="absensi-home">
+
+    {{-- JUDUL DAN DESKRIPSI HALAMAN --}}
+    <div class="breadcrumb">
         Dashboard / Absensi
     </div>
 
-    <h1 class="absensi-title">Absensi</h1>
+    <h1 class="page-title">
+        Absensi
+    </h1>
 
-    <p class="absensi-description">
-        Catat dan lihat riwayat kehadiran mahasiswa pada kelompok yang kamu ajar.
+    <p class="page-description">
+        Pilih mata pelajaran dan pertemuan untuk mencatat kehadiran.
     </p>
 
-    <div class="absensi-content">
+    {{-- RINGKASAN ABSENSI --}}
+    <section class="summary-grid">
 
-        {{-- INFORMASI PEMBELAJARAN --}}
-        <div class="absensi-info-card">
-            <div class="absensi-label">Mata Pelajaran</div>
+        <div class="summary-card">
+            <div class="summary-label">
+                Absensi Selesai
+            </div>
 
-            <div class="absensi-mapel">Akhlak dan Adab</div>
+            <div class="summary-number">
+                12
+            </div>
+        </div>
 
-            <div class="absensi-info-grid">
-                <div>
-                    <div class="absensi-info-caption">Kelompok</div>
-                    <div class="absensi-info-value">Kelompok A</div>
+        <div class="summary-card pending">
+            <div class="summary-label">
+                Belum Diisi
+            </div>
+
+            <div class="summary-number">
+                1
+            </div>
+        </div>
+
+    </section>
+
+    {{-- DAFTAR PERTEMUAN YANG BISA DIISI --}}
+    <section>
+
+        <h2 class="section-title">
+            Pilih Pertemuan
+        </h2>
+
+        <article class="meeting-card">
+
+            {{-- INFORMASI MATA PELAJARAN --}}
+            <div class="meeting-field">
+                <span class="field-label">
+                    Mata Pelajaran
+                </span>
+
+                <div class="field-value">
+                    Akhlak dan Adab
                 </div>
+            </div>
 
-                <div>
-                    <div class="absensi-info-caption">Pertemuan</div>
-                    <div class="absensi-info-value">Ke-9 dari 16</div>
+            {{-- INFORMASI KELOMPOK --}}
+            <div class="meeting-field">
+                <span class="field-label">
+                    Kelompok
+                </span>
+
+                <div class="field-value">
+                    Kelompok A
                 </div>
             </div>
 
-            <div class="absensi-date">
-                Tanggal: 12 Oktober 2026 (contoh)
-            </div>
-        </div>
+            {{-- NOMOR PERTEMUAN --}}
+            <div class="meeting-field">
+                <span class="field-label">
+                    Pertemuan
+                </span>
 
-        {{-- DAFTAR KEHADIRAN --}}
-        <div class="absensi-card">
-            <h2 class="absensi-section-title">Daftar Kehadiran</h2>
-
-            <p class="absensi-hint">
-                Pilih status setiap mahasiswa.
-            </p>
-
-            <div class="absensi-table-wrapper">
-                <table class="absensi-table">
-                    <thead>
-                        <tr>
-                            <th>Nama Mahasiswa</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="daftar-absensi">
-                        <tr>
-                            <td>1. Alya Putri</td>
-                            <td>
-                                <select class="absensi-select status-absensi">
-                                    <option value="Hadir" selected>Hadir</option>
-                                    <option value="Izin">Izin</option>
-                                    <option value="Alpa">Alpa</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>2. Aisyah Rahma</td>
-                            <td>
-                                <select class="absensi-select status-absensi">
-                                    <option value="Hadir">Hadir</option>
-                                    <option value="Izin" selected>Izin</option>
-                                    <option value="Alpa">Alpa</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>3. Nurul Fadillah</td>
-                            <td>
-                                <select class="absensi-select status-absensi">
-                                    <option value="Hadir" selected>Hadir</option>
-                                    <option value="Izin">Izin</option>
-                                    <option value="Alpa">Alpa</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>4. Siti Rahmi</td>
-                            <td>
-                                <select class="absensi-select status-absensi">
-                                    <option value="Hadir" selected>Hadir</option>
-                                    <option value="Izin">Izin</option>
-                                    <option value="Alpa">Alpa</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>5. Putri Amelia</td>
-                            <td>
-                                <select class="absensi-select status-absensi">
-                                    <option value="Hadir" selected>Hadir</option>
-                                    <option value="Izin">Izin</option>
-                                    <option value="Alpa">Alpa</option>
-                                </select>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        {{-- REKAP KEHADIRAN --}}
-        <div class="absensi-card">
-            <h2 class="absensi-section-title">Rekap Kehadiran</h2>
-
-            <div class="absensi-rekap-row">
-                <span class="rekap-label">Total mahasiswa</span>
-                <span class="rekap-value" id="total-mahasiswa">5 orang</span>
+                <div class="field-value">
+                    Pertemuan ke-8
+                </div>
             </div>
 
-            <div class="absensi-rekap-row">
-                <span class="rekap-label rekap-hadir">Hadir</span>
-                <span class="rekap-value" id="jumlah-hadir">4 mahasiswa</span>
+            {{-- TANGGAL PERTEMUAN --}}
+            <div class="meeting-field">
+                <span class="field-label">
+                    Tanggal
+                </span>
+
+                <div class="field-value">
+                    26 Oktober 2026
+                </div>
             </div>
 
-            <div class="absensi-rekap-row">
-                <span class="rekap-label rekap-izin">Izin</span>
-                <span class="rekap-value" id="jumlah-izin">1 mahasiswa</span>
-            </div>
+            {{-- NAVIGASI KE HALAMAN ISI ABSENSI --}}
+            <a href="{{ url('/guru/absensi/isi') }}"
+               class="btn-start">
+                Mulai Isi Absensi
+            </a>
 
-            <div class="absensi-rekap-row">
-                <span class="rekap-label rekap-alpa">Alpa</span>
-                <span class="rekap-value" id="jumlah-alpa">0 mahasiswa</span>
-            </div>
+        </article>
 
-            <div class="absensi-total-tidak-hadir" id="total-tidak-hadir">
-                Total tidak hadir: 1 mahasiswa (1 izin dan 0 alpa).
-            </div>
-        </div>
+    </section>
 
-        <button type="button" class="absensi-save" id="tombol-simpan-absensi">
-            Simpan Absensi
-        </button>
-
-        <p id="pesan-absensi" style="display:none; margin-top:12px; color:#790d20;"></p>
-    </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const daftar = document.getElementById('daftar-absensi');
-    const statusSelect = daftar.querySelectorAll('.status-absensi');
-
-    function hitungRekap() {
-        let hadir = 0;
-        let izin = 0;
-        let alpa = 0;
-
-        statusSelect.forEach(function (select) {
-            if (select.value === 'Hadir') hadir++;
-            if (select.value === 'Izin') izin++;
-            if (select.value === 'Alpa') alpa++;
-        });
-
-        const total = statusSelect.length;
-
-        document.getElementById('total-mahasiswa').textContent =
-            total + ' orang';
-
-        document.getElementById('jumlah-hadir').textContent =
-            hadir + ' mahasiswa';
-
-        document.getElementById('jumlah-izin').textContent =
-            izin + ' mahasiswa';
-
-        document.getElementById('jumlah-alpa').textContent =
-            alpa + ' mahasiswa';
-
-        document.getElementById('total-tidak-hadir').textContent =
-            'Total tidak hadir: ' + (izin + alpa) +
-            ' mahasiswa (' + izin + ' izin dan ' + alpa + ' alpa).';
-    }
-
-    statusSelect.forEach(function (select) {
-        select.addEventListener('change', hitungRekap);
-    });
-
-    hitungRekap();
-
-    document.getElementById('tombol-simpan-absensi')
-        .addEventListener('click', function () {
-            const pesan = document.getElementById('pesan-absensi');
-            pesan.style.display = 'block';
-            pesan.textContent =
-                'Pilihan absensi sudah dihitung. Penyimpanan permanen perlu dihubungkan ke database.';
-        });
-});
-</script>
 @endsection
