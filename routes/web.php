@@ -186,108 +186,11 @@ Route::middleware('auth')->group(function () {
         PengajuanIzinPulangController::class,
         'index',
     ])->name('surat.perizinan.mhs.pengajuan');
+
     Route::post('/surat-perizinan-mhs/pengajuan-izin-pulang', [
         PengajuanIzinPulangController::class,
         'store',
     ])->name('surat.perizinan.mhs.pengajuan.store');
-
-Route::post('/surat-perizinan-mhs/pengajuan-izin-pulang', [
-    PengajuanIzinPulangController::class,
-    'store'
-])->name('surat.perizinan.mhs.pengajuan.store');
-
-Route::get('/admin/manajemen-pengguna', [
-    AdminManajemenPenggunaController::class,
-    'index',
-])->name('admin.manajemen-pengguna');
-
-Route::get('/admin/hak-akses', [
-    AdminHakAksesController::class,
-    'index',
-])->name('admin.hak-akses');
-
-Route::get('/admin/pengaturan-sistem', [
-    AdminPengaturanSistemController::class,
-    'index',
-])->name('admin.pengaturan-sistem');
-
-Route::get('/guru/jadwal-saya', [
-    GuruJadwalSayaController::class,
-    'index',
-])->name('guru.jadwal-saya');
-
-
-/*
-|--------------------------------------------------------------------------
-| Detail Mata Pembelajaran Guru
-|--------------------------------------------------------------------------
-| Route sementara untuk menampilkan halaman detail mata pelajaran.
-| Data di bawah ini hanya data contoh untuk kebutuhan tampilan.
-| Nantinya data akan diambil dari CRUD dan database.
-*/
-
-Route::get('/guru/jadwal-saya/detail/{mapel}', function ($mapel) {
-
-    // Data contoh mata pelajaran untuk menampilkan halaman detail.
-    // Belum terhubung dengan database atau CRUD.
-    $dataMapel = [
-        'akhlak' => [
-            'mataPelajaran' => 'Akhlak dan Adab',
-            'kelompok' => 'Kelompok A',
-            'instruktur' => 'Nama Guru',
-            'jadwal' => 'Senin, 08.00–09.00',
-            'totalPertemuan' => 16,
-            'absensiTerisi' => 8,
-        ],
-
-        'alquran' => [
-            'mataPelajaran' => "Al-Qur'an",
-            'kelompok' => 'Kelompok B',
-            'instruktur' => 'Nama Guru',
-            'jadwal' => 'Senin, 13.00–14.00',
-            'totalPertemuan' => 16,
-            'absensiTerisi' => 6,
-        ],
-    ];
-
-    // Jika kode mata pelajaran tidak tersedia, tampilkan halaman 404.
-    abort_unless(isset($dataMapel[$mapel]), 404);
-
-    // Kirim data contoh ke halaman detail_jadwal.blade.php.
-    return view('guru.detail_jadwal', $dataMapel[$mapel]);
-
-})->name('guru.jadwal.detail');
-
-
-
-Route::get('/guru/absensi', [
-    GuruAbsensiController::class,
-    'index',
-])->name('guru.absensi');
-
-
-/*
-|--------------------------------------------------------------------------
-| Halaman Isi Absensi Guru
-|--------------------------------------------------------------------------
-| Membuka formulir pengisian absensi setelah guru memilih pertemuan.
-| Tampilan menggunakan data contoh sampai integrasi CRUD selesai.
-*/
-
-Route::get('/guru/absensi/isi', function () {
-
-    // Menampilkan halaman formulir pengisian absensi.
-    return view('guru.isi_absensi');
-
-})->name('guru.absensi.isi');
-
-
-
-Route::get('/guru/kegiatan-dokumentasi', [
-    GuruKegiatanDokumentasiController::class,
-    'index',
-])->name('guru.kegiatan-dokumentasi');
-
 
     /*
     |--------------------------------------------------------------------------
@@ -323,6 +226,12 @@ Route::get('/guru/kegiatan-dokumentasi', [
         'tolak',
     ])->name('admin.manajemen-pengguna.tolak');
 
+    // Hak akses admin (dipertahankan untuk kompatibilitas).
+    Route::get('/admin/hak-akses', [
+        AdminHakAksesController::class,
+        'index',
+    ])->name('admin.hak-akses');
+
     // Pengaturan sistem
     Route::get('/admin/pengaturan-sistem', [
         AdminPengaturanSistemController::class,
@@ -351,6 +260,47 @@ Route::get('/guru/kegiatan-dokumentasi', [
         GuruAbsensiController::class,
         'index',
     ])->name('guru.absensi');
+
+    // Detail jadwal guru (data sementara).
+    Route::get('/guru/jadwal-saya/detail/{mapel}', function ($mapel) {
+    
+        // Data contoh mata pelajaran untuk menampilkan halaman detail.
+        // Belum terhubung dengan database atau CRUD.
+        $dataMapel = [
+            'akhlak' => [
+                'mataPelajaran' => 'Akhlak dan Adab',
+                'kelompok' => 'Kelompok A',
+                'instruktur' => 'Nama Guru',
+                'jadwal' => 'Senin, 08.00–09.00',
+                'totalPertemuan' => 16,
+                'absensiTerisi' => 8,
+            ],
+    
+            'alquran' => [
+                'mataPelajaran' => "Al-Qur'an",
+                'kelompok' => 'Kelompok B',
+                'instruktur' => 'Nama Guru',
+                'jadwal' => 'Senin, 13.00–14.00',
+                'totalPertemuan' => 16,
+                'absensiTerisi' => 6,
+            ],
+        ];
+    
+        // Jika kode mata pelajaran tidak tersedia, tampilkan halaman 404.
+        abort_unless(isset($dataMapel[$mapel]), 404);
+    
+        // Kirim data contoh ke halaman detail_jadwal.blade.php.
+        return view('guru.detail_jadwal', $dataMapel[$mapel]);
+    
+    })->name('guru.jadwal.detail');
+
+    // Form isi absensi guru.
+    Route::get('/guru/absensi/isi', function () {
+    
+        // Menampilkan halaman formulir pengisian absensi.
+        return view('guru.isi_absensi');
+    
+    })->name('guru.absensi.isi');
 
     Route::get('/guru/kegiatan-dokumentasi', [
         GuruKegiatanDokumentasiController::class,
