@@ -369,6 +369,37 @@ Route::middleware('auth')->group(function () {
         'index',
     ])->name('musyrifah.manajemen_pembelajaran');
 
+    
+    // Jadwal Saya Musyrifah menggunakan tampilan Guru.
+    Route::get('/musyrifah/jadwal-saya', function (\Illuminate\Http\Request $request) {
+
+        $role = strtolower((string) $request->user()?->role);
+
+        abort_unless(
+            in_array($role, ['musyrifah', 'pengelola'], true),
+            403
+        );
+
+        return view('guru.jadwal_saya');
+
+    })->name('musyrifah.jadwal-saya');
+
+
+    // Absensi Musyrifah menggunakan tampilan Guru.
+    Route::get('/musyrifah/absensi', function (\Illuminate\Http\Request $request) {
+
+        $role = strtolower((string) $request->user()?->role);
+
+        abort_unless(
+            in_array($role, ['musyrifah', 'pengelola'], true),
+            403
+        );
+
+        return view('guru.absensi');
+
+    })->name('musyrifah.absensi');
+
+
     Route::get('/musyrifah/surat-perizinan', [
         MusyrifahSuratPerizinanController::class,
         'index',
