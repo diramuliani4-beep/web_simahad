@@ -378,6 +378,19 @@ body {
                 <input type="text" id="nama_lengkap" name="nama_lengkap" class="form-input" placeholder="Masukkan nama lengkap sesuai identitas" value="{{ old('nama_lengkap', $data['nama_lengkap'] ?? Auth::user()->name ?? '') }}" required>
             </div>
 
+            <!-- Jenis Kelamin -->
+            <div class="form-group">
+                <label for="jenis_kelamin" class="form-label">Jenis Kelamin*</label>
+                <select id="jenis_kelamin" name="jenis_kelamin" class="form-input" required>
+                    <option value="" disabled {{ old('jenis_kelamin', $data['jenis_kelamin'] ?? '') === '' ? 'selected' : '' }}>Pilih jenis kelamin</option>
+                    <option value="Laki-laki" {{ old('jenis_kelamin', $data['jenis_kelamin'] ?? '') === 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
+                    <option value="Perempuan" {{ old('jenis_kelamin', $data['jenis_kelamin'] ?? '') === 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
+                </select>
+                @error('jenis_kelamin')
+                    <small style="display:block; margin-top:0.35rem; color:#b91c1c;">{{ $message }}</small>
+                @enderror
+            </div>
+
             <!-- Email Aktif -->
             <div class="form-group">
                 <label for="email" class="form-label">Email Aktif*</label>

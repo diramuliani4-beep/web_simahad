@@ -341,6 +341,19 @@ Route::middleware('auth')->group(function () {
         'index',
     ])->name('musyrifah.pendaftaran');
 
+    // Validasi pengajuan oleh Musyrifah/Pengelola.
+    Route::patch('/musyrifah/pendaftaran/{pendaftaran}/status', [
+        MusyrifahPendaftaranController::class,
+        'updateStatus',
+    ])->name('musyrifah.pendaftaran.status');
+
+    // Pemeriksaan bukti penerimaan UIN dan bukti pembayaran oleh Musyrifah.
+    Route::get('/musyrifah/pendaftaran/{pendaftaran}/berkas/{jenis}', [
+        MusyrifahPendaftaranController::class,
+        'berkas',
+    ])->whereIn('jenis', ['penerimaan', 'pembayaran'])
+        ->name('musyrifah.pendaftaran.berkas');
+
     Route::get('/musyrifah/data-kamar', [
         MusyrifahDataKamarController::class,
         'index',
