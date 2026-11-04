@@ -329,6 +329,11 @@ Route::middleware('auth')->group(function () {
         'index',
     ])->name('pimpinan.pembelajaran');
 
+    Route::get('/pimpinan/laporan-penghuni', [
+        PimpinanLaporanMahadController::class,
+        'penghuni',
+    ])->name('pimpinan.laporan-penghuni');
+
 
     /*
     |--------------------------------------------------------------------------
