@@ -93,100 +93,116 @@
         font-weight: 700;
     }
 
-    /* Tabel */
-    .tabel-container {
-        padding: 22px;
-        border: 1px solid #eee7e9;
-        border-radius: 15px;
-        background: #fff;
-        box-shadow: 0 4px 15px rgba(50,20,30,.04);
-    }
+   /* Tabel */
+.tabel-container {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 22px;
+    border: 1px solid #eee7e9;
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: 0 4px 15px rgba(50,20,30,.04);
+    overflow: hidden;
+}
 
-    .tabel-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 15px;
-        margin-bottom: 20px;
-    }
+.tabel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
 
-    .tabel-header h2 {
-        margin: 0;
-        color: #30272b;
-        font-size: 17px;
-        font-weight: 700;
-    }
+.tabel-header h2 {
+    margin: 0;
+    color: #30272b;
+    font-size: 17px;
+    font-weight: 700;
+}
 
-    .form-cari {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        width: 290px;
-        max-width: 100%;
-        padding: 9px 12px;
-        border: 1px solid #e8dfe2;
-        border-radius: 9px;
-        background: #fff;
-    }
+.form-cari {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 290px;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 9px 12px;
+    border: 1px solid #e8dfe2;
+    border-radius: 9px;
+    background: #fff;
+}
 
-    .form-cari:focus-within {
-        border-color: #780d20;
-    }
+.form-cari:focus-within {
+    border-color: #780d20;
+}
 
-    .form-cari svg {
-        width: 18px;
-        height: 18px;
-        color: #96878d;
-        flex-shrink: 0;
-    }
+.form-cari svg {
+    width: 18px;
+    height: 18px;
+    color: #96878d;
+    flex-shrink: 0;
+}
 
-    .form-cari input {
-        width: 100%;
-        border: none;
-        outline: none;
-        color: #30272b;
-        font-family: inherit;
-        font-size: 12px;
-        background: transparent;
-    }
+.form-cari input {
+    width: 100%;
+    min-width: 0;
+    border: none;
+    outline: none;
+    color: #30272b;
+    font-family: inherit;
+    font-size: 12px;
+    background: transparent;
+}
 
-    .table-responsive {
-        width: 100%;
-        overflow-x: auto;
-    }
+.table-responsive {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    box-sizing: border-box;
+}
 
-    .tabel-penghuni {
-        width: 100%;
-        border-collapse: collapse;
-        min-width: 750px;
-    }
+#area-laporan {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    box-sizing: border-box;
+}
 
-    .tabel-penghuni thead {
-        background: #f8f0f2;
-    }
+.tabel-penghuni {
+    width: 100%;
+    min-width: 650px;
+    border-collapse: collapse;
+    table-layout: auto;
+}
 
-    .tabel-penghuni th {
-        padding: 14px 13px;
-        color: #780d20;
-        text-align: left;
-        font-size: 12px;
-        font-weight: 700;
-        white-space: nowrap;
-        border-bottom: 1px solid #eee1e4;
-    }
+.tabel-penghuni thead {
+    background: #f8f0f2;
+}
 
-    .tabel-penghuni td {
-        padding: 14px 13px;
-        color: #51474c;
-        font-size: 12px;
-        border-bottom: 1px solid #f1ebed;
-        white-space: nowrap;
-    }
+.tabel-penghuni th {
+    padding: 14px 10px;
+    color: #780d20;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    border-bottom: 1px solid #eee1e4;
+}
 
-    .tabel-penghuni tbody tr:hover {
-        background: #fffafb;
-    }
+.tabel-penghuni td {
+    padding: 14px 10px;
+    color: #51474c;
+    font-size: 12px;
+    border-bottom: 1px solid #f1ebed;
+    white-space: nowrap;
+}
+
+.tabel-penghuni tbody tr:hover {
+    background: #fffafb;
+}
 
     .nomor {
         color: #a3969b !important;
@@ -239,17 +255,6 @@
         cursor: pointer;
         transition: .2s;
     }
-
-    .btn-unduh {
-        color: #fff;
-        background: #780d20;
-    }
-
-    .btn-unduh:hover {
-        color: #fff;
-        background: #a31c36;
-    }
-
     .btn-kembali {
         color: #780d20;
         background: #fff;
@@ -267,37 +272,42 @@
     }
 
     @media(max-width: 650px) {
-        .laporan-heading h1 {
-            font-size: 22px;
-        }
-
-        .statistik-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .tabel-container {
-            padding: 15px;
-        }
-
-        .tabel-header {
-            align-items: stretch;
-        }
-
-        .form-cari {
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .aksi-footer {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .btn-aksi {
-            width: 100%;
-            box-sizing: border-box;
-        }
+    .laporan-heading h1 {
+        font-size: 22px;
     }
+
+    .statistik-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tabel-container {
+        width: 100%;
+        padding: 12px;
+        box-sizing: border-box;
+    }
+
+    .tabel-header {
+        align-items: stretch;
+    }
+
+    .form-cari {
+        width: 100%;
+    }
+
+    #area-laporan {
+        overflow-x: auto;
+    }
+
+    .aksi-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-aksi {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
 
     @media print {
         /* Sembunyikan semua bagian halaman */
@@ -426,7 +436,8 @@
             </form>
         </div>
 
-        <div id="area-laporan">
+       <div id="area-laporan">
+        <div class="table-responsive">
             <table class="tabel-penghuni">
                 <thead>
                     <tr>
@@ -479,12 +490,13 @@
                 </tbody>
             </table>
         </div>
+    </div>
 
         {{-- Tombol bawah tabel --}}
         <div class="aksi-footer no-print">
 
     
-            <button type="button" onclick="unduhLaporan()" class="btn-unduh">
+            <button type="button" onclick="unduhLaporan()" class="btn-aksi btn-kembali">
                 Unduh Laporan
             </button>
 

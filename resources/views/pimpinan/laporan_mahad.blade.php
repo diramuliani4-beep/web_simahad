@@ -231,25 +231,8 @@
         </div>
     </div>
 
-    <div class="laporan-info">
-        <div class="laporan-info-icon">
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M12 11v5M12 7h.01"/>
-            </svg>
-        </div>
+    
 
-        <div>
-            <h3>Pusat Informasi Laporan</h3>
-            <p>
-                Pilih kategori laporan untuk melihat informasi sesuai
-                kebutuhan. Data yang ditampilkan mengikuti data yang
-                tersedia dan tercatat dalam sistem SIMAHAD.
-            </p>
-        </div>
     </div>
 
     <h2 class="laporan-section-title">Kategori Laporan</h2>
@@ -310,17 +293,15 @@
 
                 <h3>{{ $item['judul'] }}</h3>
                 <p>{{ $item['deskripsi'] }}</p>
-
-                <a href="{{ route('pimpinan.laporan-penghuni') }}"
-                    class="laporan-link">
-                        Lihat laporan
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M5 12h14M12 5l7 7-7 7"/>
-                        </svg>
-                    </a>
+                <a href="{{ $item['url'] }}" class="laporan-link">
+                    Lihat laporan
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
             </article>
         @endforeach
     </div>

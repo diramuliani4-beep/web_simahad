@@ -329,12 +329,36 @@ Route::middleware('auth')->group(function () {
         'index',
     ])->name('pimpinan.pembelajaran');
 
+    // Halaman Laporan Penghuni
     Route::get('/pimpinan/laporan-penghuni', [
         PimpinanLaporanMahadController::class,
-        'penghuni',
+        'penghuni'
     ])->name('pimpinan.laporan-penghuni');
 
+    // Laporan kamar
+    Route::get('/pimpinan/laporan-kamar', [
+        PimpinanLaporanMahadController::class,
+        'kamar',
+    ])->name('pimpinan.laporan-kamar');
 
+    // Laporan pembelajaran
+    Route::get('/pimpinan/laporan-pembelajaran', [
+        PimpinanLaporanMahadController::class,
+        'pembelajaran',
+    ])->name('pimpinan.laporan-pembelajaran');
+
+    // Laporan pembayaran
+    Route::get('/pimpinan/laporan-pembayaran', [
+        PimpinanLaporanMahadController::class,
+        'pembayaran',
+    ])->name('pimpinan.laporan-pembayaran');
+
+    // Laporan perizinan
+    Route::get('/pimpinan/laporan-perizinan', [
+        PimpinanLaporanMahadController::class,
+        'perizinan',
+    ])->name('pimpinan.laporan-perizinan');
+    
     /*
     |--------------------------------------------------------------------------
     | Fitur Musyrifah
