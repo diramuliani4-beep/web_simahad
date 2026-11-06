@@ -405,31 +405,8 @@
                 <span class="menu-icon">♙</span>
                 <span>Manajemen Pembelajaran</span>
             </a>
-            {{-- Menu otomatis aktif ketika route tersedia. --}}
-            @if (Route::has('musyrifah.jadwal-saya'))
-                <a href="{{ route('musyrifah.jadwal-saya') }}"
-                   class="{{ request()->routeIs('musyrifah.jadwal-saya') ? 'active' : '' }}">
-                    <span class="menu-icon">♙</span>
-                    <span>Jadwal Saya</span>
-                </a>
-            @else
-                <div class="menu-unavailable" aria-disabled="true" title="Halaman Jadwal Saya belum tersedia">
-                    <span class="menu-icon">♙</span>
-                    <span>Jadwal Saya <small>(belum tersedia)</small></span>
-                </div>
-            @endif
-            @if (Route::has('musyrifah.absensi'))
-                <a href="{{ route('musyrifah.absensi') }}"
-                   class="{{ request()->routeIs('musyrifah.absensi') ? 'active' : '' }}">
-                    <span class="menu-icon">▤</span>
-                    <span>Absensi</span>
-                </a>
-            @else
-                <div class="menu-unavailable" aria-disabled="true" title="Halaman Absensi belum tersedia">
-                    <span class="menu-icon">▤</span>
-                    <span>Absensi <small>(belum tersedia)</small></span>
-                </div>
-            @endif
+         
+
             <a
                 href="{{ route('musyrifah.surat_perizinan') }}"
                 class="{{ request()->routeIs('musyrifah.surat_perizinan') ? 'active' : '' }}"
