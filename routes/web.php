@@ -14,6 +14,8 @@ use App\Http\Controllers\AdminLogAktivitasController;
 use App\Http\Controllers\AdminManajemenPenggunaController;
 use App\Http\Controllers\AdminPengaturanSistemController;
 use App\Http\Controllers\AdminHakAksesController;
+use App\Http\Controllers\AdminDataPegawaiController;
+use App\Http\Controllers\AdminDataMahasiswaController;
 
 use App\Http\Controllers\GuruJadwalSayaController;
 use App\Http\Controllers\GuruAbsensiController;
@@ -265,6 +267,66 @@ Route::post('/pendaftaran/pilih-kamar', [
         'index',
     ])->name('admin.log-aktivitas');
 
+    Route::get('/admin/manajemen-pengguna/{user}/edit', [
+    AdminManajemenPenggunaController::class, 'edit',
+])->whereNumber('user')->name('admin.manajemen-pengguna.edit');
+
+Route::put('/admin/manajemen-pengguna/{user}', [
+    AdminManajemenPenggunaController::class, 'update',
+])->whereNumber('user')->name('admin.manajemen-pengguna.update');
+
+Route::delete('/admin/manajemen-pengguna/{user}', [
+    AdminManajemenPenggunaController::class, 'destroy',
+])->whereNumber('user')->name('admin.manajemen-pengguna.destroy');
+
+
+
+    // DATA PEGAWAI - daftar, lengkapi biodata, dan edit.
+    // Urutan route statis sebelum route dinamis {pegawai}.
+    Route::get('/admin/data-pegawai', [
+        AdminDataPegawaiController::class,
+        'index',
+    ])->name('admin.data-pegawai.index');
+
+    Route::get('/admin/data-pegawai/tambah', [
+        AdminDataPegawaiController::class,
+        'create',
+    ])->name('admin.data-pegawai.create');
+
+    Route::post('/admin/data-pegawai', [
+        AdminDataPegawaiController::class,
+        'store',
+    ])->name('admin.data-pegawai.store');
+
+    // Foto pegawai: diakses oleh Admin melalui controller, bukan URL storage publik.
+    Route::get('/admin/data-pegawai/{pegawai}/foto', [
+        AdminDataPegawaiController::class,
+        'foto',
+    ])->whereNumber('pegawai')->name('admin.data-pegawai.foto');
+
+    Route::get('/admin/data-pegawai/{pegawai}/edit', [
+        AdminDataPegawaiController::class,
+        'edit',
+    ])->whereNumber('pegawai')->name('admin.data-pegawai.edit');
+
+    Route::put('/admin/data-pegawai/{pegawai}', [
+        AdminDataPegawaiController::class,
+        'update',
+    ])->whereNumber('pegawai')->name('admin.data-pegawai.update');
+
+    // Hapus biodata pegawai saja, tanpa menghapus akun pengguna.
+    Route::delete('/admin/data-pegawai/{pegawai}', [
+        AdminDataPegawaiController::class,
+        'destroy',
+    ])->whereNumber('pegawai')->name('admin.data-pegawai.destroy');
+
+    // Data Mahasiswa
+    Route::get('/admin/data-mahasiswa', [
+        AdminDataMahasiswaController::class,
+        'index',
+    ])->name('admin.data-mahasiswa.index');
+
+
 
     /*
     |--------------------------------------------------------------------------
@@ -284,7 +346,7 @@ Route::post('/pendaftaran/pilih-kamar', [
 
     // Detail jadwal guru (data sementara).
     Route::get('/guru/jadwal-saya/detail/{mapel}', function ($mapel) {
-    
+
         // Data contoh mata pelajaran untuk menampilkan halaman detail.
         // Belum terhubung dengan database atau CRUD.
         $dataMapel = [
@@ -296,7 +358,7 @@ Route::post('/pendaftaran/pilih-kamar', [
                 'totalPertemuan' => 16,
                 'absensiTerisi' => 8,
             ],
-    
+
             'alquran' => [
                 'mataPelajaran' => "Al-Qur'an",
                 'kelompok' => 'Kelompok B',
@@ -306,21 +368,21 @@ Route::post('/pendaftaran/pilih-kamar', [
                 'absensiTerisi' => 6,
             ],
         ];
-    
+
         // Jika kode mata pelajaran tidak tersedia, tampilkan halaman 404.
         abort_unless(isset($dataMapel[$mapel]), 404);
-    
+
         // Kirim data contoh ke halaman detail_jadwal.blade.php.
         return view('guru.detail_jadwal', $dataMapel[$mapel]);
-    
+
     })->name('guru.jadwal.detail');
 
     // Form isi absensi guru.
     Route::get('/guru/absensi/isi', function () {
-    
+
         // Menampilkan halaman formulir pengisian absensi.
         return view('guru.isi_absensi');
-    
+
     })->name('guru.absensi.isi');
 
     Route::get('/guru/kegiatan-dokumentasi', [
@@ -379,7 +441,7 @@ Route::post('/pendaftaran/pilih-kamar', [
         PimpinanLaporanMahadController::class,
         'perizinan',
     ])->name('pimpinan.laporan-perizinan');
-    
+
     /*
     |--------------------------------------------------------------------------
     | Fitur Musyrifah
@@ -419,7 +481,7 @@ Route::post('/pendaftaran/pilih-kamar', [
         'index',
     ])->name('musyrifah.manajemen_pembelajaran');
 
-    
+
     // Jadwal Saya Musyrifah menggunakan tampilan Guru.
     Route::get('/musyrifah/jadwal-saya', function (\Illuminate\Http\Request $request) {
 

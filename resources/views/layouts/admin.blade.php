@@ -422,6 +422,30 @@
                     </svg>
                     <span>Manajemen Pengguna</span>
                 </a>
+            <a href="{{ route('admin.data-pegawai.index') }}"
+               class="menu-link {{ request()->is('admin/data-pegawai*') ? 'active' : '' }}">
+                <svg viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="16" rx="2"/>
+                    <circle cx="9" cy="10" r="2"/>
+                    <path d="M6 16c0-2 6-2 6 0M15 9h3M15 13h3"/>
+                </svg>
+                <span>Data Pegawai</span>
+            </a>
+
+            <a href="{{ route('admin.data-mahasiswa.index') }}"
+               class="menu-link {{ request()->is('admin/data-mahasiswa*') ? 'active' : '' }}">
+                <svg viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m2 10 10-5 10 5-10 5z"/>
+                    <path d="M6 12v5c4 3 8 3 12 0v-5"/>
+                    <path d="M22 10v7"/>
+                </svg>
+                <span>Data Mahasiswa</span>
+            </a>
+
                 <a href="{{ route('admin.log-aktivitas') }}"
                     class="menu-link {{ request()->is('admin/log-aktivitas*') ? 'active' : '' }}">
                     <svg viewBox="0 0 24 24" fill="none"
