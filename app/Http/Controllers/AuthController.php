@@ -27,49 +27,57 @@ class AuthController extends Controller
     /**
      * Proses login pengguna.
      */
-    public function login(Request $request): RedirectResponse
+
+public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
             'login' => ['required', 'string'],
             'password' => ['required', 'string'],
-        ], [
-            'login.required' => 'Email atau username wajib diisi.',
-            'password.required' => 'Kata sandi wajib diisi.',
         ]);
 
-        $loginInput = trim($credentials['login']);
-        $password = $credentials['password'];
-        $remember = $request->boolean('remember');
+        $loginField = filter_var($credentials['login'], FILTER_VALIDATE_EMAIL)
+            ? 'email'
+            : 'nim';
 
-        if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
-            $fieldsToTry = ['email', 'nim', 'name'];
-        } elseif (ctype_digit($loginInput)) {
-            $fieldsToTry = ['nim', 'email', 'name'];
-        } else {
-            $fieldsToTry = ['name', 'email', 'nim'];
+        $loginData = [
+            $loginField => $credentials['login'],
+            'password' => $credentials['password'],
+        ];
+
+        if (!Auth::attempt($loginData)) {
+            return back()
+                ->withErrors([
+                    'login' => 'Email/NIM atau kata sandi yang Anda masukkan salah.',
+                ])
+                ->onlyInput('login');
         }
 
-        foreach ($fieldsToTry as $field) {
-            if (Auth::attempt([
-                $field => $loginInput,
-                'password' => $password,
-            ], $remember)) {
-                $request->session()->regenerate();
+        $user = Auth::user();
 
-                return $this->redirectToRoleDashboard()
-                    ->with(
-                        'status',
-                        'Selamat datang kembali, '.Auth::user()->name.'!'
-                    );
-            }
+        // Akun belum diverifikasi admin
+        if ($user->status === 'pending') {
+            Auth::logout();
+
+            return redirect()
+                ->route('login')
+                ->with('error', 'Akun Anda belum diverifikasi oleh admin. Silakan tunggu persetujuan admin sebelum login.');
         }
 
-        return back()
-            ->withInput($request->only('login', 'remember'))
-            ->withErrors([
-                'login' => 'Email/Username atau kata sandi yang Anda masukkan salah.',
-            ]);
+        // Akun ditolak admin
+        if ($user->status === 'rejected') {
+            Auth::logout();
+
+            return redirect()
+                ->route('login')
+                ->with('error', 'Akun Anda ditolak oleh admin. Silakan hubungi admin Ma’had untuk informasi lebih lanjut.');
+        }
+
+        // Akun sudah disetujui
+        $request->session()->regenerate();
+
+        return $this->redirectToRoleDashboard();
     }
+
 
     /**
      * Menentukan dashboard sesuai role pengguna.
@@ -134,41 +142,43 @@ class AuthController extends Controller
     /**
      * Memproses pendaftaran akun baru.
      */
-    public function register(Request $request): RedirectResponse
-    {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'nim' => ['required', 'string', 'max:20', 'unique:users,nim'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:6', 'confirmed'],
-        ], [
-            'name.required' => 'Nama lengkap wajib diisi.',
-            'nim.required' => 'NIM wajib diisi.',
-            'nim.unique' => 'NIM sudah terdaftar dalam sistem.',
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
-            'email.unique' => 'Email sudah terdaftar.',
-            'password.required' => 'Kata sandi wajib diisi.',
-            'password.min' => 'Kata sandi minimal 6 karakter.',
-            'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
-        ]);
+    
+public function register(Request $request): RedirectResponse
+{
+    $validated = $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'nim' => ['required', 'string', 'max:20', 'unique:users,nim'],
+        'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+        'password' => ['required', 'string', 'min:6', 'confirmed'],
+    ], [
+        'name.required' => 'Nama lengkap wajib diisi.',
+        'nim.required' => 'NIM wajib diisi.',
+        'nim.unique' => 'NIM sudah terdaftar dalam sistem.',
+        'email.required' => 'Email wajib diisi.',
+        'email.email' => 'Format email tidak valid.',
+        'email.unique' => 'Email sudah terdaftar.',
+        'password.required' => 'Kata sandi wajib diisi.',
+        'password.min' => 'Kata sandi minimal 6 karakter.',
+        'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
+    ]);
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'nim' => $validated['nim'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-        ]);
+    // Simpan akun dengan status menunggu verifikasi
+    $user = User::create([
+        'name' => $validated['name'],
+        'nim' => $validated['nim'],
+        'email' => $validated['email'],
+        'password' => Hash::make($validated['password']),
+        'status' => 'pending',
+    ]);
 
-        Auth::login($user);
-        $request->session()->regenerate();
-
-        return $this->redirectToRoleDashboard()
-            ->with(
-                'status',
-                'Pendaftaran berhasil! Selamat datang di SIMAHAD, '.$user->name.'!'
-            );
-    }
+    // Tidak melakukan login otomatis
+    return redirect()
+        ->route('login')
+        ->with(
+            'status',
+            'Pendaftaran berhasil! Akun Anda sedang menunggu verifikasi admin. Silakan tunggu persetujuan sebelum login.'
+        );
+}
 
     /**
      * Menampilkan formulir lupa kata sandi.
@@ -254,7 +264,7 @@ class AuthController extends Controller
 
         $kamar = $user->kamar;
 
-        return view('dashboard', compact('user', 'kamar'));
+        return view('mahasiswa.dashboard', compact('user', 'kamar'));
     }
 
     /**
@@ -395,7 +405,7 @@ public function dashboardAdmin()
             ],
         ];
 
-        return view('kamar', compact('rooms'));
+        return view('mahasiswa.kamar', compact('rooms'));
     }
 
     /**

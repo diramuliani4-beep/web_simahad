@@ -87,7 +87,7 @@ class PembelajaranController extends Controller
             ],
         ];
 
-        return view('pembelajaran_mhs', compact(
+        return view('mahasiswa.pembelajaran_mhs', compact(
             'mataPelajaran',
             'jadwalTerdekat'
         ));

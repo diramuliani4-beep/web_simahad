@@ -59,6 +59,6 @@ class PengumumanMhsController extends Controller
             ],
         ];
 
-        return view('pengumuman_mhs', compact('pengumuman'));
+        return view('mahasiswa.pengumuman_mhs', compact('pengumuman'));
     }
 }

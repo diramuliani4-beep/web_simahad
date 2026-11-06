@@ -36,7 +36,7 @@ class PembayaranController extends Controller
             ],
         ];
 
-        return view('pembayaran', [
+        return view('mahasiswa.pembayaran', [
             'tagihan' => $tagihan,
             'riwayat' => $riwayat,
             'status' => $status,

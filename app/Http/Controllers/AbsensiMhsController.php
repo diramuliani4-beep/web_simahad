@@ -6,6 +6,6 @@ class AbsensiMhsController extends Controller
 {
     public function index()
     {
-        return view('absensi_mhs');
+        return view('mahasiswa.absensi_mhs');
     }
 }
