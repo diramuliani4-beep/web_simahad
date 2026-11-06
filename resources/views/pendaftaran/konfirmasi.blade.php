@@ -320,7 +320,9 @@
 
             <a class="btn outline" href="{{ route('dashboard') }}">Kembali</a>
 
-            <a class="btn" href="{{ route('kamar') }}">Lanjut Pilih Kamar</a>
+            <a class="btn" href="{{ route('pendaftaran.pilihKamarMhs') }}">
+                Lanjut Pilih Kamar
+            </a>
 
         </div>
 

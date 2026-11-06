@@ -161,6 +161,27 @@ Route::middleware('auth')->group(function () {
     Route::get('/pendaftaran/konfirmasi', [PendaftaranController::class, 'konfirmasi'])
         ->name('pendaftaran.konfirmasi');
 
+    
+// Pilih kamar mahasiswa
+Route::get('/pendaftaran/pilih-kamar', [
+    PendaftaranController::class,
+    'pilihKamarMhs',
+])->name('pendaftaran.pilihKamarMhs');
+
+// Detail kamar mahasiswa
+Route::get('/pendaftaran/pilih-kamar/{kamarId}', [
+    PendaftaranController::class,
+    'detailKamarMhs',
+])->whereNumber('kamarId')
+  ->name('pendaftaran.detailKamarMhs');
+
+// Simpan pengajuan kamar mahasiswa
+Route::post('/pendaftaran/pilih-kamar', [
+    PendaftaranController::class,
+    'simpanPilihanKamarMhs',
+])->name('pendaftaran.simpanPilihanKamarMhs');
+
+
     Route::post('/pendaftaran/selesai', [PendaftaranController::class, 'selesai'])
         ->name('pendaftaran.selesai');
 
