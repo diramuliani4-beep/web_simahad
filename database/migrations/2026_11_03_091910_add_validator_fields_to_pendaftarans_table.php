@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -17,10 +16,10 @@ return new class extends Migration
                 ->constrained('users')
                 ->nullOnDelete();
 
-            // Nama ustazah ketika melakukan validasi.
+            // Nama Musyrifah yang melakukan validasi.
             $table->string('validator_nama')->nullable();
 
-            // Tanggal dan waktu validasi.
+            // Waktu pelaksanaan validasi.
             $table->timestamp('divalidasi_pada')->nullable();
 
             // Catatan persetujuan atau penolakan.
