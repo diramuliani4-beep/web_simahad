@@ -329,7 +329,36 @@ Route::middleware('auth')->group(function () {
         'index',
     ])->name('pimpinan.pembelajaran');
 
+    // Halaman Laporan Penghuni
+    Route::get('/pimpinan/laporan-penghuni', [
+        PimpinanLaporanMahadController::class,
+        'penghuni'
+    ])->name('pimpinan.laporan-penghuni');
 
+    // Laporan kamar
+    Route::get('/pimpinan/laporan-kamar', [
+        PimpinanLaporanMahadController::class,
+        'kamar',
+    ])->name('pimpinan.laporan-kamar');
+
+    // Laporan pembelajaran
+    Route::get('/pimpinan/laporan-pembelajaran', [
+        PimpinanLaporanMahadController::class,
+        'pembelajaran',
+    ])->name('pimpinan.laporan-pembelajaran');
+
+    // Laporan pembayaran
+    Route::get('/pimpinan/laporan-pembayaran', [
+        PimpinanLaporanMahadController::class,
+        'pembayaran',
+    ])->name('pimpinan.laporan-pembayaran');
+
+    // Laporan perizinan
+    Route::get('/pimpinan/laporan-perizinan', [
+        PimpinanLaporanMahadController::class,
+        'perizinan',
+    ])->name('pimpinan.laporan-perizinan');
+    
     /*
     |--------------------------------------------------------------------------
     | Fitur Musyrifah
@@ -368,6 +397,37 @@ Route::middleware('auth')->group(function () {
         MusyrifahManajemenPembelajaranController::class,
         'index',
     ])->name('musyrifah.manajemen_pembelajaran');
+
+    
+    // Jadwal Saya Musyrifah menggunakan tampilan Guru.
+    Route::get('/musyrifah/jadwal-saya', function (\Illuminate\Http\Request $request) {
+
+        $role = strtolower((string) $request->user()?->role);
+
+        abort_unless(
+            in_array($role, ['musyrifah', 'pengelola'], true),
+            403
+        );
+
+        return view('guru.jadwal_saya');
+
+    })->name('musyrifah.jadwal-saya');
+
+
+    // Absensi Musyrifah menggunakan tampilan Guru.
+    Route::get('/musyrifah/absensi', function (\Illuminate\Http\Request $request) {
+
+        $role = strtolower((string) $request->user()?->role);
+
+        abort_unless(
+            in_array($role, ['musyrifah', 'pengelola'], true),
+            403
+        );
+
+        return view('guru.absensi');
+
+    })->name('musyrifah.absensi');
+
 
     Route::get('/musyrifah/surat-perizinan', [
         MusyrifahSuratPerizinanController::class,

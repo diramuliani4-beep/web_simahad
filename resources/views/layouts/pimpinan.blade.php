@@ -321,14 +321,12 @@
                 transform: translateX(0);
             }
 
-            body.sidebar-collapsed.sidebar-mobile-open .sidebar {
-                transform: translateX(0);
-            }
-
             .main-content {
                 margin-left: 0;
-                padding: 92px 16px 25px;
+                padding: 100px 16px 25px;
             }
+
+            
         }
     </style>
 
@@ -527,28 +525,55 @@
         document.addEventListener('DOMContentLoaded', function () {
             const menuToggle = document.getElementById('menuToggle');
 
-            if (!menuToggle) {
-                return;
-            }
+            if (!menuToggle) return;
+
+            const STORAGE_KEY = 'simahad_sidebar_collapsed';
 
             function updateExpanded() {
-                const isOpen = window.innerWidth <= 700
-                    ? document.body.classList.contains('sidebar-mobile-open')
-                    : !document.body.classList.contains('sidebar-collapsed');
+                let isOpen;
+
+                if (window.innerWidth <= 700) {
+                    isOpen = document.body.classList.contains('sidebar-mobile-open');
+                } else if (window.innerWidth > 1000) {
+                    isOpen = !document.body.classList.contains('sidebar-collapsed');
+                } else {
+                    isOpen = true;
+                }
 
                 menuToggle.setAttribute('aria-expanded', String(isOpen));
             }
 
+            // Mengembalikan kondisi sidebar PC yang terakhir dipilih
+            function restoreSidebar() {
+                if (window.innerWidth > 1000) {
+                    const isCollapsed = localStorage.getItem(STORAGE_KEY) === 'true';
+
+                    document.body.classList.toggle('sidebar-collapsed', isCollapsed);
+                    document.body.classList.remove('sidebar-mobile-open');
+                } else {
+                    document.body.classList.remove('sidebar-collapsed');
+                }
+
+                updateExpanded();
+            }
+
+            // Tombol buka/tutup sidebar
             menuToggle.addEventListener('click', function () {
                 if (window.innerWidth <= 700) {
                     document.body.classList.toggle('sidebar-mobile-open');
-                } else {
+                } else if (window.innerWidth > 1000) {
                     document.body.classList.toggle('sidebar-collapsed');
+
+                    localStorage.setItem(
+                        STORAGE_KEY,
+                        document.body.classList.contains('sidebar-collapsed')
+                    );
                 }
 
                 updateExpanded();
             });
 
+            // Menutup sidebar saat klik area luar khusus HP
             document.addEventListener('click', function (event) {
                 if (
                     window.innerWidth <= 700 &&
@@ -561,13 +586,11 @@
                 }
             });
 
-            window.addEventListener('resize', function () {
-                document.body.classList.remove('sidebar-mobile-open');
-                updateExpanded();
-            });
+            window.addEventListener('resize', restoreSidebar);
 
-            updateExpanded();
+            restoreSidebar();
         });
+
     </script>
 
     @stack('scripts')
