@@ -148,7 +148,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/pendaftaran/akademik', [PendaftaranController::class, 'simpanAkademik'])
         ->name('pendaftaran.simpanAkademik');
 
-    Route::get('/pendaftaran/dokumen', [PendaftaranController::class, 'dokumen'])
+    Route::get('/pendaftaran/dokumen', [PendaftaranController::class, 'persyaratan'])
         ->name('pendaftaran.dokumen');
 
     Route::post('/pendaftaran/dokumen', [PendaftaranController::class, 'simpanDokumen'])

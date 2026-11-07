@@ -740,8 +740,7 @@
 
         </div>
         <!-- Form tahap ketiga: persyaratan dan pembayaran. -->
-        <form action="{{ route('pendaftaran.simpanDokumen') }}" method="POST"
-              enctype="multipart/form-data" id="formDokumen">
+            <form action="{{ route('pendaftaran.simpanDokumen') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <div class="payment-notice" role="note">

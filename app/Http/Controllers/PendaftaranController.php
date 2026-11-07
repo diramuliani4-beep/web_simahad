@@ -3,35 +3,38 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pendaftaran;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
-use Illuminate\Support\Facades\DB;
 
 class PendaftaranController extends Controller
+
 {
-    /** Tahap 1: Form data diri. */
-    public function pribadi(Request $request): View|RedirectResponse
-    {
-        if ($this->sudahMendaftar($request)) {
-            return redirect()->route('pendaftaran.konfirmasi');
-        }
+// =========================================================
+// TAHAP 1: DATA DIRI
+// =========================================================
 
-        $data = $this->dataDraft($request);
-
-        return view('pendaftaran.pribadi', compact('data'));
+public function pribadi(Request $request): View|RedirectResponse
+{
+    if ($this->sudahMendaftar($request)) {
+        return redirect()->route('pendaftaran.konfirmasi');
     }
 
-    /** Validasi dan simpan data diri sementara. */
+    $data = $this->dataDraft($request);
+
+    return view('pendaftaran.data_diri', compact('data'));
+}
+
     public function simpanPribadi(Request $request): RedirectResponse
     {
         if ($this->sudahMendaftar($request)) {
             return redirect()->route('pendaftaran.konfirmasi');
         }
 
-        $data = $this->dataDraft($request);
+        $dataLama = $this->dataDraft($request);
 
         $validated = $request->validate([
             'nama_lengkap' => ['required', 'string', 'max:255'],
@@ -65,15 +68,22 @@ class PendaftaranController extends Controller
 
         $validated['kategori'] = $validated['kategori'] ?? 'umum';
 
+        $data = array_merge($dataLama, $validated);
+
         session([
             'pendaftaran_user_id' => $request->user()->id,
-            'pendaftaran' => array_merge($data, $validated),
+            'pendaftaran' => $data,
         ]);
 
-        return redirect()->route('pendaftaran.akademik');
+        return redirect()
+            ->route('pendaftaran.akademik')
+            ->with('success', 'Data diri berhasil disimpan.');
     }
 
-    /** Tahap 2: Form data akademik. */
+    // =========================================================
+    // TAHAP 2: DATA AKADEMIK
+    // =========================================================
+
     public function akademik(Request $request): View|RedirectResponse
     {
         if ($this->sudahMendaftar($request)) {
@@ -83,13 +93,14 @@ class PendaftaranController extends Controller
         $data = $this->dataDraft($request);
 
         if (empty($data['nama_lengkap']) || empty($data['jenis_kelamin'])) {
-            return redirect()->route('pendaftaran.pribadi');
+            return redirect()
+                ->route('pendaftaran.data_diri')
+                ->with('error', 'Lengkapi data diri terlebih dahulu.');
         }
 
-        return view('pendaftaran.akademik', compact('data'));
+        return view('pendaftaran.data_akademik', compact('data'));
     }
 
-    /** Validasi akademik, termasuk angkatan lima tahun terakhir. */
     public function simpanAkademik(Request $request): RedirectResponse
     {
         if ($this->sudahMendaftar($request)) {
@@ -99,7 +110,7 @@ class PendaftaranController extends Controller
         $data = $this->dataDraft($request);
 
         if (empty($data['nama_lengkap']) || empty($data['jenis_kelamin'])) {
-            return redirect()->route('pendaftaran.pribadi');
+            return redirect()->route('pendaftaran.data_diri');
         }
 
         $tahunSekarang = now()->year;
@@ -138,30 +149,40 @@ class PendaftaranController extends Controller
         ]);
 
         if ($request->hasFile('bukti_penerimaan')) {
-            $path = $request->file('bukti_penerimaan')
-                ->store('dokumen_pendaftaran', 'public');
+            $file = $request->file('bukti_penerimaan');
 
-            if ($path === false) {
-                throw new \RuntimeException('Gagal mengunggah bukti penerimaan.');
+            $pathBaru = $file->store('dokumen_pendaftaran', 'public');
+
+            if (!$pathBaru) {
+                return back()->with('error', 'Gagal mengunggah bukti penerimaan.');
             }
 
-            // Hapus berkas lama yang hanya dipakai oleh draft ini.
-            if (!empty($data['bukti_penerimaan']) && $data['bukti_penerimaan'] !== $path) {
+            if (
+                !empty($data['bukti_penerimaan']) &&
+                $data['bukti_penerimaan'] !== $pathBaru
+            ) {
                 Storage::disk('public')->delete($data['bukti_penerimaan']);
             }
 
-            $data['bukti_penerimaan'] = $path;
-            $data['bukti_penerimaan_nama'] = $request->file('bukti_penerimaan')
-                ->getClientOriginalName();
+            $data['bukti_penerimaan'] = $pathBaru;
+            $data['bukti_penerimaan_nama'] = $file->getClientOriginalName();
         }
 
-        session(['pendaftaran' => $data]);
+        session([
+            'pendaftaran_user_id' => $request->user()->id,
+            'pendaftaran' => $data,
+        ]);
 
-        return redirect()->route('pendaftaran.dokumen');
+        return redirect()
+            ->route('pendaftaran.persyaratan')
+            ->with('success', 'Data akademik berhasil disimpan.');
     }
 
-    /** Tahap 3: Form dokumen dan pembayaran. */
-    public function dokumen(Request $request): View|RedirectResponse
+    // =========================================================
+    // TAHAP 3: PERSYARATAN
+    // =========================================================
+
+    public function persyaratan(Request $request): View|RedirectResponse
     {
         if ($this->sudahMendaftar($request)) {
             return redirect()->route('pendaftaran.konfirmasi');
@@ -170,17 +191,25 @@ class PendaftaranController extends Controller
         $data = $this->dataDraft($request);
 
         if (empty($data['nama_lengkap']) || empty($data['jenis_kelamin'])) {
-            return redirect()->route('pendaftaran.pribadi');
+            return redirect()
+                ->route('pendaftaran.data_diri')
+                ->with('error', 'Lengkapi data diri terlebih dahulu.');
         }
 
-        if (empty($data['program_studi']) || empty($data['bukti_penerimaan'])) {
-            return redirect()->route('pendaftaran.akademik');
+        if (
+            empty($data['tahun_angkatan']) ||
+            empty($data['fakultas']) ||
+            empty($data['program_studi']) ||
+            empty($data['bukti_penerimaan'])
+        ) {
+            return redirect()
+                ->route('pendaftaran.akademik')
+                ->with('error', 'Lengkapi data akademik terlebih dahulu.');
         }
 
-        return view('pendaftaran.dokumen', compact('data'));
+        return view('pendaftaran.persyaratan', compact('data'));
     }
 
-    /** Validasi pembayaran, lalu simpan pendaftaran ke database. */
     public function simpanDokumen(Request $request): RedirectResponse
     {
         if ($this->sudahMendaftar($request)) {
@@ -190,7 +219,7 @@ class PendaftaranController extends Controller
         $data = $this->dataDraft($request);
 
         if (empty($data['nama_lengkap']) || empty($data['jenis_kelamin'])) {
-            return redirect()->route('pendaftaran.pribadi');
+            return redirect()->route('pendaftaran.data_diri');
         }
 
         if (
@@ -202,15 +231,14 @@ class PendaftaranController extends Controller
             return redirect()->route('pendaftaran.akademik');
         }
 
-        // Terima nominal 1000000, 1.000.000, atau Rp1.000.000.
+        // Normalisasi nominal pembayaran.
         $nominal = trim((string) $request->input('nominal_pembayaran', ''));
-        $nominal = preg_replace('/^Rp\s*/iu', '', $nominal);
+        $nominal = preg_replace('/^rp\s*/iu', '', $nominal);
+        $nominal = preg_replace('/[.\s]/u', '', $nominal);
 
-        if (preg_match('/^\d{1,3}(?:\.\d{3})+$/', $nominal)) {
-            $nominal = str_replace('.', '', $nominal);
-        }
-
-        $request->merge(['nominal_pembayaran' => $nominal]);
+        $request->merge([
+            'nominal_pembayaran' => $nominal,
+        ]);
 
         $validated = $request->validate([
             'alasan_daftar' => ['required', 'string'],
@@ -228,7 +256,7 @@ class PendaftaranController extends Controller
             ],
             'konfirmasi_data' => ['accepted'],
         ], [
-            'alasan_daftar.required' => 'Alasan mendaftar Ma\'had wajib diisi.',
+            'alasan_daftar.required' => 'Alasan mendaftar Ma’had wajib diisi.',
             'nominal_pembayaran.required' => 'Nominal pembayaran awal wajib diisi.',
             'nominal_pembayaran.integer' => 'Masukkan nominal angka yang valid.',
             'nominal_pembayaran.min' => 'Pembayaran awal minimal Rp1.000.000.',
@@ -242,8 +270,8 @@ class PendaftaranController extends Controller
         $pathBuktiPembayaran = $request->file('bukti_pembayaran')
             ->store('dokumen_pembayaran', 'public');
 
-        if ($pathBuktiPembayaran === false) {
-            throw new \RuntimeException('Gagal mengunggah bukti pembayaran.');
+        if (!$pathBuktiPembayaran) {
+            return back()->with('error', 'Gagal mengunggah bukti pembayaran.');
         }
 
         try {
@@ -267,25 +295,30 @@ class PendaftaranController extends Controller
                 'status' => 'menunggu',
             ]);
         } catch (\Throwable $exception) {
-            // Jangan tinggalkan file baru jika penyimpanan database gagal.
             Storage::disk('public')->delete($pathBuktiPembayaran);
             throw $exception;
         }
 
-        session()->forget(['pendaftaran', 'pendaftaran_user_id']);
-        session(['pendaftaran_selesai' => true]);
+        session()->forget([
+            'pendaftaran',
+            'pendaftaran_user_id',
+        ]);
 
-        return redirect()->route('pendaftaran.konfirmasi');
+        return redirect()
+            ->route('pendaftaran.konfirmasi')
+            ->with('success', 'Pendaftaran berhasil dikirim.');
     }
 
-    /** Tahap 4: Konfirmasi hanya jika data sudah tersimpan. */
+    // =========================================================
+    // TAHAP 4: KONFIRMASI
+    // =========================================================
+
     public function konfirmasi(Request $request): View|RedirectResponse
     {
         if (!$this->sudahMendaftar($request)) {
-            return redirect()->route('pendaftaran.pribadi');
+            return redirect()->route('pendaftaran.data_diri');
         }
 
-        // Ambil status terbaru milik pengguna yang sedang login.
         $pendaftaran = Pendaftaran::where('user_id', $request->user()->id)
             ->latest('id')
             ->firstOrFail();
@@ -293,13 +326,12 @@ class PendaftaranController extends Controller
         return view('pendaftaran.konfirmasi', compact('pendaftaran'));
     }
 
-    /** Menjaga route lama tetap berfungsi. */
     public function selesai(Request $request): RedirectResponse
     {
         return redirect()->route(
             $this->sudahMendaftar($request)
                 ? 'pendaftaran.konfirmasi'
-                : 'pendaftaran.pribadi'
+                : 'pendaftaran.data_diri'
         );
     }
 
@@ -307,9 +339,6 @@ class PendaftaranController extends Controller
     // FITUR PILIH KAMAR MAHASISWA
     // =========================================================
 
-    /**
-     * Menampilkan daftar kamar untuk mahasiswa.
-     */
     public function pilihKamarMhs(Request $request): View|RedirectResponse
     {
         $user = $request->user();
@@ -320,7 +349,7 @@ class PendaftaranController extends Controller
 
         if (!$pendaftaran) {
             return redirect()
-                ->route('pendaftaran.pribadi')
+                ->route('pendaftaran.data_diri')
                 ->with('error', 'Silakan selesaikan pendaftaran terlebih dahulu.');
         }
 
@@ -368,9 +397,6 @@ class PendaftaranController extends Controller
         ));
     }
 
-    /**
-     * Menampilkan detail kamar untuk mahasiswa.
-     */
     public function detailKamarMhs(
         Request $request,
         int $kamarId
@@ -446,9 +472,6 @@ class PendaftaranController extends Controller
         ));
     }
 
-    /**
-     * Menyimpan pengajuan pilihan kamar mahasiswa.
-     */
     public function simpanPilihanKamarMhs(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -481,13 +504,7 @@ class PendaftaranController extends Controller
         }
 
         try {
-            DB::transaction(function () use (
-                $validated,
-                $userId,
-                $pendaftaran
-            ) {
-                // Kunci baris kamar untuk mengurangi risiko
-                // pengajuan bersamaan melebihi kapasitas.
+            DB::transaction(function () use ($validated, $userId, $pendaftaran) {
                 $kamar = DB::table('kamars')
                     ->where('id', $validated['kamar_id'])
                     ->lockForUpdate()
@@ -497,22 +514,17 @@ class PendaftaranController extends Controller
                     throw new \RuntimeException('Kamar tidak ditemukan.');
                 }
 
-                // Kunci pengajuan milik mahasiswa.
                 $pengajuanLama = DB::table('pengajuan_kamars')
                     ->where('user_id', $userId)
                     ->lockForUpdate()
                     ->first();
 
-                if (
-                    $pengajuanLama &&
-                    $pengajuanLama->status === 'disetujui'
-                ) {
+                if ($pengajuanLama && $pengajuanLama->status === 'disetujui') {
                     throw new \RuntimeException(
                         'Pengajuan kamar kamu sudah disetujui.'
                     );
                 }
 
-                // Hitung pengajuan menunggu dari mahasiswa lain.
                 $pengajuanLain = DB::table('pengajuan_kamars')
                     ->where('kamar_id', $kamar->id)
                     ->where('status', 'menunggu')
@@ -529,7 +541,6 @@ class PendaftaranController extends Controller
                     );
                 }
 
-                // Simpan pengajuan baru atau perbarui pengajuan sebelumnya.
                 DB::table('pengajuan_kamars')->updateOrInsert(
                     ['user_id' => $userId],
                     [
@@ -556,16 +567,14 @@ class PendaftaranController extends Controller
     }
 
     // =========================================================
-    // METHOD LAMA
+    // METHOD BANTU
     // =========================================================
 
-    /** Periksa pendaftaran milik akun yang sedang login. */
     private function sudahMendaftar(Request $request): bool
     {
         return Pendaftaran::where('user_id', $request->user()->id)->exists();
     }
 
-    /** Hindari penggunaan draft akun lain pada sesi browser yang sama. */
     private function dataDraft(Request $request): array
     {
         $pemilik = session('pendaftaran_user_id');
@@ -574,7 +583,10 @@ class PendaftaranController extends Controller
             ($pemilik === null && session()->has('pendaftaran')) ||
             ($pemilik !== null && (int) $pemilik !== (int) $request->user()->id)
         ) {
-            session()->forget(['pendaftaran', 'pendaftaran_user_id']);
+            session()->forget([
+                'pendaftaran',
+                'pendaftaran_user_id',
+            ]);
 
             return [];
         }
