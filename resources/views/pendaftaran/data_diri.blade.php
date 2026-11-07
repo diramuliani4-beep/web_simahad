@@ -646,10 +646,7 @@
 
     <div class="form-card">
 
-        <!-- ==============================
-             JUDUL HALAMAN
-        ============================== -->
-
+        <!-- JUDUL HALAMAN -->
         <h1 class="card-title">
             Pendaftaran Mahasiswa Baru
         </h1>
@@ -659,57 +656,46 @@
         </p>
 
 
-        <!-- ==============================
-             STEPPER PENDAFTARAN
-        ============================== -->
-
+        <!-- STEPPER PENDAFTARAN -->
         <div class="stepper-container">
 
             <div class="stepper-steps">
 
-                <!-- STEP 1 -->
-                <div class="stepper-container">
-                    <div class="stepper-steps">
+                <!-- STEP 1: DATA DIRI -->
+                <a href="{{ route('pendaftaran.pribadi') }}"
+                   class="step-item {{ request()->routeIs('pendaftaran.pribadi') ? 'active' : 'inactive' }}"
+                   style="text-decoration: none;">
 
-                        {{-- STEP 1: DATA DIRI --}}
-                        <a href="{{ route('pendaftaran.data_diri') }}"
-                        class="step-item {{ request()->routeIs('pendaftaran.data_diri') ? 'active' : 'inactive' }}"
-                        style="text-decoration: none;">
+                    <div class="step-circle">1</div>
+                    <span class="step-label">Data Diri</span>
+                </a>
 
-                            <div class="step-circle">1</div>
-                            <span class="step-label">Data Diri</span>
-                        </a>
+                <div class="step-line"></div>
 
-                        <div class="step-line"></div>
+                <!-- STEP 2: DATA AKADEMIK -->
+                <a href="{{ route('pendaftaran.akademik') }}"
+                   class="step-item {{ request()->routeIs('pendaftaran.akademik') ? 'active' : 'inactive' }}"
+                   style="text-decoration: none;">
 
-                        {{-- STEP 2: DATA AKADEMIK --}}
-                        <a href="{{ route('pendaftaran.data_akademik') }}"
-                        class="step-item {{ request()->routeIs('pendaftaran.data_akademik') ? 'active' : 'inactive' }}"
-                        style="text-decoration: none;">
+                    <div class="step-circle">2</div>
+                    <span class="step-label">Data Akademik</span>
+                </a>
 
-                            <div class="step-circle">2</div>
-                            <span class="step-label">Data Akademik</span>
-                        </a>
+                <div class="step-line"></div>
 
-                        <div class="step-line"></div>
+                <!-- STEP 3: PERSYARATAN -->
+                <a href="{{ route('pendaftaran.persyaratan') }}"
+                   class="step-item {{ request()->routeIs('pendaftaran.persyaratan') ? 'active' : 'inactive' }}"
+                   style="text-decoration: none;">
 
-                        {{-- STEP 3: PERSYARATAN --}}
-                        <a href="{{ route('pendaftaran.persyaratan') }}"
-                        class="step-item {{ request()->routeIs('pendaftaran.persyaratan') ? 'active' : 'inactive' }}"
-                        style="text-decoration: none;">
-
-                            <div class="step-circle">3</div>
-                            <span class="step-label">Persyaratan</span>
-                        </a>
-
-                    </div>
-                </div>
+                    <div class="step-circle">3</div>
+                    <span class="step-label">Persyaratan</span>
+                </a>
 
             </div>
 
 
             <!-- KATEGORI MAHASISWA -->
-
             <div class="category-pills">
 
                 <button
@@ -737,10 +723,7 @@
         </div>
 
 
-        <!-- ==============================
-             HEADER DATA DIRI
-        ============================== -->
-
+        <!-- HEADER DATA DIRI -->
         <div class="step-section-header">
 
             <div class="step-badge-num">1</div>
@@ -760,11 +743,13 @@
         </div>
 
 
-        <!-- ==============================
-             FORM DATA DIRI
-        ============================== -->
-            <form action="{{ route('pendaftaran.simpanPribadi') }}" method="POST">
+        <!-- FORM DATA DIRI -->
+        <form action="{{ route('pendaftaran.simpanPribadi') }}"
+              method="POST"
+              enctype="multipart/form-data">
+
             @csrf
+
             <!-- KATEGORI -->
             <input
                 type="hidden"
@@ -774,7 +759,6 @@
 
 
             <!-- NAMA LENGKAP -->
-
             <div class="form-group">
 
                 <label for="nama_lengkap" class="form-label">
@@ -798,7 +782,6 @@
 
 
             <!-- EMAIL AKTIF -->
-
             <div class="form-group">
 
                 <label for="email_aktif" class="form-label">
@@ -822,7 +805,6 @@
 
 
             <!-- NOMOR WHATSAPP -->
-
             <div class="form-group">
 
                 <label for="no_wa" class="form-label">
@@ -846,11 +828,9 @@
 
 
             <!-- ASAL SEKOLAH DAN IJAZAH -->
-
             <div class="form-grid-two">
 
                 <!-- ASAL SEKOLAH -->
-
                 <div class="form-group">
 
                     <label for="asal_sekolah" class="form-label">
@@ -873,30 +853,35 @@
                 </div>
 
 
-                <!-- IJAZAH SMA -->
-                <div class="form-grid-two">
-
+                <!-- IJAZAH -->
                 <div class="form-group">
-               
+
                     <label for="ijazah_sma" class="form-label">
-                        Unggah Ijazah SMA*
+                        Unggah Ijazah*
                     </label>
+
                     <label class="file-input-wrapper" for="ijazah_sma">
 
-                        <span id="namaijazah_sma">PDF, JPG, atau PNG</span>
-                         <svg xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="#6e001b"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round">
+                        <span id="namaIjazah">
+                            PDF, JPG, atau PNG
+                        </span>
+
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             width="20"
+                             height="20"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="#6e001b"
+                             stroke-width="2"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                             <polyline points="17 8 12 3 7 8"/>
                             <line x1="12" y1="3" x2="12" y2="15"/>
+
                         </svg>
+
                         <input
                             type="file"
                             id="ijazah_sma"
@@ -905,7 +890,7 @@
                             required
                             onchange="tampilkanNamaFile(this, 'namaIjazah')">
 
-                    </div>
+                    </label>
 
                     @error('ijazah_sma')
                         <small class="error-message">{{ $message }}</small>
@@ -917,11 +902,9 @@
 
 
             <!-- NAMA ORANG TUA DAN NOMOR HP -->
-
             <div class="form-grid-two">
 
                 <!-- NAMA ORANG TUA -->
-
                 <div class="form-group">
 
                     <label for="nama_ortu" class="form-label">
@@ -945,7 +928,6 @@
 
 
                 <!-- NOMOR HP ORANG TUA -->
-
                 <div class="form-group">
 
                     <label for="no_hp_ortu" class="form-label">
@@ -971,31 +953,30 @@
 
 
             <!-- UPLOAD KTP DAN KK -->
-
             <div class="form-grid-two">
 
                 <!-- KTP -->
-
                 <div class="form-group">
 
                     <label for="ktp" class="form-label">
                         Unggah KTP*
                     </label>
 
-                    
                     <label class="file-input-wrapper" for="ktp">
 
-                        <span id="namaktp">PDF, JPG, atau PNG</span>
+                        <span id="namaktp">
+                            PDF, JPG, atau PNG
+                        </span>
 
                         <svg xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="#6e001b"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round">
+                             width="20"
+                             height="20"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="#6e001b"
+                             stroke-width="2"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
 
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                             <polyline points="17 8 12 3 7 8"/>
@@ -1021,7 +1002,6 @@
 
 
                 <!-- KK -->
-
                 <div class="form-group">
 
                     <label for="kk" class="form-label">
@@ -1030,17 +1010,19 @@
 
                     <label class="file-input-wrapper" for="kk">
 
-                        <span id="namaKk">PDF, JPG, atau PNG</span>
+                        <span id="namaKk">
+                            PDF, JPG, atau PNG
+                        </span>
 
                         <svg xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="#6e001b"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round">
+                             width="20"
+                             height="20"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="#6e001b"
+                             stroke-width="2"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
 
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                             <polyline points="17 8 12 3 7 8"/>
@@ -1067,10 +1049,7 @@
             </div>
 
 
-            <!-- ==============================
-                 FOOTER FORM
-            ============================== -->
-
+            <!-- FOOTER FORM -->
             <div class="form-footer">
 
                 <span class="col-required-notice">
@@ -1088,14 +1067,10 @@
     </div>
 
 
-    <!-- ==============================
-         JAVASCRIPT
-    ============================== -->
-
+    <!-- JAVASCRIPT -->
     <script>
 
         // PILIH KATEGORI MAHASISWA
-
         function setKategori(val) {
 
             document.getElementById('inputKategori').value = val;
@@ -1119,7 +1094,6 @@
 
 
         // MENAMPILKAN NAMA FILE YANG DIPILIH
-
         function tampilkanNamaFile(input, targetId) {
 
             const target = document.getElementById(targetId);
@@ -1141,5 +1115,4 @@
     </script>
 
 </body>
-
 </html>
