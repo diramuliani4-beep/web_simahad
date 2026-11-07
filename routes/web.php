@@ -1,47 +1,42 @@
-
 <?php
 
-use Illuminate\Support\Facades\Route;
-
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\PembayaranController;
-use App\Http\Controllers\PendaftaranController;
-use App\Http\Controllers\PembelajaranController;
 use App\Http\Controllers\AbsensiMhsController;
 use App\Http\Controllers\PengumumanMhsController;
 use App\Http\Controllers\SuratPerizinanMhsController;
 use App\Http\Controllers\PengajuanIzinPulangController;
 use App\Http\Controllers\ProfilMhsController;
 
+use App\Http\Controllers\AdminDataMahasiswaController;
+use App\Http\Controllers\AdminDataPegawaiController;
+use App\Http\Controllers\AdminHakAksesController;
 use App\Http\Controllers\AdminLogAktivitasController;
 use App\Http\Controllers\AdminManajemenPenggunaController;
 use App\Http\Controllers\AdminPengaturanSistemController;
-use App\Http\Controllers\AdminHakAksesController;
-use App\Http\Controllers\AdminDataPegawaiController;
-use App\Http\Controllers\AdminDataMahasiswaController;
-
-use App\Http\Controllers\GuruJadwalSayaController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\GuruAbsensiController;
+use App\Http\Controllers\GuruJadwalSayaController;
 use App\Http\Controllers\GuruKegiatanDokumentasiController;
-
+use App\Http\Controllers\MusyrifahDataKamarController;
+use App\Http\Controllers\MusyrifahDetailPengumumanController;
+use App\Http\Controllers\MusyrifahLaporanController;
+use App\Http\Controllers\MusyrifahManajemenPembelajaranController;
+use App\Http\Controllers\MusyrifahPembayaranController;
+use App\Http\Controllers\MusyrifahPendaftaranController;
+use App\Http\Controllers\MusyrifahPengaturanAkunController;
+use App\Http\Controllers\MusyrifahPengumumanController;
+use App\Http\Controllers\MusyrifahSuratPerizinanController;
+use App\Http\Controllers\PembayaranController;
+use App\Http\Controllers\PembelajaranController;
+use App\Http\Controllers\PendaftaranController;
 use App\Http\Controllers\PimpinanDataPenghuniController;
 use App\Http\Controllers\PimpinanLaporanMahadController;
 use App\Http\Controllers\PimpinanPembelajaranController;
-
-use App\Http\Controllers\MusyrifahPendaftaranController;
-use App\Http\Controllers\MusyrifahDataKamarController;
-use App\Http\Controllers\MusyrifahPembayaranController;
-use App\Http\Controllers\MusyrifahManajemenPembelajaranController;
-use App\Http\Controllers\MusyrifahSuratPerizinanController;
-use App\Http\Controllers\MusyrifahLaporanController;
-use App\Http\Controllers\MusyrifahPengaturanAkunController;
-use App\Http\Controllers\MusyrifahPengumumanController;
-use App\Http\Controllers\MusyrifahDetailPengumumanController;
-
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| HALAMAN UTAMA DAN AUTENTIKASI
+| Halaman Utama dan Autentikasi
 |--------------------------------------------------------------------------
 */
 
@@ -63,41 +58,37 @@ Route::get('/konfirmasi-keluar', function () {
     return view('auth.confirm-logout');
 })->middleware('auth')->name('logout.confirm');
 
-// Registrasi akun
+// Pendaftaran akun
 Route::get('/register', [AuthController::class, 'showRegisterForm'])
     ->name('register');
 
 Route::post('/register', [AuthController::class, 'register'])
     ->name('register.post');
 
-// Lupa password
+// Lupa kata sandi
 Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])
     ->name('password.request');
 
 Route::post('/forgot-password', [AuthController::class, 'resetPassword'])
     ->name('password.update');
 
-
 /*
 |--------------------------------------------------------------------------
-| FITUR PENGGUNA YANG SUDAH LOGIN
+| Fitur Pengguna yang Sudah Login
 |--------------------------------------------------------------------------
 */
 
 Route::middleware('auth')->group(function () {
 
-    /*
-    |--------------------------------------------------------------------------
-    | DASHBOARD
-    |--------------------------------------------------------------------------
-    */
-
+    // Dashboard umum
     Route::get('/dashboard', [AuthController::class, 'dashboard'])
         ->name('dashboard');
 
+    // Dashboard lama untuk kompatibilitas
     Route::get('/dashboard_admin', [AuthController::class, 'dashboard'])
         ->name('dashboard_admin');
 
+    // Dashboard berdasarkan peran
     Route::get('/musyrifah/dashboard', [
         AuthController::class,
         'dashboardMusyrifah',
@@ -123,10 +114,9 @@ Route::middleware('auth')->group(function () {
         'dashboardPimpinan',
     ])->name('pimpinan.dashboard');
 
-
     /*
     |--------------------------------------------------------------------------
-    | FITUR MAHASISWA
+    | Fitur Mahasiswa
     |--------------------------------------------------------------------------
     */
 
@@ -154,110 +144,61 @@ Route::middleware('auth')->group(function () {
     Route::post('/pembayaran/reset', [PembayaranController::class, 'reset'])
         ->name('pembayaran.reset');
 
+    // Pendaftaran mahasiswa
+    Route::get('/pendaftaran/pribadi', [PendaftaranController::class, 'pribadi'])
+        ->name('pendaftaran.pribadi');
 
-    /*
-    |--------------------------------------------------------------------------
-    | PENDAFTARAN MAHASISWA
-    |--------------------------------------------------------------------------
-    |
-    | STEP 1 : DATA DIRI
-    | STEP 2 : DATA AKADEMIK
-    | STEP 3 : PERSYARATAN
-    | STEP 4 : KONFIRMASI
-    | STEP 5 : PILIH KAMAR
-    |
-    */
+    Route::post('/pendaftaran/pribadi', [PendaftaranController::class, 'simpanPribadi'])
+        ->name('pendaftaran.simpanPribadi');
 
-    // STEP 1: DATA DIRI
-    Route::get('/pendaftaran/pribadi', [
-        PendaftaranController::class,
-        'pribadi',
-    ])->name('pendaftaran.pribadi');
+    Route::get('/pendaftaran/akademik', [PendaftaranController::class, 'akademik'])
+        ->name('pendaftaran.akademik');
 
-    Route::post('/pendaftaran/pribadi', [
-        PendaftaranController::class,
-        'simpanPribadi',
-    ])->name('pendaftaran.simpanPribadi');
+    Route::post('/pendaftaran/akademik', [PendaftaranController::class, 'simpanAkademik'])
+        ->name('pendaftaran.simpanAkademik');
 
+    Route::get('/pendaftaran/dokumen', [PendaftaranController::class, 'persyaratan'])
+        ->name('pendaftaran.dokumen');
 
-    // STEP 2: DATA AKADEMIK
-    Route::get('/pendaftaran/akademik', [
-        PendaftaranController::class,
-        'akademik',
-    ])->name('pendaftaran.akademik');
+    Route::post('/pendaftaran/dokumen', [PendaftaranController::class, 'simpanDokumen'])
+        ->name('pendaftaran.simpanDokumen');
 
-    Route::post('/pendaftaran/akademik', [
-        PendaftaranController::class,
-        'simpanAkademik',
-    ])->name('pendaftaran.simpanAkademik');
+    Route::get('/pendaftaran/konfirmasi', [PendaftaranController::class, 'konfirmasi'])
+        ->name('pendaftaran.konfirmasi');
 
-
-    // STEP 3: PERSYARATAN
-    Route::get('/pendaftaran/persyaratan', [
-        PendaftaranController::class,
-        'persyaratan',
-    ])->name('pendaftaran.persyaratan');
-
-    Route::post('/pendaftaran/persyaratan', [
-        PendaftaranController::class,
-        'simpanDokumen',
-    ])->name('pendaftaran.simpanDokumen');
-
-
-    // STEP 4: KONFIRMASI
-    Route::get('/pendaftaran/konfirmasi', [
-        PendaftaranController::class,
-        'konfirmasi',
-    ])->name('pendaftaran.konfirmasi');
-
-
-    // STEP 5: PILIH KAMAR
+    // Pilih kamar mahasiswa
     Route::get('/pendaftaran/pilih-kamar', [
         PendaftaranController::class,
         'pilihKamarMhs',
     ])->name('pendaftaran.pilihKamarMhs');
 
-    // Detail kamar
+    // Detail kamar mahasiswa
     Route::get('/pendaftaran/pilih-kamar/{kamarId}', [
         PendaftaranController::class,
         'detailKamarMhs',
     ])->whereNumber('kamarId')
-      ->name('pendaftaran.detailKamarMhs');
+        ->name('pendaftaran.detailKamarMhs');
 
-    // Simpan pilihan kamar
+    // Simpan pengajuan kamar mahasiswa
     Route::post('/pendaftaran/pilih-kamar', [
         PendaftaranController::class,
         'simpanPilihanKamarMhs',
     ])->name('pendaftaran.simpanPilihanKamarMhs');
 
-
-    // Selesaikan pendaftaran
-    Route::post('/pendaftaran/selesai', [
-        PendaftaranController::class,
-        'selesai',
-    ])->name('pendaftaran.selesai');
-
+    Route::post('/pendaftaran/selesai', [PendaftaranController::class, 'selesai'])
+        ->name('pendaftaran.selesai');
 
     // Pembelajaran mahasiswa
-    Route::get('/pembelajaran-mhs', [
-        PembelajaranController::class,
-        'index',
-    ])->name('pembelajaran.mhs');
-
+    Route::get('/pembelajaran-mhs', [PembelajaranController::class, 'index'])
+        ->name('pembelajaran.mhs');
 
     // Absensi mahasiswa
-    Route::get('/absensi-mhs', [
-        AbsensiMhsController::class,
-        'index',
-    ])->name('absensi.mhs');
-
+    Route::get('/absensi-mhs', [AbsensiMhsController::class, 'index'])
+        ->name('absensi.mhs');
 
     // Pengumuman mahasiswa
-    Route::get('/pengumuman-mhs', [
-        PengumumanMhsController::class,
-        'index',
-    ])->name('pengumuman.mhs');
-
+    Route::get('/pengumuman-mhs', [PengumumanMhsController::class, 'index'])
+        ->name('pengumuman.mhs');
 
     // Surat dan perizinan mahasiswa
     Route::get('/surat-perizinan-mhs', [
@@ -275,10 +216,9 @@ Route::middleware('auth')->group(function () {
         'store',
     ])->name('surat.perizinan.mhs.pengajuan.store');
 
-
     /*
     |--------------------------------------------------------------------------
-    | FITUR ADMIN
+    | Fitur Admin
     |--------------------------------------------------------------------------
     */
 
@@ -298,53 +238,23 @@ Route::middleware('auth')->group(function () {
         'store',
     ])->name('admin.manajemen-pengguna.store');
 
-
-    // Verifikasi pengguna
+    // Verifikasi akun pengguna
     Route::post('/admin/manajemen-pengguna/{id}/verifikasi', [
         AdminManajemenPenggunaController::class,
         'verifikasi',
-    ])->whereNumber('id')
-      ->name('admin.manajemen-pengguna.verifikasi');
+    ])->name('admin.manajemen-pengguna.verifikasi');
 
-
-    // Tolak pendaftaran akun
+    // Tolak pendaftaran akun;
     Route::post('/admin/manajemen-pengguna/{id}/tolak', [
         AdminManajemenPenggunaController::class,
         'tolak',
-    ])->whereNumber('id')
-      ->name('admin.manajemen-pengguna.tolak');
+    ])->name('admin.manajemen-pengguna.tolak');
 
-
-    // Edit pengguna
-    Route::get('/admin/manajemen-pengguna/{user}/edit', [
-        AdminManajemenPenggunaController::class,
-        'edit',
-    ])->whereNumber('user')
-      ->name('admin.manajemen-pengguna.edit');
-
-
-    // Update pengguna
-    Route::put('/admin/manajemen-pengguna/{user}', [
-        AdminManajemenPenggunaController::class,
-        'update',
-    ])->whereNumber('user')
-      ->name('admin.manajemen-pengguna.update');
-
-
-    // Hapus pengguna
-    Route::delete('/admin/manajemen-pengguna/{user}', [
-        AdminManajemenPenggunaController::class,
-        'destroy',
-    ])->whereNumber('user')
-      ->name('admin.manajemen-pengguna.destroy');
-
-
-    // Hak akses
+    // Hak akses admin (dipertahankan untuk kompatibilitas).
     Route::get('/admin/hak-akses', [
         AdminHakAksesController::class,
         'index',
     ])->name('admin.hak-akses');
-
 
     // Pengaturan sistem
     Route::get('/admin/pengaturan-sistem', [
@@ -352,20 +262,26 @@ Route::middleware('auth')->group(function () {
         'index',
     ])->name('admin.pengaturan-sistem');
 
-
     // Log aktivitas
     Route::get('/admin/log-aktivitas', [
         AdminLogAktivitasController::class,
         'index',
     ])->name('admin.log-aktivitas');
 
+    Route::get('/admin/manajemen-pengguna/{user}/edit', [
+        AdminManajemenPenggunaController::class, 'edit',
+    ])->whereNumber('user')->name('admin.manajemen-pengguna.edit');
 
-    /*
-    |--------------------------------------------------------------------------
-    | DATA PEGAWAI ADMIN
-    |--------------------------------------------------------------------------
-    */
+    Route::put('/admin/manajemen-pengguna/{user}', [
+        AdminManajemenPenggunaController::class, 'update',
+    ])->whereNumber('user')->name('admin.manajemen-pengguna.update');
 
+    Route::delete('/admin/manajemen-pengguna/{user}', [
+        AdminManajemenPenggunaController::class, 'destroy',
+    ])->whereNumber('user')->name('admin.manajemen-pengguna.destroy');
+
+    // DATA PEGAWAI - daftar, lengkapi biodata, dan edit.
+    // Urutan route statis sebelum route dinamis {pegawai}.
     Route::get('/admin/data-pegawai', [
         AdminDataPegawaiController::class,
         'index',
@@ -381,71 +297,56 @@ Route::middleware('auth')->group(function () {
         'store',
     ])->name('admin.data-pegawai.store');
 
-
-    // Foto pegawai
+    // Foto pegawai: diakses oleh Admin melalui controller, bukan URL storage publik.
     Route::get('/admin/data-pegawai/{pegawai}/foto', [
         AdminDataPegawaiController::class,
         'foto',
-    ])->whereNumber('pegawai')
-      ->name('admin.data-pegawai.foto');
+    ])->whereNumber('pegawai')->name('admin.data-pegawai.foto');
 
-
-    // Edit pegawai
     Route::get('/admin/data-pegawai/{pegawai}/edit', [
         AdminDataPegawaiController::class,
         'edit',
-    ])->whereNumber('pegawai')
-      ->name('admin.data-pegawai.edit');
+    ])->whereNumber('pegawai')->name('admin.data-pegawai.edit');
 
-
-    // Update pegawai
     Route::put('/admin/data-pegawai/{pegawai}', [
         AdminDataPegawaiController::class,
         'update',
-    ])->whereNumber('pegawai')
-      ->name('admin.data-pegawai.update');
+    ])->whereNumber('pegawai')->name('admin.data-pegawai.update');
 
-
-    // Hapus pegawai
+    // Hapus biodata pegawai saja, tanpa menghapus akun pengguna.
     Route::delete('/admin/data-pegawai/{pegawai}', [
         AdminDataPegawaiController::class,
         'destroy',
-    ])->whereNumber('pegawai')
-      ->name('admin.data-pegawai.destroy');
+    ])->whereNumber('pegawai')->name('admin.data-pegawai.destroy');
 
-
-    // Data mahasiswa
+    // Data Mahasiswa
     Route::get('/admin/data-mahasiswa', [
         AdminDataMahasiswaController::class,
         'index',
     ])->name('admin.data-mahasiswa.index');
 
-
     /*
     |--------------------------------------------------------------------------
-    | FITUR GURU
+    | Fitur Guru
     |--------------------------------------------------------------------------
     */
 
-    // Jadwal saya
     Route::get('/guru/jadwal-saya', [
         GuruJadwalSayaController::class,
         'index',
     ])->name('guru.jadwal-saya');
 
-
-    // Absensi guru
     Route::get('/guru/absensi', [
         GuruAbsensiController::class,
         'index',
     ])->name('guru.absensi');
 
-
-    // Detail jadwal guru
+    // Detail jadwal guru (data sementara).
     Route::get('/guru/jadwal-saya/detail/{mapel}', function ($mapel) {
 
+        // Data contoh mata pelajaran untuk menampilkan halaman detail.
+        // Belum terhubung dengan database atau CRUD.
         $dataMapel = [
-
             'akhlak' => [
                 'mataPelajaran' => 'Akhlak dan Adab',
                 'kelompok' => 'Kelompok A',
@@ -463,62 +364,55 @@ Route::middleware('auth')->group(function () {
                 'totalPertemuan' => 16,
                 'absensiTerisi' => 6,
             ],
-
         ];
 
+        // Jika kode mata pelajaran tidak tersedia, tampilkan halaman 404.
         abort_unless(isset($dataMapel[$mapel]), 404);
 
+        // Kirim data contoh ke halaman detail_jadwal.blade.php.
         return view('guru.detail_jadwal', $dataMapel[$mapel]);
 
     })->name('guru.jadwal.detail');
 
-
-    // Form absensi guru
+    // Form isi absensi guru.
     Route::get('/guru/absensi/isi', function () {
+
+        // Menampilkan halaman formulir pengisian absensi.
         return view('guru.isi_absensi');
+
     })->name('guru.absensi.isi');
 
-
-    // Kegiatan dokumentasi
     Route::get('/guru/kegiatan-dokumentasi', [
         GuruKegiatanDokumentasiController::class,
         'index',
     ])->name('guru.kegiatan-dokumentasi');
 
-
     /*
     |--------------------------------------------------------------------------
-    | FITUR PIMPINAN
+    | Fitur Pimpinan
     |--------------------------------------------------------------------------
     */
 
-    // Data penghuni
     Route::get('/pimpinan/data-penghuni', [
         PimpinanDataPenghuniController::class,
         'index',
     ])->name('pimpinan.data-penghuni');
 
-
-    // Laporan Ma'had
     Route::get('/pimpinan/laporan-mahad', [
         PimpinanLaporanMahadController::class,
         'index',
     ])->name('pimpinan.laporan-mahad');
 
-
-    // Pembelajaran
     Route::get('/pimpinan/pembelajaran', [
         PimpinanPembelajaranController::class,
         'index',
     ])->name('pimpinan.pembelajaran');
 
-
-    // Laporan penghuni
+    // Halaman Laporan Penghuni
     Route::get('/pimpinan/laporan-penghuni', [
         PimpinanLaporanMahadController::class,
         'penghuni',
     ])->name('pimpinan.laporan-penghuni');
-
 
     // Laporan kamar
     Route::get('/pimpinan/laporan-kamar', [
@@ -526,13 +420,11 @@ Route::middleware('auth')->group(function () {
         'kamar',
     ])->name('pimpinan.laporan-kamar');
 
-
     // Laporan pembelajaran
     Route::get('/pimpinan/laporan-pembelajaran', [
         PimpinanLaporanMahadController::class,
         'pembelajaran',
     ])->name('pimpinan.laporan-pembelajaran');
-
 
     // Laporan pembayaran
     Route::get('/pimpinan/laporan-pembayaran', [
@@ -540,65 +432,108 @@ Route::middleware('auth')->group(function () {
         'pembayaran',
     ])->name('pimpinan.laporan-pembayaran');
 
-
     // Laporan perizinan
     Route::get('/pimpinan/laporan-perizinan', [
         PimpinanLaporanMahadController::class,
         'perizinan',
     ])->name('pimpinan.laporan-perizinan');
 
-
     /*
     |--------------------------------------------------------------------------
-    | FITUR MUSYRIFAH
+    | Fitur Musyrifah
     |--------------------------------------------------------------------------
     */
 
-    // Pendaftaran mahasiswa
     Route::get('/musyrifah/pendaftaran', [
         MusyrifahPendaftaranController::class,
         'index',
     ])->name('musyrifah.pendaftaran');
 
-
-    // Validasi pengajuan pendaftaran
+    // Validasi pengajuan oleh Musyrifah/Pengelola.
     Route::patch('/musyrifah/pendaftaran/{pendaftaran}/status', [
         MusyrifahPendaftaranController::class,
         'updateStatus',
     ])->name('musyrifah.pendaftaran.status');
 
-
-    // Pemeriksaan berkas
+    // Pemeriksaan bukti penerimaan UIN dan bukti pembayaran oleh Musyrifah.
     Route::get('/musyrifah/pendaftaran/{pendaftaran}/berkas/{jenis}', [
         MusyrifahPendaftaranController::class,
         'berkas',
     ])->whereIn('jenis', ['penerimaan', 'pembayaran'])
-      ->name('musyrifah.pendaftaran.berkas');
+        ->name('musyrifah.pendaftaran.berkas');
 
-
-    // Data kamar
     Route::get('/musyrifah/data-kamar', [
         MusyrifahDataKamarController::class,
         'index',
     ])->name('musyrifah.data_kamar');
 
-
-    // Pembayaran
     Route::get('/musyrifah/pembayaran', [
         MusyrifahPembayaranController::class,
         'index',
     ])->name('musyrifah.pembayaran');
 
+    Route::get('/musyrifah/pembayaran/data', [
+        MusyrifahPembayaranController::class,
+        'apiData',
+    ])->name('musyrifah.pembayaran.data');
 
-    // Manajemen pembelajaran
+    Route::get('/musyrifah/pembayaran/{id}/detail', [
+        MusyrifahPembayaranController::class,
+        'detail',
+    ])->name('musyrifah.pembayaran.detail');
+
+    Route::post('/musyrifah/pembayaran/{id}/status', [
+        MusyrifahPembayaranController::class,
+        'updateStatus',
+    ])->name('musyrifah.pembayaran.status');
+
     Route::get('/musyrifah/manajemen-pembelajaran', [
         MusyrifahManajemenPembelajaranController::class,
         'index',
     ])->name('musyrifah.manajemen_pembelajaran');
 
+    Route::post('/musyrifah/manajemen-pembelajaran/kelompok', [
+        MusyrifahManajemenPembelajaranController::class,
+        'storeKelompok',
+    ])->name('musyrifah.manajemen_pembelajaran.kelompok.store');
 
-    // Jadwal saya Musyrifah
-    Route::get('/musyrifah/jadwal-saya', function (\Illuminate\Http\Request $request) {
+    Route::put('/musyrifah/manajemen-pembelajaran/kelompok/{id}', [
+        MusyrifahManajemenPembelajaranController::class,
+        'updateKelompok',
+    ])->name('musyrifah.manajemen_pembelajaran.kelompok.update');
+
+    Route::delete('/musyrifah/manajemen-pembelajaran/kelompok/{id}', [
+        MusyrifahManajemenPembelajaranController::class,
+        'destroyKelompok',
+    ])->name('musyrifah.manajemen_pembelajaran.kelompok.destroy');
+
+    Route::post('/musyrifah/manajemen-pembelajaran/jadwal', [
+        MusyrifahManajemenPembelajaranController::class,
+        'storeJadwal',
+    ])->name('musyrifah.manajemen_pembelajaran.jadwal.store');
+
+    Route::put('/musyrifah/manajemen-pembelajaran/jadwal/{id}', [
+        MusyrifahManajemenPembelajaranController::class,
+        'updateJadwal',
+    ])->name('musyrifah.manajemen_pembelajaran.jadwal.update');
+
+    Route::delete('/musyrifah/manajemen-pembelajaran/jadwal/{id}', [
+        MusyrifahManajemenPembelajaranController::class,
+        'destroyJadwal',
+    ])->name('musyrifah.manajemen_pembelajaran.jadwal.destroy');
+
+    Route::get('/musyrifah/manajemen-pembelajaran/detail-pemantauan/{id}', [
+        MusyrifahManajemenPembelajaranController::class,
+        'detailPemantauan',
+    ])->name('musyrifah.manajemen_pembelajaran.detail_pemantauan');
+
+    Route::get('/musyrifah/manajemen-pembelajaran/detail-kelulusan/{id}', [
+        MusyrifahManajemenPembelajaranController::class,
+        'detailKelulusan',
+    ])->name('musyrifah.manajemen_pembelajaran.detail_kelulusan');
+
+    // Jadwal Saya Musyrifah menggunakan tampilan Guru.
+    Route::get('/musyrifah/jadwal-saya', function (Request $request) {
 
         $role = strtolower((string) $request->user()?->role);
 
@@ -611,9 +546,8 @@ Route::middleware('auth')->group(function () {
 
     })->name('musyrifah.jadwal-saya');
 
-
-    // Absensi Musyrifah
-    Route::get('/musyrifah/absensi', function (\Illuminate\Http\Request $request) {
+    // Absensi Musyrifah menggunakan tampilan Guru.
+    Route::get('/musyrifah/absensi', function (Request $request) {
 
         $role = strtolower((string) $request->user()?->role);
 
@@ -626,36 +560,28 @@ Route::middleware('auth')->group(function () {
 
     })->name('musyrifah.absensi');
 
-
-    // Surat perizinan
     Route::get('/musyrifah/surat-perizinan', [
         MusyrifahSuratPerizinanController::class,
         'index',
     ])->name('musyrifah.surat_perizinan');
 
-
-    // Laporan
     Route::get('/musyrifah/laporan', [
         MusyrifahLaporanController::class,
         'index',
     ])->name('musyrifah.laporan');
 
-
-    // Pengaturan akun
+    // Pengaturan akun Musyrifah
     Route::get('/musyrifah/pengaturan-akun', [
         MusyrifahPengaturanAkunController::class,
         'index',
     ])->name('musyrifah.pengaturan_akun');
 
-
-    // Pengumuman
+    // Pengumuman Musyrifah
     Route::get('/musyrifah/pengumuman', [
         MusyrifahPengumumanController::class,
         'index',
     ])->name('musyrifah.pengumuman');
 
-
-    // Detail pengumuman
     Route::get('/musyrifah/detail-pengumuman', [
         MusyrifahDetailPengumumanController::class,
         'index',

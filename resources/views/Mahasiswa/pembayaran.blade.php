@@ -1070,22 +1070,22 @@
                 </div>
             </section>
 
-            <h2 class="section-title">Status Pembayaran</h2>
+            <h2 class="section-title">Tagihan saat ini</h2>
 
             <section class="payment-card">
                 <div class="card-left">
                     <div class="bill-name">
-                        {{ $tagihan['nama'] ?? 'Pembayaran Awal' }}
+                        {{ $tagihan['nama'] ?? 'Pembayaran Asrama' }}
                     </div>
 
-                    <div class="bill-description">Pembayaran saat pendaftaran</div>
+                    <div class="bill-description">Pembayaran Asrama Ma’had</div>
 
                     <div class="bill-row">
-                        Periode: {{ $tagihan['periode'] ?? '—' }}
+                        Periode : {{ $tagihan['periode'] ?? 'Januari 2027' }}
                     </div>
 
                     <div class="bill-row">
-                        Nominal: Rp{{ $tagihan['nominal'] ?? '1.000.000' }}
+                        RP: {{ $tagihan['nominal'] ?? '2.500.00,00' }}
                     </div>
 
                     @if (($status ?? '') !== 'lunas')
@@ -1093,16 +1093,20 @@
                                 onclick="openPaymentModal()">
                             Bayar Sekarang
                         </button>
+                    @else
+                        <div style="font-size:14px; color:#15803d; font-weight:700; margin-top:12px; display:inline-flex; align-items:center; gap:6px;">
+                            <span style="font-size:16px;">✓</span> Sudah Dibayar ({{ $tagihan['metode'] ?? 'Virtual Account BSI' }})
+                        </div>
                     @endif
                 </div>
 
                 <div class="card-right">
                     <div class="amount">
-                        Rp{{ $tagihan['nominal'] ?? '1.000.000' }}
+                        Rp{{ $tagihan['nominal'] ?? '2.500.00,00' }}
                     </div>
 
                     <span class="status-pill {{ ($status ?? '') === 'lunas' ? 'paid' : '' }}">
-                        {{ ($status ?? '') === 'lunas' ? 'Lunas' : 'Menunggu Konfirmasi' }}
+                        {{ ($status ?? '') === 'lunas' ? 'Lunas' : 'Belum lunas' }}
                     </span>
                 </div>
             </section>
@@ -1119,10 +1123,10 @@
                 </div>
 
                 <div class="history-content">
-                    <div class="history-title">Pembayaran Awal Pendaftaran</div>
+                    <div class="history-title">Pembayaran Asrama Mahasiswa</div>
 
                     <div class="history-detail">
-                        Nominal: Rp{{ $tagihan['nominal'] ?? '1.000.000' }}
+                        Nominal: Rp{{ $tagihan['nominal'] ?? '2.500.00,00' }}
                     </div>
 
                     <div class="history-detail">
@@ -1137,8 +1141,8 @@
                     @if (!empty($riwayat))
                         @foreach ($riwayat as $item)
                             <div class="history-note">
-                                <strong>{{ $item['periode'] ?? 'Riwayat pembayaran' }}</strong><br>
-                                Nominal: Rp{{ $item['nominal'] ?? '—' }}<br>
+                                <strong>Periode : {{ $item['periode'] ?? 'Riwayat pembayaran' }}</strong><br>
+                                Nominal: {{ $item['nominal'] ?? '—' }}<br>
                                 Status: {{ $item['status'] ?? '—' }}
                             </div>
                         @endforeach

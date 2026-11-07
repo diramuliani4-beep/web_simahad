@@ -9,12 +9,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('pegawais') || !Schema::hasTable('pegawai_akun')) {
+        if (! Schema::hasTable('pegawais') || ! Schema::hasTable('pegawai_akun')) {
             throw new RuntimeException('Tabel pegawais dan pegawai_akun harus ada terlebih dahulu.');
         }
 
         // Idempotent: migration terdahulu mungkin telah memindahkan kolom ini.
-        if (!Schema::hasColumn('pegawais', 'user_id')) {
+        if (! Schema::hasColumn('pegawais', 'user_id')) {
             return;
         }
 
@@ -31,14 +31,15 @@ return new class extends Migration
                         ->where('user_id', $record->user_id)->first();
 
                     if ($byPegawai || $byUser) {
-                        if (!$byPegawai || !$byUser
+                        if (! $byPegawai || ! $byUser
                             || (int) $byPegawai->user_id !== (int) $record->user_id
                             || (int) $byUser->pegawai_id !== (int) $record->id) {
                             throw new RuntimeException(
-                                'Relasi lama bertentangan untuk pegawai ID ' . $record->id
-                                . '. Periksa isi pegawai_akun, jangan hapus kolom sebelum konflik ditangani.'
+                                'Relasi lama bertentangan untuk pegawai ID '.$record->id
+                                .'. Periksa isi pegawai_akun, jangan hapus kolom sebelum konflik ditangani.'
                             );
                         }
+
                         continue;
                     }
 
@@ -52,29 +53,35 @@ return new class extends Migration
             });
 
         // Ambil nama FK dari MySQL, termasuk jika namanya bukan konvensi Laravel.
-        $foreignKeys = DB::select(<<<'SQL'
-            SELECT DISTINCT CONSTRAINT_NAME AS nama_fk
-            FROM information_schema.KEY_COLUMN_USAGE
-            WHERE TABLE_SCHEMA = DATABASE()
-              AND TABLE_NAME = 'pegawais'
-              AND COLUMN_NAME = 'user_id'
-              AND REFERENCED_TABLE_NAME IS NOT NULL
-        SQL);
+        if (DB::getDriverName() === 'mysql') {
+            $foreignKeys = DB::select(<<<'SQL'
+                SELECT DISTINCT CONSTRAINT_NAME AS nama_fk
+                FROM information_schema.KEY_COLUMN_USAGE
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = 'pegawais'
+                  AND COLUMN_NAME = 'user_id'
+                  AND REFERENCED_TABLE_NAME IS NOT NULL
+            SQL);
 
-        foreach ($foreignKeys as $fk) {
-            Schema::table('pegawais', function (Blueprint $table) use ($fk): void {
-                $table->dropForeign((string) $fk->nama_fk);
-            });
+            foreach ($foreignKeys as $fk) {
+                Schema::table('pegawais', function (Blueprint $table) use ($fk): void {
+                    $table->dropForeign((string) $fk->nama_fk);
+                });
+            }
         }
 
         Schema::table('pegawais', function (Blueprint $table): void {
+            if (DB::getDriverName() === 'sqlite') {
+                $table->dropForeign(['user_id']);
+                $table->dropUnique(['user_id']);
+            }
             $table->dropColumn('user_id');
         });
     }
 
     public function down(): void
     {
-        if (!Schema::hasTable('pegawais') || Schema::hasColumn('pegawais', 'user_id')) {
+        if (! Schema::hasTable('pegawais') || Schema::hasColumn('pegawais', 'user_id')) {
             return;
         }
 

@@ -9,8 +9,8 @@ use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -18,11 +18,14 @@ use Illuminate\View\View;
 class AdminManajemenPenggunaController extends Controller
 {
     private const ROLES = ['admin', 'guru', 'musyrifah', 'pimpinan', 'mahasiswa'];
+
     // Role adalah HAK AKSES, bukan bukti seseorang tercatat sebagai pegawai.
     // Akun Admin dan Mahasiswa yang dibuat manual TIDAK otomatis membuat Data Pegawai.
     // Jika Admin benar-benar pegawai Ma'had, tautkan secara eksplisit melalui pilihan Data Pegawai.
     private const ROLES_AUTO_PEGAWAI = ['guru', 'musyrifah', 'pimpinan'];
+
     private const STATUS_AKUN = ['aktif', 'nonaktif'];
+
     private const STATUS_MENUNGGU = ['menunggu aktivasi', 'menunggu', 'pending'];
 
     private function pastikanAdmin(Request $request): void
@@ -115,7 +118,7 @@ class AdminManajemenPenggunaController extends Controller
             ]);
         }
 
-        if (!$pegawaiId) {
+        if (! $pegawaiId) {
             $request->validate([
                 'name' => ['required', 'string', 'min:2', 'max:255'],
                 'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
@@ -136,7 +139,7 @@ class AdminManajemenPenggunaController extends Controller
                 $email = mb_strtolower(trim((string) $pegawai->email));
                 $noHp = $pegawai->no_hp;
 
-                if ($nama === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                if ($nama === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     throw ValidationException::withMessages([
                         'pegawai_id' => 'Nama atau email pegawai belum valid. Perbaiki di Data Pegawai dahulu.',
                     ]);
@@ -168,7 +171,7 @@ class AdminManajemenPenggunaController extends Controller
                 'status' => $data['status'],
             ]);
 
-            if (!$pegawai && in_array($akun->role, self::ROLES_AUTO_PEGAWAI, true)) {
+            if (! $pegawai && in_array($akun->role, self::ROLES_AUTO_PEGAWAI, true)) {
                 // Hanya role operasional Ma'had yang otomatis memperoleh biodata pegawai.
                 // Admin bukan indikator kepegawaian; mahasiswa memakai modul tersendiri.
                 $pegawai = Pegawai::create([
@@ -186,7 +189,7 @@ class AdminManajemenPenggunaController extends Controller
                 ]);
             }
 
-            $this->catat($request, 'create_user', 'Menambahkan pengguna baru: ' . $akun->name);
+            $this->catat($request, 'create_user', 'Menambahkan pengguna baru: '.$akun->name);
         }, 3);
 
         return redirect()->route('admin.manajemen-pengguna')
@@ -268,7 +271,7 @@ class AdminManajemenPenggunaController extends Controller
             $akun->no_hp = $data['no_hp'] ?? null;
             $akun->role = $data['role'];
             $akun->status = $data['status'];
-            if (!empty($data['password'])) {
+            if (! empty($data['password'])) {
                 $akun->password = $data['password'];
             }
             $akun->save();
@@ -293,7 +296,7 @@ class AdminManajemenPenggunaController extends Controller
                 ]);
             }
 
-            $this->catat($request, 'update_user', 'Memperbarui akun pengguna: ' . $akun->name);
+            $this->catat($request, 'update_user', 'Memperbarui akun pengguna: '.$akun->name);
 
             return $hilangAksesAdmin;
         }, 3);
@@ -334,7 +337,7 @@ class AdminManajemenPenggunaController extends Controller
                 PegawaiAkun::query()->where('user_id', $akun->getKey())->delete();
                 $nama = $akun->name;
                 $akun->delete();
-                $this->catat($request, 'delete_user', 'Menghapus akun pengguna: ' . $nama . ' (biodata pegawai dipertahankan)');
+                $this->catat($request, 'delete_user', 'Menghapus akun pengguna: '.$nama.' (biodata pegawai dipertahankan)');
             }, 3);
         } catch (QueryException $e) {
             if (in_array((string) $e->getCode(), ['23000', '23503', '19'], true)) {
@@ -351,15 +354,16 @@ class AdminManajemenPenggunaController extends Controller
     {
         $this->pastikanAdmin($request);
         $user = User::query()->findOrFail($id);
-        if (!in_array(strtolower((string) $user->status), self::STATUS_MENUNGGU, true)) {
+        if (! in_array(strtolower((string) $user->status), self::STATUS_MENUNGGU, true)) {
             return back()->with('error', 'Akun tidak sedang menunggu verifikasi.');
         }
 
         DB::transaction(function () use ($request, $user): void {
             $user->status = 'aktif';
             $user->save();
-            $this->catat($request, 'verify_user', 'Memverifikasi akun: ' . $user->name);
+            $this->catat($request, 'verify_user', 'Memverifikasi akun: '.$user->name);
         });
+
         return back()->with('success', 'Akun berhasil diverifikasi dan diaktifkan.');
     }
 
@@ -367,15 +371,16 @@ class AdminManajemenPenggunaController extends Controller
     {
         $this->pastikanAdmin($request);
         $user = User::query()->findOrFail($id);
-        if (!in_array(strtolower((string) $user->status), self::STATUS_MENUNGGU, true)) {
+        if (! in_array(strtolower((string) $user->status), self::STATUS_MENUNGGU, true)) {
             return back()->with('error', 'Akun tidak sedang menunggu verifikasi.');
         }
 
         DB::transaction(function () use ($request, $user): void {
             $user->status = 'nonaktif';
             $user->save();
-            $this->catat($request, 'reject_user', 'Menolak permohonan aktivasi akun: ' . $user->name);
+            $this->catat($request, 'reject_user', 'Menolak permohonan aktivasi akun: '.$user->name);
         });
+
         return back()->with('success', 'Aktivasi akun ditolak; akun dinonaktifkan.');
     }
 
@@ -388,5 +393,4 @@ class AdminManajemenPenggunaController extends Controller
             $request->merge(['name' => trim($request->input('name'))]);
         }
     }
-
 }
