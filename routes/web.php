@@ -11,6 +11,7 @@ use App\Http\Controllers\AbsensiMhsController;
 use App\Http\Controllers\PengumumanMhsController;
 use App\Http\Controllers\SuratPerizinanMhsController;
 use App\Http\Controllers\PengajuanIzinPulangController;
+use App\Http\Controllers\ProfilMhsController;
 
 use App\Http\Controllers\AdminLogAktivitasController;
 use App\Http\Controllers\AdminManajemenPenggunaController;
@@ -136,6 +137,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/kamar/pilih', [AuthController::class, 'pilihKamar'])
         ->name('kamar.pilih');
 
+    // Profil mahasiswa
+    Route::get('/profil-mhs', [ProfilMhsController::class, 'index'])
+        ->name('profil.mhs');
+
+    Route::put('/profil-mhs', [ProfilMhsController::class, 'update'])
+        ->name('profil.mhs.update');
 
     // Pembayaran mahasiswa
     Route::get('/pembayaran', [PembayaranController::class, 'index'])

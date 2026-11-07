@@ -834,24 +834,88 @@
             </a>
         </div>
 
-        <!-- Right Header Icons -->
-        <div class="navbar-actions">
-            <!-- Notification Bell Icon (Maroon circle with white bell) -->
-            <button type="button" class="btn-circle-action btn-bell-badge" title="Pemberitahuan" onclick="openInfoModal('Pemberitahuan', 'Tidak ada pemberitahuan baru saat ini. Semua tagihan dan absensi Anda dalam keadaan terkini.')">
-                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                </svg>
-            </button>
+    <div class="navbar-actions">
+    <!-- Notification Bell Icon -->
+     <button type="button" class="btn-circle-action btn-bell-badge"title="Pemberitahuan"onclick="openInfoModal('Pemberitahuan', 'Tidak ada pemberitahuan baru saat ini. Semua tagihan dan absensi Anda dalam keadaan terkini.')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2"stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+    </button>
 
-            <!-- User Avatar Icon (Dark circle with silhouette) -->
-            <button type="button" class="btn-circle-action btn-profile-badge" title="Profil Pengguna" onclick="openInfoModal('Profil Pengguna', '<strong>Nama:</strong> {{ Auth::user()->name }}<br><strong>NIM:</strong> {{ Auth::user()->nim ?? '-' }}<br><strong>Email:</strong> {{ Auth::user()->email }}<br><strong>Status:</strong> Penghuni Ma\'had Al-Jami\'ah')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#262626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-            </button>
-        </div>
+   <!-- User Profile Dropdown -->
+<details style="position: relative;">
+    <summary
+        class="btn-circle-action btn-profile-badge"
+        title="Profil Pengguna"
+        style="
+            list-style: none;
+            cursor: pointer;
+            overflow: hidden;
+            border-radius: 50%;
+        ">
+
+        @if(auth()->user()->foto_profil)
+            <img
+                src="{{ asset('storage/' . auth()->user()->foto_profil) }}"
+                alt="Foto Profil"
+                style="
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    border-radius: 50%;
+                    display: block;
+                ">
+        @else
+            <svg viewBox="0 0 24 24"
+                fill="none"
+                stroke="#262626"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+        @endif
+
+    </summary>
+
+    <div style="
+        position: absolute;
+        top: 50px;
+        right: 0;
+        width: 180px;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 9999;
+        overflow: hidden;
+    ">
+
+        <a href="{{ route('profil.mhs') }}"
+            style="
+                display: block;
+                padding: 12px 15px;
+                color: #6B0D1B;
+                text-decoration: none;
+            ">
+            Lihat Profil
+        </a>
+
+        <a href="#"
+            style="
+                display: block;
+                padding: 12px 15px;
+                color: #6B0D1B;
+                text-decoration: none;
+            ">
+            Data Mahasiswa
+        </a>
+
+    </div>
+</details>
+</div>
     </header>
 
     <!-- Mobile Backdrop -->
