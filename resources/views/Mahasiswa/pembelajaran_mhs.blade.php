@@ -942,7 +942,7 @@
                         <path d="M12 7v15"/>
                     </svg>
                 </div>
-                <div class="stat-number">7</div>
+                <div class="stat-number">{{ $totalMataPelajaran ?? count($mataPelajaran) }}</div>
                 <div class="stat-label">Mata Pelajaran</div>
             </div>
 
@@ -955,7 +955,7 @@
                         <path d="M18 15a6 6 0 0 1 4 5"/>
                     </svg>
                 </div>
-                <div class="stat-number">1</div>
+                <div class="stat-number">{{ $kelompokSaya ?? 'Kelompok 1' }}</div>
                 <div class="stat-label">Kelompok Saya</div>
             </div>
 
@@ -975,18 +975,25 @@
         <section class="schedule-card">
             <h2 class="section-title">Jadwal Terdekat</h2>
 
-            <div class="schedule-item">
-                <div class="schedule-time">
-                    <span class="schedule-day">SENIN</span>
-                    <span class="schedule-hour">08.00</span>
-                </div>
+            @forelse($jadwalTerdekat as $jdw)
+                <div class="schedule-item">
+                    <div class="schedule-time">
+                        <span class="schedule-day">{{ strtoupper($jdw['hari']) }}</span>
+                        <span class="schedule-hour">{{ $jdw['waktu'] }}</span>
+                    </div>
 
-                <div class="schedule-info">
-                    <h3>Mata Pelajaran A</h3>
-                    <p>Pengajar: Nama Pengajar</p>
-                    <p>Ruang: Ruang Pembelajaran 1</p>
+                    <div class="schedule-info">
+                        <h3>{{ $jdw['nama'] }}</h3>
+                        <p>Lokasi: {{ $jdw['lokasi'] }}</p>
+                    </div>
                 </div>
-            </div>
+            @empty
+                <div class="schedule-item">
+                    <div class="schedule-info">
+                        <p>Belum ada jadwal pembelajaran yang aktif.</p>
+                    </div>
+                </div>
+            @endforelse
         </section>
 
         <!-- KALENDER PEMBELAJARAN -->

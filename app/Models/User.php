@@ -41,6 +41,12 @@ class User extends Authenticatable
         return $this->hasMany(Pendaftaran::class);
     }
 
+    /** Data pembayaran mahasiswa. */
+    public function pembayarans(): HasMany
+    {
+        return $this->hasMany(Pembayaran::class);
+    }
+
     /** Setiap akun hanya boleh ditautkan ke satu pegawai lewat tabel penghubung. */
     public function pegawaiAkun(): HasOne
     {
