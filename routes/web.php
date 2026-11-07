@@ -453,6 +453,32 @@ Route::delete('/admin/manajemen-pengguna/{user}', [
         'index',
     ])->name('musyrifah.pendaftaran');
 
+
+        // =========================================================
+        // PENDAFTARAN MAHASISWA
+        // =========================================================
+
+        // STEP 1: DATA DIRI
+        Route::get('/pendaftaran/pribadi', [PendaftaranController::class, 'pribadi'])
+            ->name('pendaftaran.data_diri');
+
+        Route::post('/pendaftaran/pribadi', [PendaftaranController::class, 'simpanPribadi'])
+            ->name('pendaftaran.simpanPribadi');
+
+        // STEP 2: DATA AKADEMIK
+        Route::get('/pendaftaran/akademik', [PendaftaranController::class, 'akademik'])
+            ->name('pendaftaran.data_akademik');
+
+        Route::post('/pendaftaran/akademik', [PendaftaranController::class, 'simpanAkademik'])
+            ->name('pendaftaran.simpanAkademik');
+
+        // STEP 3: PERSYARATAN
+        Route::get('/pendaftaran/persyaratan', [PendaftaranController::class, 'persyaratan'])
+            ->name('pendaftaran.persyaratan');
+
+        Route::post('/pendaftaran/persyaratan', [PendaftaranController::class, 'simpanDokumen'])
+            ->name('pendaftaran.simpanDokumen');
+
     // Validasi pengajuan oleh Musyrifah/Pengelola.
     Route::patch('/musyrifah/pendaftaran/{pendaftaran}/status', [
         MusyrifahPendaftaranController::class,

@@ -389,19 +389,4 @@ class AdminManajemenPenggunaController extends Controller
         }
     }
 
-    public function verifikasi($id)
-{
-    // Cari user berdasarkan ID
-    $user = User::findOrFail($id);
-
-    // Ubah status akun menjadi disetujui
-    $user->status = 'approved';
-    $user->save();
-
-    // Kembali ke halaman manajemen pengguna
-    return redirect()->back()->with(
-        'success',
-        'Akun ' . $user->name . ' berhasil diverifikasi.'
-    );
-}
 }
