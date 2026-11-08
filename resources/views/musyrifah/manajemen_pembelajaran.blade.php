@@ -616,7 +616,7 @@
             📚 1. Mata Pelajaran ({{ count($daftarMataPelajaran) }})
         </button>
         <button type="button" class="mp-tab-btn" data-tab="tab-kelompok" onclick="switchTab('tab-kelompok', this)">
-            👥 2. Kelompok Belajar (CRUD)
+            👥 2. Kelompok Belajar
         </button>
         <button type="button" class="mp-tab-btn" data-tab="tab-jadwal" onclick="switchTab('tab-jadwal', this)">
             🗓️ 3. Jadwal Pembelajaran
