@@ -12,6 +12,8 @@ use Database\Seeders\PembelajaranSeeder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class MusyrifahManajemenPembelajaranController extends Controller
@@ -455,8 +457,18 @@ class MusyrifahManajemenPembelajaranController extends Controller
      */
     protected function pastikanAdaData(): void
     {
-        if (MataPelajaran::count() === 0 || KelompokPengajar::count() === 0) {
-            (new PembelajaranSeeder())->run();
+        try {
+            if (! Schema::hasTable('mata_pelajarans') || ! Schema::hasTable('kelompok_belajars') || ! Schema::hasTable('kelompok_pengajars') || ! Schema::hasTable('jadwal_pembelajarans') || ! Schema::hasTable('absensi_pembelajarans')) {
+                Artisan::call('migrate', ['--force' => true]);
+            }
+
+            if (Schema::hasTable('mata_pelajarans') && Schema::hasTable('kelompok_pengajars')) {
+                if (MataPelajaran::count() === 0 || KelompokPengajar::count() === 0) {
+                    (new PembelajaranSeeder())->run();
+                }
+            }
+        } catch (\Throwable $e) {
+            report($e);
         }
     }
 }
