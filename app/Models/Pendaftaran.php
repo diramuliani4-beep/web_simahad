@@ -20,6 +20,10 @@ class Pendaftaran extends Model
         'nama_ortu',
         'no_hp_ortu',
         'kategori',
+        'email_aktif',
+        'ijazah_sma',
+        'ktp',
+        'kk',
 
         // Data akademik.
         'tahun_angkatan',

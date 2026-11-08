@@ -663,7 +663,7 @@
 
                 <!-- STEP 1: DATA DIRI -->
                 <a href="{{ route('pendaftaran.pribadi') }}"
-                   class="step-item {{ request()->routeIs('pendaftaran.pribadi') ? 'active' : 'inactive' }}"
+                   class="step-item {{ request()->routeIs('pendaftaran.pribadi', 'pendaftaran.data_diri') ? 'active' : 'inactive' }}"
                    style="text-decoration: none;">
 
                     <div class="step-circle">1</div>
@@ -685,7 +685,7 @@
 
                 <!-- STEP 3: PERSYARATAN -->
                 <a href="{{ route('pendaftaran.persyaratan') }}"
-                   class="step-item {{ request()->routeIs('pendaftaran.persyaratan') ? 'active' : 'inactive' }}"
+                   class="step-item {{ request()->routeIs('pendaftaran.persyaratan', 'pendaftaran.dokumen') ? 'active' : 'inactive' }}"
                    style="text-decoration: none;">
 
                     <div class="step-circle">3</div>
@@ -781,22 +781,54 @@
             </div>
 
 
+            <!-- JENIS KELAMIN -->
+            <div class="form-group">
+
+                <label for="jenis_kelamin" class="form-label">
+                    Jenis Kelamin*
+                </label>
+
+                <select id="jenis_kelamin"
+                        name="jenis_kelamin"
+                        class="form-input"
+                        required>
+                    <option value="" disabled {{ old('jenis_kelamin', $data['jenis_kelamin'] ?? '') === '' ? 'selected' : '' }}>
+                        Pilih jenis kelamin
+                    </option>
+                    <option value="Laki-laki" {{ old('jenis_kelamin', $data['jenis_kelamin'] ?? '') === 'Laki-laki' ? 'selected' : '' }}>
+                        Laki-laki
+                    </option>
+                    <option value="Perempuan" {{ old('jenis_kelamin', $data['jenis_kelamin'] ?? '') === 'Perempuan' ? 'selected' : '' }}>
+                        Perempuan
+                    </option>
+                </select>
+
+                @error('jenis_kelamin')
+                    <small class="error-message">{{ $message }}</small>
+                @enderror
+
+            </div>
+
+
             <!-- EMAIL AKTIF -->
             <div class="form-group">
 
-                <label for="email_aktif" class="form-label">
+                <label for="email" class="form-label">
                     Email Aktif*
                 </label>
 
                 <input
                     type="email"
-                    id="email_aktif"
-                    name="email_aktif"
+                    id="email"
+                    name="email"
                     class="form-input"
                     placeholder="nama@email.com"
-                    value="{{ old('email_aktif', $data['email_aktif'] ?? Auth::user()->email ?? '') }}"
+                    value="{{ old('email', $data['email'] ?? $data['email_aktif'] ?? Auth::user()->email ?? '') }}"
                     required>
 
+                @error('email')
+                    <small class="error-message">{{ $message }}</small>
+                @enderror
                 @error('email_aktif')
                     <small class="error-message">{{ $message }}</small>
                 @enderror
@@ -863,7 +895,7 @@
                     <label class="file-input-wrapper" for="ijazah_sma">
 
                         <span id="namaIjazah">
-                            PDF, JPG, atau PNG
+                            {{ !empty($data['ijazah_sma']) ? 'Berkas ijazah tersimpan' : 'PDF, JPG, atau PNG' }}
                         </span>
 
                         <svg xmlns="http://www.w3.org/2000/svg"
@@ -887,7 +919,7 @@
                             id="ijazah_sma"
                             name="ijazah_sma"
                             accept=".pdf,.jpg,.jpeg,.png"
-                            required
+                            {{ empty($data['ijazah_sma']) ? 'required' : '' }}
                             onchange="tampilkanNamaFile(this, 'namaIjazah')">
 
                     </label>
@@ -965,7 +997,7 @@
                     <label class="file-input-wrapper" for="ktp">
 
                         <span id="namaktp">
-                            PDF, JPG, atau PNG
+                            {{ !empty($data['ktp']) ? 'Berkas KTP tersimpan' : 'PDF, JPG, atau PNG' }}
                         </span>
 
                         <svg xmlns="http://www.w3.org/2000/svg"
@@ -989,7 +1021,7 @@
                             id="ktp"
                             name="ktp"
                             accept=".pdf,.jpg,.jpeg,.png"
-                            required
+                            {{ empty($data['ktp']) ? 'required' : '' }}
                             onchange="tampilkanNamaFile(this, 'namaktp')">
 
                     </label>
@@ -1011,7 +1043,7 @@
                     <label class="file-input-wrapper" for="kk">
 
                         <span id="namaKk">
-                            PDF, JPG, atau PNG
+                            {{ !empty($data['kk']) ? 'Berkas KK tersimpan' : 'PDF, JPG, atau PNG' }}
                         </span>
 
                         <svg xmlns="http://www.w3.org/2000/svg"
@@ -1035,7 +1067,7 @@
                             id="kk"
                             name="kk"
                             accept=".pdf,.jpg,.jpeg,.png"
-                            required
+                            {{ empty($data['kk']) ? 'required' : '' }}
                             onchange="tampilkanNamaFile(this, 'namaKk')">
 
                     </label>
@@ -1052,13 +1084,19 @@
             <!-- FOOTER FORM -->
             <div class="form-footer">
 
-                <span class="col-required-notice">
-                    * Kolom wajib diisi.
-                </span>
+                <a href="{{ route('dashboard') }}" class="btn-maroon-pill" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                    Kembali
+                </a>
 
-                <button type="submit" class="btn-maroon-pill">
-                    Lanjut
-                </button>
+                <div style="display: flex; align-items: center; gap: 1.25rem;">
+                    <span class="col-required-notice">
+                        * Kolom wajib diisi.
+                    </span>
+
+                    <button type="submit" class="btn-maroon-pill">
+                        Lanjut
+                    </button>
+                </div>
 
             </div>
 

@@ -3,35 +3,38 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pendaftaran;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PendaftaranController extends Controller
-
 {
-// =========================================================
-// TAHAP 1: DATA DIRI
-// =========================================================
+    // =========================================================
+    // TAHAP 1: DATA DIRI
+    // =========================================================
 
-public function pribadi(Request $request): View|RedirectResponse
-{
-    if ($this->sudahMendaftar($request)) {
-        return redirect()->route('pendaftaran.konfirmasi');
+    public function pribadi(Request $request): View|RedirectResponse
+    {
+        if ($this->sudahMendaftar($request)) {
+            return redirect()->route('pendaftaran.konfirmasi');
+        }
+
+        $data = $this->dataDraft($request);
+
+        return view('pendaftaran.data_diri', compact('data'));
     }
-
-    $data = $this->dataDraft($request);
-
-    return view('pendaftaran.data_diri', compact('data'));
-}
 
     public function simpanPribadi(Request $request): RedirectResponse
     {
         if ($this->sudahMendaftar($request)) {
             return redirect()->route('pendaftaran.konfirmasi');
+        }
+
+        if ($request->has('email_aktif') && ! $request->has('email')) {
+            $request->merge(['email' => $request->input('email_aktif')]);
         }
 
         $dataLama = $this->dataDraft($request);
@@ -53,6 +56,9 @@ public function pribadi(Request $request): View|RedirectResponse
             'nama_ortu' => ['required', 'string', 'max:255'],
             'no_hp_ortu' => ['required', 'string', 'max:20'],
             'kategori' => ['nullable', Rule::in(['umum', 'kip'])],
+            'ijazah_sma' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'ktp' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'kk' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
         ], [
             'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
             'email.required' => 'Email aktif wajib diisi.',
@@ -67,6 +73,18 @@ public function pribadi(Request $request): View|RedirectResponse
         ]);
 
         $validated['kategori'] = $validated['kategori'] ?? 'umum';
+        $validated['email_aktif'] = $validated['email'];
+
+        foreach (['ijazah_sma', 'ktp', 'kk'] as $fileKey) {
+            if ($request->hasFile($fileKey)) {
+                $path = $request->file($fileKey)->store('dokumen_pendaftaran', 'public');
+                if ($path) {
+                    $validated[$fileKey] = $path;
+                }
+            } elseif (! empty($dataLama[$fileKey])) {
+                $validated[$fileKey] = $dataLama[$fileKey];
+            }
+        }
 
         $data = array_merge($dataLama, $validated);
 
@@ -94,7 +112,7 @@ public function pribadi(Request $request): View|RedirectResponse
 
         if (empty($data['nama_lengkap']) || empty($data['jenis_kelamin'])) {
             return redirect()
-                ->route('pendaftaran.data_diri')
+                ->route('pendaftaran.pribadi')
                 ->with('error', 'Lengkapi data diri terlebih dahulu.');
         }
 
@@ -110,7 +128,7 @@ public function pribadi(Request $request): View|RedirectResponse
         $data = $this->dataDraft($request);
 
         if (empty($data['nama_lengkap']) || empty($data['jenis_kelamin'])) {
-            return redirect()->route('pendaftaran.data_diri');
+            return redirect()->route('pendaftaran.pribadi');
         }
 
         $tahunSekarang = now()->year;
@@ -120,7 +138,7 @@ public function pribadi(Request $request): View|RedirectResponse
                 'required',
                 'integer',
                 'digits:4',
-                'between:' . ($tahunSekarang - 4) . ',' . $tahunSekarang,
+                'between:'.($tahunSekarang - 4).','.$tahunSekarang,
             ],
             'fakultas' => ['required', 'string', 'max:255'],
             'program_studi' => ['required', 'string', 'max:255'],
@@ -153,12 +171,12 @@ public function pribadi(Request $request): View|RedirectResponse
 
             $pathBaru = $file->store('dokumen_pendaftaran', 'public');
 
-            if (!$pathBaru) {
+            if (! $pathBaru) {
                 return back()->with('error', 'Gagal mengunggah bukti penerimaan.');
             }
 
             if (
-                !empty($data['bukti_penerimaan']) &&
+                ! empty($data['bukti_penerimaan']) &&
                 $data['bukti_penerimaan'] !== $pathBaru
             ) {
                 Storage::disk('public')->delete($data['bukti_penerimaan']);
@@ -192,7 +210,7 @@ public function pribadi(Request $request): View|RedirectResponse
 
         if (empty($data['nama_lengkap']) || empty($data['jenis_kelamin'])) {
             return redirect()
-                ->route('pendaftaran.data_diri')
+                ->route('pendaftaran.pribadi')
                 ->with('error', 'Lengkapi data diri terlebih dahulu.');
         }
 
@@ -219,7 +237,7 @@ public function pribadi(Request $request): View|RedirectResponse
         $data = $this->dataDraft($request);
 
         if (empty($data['nama_lengkap']) || empty($data['jenis_kelamin'])) {
-            return redirect()->route('pendaftaran.data_diri');
+            return redirect()->route('pendaftaran.pribadi');
         }
 
         if (
@@ -270,7 +288,7 @@ public function pribadi(Request $request): View|RedirectResponse
         $pathBuktiPembayaran = $request->file('bukti_pembayaran')
             ->store('dokumen_pembayaran', 'public');
 
-        if (!$pathBuktiPembayaran) {
+        if (! $pathBuktiPembayaran) {
             return back()->with('error', 'Gagal mengunggah bukti pembayaran.');
         }
 
@@ -284,6 +302,10 @@ public function pribadi(Request $request): View|RedirectResponse
                 'nama_ortu' => $data['nama_ortu'],
                 'no_hp_ortu' => $data['no_hp_ortu'],
                 'kategori' => $data['kategori'] ?? 'umum',
+                'email_aktif' => $data['email_aktif'] ?? $data['email'] ?? null,
+                'ijazah_sma' => $data['ijazah_sma'] ?? null,
+                'ktp' => $data['ktp'] ?? null,
+                'kk' => $data['kk'] ?? null,
                 'tahun_angkatan' => $data['tahun_angkatan'],
                 'fakultas' => $data['fakultas'],
                 'program_studi' => $data['program_studi'],
@@ -315,8 +337,8 @@ public function pribadi(Request $request): View|RedirectResponse
 
     public function konfirmasi(Request $request): View|RedirectResponse
     {
-        if (!$this->sudahMendaftar($request)) {
-            return redirect()->route('pendaftaran.data_diri');
+        if (! $this->sudahMendaftar($request)) {
+            return redirect()->route('pendaftaran.pribadi');
         }
 
         $pendaftaran = Pendaftaran::where('user_id', $request->user()->id)
@@ -331,7 +353,7 @@ public function pribadi(Request $request): View|RedirectResponse
         return redirect()->route(
             $this->sudahMendaftar($request)
                 ? 'pendaftaran.konfirmasi'
-                : 'pendaftaran.data_diri'
+                : 'pendaftaran.pribadi'
         );
     }
 
@@ -347,9 +369,9 @@ public function pribadi(Request $request): View|RedirectResponse
             ->latest('id')
             ->first();
 
-        if (!$pendaftaran) {
+        if (! $pendaftaran) {
             return redirect()
-                ->route('pendaftaran.data_diri')
+                ->route('pendaftaran.pribadi')
                 ->with('error', 'Silakan selesaikan pendaftaran terlebih dahulu.');
         }
 
@@ -407,7 +429,7 @@ public function pribadi(Request $request): View|RedirectResponse
             ->latest('id')
             ->first();
 
-        if (!$pendaftaran || $pendaftaran->status !== 'disetujui') {
+        if (! $pendaftaran || $pendaftaran->status !== 'disetujui') {
             return redirect()
                 ->route('pendaftaran.konfirmasi')
                 ->with('error', 'Pendaftaran belum disetujui.');
@@ -423,7 +445,7 @@ public function pribadi(Request $request): View|RedirectResponse
             ->where('id', $kamarId)
             ->first();
 
-        abort_if(!$kamarDetail, 404);
+        abort_if(! $kamarDetail, 404);
 
         $pengajuanMenunggu = DB::table('pengajuan_kamars')
             ->where('kamar_id', $kamarId)
@@ -491,7 +513,7 @@ public function pribadi(Request $request): View|RedirectResponse
             ->latest('id')
             ->first();
 
-        if (!$pendaftaran || $pendaftaran->status !== 'disetujui') {
+        if (! $pendaftaran || $pendaftaran->status !== 'disetujui') {
             return redirect()
                 ->route('pendaftaran.konfirmasi')
                 ->with('error', 'Pendaftaran kamu belum disetujui.');
@@ -510,7 +532,7 @@ public function pribadi(Request $request): View|RedirectResponse
                     ->lockForUpdate()
                     ->first();
 
-                if (!$kamar) {
+                if (! $kamar) {
                     throw new \RuntimeException('Kamar tidak ditemukan.');
                 }
 

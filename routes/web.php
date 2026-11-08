@@ -145,11 +145,21 @@ Route::middleware('auth')->group(function () {
         ->name('pembayaran.reset');
 
     // Pendaftaran mahasiswa
+    Route::get('/pendaftaran', function () {
+        return redirect()->route('pendaftaran.pribadi');
+    })->name('pendaftaran');
+
     Route::get('/pendaftaran/pribadi', [PendaftaranController::class, 'pribadi'])
         ->name('pendaftaran.pribadi');
 
+    Route::get('/pendaftaran/data-diri', [PendaftaranController::class, 'pribadi'])
+        ->name('pendaftaran.data_diri');
+
     Route::post('/pendaftaran/pribadi', [PendaftaranController::class, 'simpanPribadi'])
         ->name('pendaftaran.simpanPribadi');
+
+    Route::post('/pendaftaran/data-diri', [PendaftaranController::class, 'simpanPribadi'])
+        ->name('pendaftaran.simpanDataDiri');
 
     Route::get('/pendaftaran/akademik', [PendaftaranController::class, 'akademik'])
         ->name('pendaftaran.akademik');
@@ -157,8 +167,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/pendaftaran/akademik', [PendaftaranController::class, 'simpanAkademik'])
         ->name('pendaftaran.simpanAkademik');
 
+    Route::get('/pendaftaran/persyaratan', [PendaftaranController::class, 'persyaratan'])
+        ->name('pendaftaran.persyaratan');
+
     Route::get('/pendaftaran/dokumen', [PendaftaranController::class, 'persyaratan'])
         ->name('pendaftaran.dokumen');
+
+    Route::post('/pendaftaran/persyaratan', [PendaftaranController::class, 'simpanDokumen'])
+        ->name('pendaftaran.simpanPersyaratan');
 
     Route::post('/pendaftaran/dokumen', [PendaftaranController::class, 'simpanDokumen'])
         ->name('pendaftaran.simpanDokumen');
