@@ -192,6 +192,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/pembelajaran-mhs', [PembelajaranController::class, 'index'])
         ->name('pembelajaran.mhs');
 
+    Route::get('/pembelajaran-mhs/detail-pertemuan/{id}', [
+        PembelajaranController::class,
+        'detailPertemuan',
+    ])->whereNumber('id')->name('pembelajaran.mhs.detail_pertemuan');
+
     // Absensi mahasiswa
     Route::get('/absensi-mhs', [AbsensiMhsController::class, 'index'])
         ->name('absensi.mhs');
