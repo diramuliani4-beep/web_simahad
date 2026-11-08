@@ -1,11 +1,6 @@
 <?php
 
 use App\Http\Controllers\AbsensiMhsController;
-use App\Http\Controllers\PengumumanMhsController;
-use App\Http\Controllers\SuratPerizinanMhsController;
-use App\Http\Controllers\PengajuanIzinPulangController;
-use App\Http\Controllers\ProfilMhsController;
-
 use App\Http\Controllers\AdminDataMahasiswaController;
 use App\Http\Controllers\AdminDataPegawaiController;
 use App\Http\Controllers\AdminHakAksesController;
@@ -28,9 +23,13 @@ use App\Http\Controllers\MusyrifahSuratPerizinanController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\PembelajaranController;
 use App\Http\Controllers\PendaftaranController;
+use App\Http\Controllers\PengajuanIzinPulangController;
+use App\Http\Controllers\PengumumanMhsController;
 use App\Http\Controllers\PimpinanDataPenghuniController;
 use App\Http\Controllers\PimpinanLaporanMahadController;
 use App\Http\Controllers\PimpinanPembelajaranController;
+use App\Http\Controllers\ProfilMhsController;
+use App\Http\Controllers\SuratPerizinanMhsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -181,6 +180,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/pendaftaran/konfirmasi', [PendaftaranController::class, 'konfirmasi'])
         ->name('pendaftaran.konfirmasi');
+
+    // Perbaikan pendaftaran mahasiswa jika diminta revisi oleh Musyrifah
+    Route::post('/pendaftaran/perbaikan', [PendaftaranController::class, 'simpanPerbaikan'])
+        ->name('pendaftaran.simpanPerbaikan');
 
     // Pilih kamar mahasiswa
     Route::get('/pendaftaran/pilih-kamar', [
@@ -476,17 +479,32 @@ Route::middleware('auth')->group(function () {
         'updateStatus',
     ])->name('musyrifah.pendaftaran.status');
 
-    // Pemeriksaan bukti penerimaan UIN dan bukti pembayaran oleh Musyrifah.
+    // Pemeriksaan berkas pendaftaran oleh Musyrifah.
     Route::get('/musyrifah/pendaftaran/{pendaftaran}/berkas/{jenis}', [
         MusyrifahPendaftaranController::class,
         'berkas',
-    ])->whereIn('jenis', ['penerimaan', 'pembayaran'])
+    ])->whereIn('jenis', ['penerimaan', 'pembayaran', 'ijazah', 'ktp', 'kk'])
         ->name('musyrifah.pendaftaran.berkas');
 
     Route::get('/musyrifah/data-kamar', [
         MusyrifahDataKamarController::class,
         'index',
     ])->name('musyrifah.data_kamar');
+
+    Route::post('/musyrifah/data-kamar', [
+        MusyrifahDataKamarController::class,
+        'store',
+    ])->name('musyrifah.data_kamar.store');
+
+    Route::put('/musyrifah/data-kamar/{kamar}', [
+        MusyrifahDataKamarController::class,
+        'update',
+    ])->name('musyrifah.data_kamar.update');
+
+    Route::delete('/musyrifah/data-kamar/{kamar}', [
+        MusyrifahDataKamarController::class,
+        'destroy',
+    ])->name('musyrifah.data_kamar.destroy');
 
     Route::get('/musyrifah/pembayaran', [
         MusyrifahPembayaranController::class,

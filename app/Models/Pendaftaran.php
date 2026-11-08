@@ -14,7 +14,12 @@ class Pendaftaran extends Model
 
         // Data diri.
         'nama_lengkap',
+        'nim',
+        'tempat_lahir',
+        'tanggal_lahir',
         'jenis_kelamin',
+        'no_hp',
+        'semester',
         'no_wa',
         'asal_sekolah',
         'nama_ortu',

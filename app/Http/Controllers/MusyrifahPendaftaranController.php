@@ -33,9 +33,11 @@ class MusyrifahPendaftaranController extends Controller
                     'menunggu' => 'Menunggu',
                     'disetujui' => 'Disetujui',
                     'ditolak' => 'Ditolak',
-                    default => ucfirst((string) $pendaftaran->status),
+                    'perlu_perbaikan' => 'Perlu Perbaikan',
+                    default => ucfirst(str_replace('_', ' ', (string) $pendaftaran->status)),
                 },
                 'status_kode' => $pendaftaran->status,
+                'kategori' => $pendaftaran->kategori ?: 'umum',
                 'jenis_kelamin' => $pendaftaran->jenis_kelamin,
                 'tahun_angkatan' => $pendaftaran->tahun_angkatan,
                 'fakultas' => $pendaftaran->fakultas,
@@ -52,28 +54,28 @@ class MusyrifahPendaftaranController extends Controller
     }
 
     /**
-     * Menyetujui atau menolak satu pendaftaran yang masih menunggu.
+     * Menyetujui, meminta perbaikan, atau menolak satu pendaftaran.
      */
     public function updateStatus(Request $request, Pendaftaran $pendaftaran): RedirectResponse
     {
         $this->pastikanPengelola($request);
 
-        if ($pendaftaran->status !== 'menunggu') {
-            return back()->with('error', 'Pendaftaran sudah divalidasi. Keputusan tidak dapat ditimpa.');
+        if (! in_array($pendaftaran->status, ['menunggu', 'perlu_perbaikan'], true)) {
+            return back()->with('error', 'Pendaftaran sudah diproses dan tidak dapat diubah.');
         }
 
         $validated = $request->validate([
-            'status' => ['required', Rule::in(['disetujui', 'ditolak'])],
+            'status' => ['required', Rule::in(['disetujui', 'ditolak', 'perlu_perbaikan'])],
             'catatan_validasi' => [
                 'nullable',
                 'string',
                 'max:2000',
-                Rule::requiredIf($request->input('status') === 'ditolak'),
+                Rule::requiredIf(in_array($request->input('status'), ['ditolak', 'perlu_perbaikan'], true)),
             ],
         ], [
             'status.required' => 'Keputusan validasi harus dipilih.',
             'status.in' => 'Keputusan validasi tidak valid.',
-            'catatan_validasi.required' => 'Alasan penolakan wajib diisi.',
+            'catatan_validasi.required' => 'Catatan wajib diisi saat menolak atau meminta perbaikan berkas.',
             'catatan_validasi.max' => 'Catatan maksimal 2000 karakter.',
         ]);
 
@@ -86,8 +88,8 @@ class MusyrifahPendaftaranController extends Controller
 
             if (
                 (float) $pendaftaran->nominal_pembayaran < 1000000
-                || !$dokumenLengkap
-                || !$pendaftaran->konfirmasi_data
+                || ! $dokumenLengkap
+                || ! $pendaftaran->konfirmasi_data
             ) {
                 return back()->with(
                     'error',
@@ -98,10 +100,10 @@ class MusyrifahPendaftaranController extends Controller
 
         $musyrifah = $request->user();
 
-        // Update bersyarat mencegah dua Musyrifah memvalidasi data yang sama.
+        // Update bersyarat mencegah konflik validasi.
         $berhasil = Pendaftaran::query()
             ->whereKey($pendaftaran->id)
-            ->where('status', 'menunggu')
+            ->whereIn('status', ['menunggu', 'perlu_perbaikan'])
             ->update([
                 'status' => $validated['status'],
                 'validator_id' => $musyrifah->id,
@@ -112,11 +114,18 @@ class MusyrifahPendaftaranController extends Controller
                     : null,
             ]);
 
-        if (!$berhasil) {
+        if (! $berhasil) {
             return back()->with('error', 'Pendaftaran sudah diproses Musyrifah lain. Muat ulang daftar.');
         }
 
-        return back()->with('success', 'Validasi pendaftaran berhasil disimpan.');
+        $pesanSukses = match ($validated['status']) {
+            'disetujui' => 'Pendaftaran berhasil disetujui.',
+            'perlu_perbaikan' => 'Permintaan perbaikan berhasil dikirim ke mahasiswa.',
+            'ditolak' => 'Pendaftaran telah ditolak.',
+            default => 'Validasi pendaftaran berhasil disimpan.',
+        };
+
+        return back()->with('success', $pesanSukses);
     }
 
     /**
@@ -129,6 +138,9 @@ class MusyrifahPendaftaranController extends Controller
         $kolom = match ($jenis) {
             'penerimaan' => 'bukti_penerimaan',
             'pembayaran' => 'bukti_pembayaran',
+            'ijazah' => 'ijazah_sma',
+            'ktp' => 'ktp',
+            'kk' => 'kk',
             default => abort(404),
         };
 

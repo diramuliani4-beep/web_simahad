@@ -121,6 +121,7 @@
         }
 
         .status-icon.rejected { background: #fee2e2; color: #b42318; border-color: #fca5a5; }
+        .status-icon.revise { background: #ffedd5; color: #c2410c; border-color: #fed7aa; }
 
         h1 { color: var(--maroon); font-size: 1.45rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.35; }
 
@@ -135,6 +136,18 @@
         .alert.approved { background: #e6f6eb; border: 1px solid #b5e6c5; color: #166534; }
 
         .alert.rejected { background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; }
+
+        .alert.revise { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; }
+
+        .revision-box { text-align: left; background: #fdfafb; border: 1.5px dashed #dca5b1; border-radius: 12px; padding: 1.35rem 1.25rem; margin: 1.5rem 0; }
+        .revision-box h3 { font-size: 1rem; color: var(--maroon); margin-bottom: .4rem; }
+        .revision-box p { font-size: .82rem; color: #64748b; margin-bottom: 1.2rem; line-height: 1.5; }
+        .revision-field { margin-bottom: 1rem; }
+        .revision-field label { display: block; font-size: .82rem; font-weight: 600; color: #374151; margin-bottom: .35rem; }
+        .revision-field input[type="file"], .revision-field input[type="text"], .revision-field textarea {
+            width: 100%; padding: .55rem .75rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: .83rem; background: #fff; font-family: inherit;
+        }
+        .revision-field .hint { font-size: .75rem; color: #64748b; margin-top: .25rem; }
 
         .alert-title { display: flex; align-items: center; gap: .6rem; font-weight: 700; font-size: .92rem; }
 
@@ -234,6 +247,25 @@
 
 <main class="card">
 
+    @if (session('success'))
+        <div class="alert approved" style="margin-top:0;">
+            <div class="alert-title">{{ session('success') }}</div>
+        </div>
+    @endif
+
+    @if (session('error') || $errors->any())
+        <div class="alert rejected" style="margin-top:0;">
+            <div class="alert-title">{{ session('error') ?: 'Terdapat kesalahan pada isian form:' }}</div>
+            @if ($errors->any())
+                <ul style="margin: .5rem 0 0 1.2rem; font-size: .8rem;">
+                    @foreach ($errors->all() as $err)
+                        <li>{{ $err }}</li>
+                    @endforeach
+                </ul>
+            @endif
+        </div>
+    @endif
+
     {{-- Tampilan pertama: tepat setelah formulir berhasil tersimpan. --}}
 
     @if ($baruDikirim && $statusPendaftaran === 'menunggu')
@@ -267,6 +299,8 @@
         <div class="summary" aria-label="Ringkasan pengajuan">
 
             <div class="summary-row"><span class="summary-label">Nomor Pendaftaran</span><span class="summary-value">#{{ $nomorPendaftaran }}</span></div>
+
+            <div class="summary-row"><span class="summary-label">Kategori Pendaftaran</span><span class="summary-value">{{ ($pendaftaran->kategori ?? 'umum') === 'kip' ? 'Mahasiswa KIP' : 'Mahasiswa Umum' }}</span></div>
 
             <div class="summary-row"><span class="summary-label">Tanggal Dikirim</span><span class="summary-value">{{ $pendaftaran->created_at?->format('d/m/Y H:i') ?? '-' }}</span></div>
 
@@ -326,6 +360,72 @@
 
         </div>
 
+    @elseif ($statusPendaftaran === 'perlu_perbaikan')
+
+        <div class="status-icon revise" aria-hidden="true">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+
+        <h1>Pendaftaran Perlu Perbaikan</h1>
+
+        <p class="subtitle">Pengajuan atas nama <strong>{{ $pendaftaran->nama_lengkap }}</strong> telah diperiksa oleh Musyrifah dan memerlukan perbaikan data atau kelengkapan berkas.</p>
+
+        <section class="alert revise" aria-label="Catatan perbaikan">
+            <div class="alert-title">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span>Catatan Musyrifah:</span>
+            </div>
+            <p class="alert-desc" style="padding-left:1.65rem; font-weight:600; color:#9a3412;">
+                {{ $pendaftaran->catatan_validasi ?: 'Mohon periksa kembali kelengkapan dan kejelasan dokumen pendaftaran Anda.' }}
+            </p>
+        </section>
+
+        <form class="revision-box" action="{{ route('pendaftaran.simpanPerbaikan') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <h3>Form Pengiriman Perbaikan</h3>
+            <p>Silakan unggah ulang berkas atau ubah data yang diminta pada catatan di atas. Berkas yang tidak diunggah ulang akan tetap menggunakan berkas yang tersimpan sebelumnya.</p>
+
+            <div class="revision-field">
+                <label for="bukti_pembayaran">Upload Ulang Bukti Pembayaran (Opsional)</label>
+                <input type="file" id="bukti_pembayaran" name="bukti_pembayaran" accept=".pdf,.jpg,.jpeg,.png">
+                <div class="hint">Format: PDF, JPG, JPEG, PNG (Maksimal 5 MB)</div>
+            </div>
+
+            <div class="revision-field">
+                <label for="bukti_penerimaan">Upload Ulang Bukti Penerimaan UIN (Opsional)</label>
+                <input type="file" id="bukti_penerimaan" name="bukti_penerimaan" accept=".pdf,.jpg,.jpeg,.png">
+                <div class="hint">Format: PDF, JPG, JPEG, PNG (Maksimal 5 MB)</div>
+            </div>
+
+            <div class="revision-field">
+                <label for="ijazah_sma">Upload Ulang Ijazah SMA (Opsional)</label>
+                <input type="file" id="ijazah_sma" name="ijazah_sma" accept=".pdf,.jpg,.jpeg,.png">
+                <div class="hint">Format: PDF, JPG, JPEG, PNG (Maksimal 5 MB)</div>
+            </div>
+
+            <div class="revision-field">
+                <label for="ktp">Upload Ulang KTP (Opsional)</label>
+                <input type="file" id="ktp" name="ktp" accept=".pdf,.jpg,.jpeg,.png">
+                <div class="hint">Format: PDF, JPG, JPEG, PNG (Maksimal 5 MB)</div>
+            </div>
+
+            <div class="revision-field">
+                <label for="kk">Upload Ulang Kartu Keluarga (Opsional)</label>
+                <input type="file" id="kk" name="kk" accept=".pdf,.jpg,.jpeg,.png">
+                <div class="hint">Format: PDF, JPG, JPEG, PNG (Maksimal 5 MB)</div>
+            </div>
+
+            <div class="revision-field">
+                <label for="no_wa">Nomor WhatsApp Aktif (Opsional)</label>
+                <input type="text" id="no_wa" name="no_wa" value="{{ old('no_wa', $pendaftaran->no_wa) }}" placeholder="08xxxxxxxxxx">
+            </div>
+
+            <div class="actions" style="margin-top:1.25rem;">
+                <a class="btn outline" href="{{ route('dashboard') }}">Kembali</a>
+                <button type="submit" class="btn" style="background:#c2410c;">Kirim Ulang Perbaikan</button>
+            </div>
+        </form>
+
     @elseif ($statusPendaftaran === 'ditolak')
 
         <div class="status-icon rejected" aria-hidden="true">
@@ -375,6 +475,8 @@
             <div class="status-detail">
 
                 <div><div class="label">Nama Pendaftar</div><div class="value">{{ $pendaftaran->nama_lengkap }}</div></div>
+
+                <div><div class="label">Kategori Pendaftaran</div><div class="value">{{ ($pendaftaran->kategori ?? 'umum') === 'kip' ? 'Mahasiswa KIP' : 'Mahasiswa Umum' }}</div></div>
 
                 <div><div class="label">Tahun Angkatan</div><div class="value">{{ $pendaftaran->tahun_angkatan }}</div></div>
 

@@ -54,6 +54,10 @@
     .pendaftaran-status--menunggu { color: #92400e; background: #fef3c7; }
     .pendaftaran-status--disetujui { color: #166534; background: #dcfce7; }
     .pendaftaran-status--ditolak { color: #991b1b; background: #fee2e2; }
+    .pendaftaran-status--perbaikan { color: #c2410c; background: #ffedd5; border: 1px solid #fed7aa; }
+    .pendaftaran-badge-kategori { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px; text-transform: uppercase; margin-top: 4px; }
+    .pendaftaran-badge-kategori--umum { background: #e0e7ff; color: #3730a3; }
+    .pendaftaran-badge-kategori--kip { background: #fef3c7; color: #92400e; }
     .pendaftaran-validator-mini { display: block; margin-top: 7px; font-size: 12px; color: #655b5e; overflow-wrap: anywhere; }
 
     /* Aksi tabel / dialog. */
@@ -64,6 +68,8 @@
     .pendaftaran-btn--detail:hover { background: #590018; }
     .pendaftaran-btn--approve { background: #166534; color: #fff; }
     .pendaftaran-btn--approve:hover { background: #14532d; }
+    .pendaftaran-btn--revise { background: #d97706; color: #fff; }
+    .pendaftaran-btn--revise:hover { background: #b45309; }
     .pendaftaran-btn--reject { background: #991b1b; color: #fff; }
     .pendaftaran-btn--reject:hover { background: #7f1d1d; }
     .pendaftaran-btn--outline { border-color: #c3a4ac; background: #fff; color: var(--pm-maroon); }
@@ -91,14 +97,14 @@
     .pendaftaran-detail-value { display: block; color: #25171b; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; white-space: pre-line; }
     .pendaftaran-documents { display: flex; gap: 10px; flex-wrap: wrap; }
     .pendaftaran-notice { padding: 12px 14px; border-radius: 10px; background: #fff7ed; border: 1px solid #fed7aa; color: #92400e; font-size: 13px; line-height: 1.6; }
-    .pendaftaran-action-area { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding-top: 16px; }
-    .pendaftaran-action-form { padding: 16px; border: 1px solid #ead8dd; background: #fffafb; border-radius: 12px; }
+    .pendaftaran-action-area { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; padding-top: 16px; }
+    .pendaftaran-action-form { padding: 16px; border: 1px solid #ead8dd; background: #fffafb; border-radius: 12px; display: flex; flex-direction: column; }
     .pendaftaran-action-form h4 { margin: 0 0 8px; color: #382329; font-size: 15px; }
     .pendaftaran-action-form p { margin: 0 0 12px; color: #6b5d61; font-size: 12px; line-height: 1.6; }
     .pendaftaran-action-form label { display: block; margin-bottom: 7px; font-size: 12px; font-weight: 600; }
     .pendaftaran-action-form textarea { display: block; width: 100%; min-height: 86px; resize: vertical; padding: 10px 12px; margin-bottom: 13px; border: 1px solid #cdb6bd; border-radius: 8px; font: 13px 'Poppins', Arial, sans-serif; }
     .pendaftaran-action-form textarea:focus { outline: 2px solid #af6174; outline-offset: 1px; }
-    .pendaftaran-action-form .pendaftaran-btn { width: 100%; }
+    .pendaftaran-action-form .pendaftaran-btn { width: 100%; margin-top: auto; }
     .pendaftaran-finished { background: #f8f7f7; border: 1px solid #e9e4e5; border-radius: 12px; padding: 15px; color: #554b4e; font-size: 14px; }
 
     @media (max-width: 768px) {
@@ -129,6 +135,9 @@
     <p class="pendaftaran-summary">
         Total {{ $pendaftarans->count() }} pendaftar &bull;
         {{ $pendaftarans->where('status', 'menunggu')->count() }} menunggu validasi
+        @if ($pendaftarans->where('status', 'perlu_perbaikan')->count() > 0)
+            &bull; {{ $pendaftarans->where('status', 'perlu_perbaikan')->count() }} perlu perbaikan
+        @endif
     </p>
 
     @if (session('success'))
@@ -168,7 +177,7 @@
             <thead>
                 <tr>
                     <th scope="col">No</th>
-                    <th scope="col">Nama</th>
+                    <th scope="col">Nama & Kategori</th>
                     <th scope="col">NIM</th>
                     <th scope="col">Status</th>
                     <th scope="col">Aksi</th>
@@ -178,13 +187,20 @@
                 @forelse ($pendaftarans as $index => $pendaftaran)
                     <tr class="baris-pendaftar">
                         <td>{{ $index + 1 }}</td>
-                        <td class="pendaftaran-name">{{ $pendaftaran->nama_lengkap ?: '-' }}</td>
+                        <td>
+                            <div class="pendaftaran-name">{{ $pendaftaran->nama_lengkap ?: '-' }}</div>
+                            <span class="pendaftaran-badge-kategori pendaftaran-badge-kategori--{{ ($pendaftaran->kategori ?? 'umum') === 'kip' ? 'kip' : 'umum' }}">
+                                {{ ($pendaftaran->kategori ?? 'umum') === 'kip' ? 'Mahasiswa KIP' : 'Mahasiswa Umum' }}
+                            </span>
+                        </td>
                         <td>{{ $pendaftaran->user?->nim ?: '-' }}</td>
                         <td>
                             @if ($pendaftaran->status === 'disetujui')
                                 <span class="pendaftaran-status pendaftaran-status--disetujui">Disetujui</span>
                             @elseif ($pendaftaran->status === 'ditolak')
                                 <span class="pendaftaran-status pendaftaran-status--ditolak">Ditolak</span>
+                            @elseif ($pendaftaran->status === 'perlu_perbaikan')
+                                <span class="pendaftaran-status pendaftaran-status--perbaikan">Perlu Perbaikan</span>
                             @else
                                 <span class="pendaftaran-status pendaftaran-status--menunggu">Menunggu</span>
                             @endif
@@ -324,6 +340,27 @@
                                     @else
                                         <span class="pendaftaran-detail-value">Bukti pembayaran belum diunggah.</span>
                                     @endif
+
+                                    @if ($pendaftaran->ijazah_sma)
+                                        <a class="pendaftaran-btn pendaftaran-btn--document" target="_blank" rel="noopener noreferrer"
+                                            href="{{ route('musyrifah.pendaftaran.berkas', ['pendaftaran' => $pendaftaran->id, 'jenis' => 'ijazah']) }}">
+                                            Lihat Ijazah SMA
+                                        </a>
+                                    @endif
+
+                                    @if ($pendaftaran->ktp)
+                                        <a class="pendaftaran-btn pendaftaran-btn--document" target="_blank" rel="noopener noreferrer"
+                                            href="{{ route('musyrifah.pendaftaran.berkas', ['pendaftaran' => $pendaftaran->id, 'jenis' => 'ktp']) }}">
+                                            Lihat KTP
+                                        </a>
+                                    @endif
+
+                                    @if ($pendaftaran->kk)
+                                        <a class="pendaftaran-btn pendaftaran-btn--document" target="_blank" rel="noopener noreferrer"
+                                            href="{{ route('musyrifah.pendaftaran.berkas', ['pendaftaran' => $pendaftaran->id, 'jenis' => 'kk']) }}">
+                                            Lihat Kartu Keluarga
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -341,8 +378,10 @@
                                         Disetujui
                                     @elseif ($pendaftaran->status === 'ditolak')
                                         Ditolak
+                                    @elseif ($pendaftaran->status === 'perlu_perbaikan')
+                                        Perlu Perbaikan
                                     @else
-                                        {{ ucfirst((string) $pendaftaran->status) }}
+                                        {{ ucfirst(str_replace('_', ' ', (string) $pendaftaran->status)) }}
                                     @endif
                                 </span>
                             </div>
@@ -361,35 +400,47 @@
                         </div>
                     </section>
 
-                    @if ($pendaftaran->status === 'menunggu')
+                    @if (in_array($pendaftaran->status, ['menunggu', 'perlu_perbaikan'], true))
                         <div class="pendaftaran-notice">
-                            Periksa keaslian dokumen dan cocokkan pembayaran dengan catatan penerimaan dana sebelum memilih <strong>Setujui</strong>.
-                            Nominal dan file yang diunggah mahasiswa belum membuktikan pembayaran sudah diterima.
+                            Periksa kelengkapan berkas fisik/digital dan pembayaran. Anda dapat <strong>Menyetujui</strong>, meminta <strong>Perbaikan</strong>, atau <strong>Menolak</strong> pengajuan pendaftaran ini.
                         </div>
                         <div class="pendaftaran-action-area">
                             <form class="pendaftaran-action-form" method="POST"
                                 action="{{ route('musyrifah.pendaftaran.status', $pendaftaran->id) }}"
-                                onsubmit="return confirm('Yakin menyetujui pendaftaran ini? Pastikan dokumen dan penerimaan pembayaran sudah diperiksa.');">
+                                onsubmit="return confirm('Yakin menyetujui pendaftaran ini? Pastikan dokumen dan pembayaran sudah diverifikasi.');">
                                 @csrf
                                 @method('PATCH')
                                 <input type="hidden" name="status" value="disetujui">
                                 <h4>Setujui Pendaftaran</h4>
-                                <p>Setelah disetujui, mahasiswa dapat melanjutkan proses sesuai aturan SIMAHAD.</p>
+                                <p>Mahasiswa dinyatakan diterima dan dapat melanjutkan ke tahap pemilihan kamar.</p>
                                 <label for="catatan-setujui-{{ $pendaftaran->id }}">Catatan (opsional)</label>
-                                <textarea id="catatan-setujui-{{ $pendaftaran->id }}" name="catatan_validasi" maxlength="2000" placeholder="Misalnya: dokumen lengkap dan pembayaran sudah diverifikasi"></textarea>
+                                <textarea id="catatan-setujui-{{ $pendaftaran->id }}" name="catatan_validasi" maxlength="2000" placeholder="Misalnya: Dokumen lengkap dan pembayaran telah diverifikasi."></textarea>
                                 <button type="submit" class="pendaftaran-btn pendaftaran-btn--approve">✓ Setujui</button>
                             </form>
 
                             <form class="pendaftaran-action-form" method="POST"
                                 action="{{ route('musyrifah.pendaftaran.status', $pendaftaran->id) }}"
-                                onsubmit="return confirm('Yakin menolak pendaftaran ini? Alasan penolakan akan disimpan.');">
+                                onsubmit="return confirm('Yakin meminta perbaikan untuk pendaftaran ini? Tuliskan instruksi perbaikan dengan jelas.');">
+                                @csrf
+                                @method('PATCH')
+                                <input type="hidden" name="status" value="perlu_perbaikan">
+                                <h4>Perlu Perbaikan</h4>
+                                <p>Mahasiswa diminta memperbaiki data atau mengunggah ulang dokumen yang belum sesuai.</p>
+                                <label for="catatan-perbaikan-{{ $pendaftaran->id }}">Instruksi Perbaikan <span aria-hidden="true">*</span></label>
+                                <textarea id="catatan-perbaikan-{{ $pendaftaran->id }}" name="catatan_validasi" maxlength="2000" required placeholder="Contoh: Bukti pembayaran terpotong, mohon unggah ulang bukti transfer yang jelas."></textarea>
+                                <button type="submit" class="pendaftaran-btn pendaftaran-btn--revise">⚠ Minta Perbaikan</button>
+                            </form>
+
+                            <form class="pendaftaran-action-form" method="POST"
+                                action="{{ route('musyrifah.pendaftaran.status', $pendaftaran->id) }}"
+                                onsubmit="return confirm('Yakin menolak pendaftaran ini? Alasan penolakan akan dicatat.');">
                                 @csrf
                                 @method('PATCH')
                                 <input type="hidden" name="status" value="ditolak">
                                 <h4>Tolak Pendaftaran</h4>
-                                <p>Alasan penolakan wajib diisi agar keputusan dapat ditinjau kembali.</p>
-                                <label for="catatan-tolak-{{ $pendaftaran->id }}">Alasan penolakan <span aria-hidden="true">*</span></label>
-                                <textarea id="catatan-tolak-{{ $pendaftaran->id }}" name="catatan_validasi" maxlength="2000" required placeholder="Tuliskan alasan penolakan secara jelas"></textarea>
+                                <p>Pendaftaran dihentikan karena tidak memenuhi kriteria penerimaan Ma'had.</p>
+                                <label for="catatan-tolak-{{ $pendaftaran->id }}">Alasan Penolakan <span aria-hidden="true">*</span></label>
+                                <textarea id="catatan-tolak-{{ $pendaftaran->id }}" name="catatan_validasi" maxlength="2000" required placeholder="Tuliskan alasan penolakan secara jelas."></textarea>
                                 <button type="submit" class="pendaftaran-btn pendaftaran-btn--reject">✕ Tolak</button>
                             </form>
                         </div>

@@ -352,6 +352,12 @@
 
             <h3>Detail Kamar {{ $kamarDetail->nomor_kamar }}</h3>
 
+            @if(!empty($kamarDetail->foto))
+                <div style="margin-bottom: 20px; border-radius: 10px; overflow: hidden; max-height: 280px; background: #eee;">
+                    <img src="{{ asset('storage/' . $kamarDetail->foto) }}" alt="Foto Kamar {{ $kamarDetail->nomor_kamar }}" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            @endif
+
             <div class="detail-row">
                 <span>Nama kamar</span>
                 <span>{{ $kamarDetail->nama_kamar }}</span>
@@ -434,6 +440,12 @@
     @forelse($kamars as $kamar)
 
         <div class="room-card">
+
+            @if(!empty($kamar->foto))
+                <div style="margin: -17px -24px 16px -24px; height: 160px; overflow: hidden; border-radius: 10px 10px 0 0; background: #eed8dc;">
+                    <img src="{{ asset('storage/' . $kamar->foto) }}" alt="Foto Kamar {{ $kamar->nomor_kamar }}" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            @endif
 
             <div class="room-header">
 

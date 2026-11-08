@@ -348,6 +348,78 @@ class PendaftaranController extends Controller
         return view('pendaftaran.konfirmasi', compact('pendaftaran'));
     }
 
+    /**
+     * Memproses pengiriman ulang perbaikan data atau berkas oleh mahasiswa.
+     */
+    public function simpanPerbaikan(Request $request): RedirectResponse
+    {
+        $pendaftaran = Pendaftaran::where('user_id', $request->user()->id)
+            ->latest('id')
+            ->firstOrFail();
+
+        if ($pendaftaran->status !== 'perlu_perbaikan') {
+            return redirect()
+                ->route('pendaftaran.konfirmasi')
+                ->with('error', 'Status pendaftaran Anda saat ini bukan perlu perbaikan.');
+        }
+
+        $validated = $request->validate([
+            'no_wa' => ['nullable', 'string', 'max:20'],
+            'asal_sekolah' => ['nullable', 'string', 'max:255'],
+            'nama_ortu' => ['nullable', 'string', 'max:255'],
+            'no_hp_ortu' => ['nullable', 'string', 'max:20'],
+            'alasan_daftar' => ['nullable', 'string'],
+            'bukti_penerimaan' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'bukti_pembayaran' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'ijazah_sma' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'ktp' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'kk' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+        ], [
+            'bukti_penerimaan.mimes' => 'Bukti penerimaan harus format PDF, JPG, JPEG, atau PNG.',
+            'bukti_pembayaran.mimes' => 'Bukti pembayaran harus format PDF, JPG, JPEG, atau PNG.',
+            'ijazah_sma.mimes' => 'Ijazah SMA harus format PDF, JPG, JPEG, atau PNG.',
+            'ktp.mimes' => 'KTP harus format PDF, JPG, JPEG, atau PNG.',
+            'kk.mimes' => 'KK harus format PDF, JPG, JPEG, atau PNG.',
+        ]);
+
+        $updateData = [];
+
+        foreach (['no_wa', 'asal_sekolah', 'nama_ortu', 'no_hp_ortu', 'alasan_daftar'] as $field) {
+            if ($request->filled($field)) {
+                $updateData[$field] = $request->input($field);
+            }
+        }
+
+        $filesToStore = [
+            'bukti_penerimaan' => 'dokumen_pendaftaran',
+            'bukti_pembayaran' => 'dokumen_pembayaran',
+            'ijazah_sma' => 'dokumen_pendaftaran',
+            'ktp' => 'dokumen_pendaftaran',
+            'kk' => 'dokumen_pendaftaran',
+        ];
+
+        foreach ($filesToStore as $fileKey => $folder) {
+            if ($request->hasFile($fileKey)) {
+                $pathBaru = $request->file($fileKey)->store($folder, 'public');
+                if ($pathBaru) {
+                    if (! empty($pendaftaran->{$fileKey})) {
+                        Storage::disk('public')->delete($pendaftaran->{$fileKey});
+                    }
+                    $updateData[$fileKey] = $pathBaru;
+                }
+            }
+        }
+
+        // Set status kembali menjadi 'menunggu' agar diperiksa ulang oleh Musyrifah
+        $updateData['status'] = 'menunggu';
+
+        $pendaftaran->update($updateData);
+
+        return redirect()
+            ->route('pendaftaran.konfirmasi')
+            ->with('success', 'Perbaikan berkas pendaftaran berhasil dikirim. Menunggu verifikasi ulang Musyrifah.');
+    }
+
     public function selesai(Request $request): RedirectResponse
     {
         return redirect()->route(
