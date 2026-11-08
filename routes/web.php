@@ -8,9 +8,12 @@ use App\Http\Controllers\AdminLogAktivitasController;
 use App\Http\Controllers\AdminManajemenPenggunaController;
 use App\Http\Controllers\AdminPengaturanSistemController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DataMahasiswaMhsController;
 use App\Http\Controllers\GuruAbsensiController;
 use App\Http\Controllers\GuruJadwalSayaController;
 use App\Http\Controllers\GuruKegiatanDokumentasiController;
+use App\Http\Controllers\GuruPengumpulanController;
+use App\Http\Controllers\GuruTugasController;
 use App\Http\Controllers\MusyrifahDataKamarController;
 use App\Http\Controllers\MusyrifahDetailPengumumanController;
 use App\Http\Controllers\MusyrifahLaporanController;
@@ -20,6 +23,7 @@ use App\Http\Controllers\MusyrifahPendaftaranController;
 use App\Http\Controllers\MusyrifahPengaturanAkunController;
 use App\Http\Controllers\MusyrifahPengumumanController;
 use App\Http\Controllers\MusyrifahSuratPerizinanController;
+use App\Http\Controllers\NotifikasiController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\PembelajaranController;
 use App\Http\Controllers\PendaftaranController;
@@ -30,6 +34,7 @@ use App\Http\Controllers\PimpinanLaporanMahadController;
 use App\Http\Controllers\PimpinanPembelajaranController;
 use App\Http\Controllers\ProfilMhsController;
 use App\Http\Controllers\SuratPerizinanMhsController;
+use App\Http\Controllers\TugasMhsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -48,6 +53,13 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])
 
 Route::post('/login', [AuthController::class, 'login'])
     ->name('login.post');
+
+// Login dengan Google (OAuth 2.0 melalui Laravel Socialite)
+Route::get('/auth/google/redirect', [AuthController::class, 'redirectToGoogle'])
+    ->name('auth.google.redirect');
+
+Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])
+    ->name('auth.google.callback');
 
 // Logout
 Route::post('/logout', [AuthController::class, 'logout'])
@@ -126,12 +138,30 @@ Route::middleware('auth')->group(function () {
     Route::post('/kamar/pilih', [AuthController::class, 'pilihKamar'])
         ->name('kamar.pilih');
 
+    // Pengajuan pindah kamar, diverifikasi Musyrifah pada menu Pengajuan Kamar
+    Route::post('/kamar/pindah', [AuthController::class, 'pindahKamar'])
+        ->name('kamar.pindah');
+
     // Profil mahasiswa
     Route::get('/profil-mhs', [ProfilMhsController::class, 'index'])
         ->name('profil.mhs');
 
     Route::put('/profil-mhs', [ProfilMhsController::class, 'update'])
         ->name('profil.mhs.update');
+
+    // Pengelolaan foto profil mahasiswa (menu kamera pada halaman profil)
+    Route::post('/profil-mhs/foto', [ProfilMhsController::class, 'updateFoto'])
+        ->name('profil.mhs.foto.update');
+
+    Route::delete('/profil-mhs/foto', [ProfilMhsController::class, 'hapusFoto'])
+        ->name('profil.mhs.foto.destroy');
+
+    // Data mahasiswa milik akun yang sedang login
+    Route::get('/data-mahasiswa', [DataMahasiswaMhsController::class, 'index'])
+        ->name('data.mahasiswa');
+
+    Route::put('/data-mahasiswa', [DataMahasiswaMhsController::class, 'update'])
+        ->name('data.mahasiswa.update');
 
     // Pembayaran mahasiswa
     Route::get('/pembayaran', [PembayaranController::class, 'index'])
@@ -142,6 +172,10 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/pembayaran/reset', [PembayaranController::class, 'reset'])
         ->name('pembayaran.reset');
+
+    // Detail tagihan periode aktif (nominal, tahap, jatuh tempo, VA BSI)
+    Route::get('/pembayaran/detail', [PembayaranController::class, 'detail'])
+        ->name('pembayaran.detail');
 
     // Pendaftaran mahasiswa
     Route::get('/pendaftaran', function () {
@@ -220,9 +254,40 @@ Route::middleware('auth')->group(function () {
     Route::get('/absensi-mhs', [AbsensiMhsController::class, 'index'])
         ->name('absensi.mhs');
 
+    // Tugas mahasiswa: daftar, detail, pengumpulan, dan unduhan berkas
+    Route::get('/tugas-mhs', [TugasMhsController::class, 'index'])
+        ->name('tugas.mhs.index');
+
+    Route::get('/tugas-mhs/{tugas}/lampiran', [TugasMhsController::class, 'lampiran'])
+        ->whereNumber('tugas')->name('tugas.mhs.lampiran');
+
+    Route::get('/tugas-mhs/{tugas}/berkas', [TugasMhsController::class, 'berkas'])
+        ->whereNumber('tugas')->name('tugas.mhs.berkas');
+
+    Route::post('/tugas-mhs/{tugas}/kumpulkan', [TugasMhsController::class, 'kumpulkan'])
+        ->whereNumber('tugas')->name('tugas.mhs.kumpulkan');
+
+    Route::get('/tugas-mhs/{tugas}', [TugasMhsController::class, 'show'])
+        ->whereNumber('tugas')->name('tugas.mhs.show');
+
+    // Notifikasi terintegrasi Guru dan Mahasiswa
+    Route::post('/notifikasi/baca-semua', [NotifikasiController::class, 'bacaSemua'])
+        ->name('notifikasi.bacaSemua');
+
+    Route::post('/notifikasi/{notifikasi}/baca', [NotifikasiController::class, 'baca'])
+        ->whereNumber('notifikasi')->name('notifikasi.baca');
+
     // Pengumuman mahasiswa
     Route::get('/pengumuman-mhs', [PengumumanMhsController::class, 'index'])
         ->name('pengumuman.mhs');
+
+    Route::get('/pengumuman-mhs/{pengumuman}/berkas/{jenis}', [
+        PengumumanMhsController::class,
+        'berkas',
+    ])->whereNumber('pengumuman')->name('pengumuman.mhs.berkas');
+
+    Route::get('/pengumuman-mhs/{pengumuman}', [PengumumanMhsController::class, 'show'])
+        ->whereNumber('pengumuman')->name('pengumuman.mhs.show');
 
     // Surat dan perizinan mahasiswa
     Route::get('/surat-perizinan-mhs', [
@@ -239,6 +304,48 @@ Route::middleware('auth')->group(function () {
         PengajuanIzinPulangController::class,
         'store',
     ])->name('surat.perizinan.mhs.pengajuan.store');
+
+    // Izin kegiatan fakultas/prodi dan kampus
+    Route::get('/surat-perizinan-mhs/kegiatan', [
+        SuratPerizinanMhsController::class,
+        'kegiatan',
+    ])->name('surat.perizinan.mhs.kegiatan');
+
+    Route::post('/surat-perizinan-mhs/kegiatan', [
+        SuratPerizinanMhsController::class,
+        'simpanKegiatan',
+    ])->name('surat.perizinan.mhs.kegiatan.store');
+
+    // Surat pulang semester (unduh, cetak, unggah berkas bertanda tangan)
+    Route::get('/surat-perizinan-mhs/surat-pulang-semester', [
+        SuratPerizinanMhsController::class,
+        'semester',
+    ])->name('surat.perizinan.mhs.semester');
+
+    Route::post('/surat-perizinan-mhs/surat-pulang-semester', [
+        SuratPerizinanMhsController::class,
+        'semesterStore',
+    ])->name('surat.perizinan.mhs.semester.store');
+
+    Route::get('/surat-perizinan-mhs/{suratPerizinan}/cetak', [
+        SuratPerizinanMhsController::class,
+        'cetakSemester',
+    ])->whereNumber('suratPerizinan')->name('surat.perizinan.mhs.semester.cetak');
+
+    Route::post('/surat-perizinan-mhs/{suratPerizinan}/unggah-surat', [
+        SuratPerizinanMhsController::class,
+        'unggahSuratTertanda',
+    ])->whereNumber('suratPerizinan')->name('surat.perizinan.mhs.semester.unggah');
+
+    Route::post('/surat-perizinan-mhs/{suratPerizinan}/batalkan', [
+        SuratPerizinanMhsController::class,
+        'batalkan',
+    ])->whereNumber('suratPerizinan')->name('surat.perizinan.mhs.batalkan');
+
+    Route::get('/surat-perizinan-mhs/{suratPerizinan}/dokumen/{jenis}', [
+        SuratPerizinanMhsController::class,
+        'dokumen',
+    ])->whereNumber('suratPerizinan')->name('surat.perizinan.mhs.dokumen');
 
     /*
     |--------------------------------------------------------------------------
@@ -411,6 +518,44 @@ Route::middleware('auth')->group(function () {
         'index',
     ])->name('guru.kegiatan-dokumentasi');
 
+    // Tugas yang dibuat Guru sesuai mata pelajaran dan kelompok penugasannya
+    Route::get('/guru/tugas', [GuruTugasController::class, 'index'])
+        ->name('guru.tugas.index');
+
+    Route::get('/guru/tugas/tambah', [GuruTugasController::class, 'create'])
+        ->name('guru.tugas.create');
+
+    Route::post('/guru/tugas', [GuruTugasController::class, 'store'])
+        ->name('guru.tugas.store');
+
+    Route::get('/guru/tugas/{tugas}/edit', [GuruTugasController::class, 'edit'])
+        ->whereNumber('tugas')->name('guru.tugas.edit');
+
+    Route::put('/guru/tugas/{tugas}', [GuruTugasController::class, 'update'])
+        ->whereNumber('tugas')->name('guru.tugas.update');
+
+    Route::delete('/guru/tugas/{tugas}', [GuruTugasController::class, 'destroy'])
+        ->whereNumber('tugas')->name('guru.tugas.destroy');
+
+    Route::post('/guru/tugas/{tugas}/status', [GuruTugasController::class, 'ubahStatus'])
+        ->whereNumber('tugas')->name('guru.tugas.status');
+
+    Route::get('/guru/tugas/{tugas}/lampiran', [GuruTugasController::class, 'lampiran'])
+        ->whereNumber('tugas')->name('guru.tugas.lampiran');
+
+    // Pengumpulan tugas dan penilaian
+    Route::get('/guru/tugas/{tugas}/pengumpulan', [GuruPengumpulanController::class, 'index'])
+        ->whereNumber('tugas')->name('guru.pengumpulan.index');
+
+    Route::get('/guru/tugas/{tugas}/pengumpulan/{pengumpulan}/berkas', [GuruPengumpulanController::class, 'berkas'])
+        ->whereNumber('tugas')->whereNumber('pengumpulan')->name('guru.pengumpulan.berkas');
+
+    Route::post('/guru/tugas/{tugas}/pengumpulan/{pengumpulan}/nilai', [GuruPengumpulanController::class, 'nilai'])
+        ->whereNumber('tugas')->whereNumber('pengumpulan')->name('guru.pengumpulan.nilai');
+
+    Route::post('/guru/tugas/{tugas}/pengumpulan/{pengumpulan}/publikasi', [GuruPengumpulanController::class, 'publikasiNilai'])
+        ->whereNumber('tugas')->whereNumber('pengumpulan')->name('guru.pengumpulan.publikasi');
+
     /*
     |--------------------------------------------------------------------------
     | Fitur Pimpinan
@@ -505,6 +650,33 @@ Route::middleware('auth')->group(function () {
         MusyrifahDataKamarController::class,
         'destroy',
     ])->name('musyrifah.data_kamar.destroy');
+
+    // Pengelolaan galeri foto kamar (maksimal 4 foto per kamar)
+    Route::post('/musyrifah/data-kamar/{kamar}/foto', [
+        MusyrifahDataKamarController::class,
+        'tambahFoto',
+    ])->name('musyrifah.data_kamar.foto.store');
+
+    Route::post('/musyrifah/data-kamar/{kamar}/foto/{foto}', [
+        MusyrifahDataKamarController::class,
+        'gantiFoto',
+    ])->name('musyrifah.data_kamar.foto.update');
+
+    Route::delete('/musyrifah/data-kamar/{kamar}/foto/{foto}', [
+        MusyrifahDataKamarController::class,
+        'hapusFoto',
+    ])->name('musyrifah.data_kamar.foto.destroy');
+
+    // Persetujuan penempatan kamar oleh Musyrifah
+    Route::post('/musyrifah/pengajuan-kamar/{pengajuan}/approve', [
+        MusyrifahDataKamarController::class,
+        'approvePengajuan',
+    ])->name('musyrifah.pengajuan_kamar.approve');
+
+    Route::post('/musyrifah/pengajuan-kamar/{pengajuan}/reject', [
+        MusyrifahDataKamarController::class,
+        'rejectPengajuan',
+    ])->name('musyrifah.pengajuan_kamar.reject');
 
     Route::get('/musyrifah/pembayaran', [
         MusyrifahPembayaranController::class,
@@ -604,6 +776,26 @@ Route::middleware('auth')->group(function () {
         'index',
     ])->name('musyrifah.surat_perizinan');
 
+    Route::get('/musyrifah/surat-perizinan/{suratPerizinan}', [
+        MusyrifahSuratPerizinanController::class,
+        'show',
+    ])->whereNumber('suratPerizinan')->name('musyrifah.surat_perizinan.show');
+
+    Route::post('/musyrifah/surat-perizinan/{suratPerizinan}/keputusan', [
+        MusyrifahSuratPerizinanController::class,
+        'keputusan',
+    ])->whereNumber('suratPerizinan')->name('musyrifah.surat_perizinan.keputusan');
+
+    Route::post('/musyrifah/surat-perizinan/{suratPerizinan}/verifikasi-surat', [
+        MusyrifahSuratPerizinanController::class,
+        'verifikasiSurat',
+    ])->whereNumber('suratPerizinan')->name('musyrifah.surat_perizinan.verifikasi');
+
+    Route::get('/musyrifah/surat-perizinan/{suratPerizinan}/dokumen/{jenis}', [
+        MusyrifahSuratPerizinanController::class,
+        'dokumen',
+    ])->whereNumber('suratPerizinan')->name('musyrifah.surat_perizinan.dokumen');
+
     Route::get('/musyrifah/laporan', [
         MusyrifahLaporanController::class,
         'index',
@@ -623,7 +815,42 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/musyrifah/detail-pengumuman', [
         MusyrifahDetailPengumumanController::class,
-        'index',
+        'create',
     ])->name('musyrifah.detail-pengumuman');
+
+    Route::post('/musyrifah/pengumuman', [
+        MusyrifahPengumumanController::class,
+        'store',
+    ])->name('musyrifah.pengumuman.store');
+
+    Route::get('/musyrifah/pengumuman/{pengumuman}/edit', [
+        MusyrifahPengumumanController::class,
+        'edit',
+    ])->whereNumber('pengumuman')->name('musyrifah.pengumuman.edit');
+
+    Route::put('/musyrifah/pengumuman/{pengumuman}', [
+        MusyrifahPengumumanController::class,
+        'update',
+    ])->whereNumber('pengumuman')->name('musyrifah.pengumuman.update');
+
+    Route::delete('/musyrifah/pengumuman/{pengumuman}', [
+        MusyrifahPengumumanController::class,
+        'destroy',
+    ])->whereNumber('pengumuman')->name('musyrifah.pengumuman.destroy');
+
+    Route::post('/musyrifah/pengumuman/{pengumuman}/status', [
+        MusyrifahPengumumanController::class,
+        'ubahStatus',
+    ])->whereNumber('pengumuman')->name('musyrifah.pengumuman.status');
+
+    Route::get('/musyrifah/pengumuman/{pengumuman}/berkas/{jenis}', [
+        MusyrifahPengumumanController::class,
+        'berkas',
+    ])->whereNumber('pengumuman')->name('musyrifah.pengumuman.berkas');
+
+    Route::get('/musyrifah/pengumuman/{pengumuman}', [
+        MusyrifahPengumumanController::class,
+        'show',
+    ])->whereNumber('pengumuman')->name('musyrifah.pengumuman.show');
 
 });

@@ -853,14 +853,7 @@
                 </svg>
             </button>
 
-            <button class="profile-button" type="button"
-                    aria-label="Profil pengguna"
-                    title="{{ Auth::user()->name }}">
-                <svg width="42" height="42" viewBox="0 0 24 24" fill="#444">
-                    <circle cx="12" cy="8" r="4"></circle>
-                    <path d="M4 21a8 8 0 0 1 16 0z"></path>
-                </svg>
-            </button>
+            <x-mahasiswa.profile-dropdown />
         </div>
     </header>
 

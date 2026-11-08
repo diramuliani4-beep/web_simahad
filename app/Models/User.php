@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 
 #[Fillable([
     'name',
@@ -36,6 +37,12 @@ class User extends Authenticatable
         return $this->belongsTo(Kamar::class);
     }
 
+    /** Pengajuan penempatan kamar mahasiswa. */
+    public function pengajuanKamar(): HasOne
+    {
+        return $this->hasOne(PengajuanKamar::class);
+    }
+
     /** Riwayat pendaftaran mahasiswa: dipertahankan. */
     public function pendaftarans(): HasMany
     {
@@ -46,6 +53,71 @@ class User extends Authenticatable
     public function pembayarans(): HasMany
     {
         return $this->hasMany(Pembayaran::class);
+    }
+
+    /** Pengajuan surat & perizinan mahasiswa. */
+    public function suratPerizinans(): HasMany
+    {
+        return $this->hasMany(SuratPerizinan::class);
+    }
+
+    /** Pengumuman Ma'had yang ditulis oleh Musyrifah. */
+    public function pengumumans(): HasMany
+    {
+        return $this->hasMany(Pengumuman::class);
+    }
+
+    /** Tugas yang dibuat Guru untuk kelompok dan mata pelajarannya. */
+    public function tugasDibuat(): HasMany
+    {
+        return $this->hasMany(Tugas::class, 'user_id');
+    }
+
+    /** Pengumpulan tugas milik mahasiswa. */
+    public function pengumpulanTugas(): HasMany
+    {
+        return $this->hasMany(PengumpulanTugas::class, 'user_id');
+    }
+
+    /** Notifikasi terintegrasi milik pengguna. */
+    public function notifikasis(): HasMany
+    {
+        return $this->hasMany(Notifikasi::class);
+    }
+
+    /**
+     * Kelompok belajar mahasiswa, diambil dari data absensi pembelajaran
+     * yang sudah ada (sumber yang sama dengan halaman Pembelajaran).
+     */
+    public function kelompokPembelajaran(): string
+    {
+        return AbsensiPembelajaran::query()
+            ->where('user_id', $this->id)
+            ->value('kelompok') ?: 'Kelompok 1';
+    }
+
+    /**
+     * Daftar mahasiswa anggota satu kelompok belajar.
+     * Keanggotaan diambil dari absensi pembelajaran yang sudah ada.
+     *
+     * @return Collection<int, self>
+     */
+    public static function mahasiswaKelompok(string $kelompok): Collection
+    {
+        $ids = AbsensiPembelajaran::query()
+            ->where('kelompok', $kelompok)
+            ->distinct()
+            ->pluck('user_id');
+
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        return static::query()
+            ->whereIn('id', $ids)
+            ->whereRaw('LOWER(role) = ?', ['mahasiswa'])
+            ->orderBy('name')
+            ->get();
     }
 
     /** Setiap akun hanya boleh ditautkan ke satu pegawai lewat tabel penghubung. */

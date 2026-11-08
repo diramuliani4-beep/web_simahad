@@ -236,6 +236,167 @@
         opacity: .7;
     }
 
+    /* GALERI FOTO KAMAR */
+    .kamar-card__img-wrap[data-open-modal] {
+        cursor: pointer;
+    }
+
+    .kamar-card__foto-count {
+        position: absolute;
+        left: 12px;
+        bottom: 12px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, .68);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .kamar-galeri {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .kamar-galeri__item {
+        margin: 0;
+        border: 1px solid #ecd8de;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #fff;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .kamar-galeri__item a {
+        display: block;
+    }
+
+    .kamar-galeri__item img {
+        width: 100%;
+        height: 110px;
+        object-fit: cover;
+        background: #f4efec;
+        display: block;
+    }
+
+    .kamar-galeri__utama {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: #800020;
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .3px;
+    }
+
+    .kamar-galeri__caption {
+        padding: 6px 10px 0;
+        font-size: 11px;
+        color: #6b7280;
+        font-weight: 600;
+    }
+
+    .kamar-galeri__actions {
+        display: flex;
+        gap: 6px;
+        padding: 8px 10px 10px;
+        margin-top: auto;
+    }
+
+    .kamar-galeri__actions form {
+        flex: 1;
+        margin: 0;
+    }
+
+    .btn-foto {
+        width: 100%;
+        padding: 6px 8px;
+        border-radius: 7px;
+        border: 1px solid #d9c2c8;
+        background: #fff;
+        color: #800020;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        text-align: center;
+        display: block;
+    }
+
+    .btn-foto--ganti {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-foto--ganti input[type="file"] {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .btn-foto--hapus {
+        border-color: #fca5a5;
+        color: #b91c1c;
+    }
+
+    .kamar-galeri__kosong {
+        grid-column: 1 / -1;
+        padding: 18px;
+        border: 1px dashed #d9c2c8;
+        border-radius: 12px;
+        text-align: center;
+        color: #8a6f76;
+        font-size: 12px;
+        background: #fffafb;
+    }
+
+    .kamar-galeri__tambah {
+        border: 1px dashed #d9c2c8;
+        border-radius: 12px;
+        padding: 14px;
+        background: #fffafb;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin: 0;
+    }
+
+    .kamar-galeri__tambah label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #800020;
+    }
+
+    .kamar-galeri__tambah input[type="file"] {
+        flex: 1;
+        min-width: 180px;
+        font-size: 12px;
+    }
+
+    .kamar-galeri__tambah .form-hint {
+        width: 100%;
+        margin: 0;
+    }
+
+    .btn-foto--unggah {
+        padding: 8px 18px;
+        border-radius: 8px;
+        border: none;
+        background: #800020;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
     .kamar-card__badge-status {
         position: absolute;
         top: 12px;
@@ -553,6 +714,187 @@
         margin-top: 10px;
     }
 
+    /* PANEL PENGAJUAN PENEMPATAN KAMAR */
+    .pengajuan-kamar-section {
+        background: #fff;
+        border: 1px solid #ecd8de;
+        border-radius: 14px;
+        padding: 18px 20px 20px;
+        margin-bottom: 22px;
+        box-shadow: 0 2px 10px rgba(128, 0, 32, .05);
+    }
+
+    .pengajuan-kamar-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .pengajuan-kamar-title {
+        font-size: 17px;
+        color: #800020;
+        margin: 0 0 4px;
+    }
+
+    .pengajuan-kamar-sub {
+        font-size: 12.5px;
+        color: #777;
+        margin: 0;
+        max-width: 620px;
+        line-height: 1.6;
+    }
+
+    .pengajuan-kamar-badge {
+        background: #fff4d6;
+        border: 1px solid #f0d9a8;
+        color: #a16207;
+        border-radius: 20px;
+        padding: 5px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .pengajuan-kamar-badge--empty {
+        background: #e7f7ee;
+        border-color: #b7e4c9;
+        color: #166534;
+    }
+
+    .pengajuan-aksi {
+        display: flex;
+        gap: 6px;
+    }
+
+    .btn-pengajuan {
+        border: 1px solid transparent;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 7px 12px;
+        cursor: pointer;
+    }
+
+    .btn-pengajuan--setuju {
+        background: #166534;
+        color: #fff;
+    }
+
+    .btn-pengajuan--tolak {
+        background: #fdecef;
+        border-color: #f3c2cc;
+        color: #8a1428;
+    }
+
+    .btn-pengajuan--periksa {
+        background: #fff;
+        border-color: #cdb6bd;
+        color: #800020;
+    }
+
+    .btn-pengajuan[disabled] {
+        background: #e5e0dd;
+        border-color: #e5e0dd;
+        color: #9a9a9a;
+        cursor: not-allowed;
+    }
+
+    .pengajuan-status {
+        border-radius: 20px;
+        padding: 4px 10px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .pengajuan-status--menunggu {
+        background: #fff4d6;
+        color: #a16207;
+    }
+
+    .pengajuan-status--disetujui {
+        background: #e7f7ee;
+        color: #166534;
+    }
+
+    .pengajuan-status--ditolak {
+        background: #fdecef;
+        color: #8a1428;
+    }
+
+    .pengajuan-riwayat {
+        margin-top: 14px;
+    }
+
+    .pengajuan-riwayat summary {
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        color: #800020;
+    }
+
+    .pengajuan-jenis {
+        border-radius: 20px;
+        padding: 3px 10px;
+        font-size: 11px;
+        font-weight: 600;
+        background: #f7e6ea;
+        color: #800020;
+        white-space: nowrap;
+    }
+
+    .pengajuan-jenis--pindah {
+        background: #e8eefc;
+        color: #1d4ed8;
+    }
+
+    .pengajuan-detail {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px 16px;
+        font-size: 13px;
+        margin-bottom: 16px;
+    }
+
+    .pengajuan-detail__item strong {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .03em;
+        color: #777;
+        margin-bottom: 2px;
+    }
+
+    .pengajuan-detail__item--full {
+        grid-column: 1 / -1;
+    }
+
+    .pengajuan-alasan {
+        background: #faf7f8;
+        border: 1px solid #ecd8de;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 13px;
+        line-height: 1.6;
+        white-space: pre-line;
+    }
+
+    .pengajuan-modal-actions {
+        display: grid;
+        gap: 14px;
+        margin-top: 18px;
+        padding-top: 14px;
+        border-top: 1px solid #ecd8de;
+    }
+
+    .pengajuan-tolak-form {
+        display: grid;
+        gap: 6px;
+    }
+
     @media (max-width: 640px) {
         .form-grid-2 {
             grid-template-columns: 1fr;
@@ -634,6 +976,250 @@
         </div>
     </section>
 
+    <!-- PENGAJUAN KAMAR MAHASISWA (PENEMPATAN BARU & PINDAH KAMAR) -->
+    @php
+        $pengajuanMenunggu = collect($daftarPengajuan)->where('status', 'menunggu');
+        $pengajuanSelesai = collect($daftarPengajuan)->where('status', '!=', 'menunggu')->take(10);
+    @endphp
+
+    <section class="pengajuan-kamar-section" id="pengajuan-kamar">
+        <div class="pengajuan-kamar-head">
+            <div>
+                <h2 class="pengajuan-kamar-title">Pengajuan Kamar</h2>
+                <p class="pengajuan-kamar-sub">
+                    Periksa pengajuan penempatan baru maupun pengajuan pindah kamar. Penempatan
+                    mahasiswa hanya diperbarui setelah pengajuan disetujui, sedangkan penolakan
+                    menyimpan catatan yang dapat dibaca mahasiswa.
+                </p>
+            </div>
+            <span class="pengajuan-kamar-badge {{ $pengajuanMenunggu->isEmpty() ? 'pengajuan-kamar-badge--empty' : '' }}">
+                {{ $pengajuanMenunggu->count() }} menunggu
+            </span>
+        </div>
+
+        @if ($pengajuanMenunggu->isEmpty())
+            <div class="penghuni-empty">
+                Tidak ada pengajuan kamar yang menunggu verifikasi.
+            </div>
+        @else
+            <div class="penghuni-table-wrap">
+                <table class="penghuni-table">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Mahasiswa</th>
+                            <th>NIM</th>
+                            <th>Jenis</th>
+                            <th>Kamar</th>
+                            <th>Diajukan</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($pengajuanMenunggu as $index => $pengajuan)
+                            <tr>
+                                <td>{{ $index + 1 }}</td>
+                                <td><strong>{{ $pengajuan['nama'] }}</strong></td>
+                                <td>{{ $pengajuan['nim'] }}</td>
+                                <td>
+                                    <span class="pengajuan-jenis {{ $pengajuan['is_pindah'] ? 'pengajuan-jenis--pindah' : '' }}">
+                                        {{ $pengajuan['jenis_label'] }}
+                                    </span>
+                                </td>
+                                <td>
+                                    @if ($pengajuan['is_pindah'])
+                                        <div>
+                                            Kamar {{ $pengajuan['kamar_asal'] }}
+                                            <span style="color:#777;">&rarr;</span>
+                                            <strong>Kamar {{ $pengajuan['kamar'] }}</strong>
+                                        </div>
+                                        <div style="font-size:11px; color:#777;">
+                                            Tujuan: {{ $pengajuan['gedung'] }} &bull; Lantai {{ $pengajuan['lantai'] }}
+                                            &bull; Sisa {{ $pengajuan['sisa_kamar'] }} dari {{ $pengajuan['kapasitas'] }}
+                                        </div>
+                                    @else
+                                        <div>Kamar {{ $pengajuan['kamar'] }}</div>
+                                        <div style="font-size:11px; color:#777;">
+                                            {{ $pengajuan['gedung'] }} &bull; Lantai {{ $pengajuan['lantai'] }}
+                                            &bull; Sisa {{ $pengajuan['sisa_kamar'] }} dari {{ $pengajuan['kapasitas'] }}
+                                        </div>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div>{{ $pengajuan['diajukan_pada'] }}</div>
+                                    <span class="pengajuan-status pengajuan-status--menunggu" style="display:inline-block; margin-top:4px;">
+                                        {{ $pengajuan['status_label'] }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="pengajuan-aksi">
+                                        <button type="button" class="btn-pengajuan btn-pengajuan--periksa" data-open-modal="modal-pengajuan-{{ $pengajuan['id'] }}">
+                                            Periksa
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            @foreach ($pengajuanMenunggu as $pengajuan)
+                <dialog class="kamar-modal" id="modal-pengajuan-{{ $pengajuan['id'] }}">
+                    <div class="kamar-modal__head">
+                        <h2 class="kamar-modal__title">Periksa Pengajuan Kamar</h2>
+                        <button type="button" class="kamar-modal__close" data-close-modal>&times;</button>
+                    </div>
+
+                    <div class="kamar-modal__body">
+                        <div class="pengajuan-detail">
+                            <div class="pengajuan-detail__item">
+                                <strong>Mahasiswa</strong>
+                                {{ $pengajuan['nama'] }}
+                            </div>
+                            <div class="pengajuan-detail__item">
+                                <strong>NIM</strong>
+                                {{ $pengajuan['nim'] }}
+                            </div>
+                            <div class="pengajuan-detail__item">
+                                <strong>Jenis Pengajuan</strong>
+                                {{ $pengajuan['jenis_label'] }}
+                            </div>
+                            <div class="pengajuan-detail__item">
+                                <strong>Status</strong>
+                                {{ $pengajuan['status_label'] }}
+                            </div>
+
+                            @if ($pengajuan['is_pindah'])
+                                <div class="pengajuan-detail__item">
+                                    <strong>Kamar Asal</strong>
+                                    Kamar {{ $pengajuan['kamar_asal'] }}
+                                    ({{ $pengajuan['kamar_asal_gedung'] }}, Lantai {{ $pengajuan['kamar_asal_lantai'] }})
+                                </div>
+                            @endif
+
+                            <div class="pengajuan-detail__item">
+                                <strong>Kamar Tujuan</strong>
+                                Kamar {{ $pengajuan['kamar'] }}
+                                ({{ $pengajuan['gedung'] }}, Lantai {{ $pengajuan['lantai'] }})
+                            </div>
+
+                            <div class="pengajuan-detail__item">
+                                <strong>Kapasitas Tujuan</strong>
+                                {{ $pengajuan['kapasitas'] }} orang &bull; sisa {{ $pengajuan['sisa_kamar'] }} tempat
+                            </div>
+
+                            <div class="pengajuan-detail__item">
+                                <strong>Diajukan Pada</strong>
+                                {{ $pengajuan['diajukan_pada'] }}
+                            </div>
+
+                            @if ($pengajuan['is_pindah'])
+                                <div class="pengajuan-detail__item pengajuan-detail__item--full">
+                                    <strong>Alasan Perpindahan</strong>
+                                    <div class="pengajuan-alasan">{{ $pengajuan['alasan'] ?: 'Alasan tidak dicatat.' }}</div>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="pengajuan-modal-actions">
+                            <form
+                                action="{{ route('musyrifah.pengajuan_kamar.approve', $pengajuan['id']) }}"
+                                method="POST"
+                                onsubmit="return confirm('{{ $pengajuan['is_pindah'] ? 'Setujui perpindahan '.$pengajuan['nama'].' dari Kamar '.$pengajuan['kamar_asal'].' ke Kamar '.$pengajuan['kamar'].'?' : 'Setujui penempatan '.$pengajuan['nama'].' di Kamar '.$pengajuan['kamar'].'?' }}');"
+                            >
+                                @csrf
+                                <button type="submit" class="btn-pengajuan btn-pengajuan--setuju" style="width:100%;" @disabled($pengajuan['sisa_kamar'] <= 0)>
+                                    {{ $pengajuan['is_pindah'] ? 'Setujui Pindah Kamar' : 'Setujui Penempatan' }}
+                                </button>
+                                @if ($pengajuan['sisa_kamar'] <= 0)
+                                    <p class="form-hint" style="margin-top:6px;">
+                                        Kamar tujuan sudah penuh sehingga pengajuan tidak dapat disetujui.
+                                    </p>
+                                @endif
+                            </form>
+
+                            <form
+                                class="pengajuan-tolak-form"
+                                action="{{ route('musyrifah.pengajuan_kamar.reject', $pengajuan['id']) }}"
+                                method="POST"
+                                onsubmit="return confirm('Tolak pengajuan kamar {{ $pengajuan['nama'] }}?');"
+                            >
+                                @csrf
+                                <label class="form-label-kamar" for="catatan-{{ $pengajuan['id'] }}">
+                                    Catatan Penolakan (dapat dibaca mahasiswa)
+                                </label>
+                                <textarea
+                                    class="form-textarea-kamar"
+                                    name="catatan"
+                                    id="catatan-{{ $pengajuan['id'] }}"
+                                    rows="3"
+                                    maxlength="500"
+                                    placeholder="Contoh: kamar tujuan sudah penuh, silakan pilih kamar lain."
+                                ></textarea>
+                                <div class="pengajuan-aksi" style="justify-content:flex-end;">
+                                    <button type="button" class="btn-pengajuan btn-pengajuan--periksa" data-close-modal>
+                                        Batal
+                                    </button>
+                                    <button type="submit" class="btn-pengajuan btn-pengajuan--tolak">
+                                        Tolak Pengajuan
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </dialog>
+            @endforeach
+        @endif
+
+        @if ($pengajuanSelesai->isNotEmpty())
+            <details class="pengajuan-riwayat">
+                <summary>Riwayat pengajuan terakhir ({{ $pengajuanSelesai->count() }})</summary>
+
+                <div class="penghuni-table-wrap">
+                    <table class="penghuni-table">
+                        <thead>
+                            <tr>
+                                <th>Mahasiswa</th>
+                                <th>NIM</th>
+                                <th>Jenis</th>
+                                <th>Kamar</th>
+                                <th>Status</th>
+                                <th>Catatan</th>
+                                <th>Diproses</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($pengajuanSelesai as $pengajuan)
+                                <tr>
+                                    <td>{{ $pengajuan['nama'] }}</td>
+                                    <td>{{ $pengajuan['nim'] }}</td>
+                                    <td>{{ $pengajuan['jenis_label'] }}</td>
+                                    <td>
+                                        @if ($pengajuan['is_pindah'])
+                                            Kamar {{ $pengajuan['kamar_asal'] }} &rarr; Kamar {{ $pengajuan['kamar'] }}
+                                        @else
+                                            Kamar {{ $pengajuan['kamar'] }}
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <span class="pengajuan-status pengajuan-status--{{ $pengajuan['status'] }}">
+                                            {{ $pengajuan['status_label'] }}
+                                        </span>
+                                    </td>
+                                    <td style="max-width:220px; font-size:12px; color:#555;">
+                                        {{ $pengajuan['catatan'] ?: '-' }}
+                                    </td>
+                                    <td>{{ $pengajuan['diproses_pada'] }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        @endif
+    </section>
+
     <!-- KONTROL FILTER DAN PENCARIAN -->
     <div class="kamar-control-bar">
         <div class="kamar-filters">
@@ -671,13 +1257,14 @@
             @endphp
 
             <article class="kamar-card"
+                id="kamar-{{ $kamar['id'] }}"
                 data-nomor="{{ strtolower($kamar['nomor']) }}"
                 data-gedung="{{ strtolower($kamar['gedung']) }}"
                 data-lantai="{{ $kamar['lantai'] }}"
                 data-status="{{ str_contains($statusSlug, 'tersedia') ? 'tersedia' : (str_contains($statusSlug, 'penuh') ? 'penuh' : 'perbaikan') }}"
                 data-fasilitas="{{ strtolower($kamar['fasilitas'] ?? '') }}">
 
-                <div class="kamar-card__img-wrap">
+                <div class="kamar-card__img-wrap" data-open-modal="modal-detail-{{ $kamar['id'] }}" title="Lihat galeri foto kamar {{ $kamar['nomor'] }}">
                     @if ($kamar['foto_url'])
                         <img src="{{ $kamar['foto_url'] }}" alt="Foto Kamar {{ $kamar['nomor'] }}" class="kamar-card__img" loading="lazy">
                     @else
@@ -688,6 +1275,10 @@
                             </svg>
                             <span>Belum ada foto</span>
                         </div>
+                    @endif
+
+                    @if (count($kamar['fotos']) > 0)
+                        <span class="kamar-card__foto-count">{{ count($kamar['fotos']) }} Foto</span>
                     @endif
 
                     <span class="kamar-card__badge-status {{ $badgeClass }}">
@@ -714,6 +1305,12 @@
                             <span class="kamar-card__spec-label">Sisa Kuota:</span>
                             <span class="kamar-card__spec-val" style="color: {{ $kamar['sisa'] > 0 ? '#166534' : '#991b1b' }}">
                                 {{ $kamar['sisa'] }} Tempat
+                            </span>
+                        </div>
+                        <div class="kamar-card__spec-item">
+                            <span class="kamar-card__spec-label">Pengajuan:</span>
+                            <span class="kamar-card__spec-val" style="color: {{ $kamar['pengajuan_menunggu'] > 0 ? '#a16207' : '#444' }}">
+                                {{ $kamar['pengajuan_menunggu'] }} Menunggu
                             </span>
                         </div>
                         <div class="kamar-card__spec-item">
@@ -756,15 +1353,61 @@
                     <button type="button" class="kamar-modal__close" data-close-modal>&times;</button>
                 </div>
                 <div class="kamar-modal__body">
-                    @if ($kamar['foto_url'])
-                        <div style="margin-bottom: 16px; border-radius: 12px; overflow: hidden; max-height: 240px; background:#000;">
-                            <img src="{{ $kamar['foto_url'] }}" alt="Foto Kamar {{ $kamar['nomor'] }}" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
+                    <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <strong style="font-size: 13px; color: #800020;">Galeri Foto ({{ count($kamar['fotos']) }}/{{ $kamar['maks_foto'] }})</strong>
+                        <span style="font-size: 11px; color: #6b7280;">Foto pertama otomatis menjadi foto utama (thumbnail)</span>
+                    </div>
+
+                    <div class="kamar-galeri">
+                        @forelse ($kamar['fotos'] as $indexFoto => $foto)
+                            <figure class="kamar-galeri__item">
+                                <a href="{{ $foto['url'] }}" target="_blank" rel="noopener" title="Lihat foto ukuran penuh">
+                                    <img src="{{ $foto['url'] }}" alt="Foto {{ $indexFoto + 1 }} Kamar {{ $kamar['nomor'] }}" loading="lazy">
+                                </a>
+
+                                @if ($indexFoto === 0)
+                                    <span class="kamar-galeri__utama">Foto Utama</span>
+                                @endif
+
+                                <figcaption class="kamar-galeri__caption">Foto {{ $indexFoto + 1 }}</figcaption>
+
+                                <div class="kamar-galeri__actions">
+                                    <form action="{{ route('musyrifah.data_kamar.foto.update', [$kamar['id'], $foto['id']]) }}" method="POST" enctype="multipart/form-data">
+                                        @csrf
+                                        <label class="btn-foto btn-foto--ganti" title="Ganti foto ini">
+                                            Ganti
+                                            <input type="file" name="foto" accept=".jpg,.jpeg,.png,.webp" required onchange="if (this.files.length) { this.form.submit(); }">
+                                        </label>
+                                    </form>
+
+                                    <form action="{{ route('musyrifah.data_kamar.foto.destroy', [$kamar['id'], $foto['id']]) }}" method="POST" onsubmit="return confirm('Hapus foto ini dari galeri kamar {{ $kamar['nomor'] }}?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-foto btn-foto--hapus">Hapus</button>
+                                    </form>
+                                </div>
+                            </figure>
+                        @empty
+                            <div class="kamar-galeri__kosong">Belum ada foto untuk kamar ini. Unggah minimal satu foto agar tampil pada halaman Informasi Kamar mahasiswa.</div>
+                        @endforelse
+                    </div>
+
+                    @if ($kamar['sisa_slot_foto'] > 0)
+                        <form action="{{ route('musyrifah.data_kamar.foto.store', $kamar['id']) }}" method="POST" enctype="multipart/form-data" class="kamar-galeri__tambah">
+                            @csrf
+                            <label for="tambah_foto_{{ $kamar['id'] }}">Tambah Foto ({{ count($kamar['fotos']) }}/{{ $kamar['maks_foto'] }})</label>
+                            <input type="file" id="tambah_foto_{{ $kamar['id'] }}" name="fotos[]" accept=".jpg,.jpeg,.png,.webp" multiple required>
+                            <button type="submit" class="btn-foto--unggah">Unggah</button>
+                            <div class="form-hint">Bisa memilih hingga {{ $kamar['sisa_slot_foto'] }} foto sekaligus. Format JPG, PNG, WEBP (maks. 5MB per foto).</div>
+                        </form>
+                    @else
+                        <div class="form-hint">Jumlah foto sudah maksimal ({{ $kamar['maks_foto'] }}). Hapus salah satu foto untuk menambahkan foto baru.</div>
                     @endif
 
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 20px; background: #fffafb; padding: 14px; border-radius: 12px; border: 1px solid #ecd8de;">
                         <div><strong style="font-size:12px; color:#777;">Gedung / Lantai:</strong><br>{{ $kamar['gedung'] }} &bull; Lantai {{ $kamar['lantai'] }}</div>
                         <div><strong style="font-size:12px; color:#777;">Kapasitas / Sisa:</strong><br>{{ $kamar['kapasitas'] }} Orang (Sisa {{ $kamar['sisa'] }})</div>
+                        <div><strong style="font-size:12px; color:#777;">Setelah Pengajuan:</strong><br>{{ $kamar['sisa_setelah_pengajuan'] }} Tempat ({{ $kamar['pengajuan_menunggu'] }} menunggu)</div>
                         <div><strong style="font-size:12px; color:#777;">Status Kamar:</strong><br><span class="kamar-card__badge-status {{ $badgeClass }}" style="position:static; display:inline-block; margin-top:2px;">{{ $kamar['status'] }}</span></div>
                     </div>
 
@@ -862,9 +1505,9 @@
                             </div>
 
                             <div class="form-group-item form-group-item--full">
-                                <label for="edit_foto_{{ $kamar['id'] }}" class="form-label-kamar">Ganti Foto Kamar (Opsional)</label>
+                                <label for="edit_foto_{{ $kamar['id'] }}" class="form-label-kamar">Ganti Foto Utama (Opsional)</label>
                                 <input type="file" id="edit_foto_{{ $kamar['id'] }}" name="foto" class="form-input-kamar" accept=".jpg,.jpeg,.png,.webp">
-                                <div class="form-hint">Biarkan kosong jika tidak ingin mengganti foto saat ini. Format JPG, PNG, WEBP (maks. 5MB).</div>
+                                <div class="form-hint">Biarkan kosong jika tidak ingin mengganti foto utama. Format JPG, PNG, WEBP (maks. 5MB). Kelola seluruh foto melalui tombol Foto pada kartu kamar.</div>
                             </div>
                         </div>
 
@@ -935,9 +1578,9 @@
                 </div>
 
                 <div class="form-group-item form-group-item--full">
-                    <label for="input_foto" class="form-label-kamar">Upload Foto Kamar</label>
-                    <input type="file" id="input_foto" name="foto" class="form-input-kamar" accept=".jpg,.jpeg,.png,.webp">
-                    <div class="form-hint">Unggah foto kondisi fisik kamar Ma'had. Format JPG, PNG, WEBP (maks. 5MB).</div>
+                    <label for="input_foto" class="form-label-kamar">Upload Foto Kamar (maks. 4)</label>
+                    <input type="file" id="input_foto" name="foto[]" class="form-input-kamar" accept=".jpg,.jpeg,.png,.webp" multiple>
+                    <div class="form-hint">Dapat memilih beberapa foto sekaligus (maksimal 4). Foto pertama menjadi foto utama. Format JPG, PNG, WEBP (maks. 5MB per foto).</div>
                 </div>
             </div>
 

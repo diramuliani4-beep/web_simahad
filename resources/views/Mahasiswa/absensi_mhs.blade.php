@@ -550,9 +550,7 @@
 
         <div class="top-actions">
             <i class="fa-regular fa-bell notification" aria-label="Notifikasi"></i>
-            <div class="avatar">
-                <i class="fa-solid fa-circle-user"></i>
-            </div>
+            <x-mahasiswa.profile-dropdown />
         </div>
     </header>
 

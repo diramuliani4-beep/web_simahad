@@ -1,325 +1,184 @@
+@extends('layouts.surat-perizinan')
 
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pengajuan Izin Pulang - SIMAHAD</title>
+@section('title', 'Izin Pulang Mingguan')
+@section('judul', 'Izin Pulang Mingguan')
+@section('keterangan', 'Ajukan izin pulang dengan mencantumkan tanggal mulai, tanggal kembali, alamat tujuan, dan alasan. Maksimal 2 kali izin pulang per bulan dengan durasi maksimal 14 hari.')
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-    margin: 0;
-    padding: 18px;
-    font-family: 'Poppins', sans-serif;
-    background-image: url('{{ asset("images/mahad_al_jamiah.jpeg") }}');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    color: #111;
-}
-
-        .form-container {
-            width: 100%;
-            min-height: calc(100vh - 36px);
-            background: #fff;
-            border: 1px solid #800d20;
-            border-radius: 10px;
-            padding: 38px 11% 20px;
-        }
-
-        .form-header {
-            text-align: center;
-            margin-bottom: 27px;
-        }
-
-        .form-header h1 {
-            margin: 0 0 3px;
-            color: #800d20;
-            font-size: 32px;
-            font-weight: 600;
-        }
-
-        .form-header p {
-            margin: 0;
-            font-size: 19px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 9px;
-            font-size: 15px;
-            font-weight: 500;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px 21px;
-            border: 1px solid #990d22;
-            border-radius: 15px;
-            font-family: inherit;
-            font-size: 17px;
-            outline: none;
-            background: #fff;
-        }
-
-        .form-group input {
-            height: 52px;
-        }
-
-        .form-group textarea {
-            min-height: 85px;
-            resize: vertical;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            border-color: #70091a;
-            box-shadow: 0 0 0 2px rgba(128, 13, 32, 0.1);
-        }
-
-        .form-group input::placeholder,
-        .form-group textarea::placeholder {
-            color: #888;
-        }
-
-        .required-note {
-            margin-top: -15px;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-
-        .alert {
-            margin: 0 auto;
-            max-width: 620px;
-            padding: 12px 16px;
-            border: 1px solid #800d20;
-            border-radius: 10px;
-            background: #fff0f1;
-            font-size: 12px;
-        }
-
-        .alert strong {
-            display: block;
-            margin-bottom: 4px;
-            color: #800d20;
-        }
-
-        .error-message {
-            margin-top: 5px;
-            color: #b00020;
-            font-size: 12px;
-        }
-
-        .success-message {
-            margin-bottom: 18px;
-            padding: 12px;
-            border-radius: 8px;
-            background: #e9f7ec;
-            color: #17632b;
-        }
-
-        .form-footer {
-            display: grid;
-            grid-template-columns: 1fr 2.5fr 1fr;
-            align-items: end;
-            gap: 25px;
-            margin-top: 20px;
-        }
-
-        .btn {
-            min-height: 43px;
-            padding: 9px 18px;
-            border-radius: 15px;
-            font-family: inherit;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            text-align: center;
-            text-decoration: none;
-        }
-
-        .btn-cancel {
-            color: #800d20;
-            border: 1px solid #800d20;
-            background: #fff;
-        }
-
-        .btn-submit {
-            color: #fff;
-            border: 1px solid #800d20;
-            background: #800d20;
-        }
-
-        .btn:hover {
-            opacity: 0.88;
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 8px;
-            }
-
-            .form-container {
-                padding: 28px 6% 20px;
-            }
-
-            .form-header h1 {
-                font-size: 25px;
-            }
-
-            .form-header p {
-                font-size: 14px;
-            }
-
-            .form-group input,
-            .form-group textarea {
-                font-size: 14px;
-            }
-
-            .form-footer {
-                grid-template-columns: 1fr;
-                gap: 12px;
-            }
-
-            .alert {
-                grid-row: 1;
-            }
-        }
-    </style>
-</head>
-<body>
-
-<div class="form-container">
-
-    <div class="form-header">
-        <h1>Pengajuan Izin Pulang</h1>
-        <p>Lengkapi formulir berikut untuk mengajukan izin pulang dari Ma'had.</p>
+@section('konten')
+    <div class="sp-kuota">
+        <div>
+            <span class="sp-kuota__judul">
+                <i class="fa-solid fa-house"></i> Monitoring Kuota {{ $kuotaPulang['bulan'] }}
+            </span>
+            <p>Maksimal {{ $kuotaPulang['maksimal'] }} kali per bulan. Pengajuan yang menunggu tetap menahan satu slot kuota.</p>
+        </div>
+        <div class="sp-kuota__angka">
+            <span>{{ $kuotaPulang['terpakai'] }} / {{ $kuotaPulang['maksimal'] }}</span>
+            <small>Sisa {{ $kuotaPulang['sisa'] }} slot</small>
+        </div>
     </div>
 
-    @if (session('success'))
-        <div class="success-message">{{ session('success') }}</div>
-    @endif
+    <div class="sp-card">
+        <h2>Formulir Pengajuan Izin Pulang</h2>
 
-    @if ($errors->any())
-        <div class="success-message" style="background:#fff0f1;color:#800d20">
-            Mohon periksa kembali data yang kamu masukkan.
-        </div>
-    @endif
-
-    <form action="{{ route('surat.perizinan.mhs.pengajuan.store') }}" method="POST">
-        @csrf
-
-        <div class="form-group">
-            <label for="nama_mahasiswa">Nama Mahasiswa*</label>
-            <input type="text" id="nama_mahasiswa" name="nama_mahasiswa"
-                   value="{{ old('nama_mahasiswa') }}"
-                   placeholder="Masukkan nama lengkap sesuai identitas" required>
-            @error('nama_mahasiswa')
-                <div class="error-message">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <div class="form-group">
-            <label for="nomor_whatsapp">Nomor WhatsApp Mahasiswa*</label>
-            <input type="tel" id="nomor_whatsapp" name="nomor_whatsapp"
-                   value="{{ old('nomor_whatsapp') }}"
-                   placeholder="08xxxxxxxxxx" required>
-            @error('nomor_whatsapp')
-                <div class="error-message">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <div class="form-group">
-            <label for="tujuan_pulang">Tujuan Pulang*</label>
-            <input type="text" id="tujuan_pulang" name="tujuan_pulang"
-                   value="{{ old('tujuan_pulang') }}"
-                   placeholder="Kota atau alamat tujuan pulang" required>
-            @error('tujuan_pulang')
-                <div class="error-message">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <div class="form-group">
-            <label for="tanggal_berangkat">Tanggal Berangkat*</label>
-            <input type="date" id="tanggal_berangkat" name="tanggal_berangkat"
-                   value="{{ old('tanggal_berangkat') }}" required>
-            @error('tanggal_berangkat')
-                <div class="error-message">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <div class="form-group">
-            <label for="tanggal_kembali">Tanggal Kembali ke Ma'had*</label>
-            <input type="date" id="tanggal_kembali" name="tanggal_kembali"
-                   value="{{ old('tanggal_kembali') }}" required>
-            @error('tanggal_kembali')
-                <div class="error-message">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <div class="form-group">
-            <label for="alasan_pulang">Alasan Pulang*</label>
-            <textarea id="alasan_pulang" name="alasan_pulang"
-                      placeholder="Tuliskan alasan pengajuan izin pulang..." required>{{ old('alasan_pulang') }}</textarea>
-            @error('alasan_pulang')
-                <div class="error-message">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <div class="form-group">
-            <label for="kontak_keluarga">Kontak Keluarga yang Bisa Dihubungi*</label>
-            <input type="tel" id="kontak_keluarga" name="kontak_keluarga"
-                   value="{{ old('kontak_keluarga') }}"
-                   placeholder="08xxxxxxxxxx" required>
-            @error('kontak_keluarga')
-                <div class="error-message">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <div class="required-note">* Kolom wajib diisi.</div>
-
-        <div class="form-footer">
-            <a href="{{ route('surat.perizinan.mhs') }}" class="btn btn-cancel">
-                Batal
-            </a>
-
-            <div class="alert">
-                <strong>ⓘ Perhatian</strong>
-                Pengajuan izin pulang akan diperiksa oleh pengelola.
-                Mahasiswa perlu menunggu keputusan sebelum izin dianggap disetujui.
+        @if ($kuotaPulang['sisa'] <= 0)
+            <div class="sp-alert sp-alert--gagal" style="margin-bottom:0">
+                Kuota izin pulang bulan ini sudah habis. Pengajuan baru dapat dilakukan pada bulan berikutnya
+                atau setelah pengajuan yang menunggu ditolak/dibatalkan.
             </div>
+        @else
+            <form method="POST" action="{{ route('surat.perizinan.mhs.pengajuan.store') }}">
+                @csrf
 
-            <button type="submit" class="btn btn-submit">
-                Kirim pengajuan
-            </button>
+                <div class="sp-grid">
+                    <div class="sp-field">
+                        <label for="tanggal_mulai">Tanggal Mulai <span>*</span></label>
+                        <input
+                            type="date"
+                            id="tanggal_mulai"
+                            name="tanggal_mulai"
+                            value="{{ old('tanggal_mulai') }}"
+                            min="{{ now()->toDateString() }}"
+                            required
+                        >
+                        @error('tanggal_mulai')
+                            <span class="sp-error">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div class="sp-field">
+                        <label for="tanggal_selesai">Tanggal Kembali <span>*</span></label>
+                        <input
+                            type="date"
+                            id="tanggal_selesai"
+                            name="tanggal_selesai"
+                            value="{{ old('tanggal_selesai') }}"
+                            min="{{ now()->toDateString() }}"
+                            required
+                        >
+                        <span class="sp-hint" id="hintDurasi">Durasi maksimal 14 hari.</span>
+                        @error('tanggal_selesai')
+                            <span class="sp-error">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div class="sp-field sp-field--full">
+                        <label for="lokasi">Alamat / Tujuan Pulang <span>*</span></label>
+                        <input
+                            type="text"
+                            id="lokasi"
+                            name="lokasi"
+                            value="{{ old('lokasi') }}"
+                            maxlength="255"
+                            placeholder="Contoh: Jl. Raya Padang - Bukittinggi, Kota Padang"
+                            required
+                        >
+                        @error('lokasi')
+                            <span class="sp-error">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div class="sp-field sp-field--full">
+                        <label for="alasan">Alasan Izin <span>*</span></label>
+                        <textarea
+                            id="alasan"
+                            name="alasan"
+                            maxlength="2000"
+                            placeholder="Tuliskan alasan izin pulang secara jelas (minimal 10 karakter)."
+                            required
+                        >{{ old('alasan') }}</textarea>
+                        @error('alasan')
+                            <span class="sp-error">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="sp-actions">
+                    <button type="submit" class="sp-btn sp-btn--primary">
+                        <i class="fa-solid fa-paper-plane"></i> Kirim Pengajuan
+                    </button>
+                    <a href="{{ route('surat.perizinan.mhs') }}" class="sp-btn">Batal</a>
+                </div>
+            </form>
+        @endif
+    </div>
+
+    <div class="sp-card">
+        <h2>Riwayat Izin Pulang</h2>
+
+        <div class="sp-table-wrap">
+            <table class="sp-table">
+                <thead>
+                    <tr>
+                        <th>Tanggal Ajuan</th>
+                        <th>Periode</th>
+                        <th>Durasi</th>
+                        <th>Tujuan</th>
+                        <th>Status</th>
+                        <th>Catatan Musyrifah</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($riwayatPulang as $izin)
+                        <tr>
+                            <td>{{ $izin->created_at?->locale('id')->translatedFormat('d M Y') }}</td>
+                            <td>{{ $izin->periodeTeks() }}</td>
+                            <td>{{ $izin->durasi_hari ? $izin->durasi_hari.' hari' : '-' }}</td>
+                            <td>{{ $izin->tujuanTeks() }}</td>
+                            <td>
+                                <span class="sp-badge sp-badge--{{ $izin->kelasStatus() }}">
+                                    {{ $izin->labelStatus() }}
+                                </span>
+                            </td>
+                            <td>{{ $izin->catatan_musyrifah ?: '-' }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="sp-empty">Belum ada pengajuan izin pulang.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-    </form>
-</div>
+    </div>
+@endsection
 
-<script>
-    const tanggalBerangkat = document.getElementById('tanggal_berangkat');
-    const tanggalKembali = document.getElementById('tanggal_kembali');
+@push('scripts')
+    <script>
+        const mulai = document.getElementById('tanggal_mulai');
+        const kembali = document.getElementById('tanggal_selesai');
+        const hint = document.getElementById('hintDurasi');
+        const maksHari = {{ \App\Models\SuratPerizinan::MAKS_DURASI_PULANG_HARI }};
 
-    tanggalBerangkat.addEventListener('change', function () {
-        tanggalKembali.min = this.value;
+        function perbaruiDurasi() {
+            if (!mulai || !kembali) {
+                return;
+            }
 
-        if (tanggalKembali.value && tanggalKembali.value < this.value) {
-            tanggalKembali.value = '';
+            kembali.min = mulai.value || '{{ now()->toDateString() }}';
+
+            if (!mulai.value || !kembali.value) {
+                hint.textContent = 'Durasi maksimal ' + maksHari + ' hari.';
+                return;
+            }
+
+            const awal = new Date(mulai.value + 'T00:00:00');
+            const akhir = new Date(kembali.value + 'T00:00:00');
+            const hari = Math.round((akhir - awal) / 86400000) + 1;
+
+            if (hari < 1) {
+                hint.textContent = 'Tanggal kembali tidak boleh sebelum tanggal mulai.';
+            } else if (hari > maksHari) {
+                hint.textContent = 'Durasi ' + hari + ' hari melebihi batas ' + maksHari + ' hari.';
+            } else {
+                hint.textContent = 'Durasi pengajuan: ' + hari + ' hari.';
+            }
         }
-    });
-</script>
 
-</body>
-</html>
+        if (mulai && kembali) {
+            mulai.addEventListener('change', perbaruiDurasi);
+            kembali.addEventListener('change', perbaruiDurasi);
+            perbaruiDurasi();
+        }
+    </script>
+@endpush

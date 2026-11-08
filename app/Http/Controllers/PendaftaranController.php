@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Kamar;
 use App\Models\Pendaftaran;
+use App\Models\PengajuanKamar;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -455,33 +457,15 @@ class PendaftaranController extends Controller
 
         if ($user->kamar_id) {
             return redirect()
-                ->route('pendaftaran.konfirmasi')
-                ->with('success', 'Kamu sudah memiliki penempatan kamar.');
+                ->route('kamar')
+                ->with('success', 'Kamu sudah memiliki penempatan kamar. Informasi kamar dapat dilihat pada halaman Informasi Kamar.');
         }
 
-        $kamars = DB::table('kamars')
-            ->orderBy('nomor_kamar')
-            ->get()
-            ->map(function ($kamar) {
-                $pengajuanMenunggu = DB::table('pengajuan_kamars')
-                    ->where('kamar_id', $kamar->id)
-                    ->where('status', 'menunggu')
-                    ->count();
+        $kamars = $this->daftarKamarUntukMahasiswa();
 
-                $kamar->tempat_tersedia = max(
-                    0,
-                    (int) $kamar->kapasitas
-                    - (int) $kamar->terisi
-                    - $pengajuanMenunggu
-                );
-
-                $kamar->penuh = $kamar->tempat_tersedia <= 0;
-
-                return $kamar;
-            });
-
-        $pengajuanSaya = DB::table('pengajuan_kamars')
+        $pengajuanSaya = PengajuanKamar::with('kamar')
             ->where('user_id', $user->id)
+            ->where('jenis', PengajuanKamar::JENIS_PENEMPATAN)
             ->first();
 
         return view('pendaftaran.pilih_kamar', compact(
@@ -509,53 +493,22 @@ class PendaftaranController extends Controller
 
         if ($user->kamar_id) {
             return redirect()
-                ->route('pendaftaran.konfirmasi')
-                ->with('error', 'Kamu sudah memiliki penempatan kamar.');
+                ->route('kamar')
+                ->with('error', 'Kamu sudah memiliki penempatan kamar. Gunakan menu Pengajuan Pindah Kamar pada halaman Informasi Kamar.');
         }
 
-        $kamarDetail = DB::table('kamars')
-            ->where('id', $kamarId)
-            ->first();
+        $kamarDetail = Kamar::query()->whereKey($kamarId)->first();
 
         abort_if(! $kamarDetail, 404);
 
-        $pengajuanMenunggu = DB::table('pengajuan_kamars')
-            ->where('kamar_id', $kamarId)
-            ->where('status', 'menunggu')
-            ->count();
+        $kamarDetail->tempat_tersedia = PengajuanKamar::slotTersedia($kamarDetail);
+        $kamarDetail->penuh = $kamarDetail->tempat_tersedia <= 0 || ! $kamarDetail->bisaDiajukan();
 
-        $kamarDetail->tempat_tersedia = max(
-            0,
-            (int) $kamarDetail->kapasitas
-            - (int) $kamarDetail->terisi
-            - $pengajuanMenunggu
-        );
+        $kamars = $this->daftarKamarUntukMahasiswa();
 
-        $kamarDetail->penuh = $kamarDetail->tempat_tersedia <= 0;
-
-        $kamars = DB::table('kamars')
-            ->orderBy('nomor_kamar')
-            ->get()
-            ->map(function ($kamar) {
-                $jumlahPengajuan = DB::table('pengajuan_kamars')
-                    ->where('kamar_id', $kamar->id)
-                    ->where('status', 'menunggu')
-                    ->count();
-
-                $kamar->tempat_tersedia = max(
-                    0,
-                    (int) $kamar->kapasitas
-                    - (int) $kamar->terisi
-                    - $jumlahPengajuan
-                );
-
-                $kamar->penuh = $kamar->tempat_tersedia <= 0;
-
-                return $kamar;
-            });
-
-        $pengajuanSaya = DB::table('pengajuan_kamars')
+        $pengajuanSaya = PengajuanKamar::with('kamar')
             ->where('user_id', $user->id)
+            ->where('jenis', PengajuanKamar::JENIS_PENEMPATAN)
             ->first();
 
         return view('pendaftaran.pilih_kamar', compact(
@@ -579,9 +532,9 @@ class PendaftaranController extends Controller
             'kamar_id.exists' => 'Kamar yang dipilih tidak ditemukan.',
         ]);
 
-        $userId = $request->user()->id;
+        $user = $request->user();
 
-        $pendaftaran = Pendaftaran::where('user_id', $userId)
+        $pendaftaran = Pendaftaran::where('user_id', $user->id)
             ->latest('id')
             ->first();
 
@@ -591,73 +544,50 @@ class PendaftaranController extends Controller
                 ->with('error', 'Pendaftaran kamu belum disetujui.');
         }
 
-        if ($request->user()->kamar_id) {
+        if ($user->kamar_id) {
             return redirect()
-                ->route('pendaftaran.konfirmasi')
-                ->with('error', 'Kamu sudah memiliki penempatan kamar.');
+                ->route('kamar')
+                ->with('error', 'Kamu sudah memiliki penempatan kamar. Gunakan menu Pengajuan Pindah Kamar pada halaman Informasi Kamar.');
         }
 
         try {
-            DB::transaction(function () use ($validated, $userId, $pendaftaran) {
-                $kamar = DB::table('kamars')
-                    ->where('id', $validated['kamar_id'])
-                    ->lockForUpdate()
-                    ->first();
-
-                if (! $kamar) {
-                    throw new \RuntimeException('Kamar tidak ditemukan.');
-                }
-
-                $pengajuanLama = DB::table('pengajuan_kamars')
-                    ->where('user_id', $userId)
-                    ->lockForUpdate()
-                    ->first();
-
-                if ($pengajuanLama && $pengajuanLama->status === 'disetujui') {
-                    throw new \RuntimeException(
-                        'Pengajuan kamar kamu sudah disetujui.'
-                    );
-                }
-
-                $pengajuanLain = DB::table('pengajuan_kamars')
-                    ->where('kamar_id', $kamar->id)
-                    ->where('status', 'menunggu')
-                    ->where('user_id', '!=', $userId)
-                    ->count();
-
-                $tersedia = (int) $kamar->kapasitas
-                    - (int) $kamar->terisi
-                    - $pengajuanLain;
-
-                if ($tersedia <= 0) {
-                    throw new \RuntimeException(
-                        'Maaf, kamar ini sudah penuh atau sedang dalam proses pengajuan.'
-                    );
-                }
-
-                DB::table('pengajuan_kamars')->updateOrInsert(
-                    ['user_id' => $userId],
-                    [
-                        'pendaftaran_id' => $pendaftaran->id,
-                        'kamar_id' => $kamar->id,
-                        'status' => 'menunggu',
-                        'created_at' => $pengajuanLama
-                            ? $pengajuanLama->created_at
-                            : now(),
-                        'updated_at' => now(),
-                    ]
-                );
-            });
+            PengajuanKamar::ajukan($user, Kamar::findOrFail($validated['kamar_id']));
         } catch (\Throwable $e) {
             return back()->with('error', $e->getMessage());
         }
 
         return redirect()
-            ->route('pendaftaran.pilihKamarMhs')
+            ->route('kamar')
             ->with(
                 'success',
                 'Pengajuan kamar berhasil disimpan. Silakan menunggu persetujuan pengelola Ma’had.'
             );
+    }
+
+    /**
+     * Daftar kamar untuk mahasiswa dengan sisa kuota yang sama seperti
+     * data kamar yang dikelola Musyrifah (penghuni + pengajuan menunggu).
+     *
+     * @return Collection<int, Kamar>
+     */
+    private function daftarKamarUntukMahasiswa(): Collection
+    {
+        return Kamar::query()
+            ->withCount([
+                'users',
+                'pengajuanKamars as pengajuan_menunggu_count' => fn ($query) => $query
+                    ->where('status', PengajuanKamar::STATUS_MENUNGGU),
+            ])
+            ->orderBy('nomor_kamar')
+            ->get()
+            ->each(function (Kamar $kamar): void {
+                $kamar->tempat_tersedia = max(
+                    0,
+                    (int) $kamar->kapasitas - (int) $kamar->users_count - (int) $kamar->pengajuan_menunggu_count
+                );
+
+                $kamar->penuh = $kamar->tempat_tersedia <= 0 || ! $kamar->bisaDiajukan();
+            });
     }
 
     // =========================================================

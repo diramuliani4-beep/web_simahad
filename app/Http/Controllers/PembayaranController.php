@@ -92,6 +92,24 @@ class PembayaranController extends Controller
     }
 
     /**
+     * Detail tagihan periode aktif: nominal, tahap, jatuh tempo,
+     * status, dan nomor Virtual Account BSI bersama.
+     */
+    public function detail(): View|RedirectResponse
+    {
+        if (! Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $user = Auth::user();
+
+        return view('Mahasiswa.detail_pembayaran', [
+            'user' => $user,
+            'ringkasan' => Pembayaran::ringkasanUntuk($user),
+        ]);
+    }
+
+    /**
      * Process or simulate bill payment.
      */
     public function bayar(Request $request): RedirectResponse

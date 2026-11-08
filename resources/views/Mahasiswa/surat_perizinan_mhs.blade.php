@@ -905,14 +905,7 @@
             <span class="notification-dot"></span>
         </button>
 
-        <button type="button" class="btn-circle-action btn-profile-badge"
-                title="Profil Pengguna"
-                onclick="openInfoModal('Profil Pengguna', '<strong>Nama:</strong> {{ Auth::user()->name ?? 'Mahasiswa' }}<br><strong>NIM:</strong> {{ Auth::user()->nim ?? '-' }}<br><strong>Email:</strong> {{ Auth::user()->email ?? '-' }}<br><strong>Status:</strong> Penghuni Ma’had Al-Jami’ah')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#262626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-        </button>
+        <x-mahasiswa.profile-dropdown />
     </div>
 </header>
 
@@ -1060,6 +1053,258 @@
 
     <!-- ================= MAIN CONTENT ================= -->
     <main class="main-content">
+        <style>
+            .sp-alert {
+                margin: 0 20px 18px;
+                padding: 12px 16px;
+                border-radius: 10px;
+                font-size: 14px;
+                line-height: 1.55;
+            }
+
+            .sp-alert ul {
+                margin: 6px 0 0 18px;
+            }
+
+            .sp-alert--sukses {
+                background: #eaf6ee;
+                border: 1px solid #2f7d4f;
+                color: #1c5334;
+            }
+
+            .sp-alert--gagal {
+                background: #fdeff1;
+                border: 1px solid #800d22;
+                color: #800d22;
+            }
+
+            .sp-kuota {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: space-between;
+                gap: 14px;
+                margin: 0 20px 26px;
+                padding: 18px 22px;
+                border-radius: 16px;
+                border: 1px solid #C9A96A;
+                background: linear-gradient(135deg, #6B0D1B 0%, #800d22 100%);
+                color: #fff;
+                box-shadow: 0 4px 10px rgba(107, 13, 27, 0.25);
+            }
+
+            .sp-kuota__judul {
+                display: inline-flex;
+                align-items: center;
+                gap: 9px;
+                font-size: 17px;
+                font-weight: 700;
+                color: #F3E3BF;
+            }
+
+            .sp-kuota__info p {
+                margin: 5px 0 0;
+                font-size: 13.5px;
+                color: #f6e7ea;
+            }
+
+            .sp-kuota__angka {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 2px;
+            }
+
+            .sp-kuota__angka span {
+                font-size: 24px;
+                font-weight: 800;
+                color: #C9A96A;
+            }
+
+            .sp-kuota__angka small {
+                font-size: 12.5px;
+                color: #f6e7ea;
+            }
+
+            .sp-table-wrap {
+                margin: 0 20px 26px;
+                overflow-x: auto;
+                border: 1px solid #d9c2c8;
+                border-radius: 14px;
+                background: #fff;
+            }
+
+            .sp-table {
+                width: 100%;
+                min-width: 860px;
+                border-collapse: collapse;
+            }
+
+            .sp-table thead {
+                background: #6B0D1B;
+                color: #fff;
+            }
+
+            .sp-table th,
+            .sp-table td {
+                padding: 11px 13px;
+                font-size: 13.5px;
+                text-align: left;
+                border-bottom: 1px solid #eddde1;
+                vertical-align: middle;
+            }
+
+            .sp-table th {
+                font-weight: 700;
+                white-space: nowrap;
+            }
+
+            .sp-table tbody tr:hover {
+                background: #fdf6f7;
+            }
+
+            .sp-table tbody tr:last-child td {
+                border-bottom: none;
+            }
+
+            .sp-empty {
+                text-align: center !important;
+                color: #6b7280;
+                padding: 22px 12px !important;
+            }
+
+            .sp-badge {
+                display: inline-block;
+                padding: 4px 11px;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 700;
+                white-space: nowrap;
+            }
+
+            .sp-badge--menunggu { background: #fdf1d8; color: #8a5a00; border: 1px solid #e0b658; }
+            .sp-badge--disetujui { background: #e7f6ec; color: #1e6b3a; border: 1px solid #7fbf95; }
+            .sp-badge--ditolak { background: #fdeaea; color: #a01c2c; border: 1px solid #e2969f; }
+            .sp-badge--perbaikan { background: #fdf1d8; color: #8a4b00; border: 1px solid #e0a558; }
+            .sp-badge--selesai { background: #e8eefb; color: #22457f; border: 1px solid #93a9d6; }
+            .sp-badge--dibatalkan { background: #eef0f3; color: #4b5563; border: 1px solid #b9c0ca; }
+
+            .sp-aksi {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                align-items: center;
+            }
+
+            .sp-aksi form {
+                display: inline;
+            }
+
+            .sp-link {
+                border: 1px solid #6B0D1B;
+                background: #fff;
+                color: #6B0D1B;
+                font-size: 12.5px;
+                font-weight: 600;
+                padding: 5px 11px;
+                border-radius: 8px;
+                cursor: pointer;
+                white-space: nowrap;
+            }
+
+            .sp-link:hover {
+                background: #6B0D1B;
+                color: #fff;
+            }
+
+            .sp-link--emas {
+                border-color: #C9A96A;
+                background: #C9A96A;
+                color: #4a1720;
+            }
+
+            .sp-link--danger {
+                border-color: #a01c2c;
+                color: #a01c2c;
+            }
+
+            .sp-link--danger:hover {
+                background: #a01c2c;
+                color: #fff;
+            }
+
+            .sp-detail-group {
+                margin-bottom: 18px;
+                padding-bottom: 14px;
+                border-bottom: 1px dashed #e3cdd3;
+            }
+
+            .sp-detail-group:last-child {
+                border-bottom: none;
+                margin-bottom: 0;
+            }
+
+            .sp-detail-group h4 {
+                margin: 0 0 10px;
+                font-size: 14px;
+                color: #6B0D1B;
+                text-transform: uppercase;
+                letter-spacing: .04em;
+            }
+
+            .sp-detail-row {
+                display: flex;
+                justify-content: space-between;
+                gap: 18px;
+                padding: 5px 0;
+                font-size: 14px;
+            }
+
+            .sp-detail-row span:first-child {
+                color: #6b7280;
+                flex-shrink: 0;
+            }
+
+            .sp-detail-row span:last-child {
+                text-align: right;
+                color: #111827;
+                font-weight: 600;
+                word-break: break-word;
+            }
+
+            @media (max-width: 768px) {
+                .sp-kuota,
+                .sp-table-wrap,
+                .sp-alert {
+                    margin-left: 6px;
+                    margin-right: 6px;
+                }
+
+                .sp-kuota__angka {
+                    align-items: flex-start;
+                }
+            }
+        </style>
+
+        @if (session('success'))
+            <div class="sp-alert sp-alert--sukses">{{ session('success') }}</div>
+        @endif
+
+        @if (session('error'))
+            <div class="sp-alert sp-alert--gagal">{{ session('error') }}</div>
+        @endif
+
+        @if ($errors->any())
+            <div class="sp-alert sp-alert--gagal">
+                <strong>Periksa kembali data pengajuan:</strong>
+                <ul>
+                    @foreach ($errors->all() as $pesan)
+                        <li>{{ $pesan }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <section class="page-header">
             <div class="breadcrumb">Dashboard / Surat &amp; Perizinan</div>
             <h1>Surat &amp; Perizinan</h1>
@@ -1072,20 +1317,34 @@
             <div class="summary-grid">
                 <div class="summary-card">
                     <div class="summary-icon waiting"><i class="fa-regular fa-clock"></i></div>
-                    <div class="summary-number" id="countPending">1</div>
+                    <div class="summary-number" id="countPending">{{ $jumlahMenunggu }}</div>
                     <div class="summary-label">Menunggu</div>
                 </div>
 
                 <div class="summary-card">
                     <div class="summary-icon approved"><i class="fa-regular fa-circle-check"></i></div>
-                    <div class="summary-number" id="countApproved">1</div>
+                    <div class="summary-number" id="countApproved">{{ $jumlahDisetujui }}</div>
                     <div class="summary-label">Disetujui</div>
                 </div>
 
                 <div class="summary-card">
                     <div class="summary-icon rejected"><i class="fa-regular fa-circle-xmark"></i></div>
-                    <div class="summary-number" id="countRejected">1</div>
+                    <div class="summary-number" id="countRejected">{{ $jumlahDitolak }}</div>
                     <div class="summary-label">Ditolak</div>
+                </div>
+            </div>
+
+            <div class="sp-kuota">
+                <div class="sp-kuota__info">
+                    <span class="sp-kuota__judul">
+                        <i class="fa-solid fa-house"></i>
+                        Kuota Izin Pulang Mingguan
+                    </span>
+                    <p>Periode {{ $kuotaPulang['bulan'] }} &middot; maksimal {{ $kuotaPulang['maksimal'] }} kali per bulan</p>
+                </div>
+                <div class="sp-kuota__angka">
+                    <span>{{ $kuotaPulang['terpakai'] }} / {{ $kuotaPulang['maksimal'] }}</span>
+                    <small>Sisa {{ $kuotaPulang['sisa'] }} slot bulan ini</small>
                 </div>
             </div>
 
@@ -1093,32 +1352,40 @@
 
             <div class="request-grid">
                 <div class="request-card">
-                    <div class="request-icon"><i class="fa-regular fa-file-lines"></i></div>
-                    <h3>Pengajuan Surat</h3>
-                    <p>Ajukan surat untuk keperluan tertentu.</p>
-                    <button class="request-link" type="button" onclick="openForm('Pengajuan Surat')">
+                    <div class="request-icon"><i class="fa-solid fa-building-columns"></i></div>
+                    <h3>Izin Kegiatan Fakultas/Prodi</h3>
+                    <p>Kegiatan resmi fakultas atau program studi di luar Ma’had.</p>
+                    <a href="{{ route('surat.perizinan.mhs.kegiatan', ['jenis' => 'kegiatan_fakultas']) }}" class="request-link">
                         Buat Pengajuan &rarr;
-                    </button>
+                    </a>
                 </div>
 
                 <div class="request-card">
-                    <div class="request-icon"><i class="fa-regular fa-calendar-check"></i></div>
-                    <h3>Izin Kegiatan</h3>
-                    <p>Ajukan izin untuk kegiatan di luar Ma’had.</p>
-                    <button class="request-link" type="button" onclick="openForm('Izin Kegiatan')">
+                    <div class="request-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                    <h3>Izin Kegiatan Kampus</h3>
+                    <p>Kegiatan kampus dengan surat resmi penyelenggara.</p>
+                    <a href="{{ route('surat.perizinan.mhs.kegiatan', ['jenis' => 'kegiatan_kampus']) }}" class="request-link">
                         Buat Pengajuan &rarr;
-                    </button>
+                    </a>
                 </div>
 
-                
-<div class="request-card">
-    <div class="request-icon"><i class="fa-solid fa-house"></i></div>
-    <h3>Izin Pulang</h3>
-    <p>Ajukan izin pulang dan isi rencana keberangkatan serta kepulangan.</p>
-    <a href="{{ route('surat.perizinan.mhs.pengajuan') }}" class="request-link">
-        Buat Pengajuan &rarr;
-    </a>
-</div>
+                <div class="request-card">
+                    <div class="request-icon"><i class="fa-solid fa-file-signature"></i></div>
+                    <h3>Surat Pulang Semester</h3>
+                    <p>Unduh surat, minta tanda tangan orang tua, lalu unggah kembali.</p>
+                    <a href="{{ route('surat.perizinan.mhs.semester') }}" class="request-link">
+                        Buka Surat Semester &rarr;
+                    </a>
+                </div>
+
+                <div class="request-card">
+                    <div class="request-icon"><i class="fa-solid fa-house"></i></div>
+                    <h3>Izin Pulang</h3>
+                    <p>Ajukan izin pulang dan isi rencana keberangkatan serta kepulangan.</p>
+                    <a href="{{ route('surat.perizinan.mhs.pengajuan') }}" class="request-link">
+                        Buat Pengajuan &rarr;
+                    </a>
+                </div>
 
 
                 <div class="request-card">
@@ -1131,9 +1398,84 @@
                 </div>
             </div>
 
-            <h2 class="section-title">Pengajuan Terbaru</h2>
+            <h2 class="section-title">Riwayat Pengajuan</h2>
 
-            <div class="history-card" id="historyList"></div>
+            <div class="sp-table-wrap">
+                <table class="sp-table">
+                    <thead>
+                        <tr>
+                            <th>Tanggal Ajuan</th>
+                            <th>Jenis Izin</th>
+                            <th>Periode</th>
+                            <th>Tujuan / Lokasi</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($pengajuans as $pengajuan)
+                            <tr>
+                                <td>{{ $pengajuan->created_at?->locale('id')->translatedFormat('d M Y') }}</td>
+                                <td>{{ $pengajuan->labelJenis() }}</td>
+                                <td>{{ $pengajuan->periodeTeks() }}</td>
+                                <td>{{ $pengajuan->tujuanTeks() }}</td>
+                                <td>
+                                    <span class="sp-badge sp-badge--{{ $pengajuan->kelasStatus() }}">
+                                        {{ $pengajuan->labelStatus() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="sp-aksi">
+                                        <button
+                                            type="button"
+                                            class="sp-link"
+                                            data-detail="{{ json_encode([
+                                                'jenis' => $pengajuan->labelJenis(),
+                                                'status' => $pengajuan->labelStatus(),
+                                                'diajukan' => $pengajuan->created_at?->locale('id')->translatedFormat('d M Y H:i') ?? '-',
+                                                'periode' => $pengajuan->periodeTeks(),
+                                                'durasi' => $pengajuan->durasi_hari ? $pengajuan->durasi_hari.' hari' : '-',
+                                                'lokasi' => $pengajuan->tujuanTeks(),
+                                                'kegiatan' => $pengajuan->nama_kegiatan ?: '-',
+                                                'penyelenggara' => $pengajuan->penyelenggara ?: '-',
+                                                'waktu' => $pengajuan->waktuTeks(),
+                                                'alasan' => $pengajuan->alasan ?: '-',
+                                                'verifikator' => $pengajuan->keputusan_nama ?: '-',
+                                                'diverifikasi' => $pengajuan->keputusan_pada?->locale('id')->translatedFormat('d M Y H:i') ?? '-',
+                                                'catatan' => $pengajuan->catatan_musyrifah ?: '-',
+                                                'nomor_surat' => $pengajuan->nomor_surat ?: '-',
+                                                'dokumen' => $pengajuan->punyaDokumen() ? route('surat.perizinan.mhs.dokumen', [$pengajuan, 'pendukung']) : null,
+                                                'tertanda' => $pengajuan->punyaSuratTertanda() ? route('surat.perizinan.mhs.dokumen', [$pengajuan, 'tertanda']) : null,
+                                                'cetak' => $pengajuan->suratSemester() && $pengajuan->nomor_surat ? route('surat.perizinan.mhs.semester.cetak', $pengajuan) : null,
+                                            ]) }}"
+                                            onclick="bukaDetail(this)"
+                                        >
+                                            Detail
+                                        </button>
+
+                                        @if (in_array($pengajuan->status, ['menunggu', 'perlu_perbaikan'], true))
+                                            <form
+                                                method="POST"
+                                                action="{{ route('surat.perizinan.mhs.batalkan', $pengajuan) }}"
+                                                onsubmit="return confirm('Batalkan pengajuan ini? Slot kuota akan dikembalikan.')"
+                                            >
+                                                @csrf
+                                                <button type="submit" class="sp-link sp-link--danger">Batalkan</button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="sp-empty">
+                                    Belum ada pengajuan. Silakan buat pengajuan melalui menu di atas.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </section>
     </main>
 </div>
@@ -1206,7 +1548,8 @@
     </div>
 </div>
 
-<script>
+<script type="text/plain" data-nonaktif="skrip-contoh-lama">
+    {{-- Skrip contoh lama dinonaktifkan agar tidak menimpa data dari database. --}}
     // Contoh data tampilan. Belum terhubung ke database.
     let submissions = [
         {
@@ -1477,6 +1820,132 @@
     updateFormFields();
     renderHistory();
     updateSummary();
+</script>
+
+<script>
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+
+        if (modal) {
+            modal.classList.remove('show');
+        }
+    }
+
+    function showHistory() {
+        const tabel = document.querySelector('.sp-table-wrap');
+
+        if (tabel) {
+            tabel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    function bukaDetail(tombol) {
+        let data = {};
+
+        try {
+            data = JSON.parse(tombol.dataset.detail || '{}');
+        } catch (error) {
+            return;
+        }
+
+        const baris = (label, nilai) => `
+            <div class="sp-detail-row">
+                <span>${label}</span>
+                <span>${escapeHTML(nilai ?? '-')}</span>
+            </div>`;
+
+        const berkas = [];
+
+        if (data.dokumen) {
+            berkas.push(`<a class="sp-link" href="${data.dokumen}" target="_blank" rel="noopener">Surat Pendukung</a>`);
+        }
+
+        if (data.tertanda) {
+            berkas.push(`<a class="sp-link" href="${data.tertanda}" target="_blank" rel="noopener">Surat Bertanda Tangan</a>`);
+        }
+
+        if (data.cetak) {
+            berkas.push(`<a class="sp-link sp-link--emas" href="${data.cetak}" target="_blank" rel="noopener">Cetak Surat Semester</a>`);
+        }
+
+        const isi = `
+            <div class="sp-detail-group">
+                <h4>Informasi Pengajuan</h4>
+                ${baris('Jenis Izin', data.jenis)}
+                ${baris('Status', data.status)}
+                ${baris('Tanggal Ajuan', data.diajukan)}
+                ${baris('Periode', data.periode)}
+                ${baris('Durasi', data.durasi)}
+            </div>
+            <div class="sp-detail-group">
+                <h4>Rincian</h4>
+                ${baris('Nama Kegiatan', data.kegiatan)}
+                ${baris('Penyelenggara', data.penyelenggara)}
+                ${baris('Waktu Kegiatan', data.waktu)}
+                ${baris('Tujuan / Lokasi', data.lokasi)}
+                ${baris('Nomor Surat', data.nomor_surat)}
+                ${baris('Alasan', data.alasan)}
+            </div>
+            <div class="sp-detail-group">
+                <h4>Keputusan Musyrifah</h4>
+                ${baris('Diverifikasi Oleh', data.verifikator)}
+                ${baris('Waktu Verifikasi', data.diverifikasi)}
+                ${baris('Catatan', data.catatan)}
+            </div>
+            ${berkas.length > 0 ? `<div class="sp-detail-group"><h4>Berkas</h4><div class="sp-aksi">${berkas.join(' ')}</div></div>` : ''}
+        `;
+
+        document.getElementById('detailContent').innerHTML = isi;
+        document.getElementById('detailModal').classList.add('show');
+    }
+
+    function escapeHTML(value) {
+        return String(value ?? '').replace(/[&<>"']/g, function (char) {
+            const entities = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+
+            return entities[char];
+        });
+    }
+
+    // Tutup modal saat area luar atau tombol Escape ditekan.
+    document.querySelectorAll('.modal').forEach(function (modal) {
+        modal.addEventListener('click', function (event) {
+            if (event.target === modal) {
+                modal.classList.remove('show');
+            }
+        });
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            document.querySelectorAll('.modal.show').forEach(function (modal) {
+                modal.classList.remove('show');
+            });
+        }
+    });
+
+    // Menu sidebar pada layar kecil.
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+
+    if (mobileMenuBtn && sidebar && sidebarBackdrop) {
+        mobileMenuBtn.addEventListener('click', function () {
+            sidebar.classList.toggle('active');
+            sidebarBackdrop.classList.toggle('active');
+        });
+
+        sidebarBackdrop.addEventListener('click', function () {
+            sidebar.classList.remove('active');
+            sidebarBackdrop.classList.remove('active');
+        });
+    }
 </script>
 
 </body>

@@ -27,5 +27,10 @@ class MataPelajaran extends Model
     {
         return $this->hasMany(AbsensiPembelajaran::class, 'mata_pelajaran_id');
     }
-}
 
+    /** Tugas yang diberikan Guru untuk mata pelajaran ini. */
+    public function tugas(): HasMany
+    {
+        return $this->hasMany(Tugas::class, 'mata_pelajaran_id');
+    }
+}

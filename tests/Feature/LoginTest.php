@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Kamar;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -53,10 +54,13 @@ class LoginTest extends TestCase
             'email' => 'fikri@uinib.ac.id',
             'nim' => '240999',
             'name' => 'Fikri Mahasiswa Baru',
+            'status' => 'pending',
         ]);
 
-        $response->assertRedirect(route('dashboard'));
-        $this->assertAuthenticated();
+        // Akun baru menunggu verifikasi, sehingga diarahkan ke login.
+        $response->assertRedirect(route('login'));
+        $response->assertSessionHas('status');
+        $this->assertGuest();
     }
 
     public function test_forgot_password_screen_can_be_rendered(): void
@@ -157,55 +161,76 @@ class LoginTest extends TestCase
     {
         $user = User::factory()->create([
             'name' => 'Ahmad Mahasiswa',
+            'role' => 'mahasiswa',
+            'status' => 'aktif',
         ]);
 
         $response = $this->actingAs($user)->get('/dashboard');
 
         $response->assertStatus(200);
-        $response->assertSee('SELAMAT DATANG, AHMAD MAHASISWA');
-        $response->assertSee('Pendaftaran');
-        $response->assertSee('Disetujui');
-        $response->assertSee('Kamar A-102');
-        $response->assertSee('Pembayaran Belum Lunas');
-        $response->assertSee('Jadwal Hari Ini');
-        $response->assertSee('08:00-10:00');
-        $response->assertSee('Bahasa Arab');
-        $response->assertSee('Kelas-A');
-        $response->assertSee('Home');
-        $response->assertSee('Pembalajaran');
-        $response->assertSee('Perizinan');
-        $response->assertSee('Profil');
-        $response->assertSee('Pengaturan');
+        $response->assertSee('Ahmad Mahasiswa');
+        $response->assertSee('Ringkasan Mahasiswa');
+        $response->assertSee('Ringkasan Pembayaran');
+        $response->assertSee('Ringkasan Absensi');
+        $response->assertSee('Kalender Jadwal Pembelajaran');
+        $response->assertSee('Tugas Terbaru');
+        $response->assertSee('Nilai Terbaru');
+        $response->assertSee('Pengumuman Terbaru');
+        $response->assertSee('Status Perizinan');
+        $response->assertSee('Notifikasi Terbaru');
         $response->assertSee('Keluar');
     }
 
     public function test_kamar_screen_can_be_rendered(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['role' => 'mahasiswa']);
+
+        Kamar::create([
+            'nama_kamar' => 'Kamar 101',
+            'nomor_kamar' => '101',
+            'gedung' => 'Gedung A',
+            'lantai' => 1,
+            'kapasitas' => 4,
+            'terisi' => 0,
+            'status' => 'Tersedia',
+        ]);
 
         $response = $this->actingAs($user)->get('/kamar');
 
         $response->assertStatus(200);
-        $response->assertSee('Cari Kamar');
-        $response->assertSee('Lantai');
+        $response->assertSee('Informasi Kamar');
         $response->assertSee('Kamar 101');
-        $response->assertSee('Kamar 102');
-        $response->assertSee('Kapasitas 4');
+        $response->assertSee('Gedung A');
+        $response->assertSee('Lantai 1');
+        $response->assertSee('Kapasitas');
         $response->assertSee('Tersedia');
-        $response->assertSee('Penuh');
-        $response->assertSee('Pilih');
-        $response->assertSee('Lanjut');
+        $response->assertSee('Ajukan Kamar Ini');
     }
 
     public function test_user_can_select_kamar(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['role' => 'mahasiswa']);
+
+        $kamar = Kamar::create([
+            'nama_kamar' => 'Kamar 101',
+            'nomor_kamar' => '101',
+            'gedung' => 'Gedung A',
+            'lantai' => 1,
+            'kapasitas' => 4,
+            'terisi' => 0,
+            'status' => 'Tersedia',
+        ]);
 
         $response = $this->actingAs($user)->post('/kamar/pilih', [
-            'room_name' => 'Kamar 101',
+            'kamar_id' => $kamar->id,
         ]);
 
         $response->assertRedirect(route('kamar'));
-        $response->assertSessionHas('status', 'Berhasil memilih Kamar 101!');
+        $response->assertSessionHas('success');
+        $this->assertDatabaseHas('pengajuan_kamars', [
+            'user_id' => $user->id,
+            'kamar_id' => $kamar->id,
+            'status' => 'menunggu',
+        ]);
     }
 }

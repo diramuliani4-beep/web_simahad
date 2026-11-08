@@ -391,6 +391,10 @@
                 <span class="menu-icon">▣</span>
                 <span>Data Kamar</span>
             </a>
+            <a href="{{ route('musyrifah.data_kamar') }}#pengajuan-kamar">
+                <span class="menu-icon">▤</span>
+                <span>Pengajuan Kamar</span>
+            </a>
             <a
                 href="{{ route('musyrifah.pembayaran') }}"
                 class="{{ request()->routeIs('musyrifah.pembayaran') ? 'active' : '' }}"
@@ -409,12 +413,15 @@
 
             <a
                 href="{{ route('musyrifah.surat_perizinan') }}"
-                class="{{ request()->routeIs('musyrifah.surat_perizinan') ? 'active' : '' }}"
+                class="{{ request()->routeIs('musyrifah.surat_perizinan*') ? 'active' : '' }}"
             >
                 <span class="menu-icon">▯</span>
                 <span>Surat &amp; Perizinan</span>
             </a>
-            <a href="{{ route('musyrifah.pengumuman') }}">
+            <a
+                href="{{ route('musyrifah.pengumuman') }}"
+                class="{{ request()->routeIs('musyrifah.pengumuman*', 'musyrifah.detail-pengumuman') ? 'active' : '' }}"
+            >
                 <span class="menu-icon">⚑</span>
                 <span>Pengumuman</span>
             </a>

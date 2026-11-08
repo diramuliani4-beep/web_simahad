@@ -294,7 +294,7 @@
 
     {{-- SAPAAN GURU --}}
     <section class="welcome">
-        <h1>Assalamu’alaikum, Ustazah! 👋</h1>
+        <h1>Assalamu’alaikum, {{ $guru?->name ?? 'Ustazah' }}! 👋</h1>
 
         <p>
             Semoga kegiatan mengajar hari ini berjalan lancar.
@@ -320,7 +320,7 @@
             </svg>
 
             <div class="stat-number">
-                {{ $jumlahMapel ?? 2 }}
+                {{ $jumlahMapel ?? 0 }}
             </div>
 
             <div class="stat-label">Mata Pelajaran</div>
@@ -343,7 +343,7 @@
             </svg>
 
             <div class="stat-number">
-                {{ $jumlahKelompok ?? 2 }}
+                {{ $jumlahKelompok ?? 0 }}
             </div>
 
             <div class="stat-label">Kelompok Diajar</div>
@@ -364,7 +364,7 @@
             </svg>
 
             <div class="stat-number">
-                {{ $jadwalMingguIni ?? 3 }}
+                {{ $jadwalMingguIni ?? 0 }}
             </div>
 
             <div class="stat-label">Jadwal Minggu Ini</div>
@@ -385,7 +385,7 @@
             </svg>
 
             <div class="stat-number">
-                {{ $absensiPerluDiisi ?? 2 }}
+                {{ $absensiPerluDiisi ?? 0 }}
             </div>
 
             <div class="stat-label">Absensi Perlu Diisi</div>
@@ -414,49 +414,35 @@
 
         <div class="schedule-list">
 
-            {{-- JADWAL PERTAMA --}}
-            <article class="schedule-item">
+            @forelse ($jadwalMendatang ?? collect() as $jadwal)
+                <article class="schedule-item">
 
-                <div class="schedule-time">
-                    09.00–10.00 WIB
-                </div>
+                    <div class="schedule-time">
+                        {{ $jadwal->hari }}, {{ $jadwal->jamTeks() }}
+                    </div>
 
-                <h3 class="schedule-subject">
-                    Akhlak dan Adab · Kelompok A
-                </h3>
+                    <h3 class="schedule-subject">
+                        {{ $jadwal->namaMataPelajaran() }} · {{ $jadwal->kelompok }}
+                    </h3>
 
-                <p class="schedule-detail">
-                    Ruang Pembelajaran 1
-                </p>
+                    <p class="schedule-detail">
+                        {{ $jadwal->ruangan ?: 'Ruang Kelas' }}
+                    </p>
 
-                <a href="{{ url('/guru/jadwal-saya') }}"
-                   class="schedule-link">
-                    Buka jadwal &rarr;
-                </a>
+                    <a href="{{ route('guru.jadwal-saya') }}"
+                       class="schedule-link">
+                        Buka jadwal &rarr;
+                    </a>
 
-            </article>
-
-            {{-- JADWAL KEDUA --}}
-            <article class="schedule-item">
-
-                <div class="schedule-time">
-                    13.00–14.00 WIB
-                </div>
-
-                <h3 class="schedule-subject">
-                    Al-Qur'an · Kelompok B
-                </h3>
-
-                <p class="schedule-detail">
-                    Ruang Pembelajaran 2
-                </p>
-
-                <a href="{{ url('/guru/jadwal-saya') }}"
-                   class="schedule-link">
-                    Buka jadwal &rarr;
-                </a>
-
-            </article>
+                </article>
+            @empty
+                <article class="schedule-item">
+                    <h3 class="schedule-subject">Belum ada jadwal mengajar</h3>
+                    <p class="schedule-detail">
+                        Jadwal akan tampil setelah Musyrifah menetapkan penugasan pembelajaran.
+                    </p>
+                </article>
+            @endforelse
 
         </div>
 
@@ -469,7 +455,7 @@
             Aktivitas Terbaru
         </h2>
 
-        {{-- AKTIVITAS ABSENSI --}}
+        {{-- TUGAS --}}
         <div class="activity-item">
 
             <svg class="activity-icon success"
@@ -480,23 +466,23 @@
                  stroke-linecap="round"
                  stroke-linejoin="round"
                  aria-hidden="true">
-                <circle cx="12" cy="12" r="9"/>
-                <path d="m8 12 3 3 5-6"/>
+                <rect x="4" y="3" width="16" height="18" rx="2"/>
+                <path d="M8 8h8M8 12h8M8 16h5"/>
             </svg>
 
             <div>
                 <p class="activity-name">
-                    Absensi Kelompok A
+                    {{ $jumlahTugas ?? 0 }} tugas telah dibuat
                 </p>
 
                 <p class="activity-description">
-                    Pertemuan sebelumnya telah dicatat.
+                    Kelola tugas, pengumpulan, dan penilaian mahasiswa pada menu Tugas.
                 </p>
             </div>
 
         </div>
 
-        {{-- AKTIVITAS JADWAL --}}
+        {{-- PENGUMPULAN --}}
         <div class="activity-item">
 
             <svg class="activity-icon normal"
@@ -507,17 +493,18 @@
                  stroke-linecap="round"
                  stroke-linejoin="round"
                  aria-hidden="true">
-                <rect x="3" y="5" width="18" height="16" rx="2"/>
-                <path d="M16 3v4M8 3v4M3 10h18"/>
+                <path d="M12 3v12"/>
+                <path d="m7 10 5 5 5-5"/>
+                <path d="M5 21h14"/>
             </svg>
 
             <div>
                 <p class="activity-name">
-                    Jadwal pembelajaran diperbarui
+                    Pengumpulan tugas mahasiswa
                 </p>
 
                 <p class="activity-description">
-                    Periksa jadwal terbaru dari pengelola.
+                    Pengumpulan terbaru otomatis masuk ke halaman Pengumpulan Tugas.
                 </p>
             </div>
 

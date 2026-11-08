@@ -28,13 +28,13 @@ class PembelajaranMahasiswaTest extends TestCase
             'nim' => '2317020999',
         ]);
 
-        (new PembelajaranSeeder())->run();
+        (new PembelajaranSeeder)->run();
 
         $response = $this->actingAs($user)->get(route('pembelajaran.mhs'));
 
         $response->assertStatus(200);
         $response->assertSee('Pembelajaran Mahasiswa');
-        $response->assertSee('Tersinkronisasi dengan Manajemen Pembelajaran Musyrifah');
+        $response->assertSee('Kelompok Belajar Saya');
         $response->assertSee('Pembelajaran Kitab Kuning');
         $response->assertSee('Penguatan Bahasa Asing');
         $response->assertSee('Penguatan Keterampilan Khusus Wawasan Interdisipliner dan Moderasi Beragama');
@@ -53,7 +53,7 @@ class PembelajaranMahasiswaTest extends TestCase
             'nim' => '2317020134',
         ]);
 
-        (new PembelajaranSeeder())->run();
+        (new PembelajaranSeeder)->run();
 
         $response = $this->actingAs($userLulus)->get(route('pembelajaran.mhs'));
 
@@ -70,7 +70,7 @@ class PembelajaranMahasiswaTest extends TestCase
             'role' => 'mahasiswa',
         ]);
 
-        (new PembelajaranSeeder())->run();
+        (new PembelajaranSeeder)->run();
 
         $mapel = MataPelajaran::first();
 

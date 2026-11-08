@@ -7,7 +7,9 @@ use App\Models\JadwalPembelajaran;
 use App\Models\KelompokBelajar;
 use App\Models\KelompokPengajar;
 use App\Models\MataPelajaran;
+use App\Models\Notifikasi;
 use App\Models\User;
+use Carbon\Carbon;
 use Database\Seeders\PembelajaranSeeder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -181,6 +183,8 @@ class MusyrifahManajemenPembelajaranController extends Controller
             'ruangan' => $validated['ruangan'] ?: 'Ruang Kelas',
         ]);
 
+        $this->kirimNotifikasiJadwal($jadwal, 'jadwal-baru', 'Jadwal pembelajaran baru');
+
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Jadwal pembelajaran berhasil ditambahkan.', 'data' => $jadwal]);
         }
@@ -212,6 +216,8 @@ class MusyrifahManajemenPembelajaranController extends Controller
             'mata_pelajaran_id' => $mapel?->id ?? $jadwal->mata_pelajaran_id,
         ]));
 
+        $this->kirimNotifikasiJadwal($jadwal, 'jadwal-ubah', 'Perubahan jadwal pembelajaran');
+
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Jadwal pembelajaran berhasil diperbarui.', 'data' => $jadwal]);
         }
@@ -226,6 +232,9 @@ class MusyrifahManajemenPembelajaranController extends Controller
     public function destroyJadwal(Request $request, int $id): RedirectResponse|JsonResponse
     {
         $jadwal = JadwalPembelajaran::findOrFail($id);
+
+        $this->kirimNotifikasiJadwal($jadwal, 'jadwal-hapus', 'Jadwal pembelajaran dihapus');
+
         $jadwal->delete();
 
         if ($request->wantsJson()) {
@@ -234,6 +243,49 @@ class MusyrifahManajemenPembelajaranController extends Controller
 
         return redirect()->route('musyrifah.manajemen_pembelajaran', ['tab' => 'jadwal'])
             ->with('success', 'Jadwal pembelajaran berhasil dihapus.');
+    }
+
+    /**
+     * Memberi tahu mahasiswa satu kelompok bahwa jadwalnya berubah.
+     * Kunci unik memakai isi jadwal agar perubahan yang sama tidak
+     * menghasilkan notifikasi ganda.
+     */
+    private function kirimNotifikasiJadwal(JadwalPembelajaran $jadwal, string $jenis, string $judul): void
+    {
+        $kunci = implode(':', [
+            'jadwal',
+            $jenis,
+            $jadwal->id,
+            md5(implode('|', [
+                (string) $jadwal->hari,
+                (string) $jadwal->jam_mulai,
+                (string) $jadwal->jam_selesai,
+                (string) $jadwal->ruangan,
+                (string) $jadwal->guru_pengampu,
+                (string) $jadwal->kelompok,
+            ])),
+        ]);
+
+        $pesan = $jadwal->namaMataPelajaran().' - '.$jadwal->hari.', '.$jadwal->jamTeks()
+            .' oleh '.($jadwal->guru_pengampu ?: 'Pengajar Ma\'had')
+            .' ('.$jadwal->kelompok.').';
+
+        $tanggal = Carbon::now()->next($jadwal->nomorHari());
+        $tautan = route('dashboard', [
+            'bulan' => $tanggal->format('Y-m'),
+            'tanggal' => $tanggal->format('Y-m-d'),
+        ]);
+
+        foreach (User::mahasiswaKelompok((string) $jadwal->kelompok) as $mahasiswa) {
+            Notifikasi::kirim(
+                $mahasiswa->id,
+                Notifikasi::TIPE_JADWAL_BERUBAH,
+                $judul,
+                $pesan,
+                $tautan,
+                $kunci
+            );
+        }
     }
 
     /**
@@ -256,7 +308,7 @@ class MusyrifahManajemenPembelajaranController extends Controller
             $alpa = (clone $absensiQuery)->where('status', 'alpa')->count();
 
             $tanggal = (clone $absensiQuery)->value('tanggal');
-            $tanggalFormatted = $tanggal ? \Carbon\Carbon::parse($tanggal)->format('d M Y') : 'Minggu ke-' . $p;
+            $tanggalFormatted = $tanggal ? Carbon::parse($tanggal)->format('d M Y') : 'Minggu ke-'.$p;
 
             $statusPertemuan = $total > 0 ? 'Terlaksana' : ($p <= 12 ? 'Terlaksana' : 'Terjadwal');
             $persentase = $total > 0 ? round(($hadir / $total) * 100, 1) : 100;
@@ -270,7 +322,7 @@ class MusyrifahManajemenPembelajaranController extends Controller
                 'sakit' => $sakit,
                 'alpa' => $alpa,
                 'total_mahasiswa' => $total,
-                'persentase_kehadiran' => $persentase . '%',
+                'persentase_kehadiran' => $persentase.'%',
             ];
         }
 
@@ -336,7 +388,7 @@ class MusyrifahManajemenPembelajaranController extends Controller
                 'izin' => $izin,
                 'sakit' => $sakit,
                 'alpa' => $alpa,
-                'status_mapel' => $memenuhiMapel ? 'Lengkap (16/16)' : 'Kurang ' . (16 - $hadir) . ' Pertemuan',
+                'status_mapel' => $memenuhiMapel ? 'Lengkap (16/16)' : 'Kurang '.(16 - $hadir).' Pertemuan',
                 'is_lulus' => $memenuhiMapel,
             ];
         }
@@ -377,7 +429,7 @@ class MusyrifahManajemenPembelajaranController extends Controller
 
             // Kelompok pengampu
             $jadwal = JadwalPembelajaran::where('mata_pelajaran_id', $m->id)->first();
-            $kelompokNama = $jadwal?->kelompok ?? 'Kelompok ' . (($idx % 6) + 1);
+            $kelompokNama = $jadwal?->kelompok ?? 'Kelompok '.(($idx % 6) + 1);
             $pengajar = $jadwal?->guru_pengampu ?? 'Pengajar Ma\'had';
             $periode = $jadwal?->periode ?? 'Semester Ganjil 2026/2027';
 
@@ -429,7 +481,7 @@ class MusyrifahManajemenPembelajaranController extends Controller
                 $belumCount++;
             }
 
-            $kelompok = AbsensiPembelajaran::where('user_id', $mhs->id)->value('kelompok') ?? ('Kelompok ' . (($index % 6) + 1));
+            $kelompok = AbsensiPembelajaran::where('user_id', $mhs->id)->value('kelompok') ?? ('Kelompok '.(($index % 6) + 1));
 
             $list[] = [
                 'id' => $mhs->id,
@@ -440,7 +492,7 @@ class MusyrifahManajemenPembelajaranController extends Controller
                 'target_hadir' => $targetTotalHadir,
                 'is_lulus' => $isLulus,
                 'status_label' => $isLulus ? 'Memenuhi Syarat' : 'Belum Memenuhi Syarat',
-                'catatan_syarat' => $isLulus ? 'Lulus 16 pertemuan di seluruh mata pelajaran' : 'Kurang di ' . $mapelKurang . ' mata pelajaran',
+                'catatan_syarat' => $isLulus ? 'Lulus 16 pertemuan di seluruh mata pelajaran' : 'Kurang di '.$mapelKurang.' mata pelajaran',
             ];
         }
 
@@ -464,7 +516,7 @@ class MusyrifahManajemenPembelajaranController extends Controller
 
             if (Schema::hasTable('mata_pelajarans') && Schema::hasTable('kelompok_pengajars')) {
                 if (MataPelajaran::count() === 0 || KelompokPengajar::count() === 0) {
-                    (new PembelajaranSeeder())->run();
+                    (new PembelajaranSeeder)->run();
                 }
             }
         } catch (\Throwable $e) {

@@ -356,6 +356,44 @@
             padding: 1.25rem 2.75rem 2.5rem;
         }
 
+        /* ================= PENCARIAN ================= */
+
+        .pencarian {
+            display: flex;
+            gap: .65rem;
+            margin-bottom: 1rem;
+        }
+
+        .pencarian input {
+            flex: 1;
+            min-width: 0;
+            padding: .8rem 1.1rem;
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            font-size: .95rem;
+            color: var(--text-dark);
+            outline: none;
+        }
+
+        .pencarian input:focus {
+            border-color: var(--primary-maroon);
+        }
+
+        .pencarian button {
+            padding: .8rem 1.6rem;
+            border: 1px solid var(--primary-maroon);
+            border-radius: 30px;
+            background: var(--primary-maroon);
+            color: #fff;
+            font-size: .95rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .pencarian button:hover {
+            background: var(--primary-maroon-hover);
+        }
+
         /* ================= FILTER KATEGORI ================= */
 
         .filters {
@@ -375,6 +413,8 @@
             font-size: .95rem;
             cursor: pointer;
             transition: all .2s ease;
+            text-decoration: none;
+            display: inline-block;
         }
 
         .filter-btn:hover {
@@ -403,19 +443,27 @@
         }
 
         .announcement-icon {
-            width: 61px;
-            height: 62px;
+            width: 92px;
+            height: 76px;
             flex-shrink: 0;
             display: grid;
             place-items: center;
             background: #f8ecef;
             color: var(--primary-maroon);
             border-radius: 12px;
+            overflow: hidden;
         }
 
         .announcement-icon svg {
             width: 25px;
             height: 25px;
+        }
+
+        .announcement-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         .announcement-body {
@@ -755,20 +803,7 @@
                 </svg>
             </button>
 
-            <button
-                type="button"
-                class="btn-circle-action btn-profile-badge"
-                title="Profil Pengguna"
-                aria-label="Profil Pengguna"
-                onclick="openInfoModal('Profil Pengguna', 'Nama: {{ Auth::user()->name ?? 'Mahasiswa' }}<br>Email: {{ Auth::user()->email ?? '-' }}')"
-            >
-                <svg viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-            </button>
+            <x-mahasiswa.profile-dropdown />
         </div>
     </header>
 
@@ -904,7 +939,7 @@
 
 
                     <a href="{{ route('pengumuman.mhs') }}"
-                       class="nav-pill {{ request()->routeIs('pengumuman.mhs') ? 'active' : '' }}">
+                       class="nav-pill {{ request()->routeIs('pengumuman.mhs*') ? 'active' : '' }}">
                         <span class="nav-icon">
                             <svg viewBox="0 0 24 24" fill="none"
                                  stroke-width="2" stroke-linecap="round"
@@ -965,113 +1000,90 @@
 
             <section class="content">
 
+                <form method="GET" action="{{ route('pengumuman.mhs') }}" class="pencarian">
+                    <input
+                        type="text"
+                        name="cari"
+                        value="{{ $filter['cari'] ?? '' }}"
+                        placeholder="Cari judul pengumuman"
+                        autocomplete="off"
+                    >
+
+                    @if (filled($filter['kategori'] ?? null))
+                        <input type="hidden" name="kategori" value="{{ $filter['kategori'] }}">
+                    @endif
+
+                    <button type="submit">Cari</button>
+                </form>
+
                 <div class="filters">
-                    <button type="button" class="filter-btn active" data-filter="Semua">
+                    <a
+                        href="{{ route('pengumuman.mhs', array_filter(['cari' => $filter['cari'] ?? null])) }}"
+                        class="filter-btn {{ blank($filter['kategori'] ?? null) ? 'active' : '' }}"
+                    >
                         Semua
-                    </button>
+                    </a>
 
-                    <button type="button" class="filter-btn" data-filter="Pengumuman">
-                        Pengumuman
-                    </button>
-
-                    <button type="button" class="filter-btn" data-filter="Kegiatan">
-                        Kegiatan
-                    </button>
-
-                    <button type="button" class="filter-btn" data-filter="Pembelajaran">
-                        Pembelajaran
-                    </button>
+                    @foreach ($kategoriPilihan as $kategori)
+                        <a
+                            href="{{ route('pengumuman.mhs', array_filter(['cari' => $filter['cari'] ?? null, 'kategori' => $kategori])) }}"
+                            class="filter-btn {{ ($filter['kategori'] ?? '') === $kategori ? 'active' : '' }}"
+                        >
+                            {{ $kategori }}
+                        </a>
+                    @endforeach
                 </div>
 
                 <div id="announcement-list">
 
-                    @foreach ($pengumuman as $item)
-                        <article class="announcement"
-                                 data-category="{{ $item['kategori'] }}">
+                    @forelse ($pengumuman as $item)
+                        <article class="announcement" data-category="{{ $item->kategori }}">
 
                             <div class="announcement-icon">
-                                @if ($item['ikon'] === 'calendar-days')
-                                    <svg viewBox="0 0 24 24" fill="none"
-                                         stroke="currentColor" stroke-width="2"
-                                         stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="3" y="4" width="18" height="18" rx="2"/>
-                                        <path d="M16 2v4M8 2v4M3 10h18"/>
-                                        <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>
-                                    </svg>
-                                @elseif ($item['ikon'] === 'megaphone')
+                                @if ($item->punyaGambar())
+                                    <img
+                                        src="{{ route('pengumuman.mhs.berkas', [$item, 'gambar']) }}"
+                                        alt="Gambar pengumuman {{ $item->judul }}"
+                                    >
+                                @else
                                     <svg viewBox="0 0 24 24" fill="none"
                                          stroke="currentColor" stroke-width="2"
                                          stroke-linecap="round" stroke-linejoin="round">
                                         <path d="m3 11 18-5v12L3 14v-3z"/>
                                         <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
                                     </svg>
-                                @elseif ($item['ikon'] === 'heart-handshake')
-                                    <svg viewBox="0 0 24 24" fill="none"
-                                         stroke="currentColor" stroke-width="2"
-                                         stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="m11 17 2 2a2 2 0 0 0 3-3"/>
-                                        <path d="m14 14 4 4a2 2 0 0 0 3-3l-7-7-4 1"/>
-                                        <path d="m3 12 5-5 4 1 2-2 5 1 2 2"/>
-                                        <path d="m3 12 5 5a2 2 0 0 0 3-3l-2-2"/>
-                                        <path d="M2 11V7a2 2 0 0 1 2-2h3"/>
-                                        <path d="M22 11V7a2 2 0 0 0-2-2h-2"/>
-                                    </svg>
-                                @else
-                                    <svg viewBox="0 0 24 24" fill="none"
-                                         stroke="currentColor" stroke-width="2"
-                                         stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-                                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                                    </svg>
                                 @endif
                             </div>
 
                             <div class="announcement-body">
 
-                                @php
-                                    $tagClass = match ($item['warna']) {
-                                        'purple' => 'tag-purple',
-                                        'orange' => 'tag-orange',
-                                        'blue' => 'tag-blue',
-                                        'green' => 'tag-green',
-                                        'pink' => 'tag-pink',
-                                        default => 'tag-purple',
-                                    };
-                                @endphp
+                                <span class="tag tag-purple">{{ $item->kategori }}</span>
 
-                                <span class="tag {{ $tagClass }}">
-                                    {{ $item['status'] }}
-                                </span>
-
-                                <h2>{{ $item['judul'] }}</h2>
+                                <h2>{{ $item->judul }}</h2>
 
                                 <p class="description">
-                                    {{ $item['deskripsi'] }}
+                                    {{ $item->ringkasan(200) }}
                                 </p>
 
                                 <div class="date">
-                                    Tanggal publikasi: {{ $item['tanggal'] }}
+                                    Tanggal publikasi: {{ $item->tanggalTeks() }}
                                 </div>
 
-                                <button
-                                    type="button"
+                                <a
                                     class="read-more"
-                                    data-title="{{ $item['judul'] }}"
-                                    data-description="{{ $item['deskripsi'] }}"
-                                    data-date="{{ $item['tanggal'] }}"
-                                    onclick="showAnnouncementDetail(this)"
+                                    href="{{ route('pengumuman.mhs.show', $item) }}"
                                 >
                                     Baca selengkapnya →
-                                </button>
+                                </a>
 
                             </div>
                         </article>
-                    @endforeach
+                    @empty
+                        <div class="empty" style="display: block;">
+                            Belum ada pengumuman yang sesuai dengan pencarian atau filter kategori.
+                        </div>
+                    @endforelse
 
-                </div>
-
-                <div class="empty" id="empty-message">
-                    Tidak ada pengumuman pada kategori ini.
                 </div>
 
             </section>
@@ -1103,34 +1115,6 @@
     <!-- ================= JAVASCRIPT ================= -->
 
     <script>
-        // Filter kategori pengumuman
-        const filterButtons = document.querySelectorAll('.filter-btn');
-        const announcements = document.querySelectorAll('.announcement');
-        const emptyMessage = document.getElementById('empty-message');
-
-        filterButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                filterButtons.forEach(item => item.classList.remove('active'));
-                button.classList.add('active');
-
-                const category = button.dataset.filter;
-                let visibleCount = 0;
-
-                announcements.forEach(item => {
-                    const show = category === 'Semua'
-                        || item.dataset.category === category;
-
-                    item.hidden = !show;
-
-                    if (show) visibleCount++;
-                });
-
-                emptyMessage.style.display = visibleCount === 0
-                    ? 'block'
-                    : 'none';
-            });
-        });
-
         // Buka dan tutup sidebar pada layar kecil
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const sidebar = document.getElementById('sidebar');
@@ -1170,32 +1154,6 @@
             if (event.target.id === 'infoModal') {
                 closeInfoModal();
             }
-        }
-
-        // Detail pengumuman menggunakan modal karena route detail
-        // belum tersedia pada daftar route Laravel saat ini.
-        function showAnnouncementDetail(button) {
-            const title = button.dataset.title;
-            const description = button.dataset.description;
-            const date = button.dataset.date;
-
-            document.getElementById('modalTitle').textContent = title;
-
-            const body = document.getElementById('modalBody');
-            body.textContent = '';
-
-            const paragraph = document.createElement('p');
-            paragraph.textContent = description;
-
-            const dateText = document.createElement('p');
-            dateText.style.marginTop = '12px';
-            dateText.style.color = '#77716d';
-            dateText.textContent = 'Tanggal publikasi: ' + date;
-
-            body.appendChild(paragraph);
-            body.appendChild(dateText);
-
-            document.getElementById('infoModal').classList.add('active');
         }
 
         // Tutup modal dengan tombol Escape

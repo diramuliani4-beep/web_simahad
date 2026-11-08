@@ -1287,13 +1287,7 @@
                 </svg>
             </button>
 
-            <div class="profile" aria-label="Profil mahasiswa">
-                <svg viewBox="0 0 60 60">
-                    <circle cx="30" cy="30" r="29" fill="#fff" stroke="#333"/>
-                    <circle cx="30" cy="22" r="11" fill="#45484b" stroke="#222"/>
-                    <path d="M9 53C10 40 19 34 30 34S50 40 51 53" fill="#45484b" stroke="#222" stroke-width="1.5"/>
-                </svg>
-            </div>
+            <x-mahasiswa.profile-dropdown />
         </div>
     </header>
 

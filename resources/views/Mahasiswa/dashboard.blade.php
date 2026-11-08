@@ -6,7 +6,6 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Dashboard - SIMAHAD UIN Imam Bonjol</title>
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
@@ -83,55 +82,6 @@
             gap: 1.15rem;
         }
 
-        /* Circular Action Buttons */
-        .btn-circle-action {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            transition: transform 0.15s ease, opacity 0.15s ease;
-            text-decoration: none;
-        }
-
-        .btn-circle-action:hover {
-            transform: scale(1.05);
-        }
-
-        .btn-bell-badge {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background-color: var(--primary-maroon);
-            color: #ffffff;
-            position: relative;
-        }
-
-        .btn-bell-badge svg {
-            width: 20px;
-            height: 20px;
-            stroke: #ffffff;
-        }
-
-        .btn-profile-badge {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 2px solid #262626;
-            color: #262626;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #ffffff;
-        }
-
-        .btn-profile-badge svg {
-            width: 26px;
-            height: 26px;
-        }
-
-        /* Hamburger for mobile */
         .mobile-toggle-btn {
             display: none;
             background: transparent;
@@ -146,7 +96,7 @@
             display: flex;
             flex: 1;
             min-height: calc(100vh - var(--header-height));
-            width: 100vw;
+            width: 100%;
         }
 
         /* ================= SIDEBAR ================= */
@@ -162,7 +112,6 @@
             background-color: #f1f5f9;
         }
 
-        /* Campus building background image */
         .sidebar-bg {
             position: absolute;
             inset: 0;
@@ -173,21 +122,19 @@
             background-repeat: no-repeat;
         }
 
-        /* Semi-transparent overlay to keep sky & building visible while ensuring text contrast */
         .sidebar-overlay {
             position: absolute;
             inset: 0;
             z-index: 2;
             background: linear-gradient(
-                180deg, 
-                rgba(219, 234, 254, 0.45) 0%, 
-                rgba(241, 245, 249, 0.55) 30%, 
-                rgba(255, 255, 255, 0.85) 65%, 
+                180deg,
+                rgba(219, 234, 254, 0.45) 0%,
+                rgba(241, 245, 249, 0.55) 30%,
+                rgba(255, 255, 255, 0.85) 65%,
                 rgba(255, 255, 255, 0.95) 100%
             );
         }
 
-        /* Campus Watermark */
         .sidebar-watermark {
             position: absolute;
             top: 55%;
@@ -215,7 +162,6 @@
             line-height: 1.2;
         }
 
-        /* Sidebar Navigation Container */
         .sidebar-content {
             position: relative;
             z-index: 4;
@@ -233,7 +179,6 @@
             flex-grow: 1;
         }
 
-        /* Pill Navigation Button */
         .nav-pill {
             display: flex;
             align-items: center;
@@ -258,7 +203,6 @@
             background-color: #fff8f9;
         }
 
-        /* Active Nav Pill (Dashboard) */
         .nav-pill.active {
             background-color: var(--maroon-tint);
             border-color: var(--primary-maroon);
@@ -267,10 +211,6 @@
 
         .nav-pill.active .nav-icon svg {
             stroke: var(--primary-maroon);
-        }
-
-        .nav-pill.active .nav-chevron {
-            color: var(--primary-maroon);
         }
 
         .nav-icon {
@@ -287,11 +227,29 @@
             stroke: #262626;
         }
 
+        .nav-pill.active .nav-icon svg {
+            stroke: var(--primary-maroon);
+        }
+
         .nav-label {
             flex-grow: 1;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        .nav-badge-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            border-radius: 999px;
+            background: var(--primary-maroon);
+            color: #fff;
+            font-size: 0.68rem;
+            font-weight: 800;
         }
 
         .nav-chevron {
@@ -327,6 +285,7 @@
             cursor: pointer;
             width: 100%;
             text-align: left;
+            text-decoration: none;
         }
 
         .btn-keluar-pill:hover {
@@ -347,22 +306,29 @@
             flex-direction: column;
             background-color: #ffffff;
             overflow-y: auto;
+            min-width: 0;
         }
 
-        /* Assalamu'alaikum Heading */
         .welcome-heading {
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 1.85rem;
             font-weight: 800;
             color: #111827;
-            margin-bottom: 1.35rem;
+            margin-bottom: 0.35rem;
             letter-spacing: -0.02em;
             display: flex;
             align-items: center;
             gap: 0.45rem;
+            flex-wrap: wrap;
         }
 
-        /* Card Container with Maroon Outline */
+        .welcome-sub {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.35rem;
+            line-height: 1.5;
+        }
+
         .simahad-card {
             border: 1.5px solid var(--maroon-border);
             border-radius: 16px;
@@ -374,7 +340,6 @@
             box-shadow: 0 4px 14px rgba(110, 0, 27, 0.06);
         }
 
-        /* Top Student Summary Card */
         .student-summary-card {
             padding: 1.25rem 1.65rem;
             margin-bottom: 1.35rem;
@@ -395,11 +360,12 @@
             display: flex;
             align-items: center;
             gap: 1.15rem;
+            flex-wrap: wrap;
         }
 
         .student-avatar-box {
-            width: 52px;
-            height: 52px;
+            width: 56px;
+            height: 56px;
             border-radius: 12px;
             background-color: #fdf2f4;
             display: flex;
@@ -407,12 +373,20 @@
             justify-content: center;
             flex-shrink: 0;
             color: var(--primary-maroon);
+            overflow: hidden;
+        }
+
+        .student-avatar-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .student-info-col {
             display: flex;
             flex-direction: column;
             gap: 0.2rem;
+            min-width: 0;
         }
 
         .student-name {
@@ -437,7 +411,54 @@
             line-height: 1.3;
         }
 
-        /* 2-Column Grid */
+        .status-chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-top: 1rem;
+            padding-top: 0.95rem;
+            border-top: 1px dashed #eadfda;
+        }
+
+        .status-chip {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 0.15rem;
+            min-width: 132px;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #f0e2dc;
+            border-radius: 10px;
+            background: #fffdfc;
+        }
+
+        .status-chip .chip-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #9ca3af;
+        }
+
+        .status-chip .chip-value {
+            font-size: 0.84rem;
+            font-weight: 700;
+            color: #1f2937;
+            line-height: 1.35;
+        }
+
+        .status-chip.ok .chip-value {
+            color: #15803d;
+        }
+
+        .status-chip.warning .chip-value {
+            color: #b45309;
+        }
+
+        .status-chip.danger .chip-value {
+            color: #b91c1c;
+        }
+
+        /* ================= GRID ================= */
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -457,94 +478,41 @@
             min-height: 175px;
         }
 
+        .grid-card.full-width {
+            grid-column: 1 / -1;
+        }
+
         .card-header-flex {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 0.75rem;
+            flex-wrap: wrap;
         }
 
-        .card-date-badge {
-            color: var(--primary-maroon);
-            font-size: 0.85rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        /* Jadwal Subcard */
-        .jadwal-inner-box {
-            border: 1.2px solid var(--maroon-border);
-            border-radius: 10px;
-            padding: 0.75rem 0.95rem;
-            margin-top: 0.95rem;
-            background-color: #ffffff;
-        }
-
-        .jadwal-inner-header {
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-            color: var(--primary-maroon);
-            font-size: 0.74rem;
-            font-weight: 700;
-            margin-bottom: 0.35rem;
-        }
-
-        .jadwal-inner-title {
-            font-size: 0.85rem;
-            font-weight: 800;
-            color: #1f2937;
-            margin-bottom: 0.2rem;
-            line-height: 1.2;
-        }
-
-        .jadwal-inner-subtitle {
-            font-size: 0.74rem;
-            color: var(--text-muted);
-            line-height: 1.35;
-        }
-
-        .jadwal-meta-row {
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
+        .card-detail-footer {
+            text-align: right;
             margin-top: 0.75rem;
         }
 
-        .jadwal-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.76rem;
-            color: var(--text-secondary);
-        }
-
-        .jadwal-meta-icon {
-            width: 18px;
-            height: 18px;
-            border-radius: 4px;
-            background-color: #fdf2f4;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .link-card-detail {
             color: var(--primary-maroon);
-            flex-shrink: 0;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: color 0.15s ease, transform 0.15s ease;
         }
 
-        .jadwal-meta-label {
-            font-weight: 700;
-            color: #374151;
+        .link-card-detail:hover {
+            color: var(--primary-maroon-hover);
+            transform: translateX(2px);
+            text-decoration: underline;
         }
 
-        .jadwal-meta-val {
-            color: var(--text-muted);
-        }
-
-        /* Tagihan Center Content */
+        /* ================= TAGIHAN ================= */
         .tagihan-center-wrap {
             display: flex;
             flex-direction: column;
@@ -571,7 +539,167 @@
             line-height: 1.45;
         }
 
-        /* Absensi Badges */
+        .tagihan-body {
+            flex-grow: 1;
+            padding-top: 0.35rem;
+        }
+
+        .tagihan-nominal {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #111827;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+        }
+
+        .tagihan-sub {
+            margin-top: 0.15rem;
+            font-size: 0.83rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .tagihan-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem 1.15rem;
+            margin-top: 0.75rem;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .tagihan-meta-row strong {
+            color: #374151;
+            font-weight: 700;
+        }
+
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.23rem 0.65rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .badge-status.belum {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-status.menunggu {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .badge-status.terlambat {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .badge-status.lunas {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .badge-status.terkumpul {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .badge-status.dinilai {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .reminder-alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            margin-top: 0.85rem;
+            padding: 0.6rem 0.75rem;
+            border-radius: 9px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            line-height: 1.5;
+            text-decoration: none;
+        }
+
+        .reminder-alert.danger {
+            border: 1px solid #fecaca;
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        .reminder-alert.info {
+            border: 1px solid #bfdbfe;
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .reminder-alert.success {
+            border: 1px solid #bbf7d0;
+            background: #f0fdf4;
+            color: #166534;
+        }
+
+        .va-inline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            padding: 0.55rem 0.7rem;
+            border: 1px dashed #d9c8c1;
+            border-radius: 9px;
+            background: #fffdfc;
+        }
+
+        .va-inline .va-label {
+            font-size: 0.66rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: #9ca3af;
+        }
+
+        .va-inline .va-number {
+            font-size: 0.92rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            color: #111827;
+            word-break: break-all;
+        }
+
+        .btn-copy-mini {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.35rem 0.6rem;
+            border: 1px solid var(--maroon-border);
+            border-radius: 7px;
+            background: #fff;
+            color: var(--primary-maroon);
+            font-family: inherit;
+            font-size: 0.7rem;
+            font-weight: 800;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn-copy-mini:hover {
+            background: var(--maroon-tint);
+        }
+
+        .btn-copy-mini.is-copied {
+            border-color: #15803d;
+            color: #15803d;
+            background: #f0fdf4;
+        }
+
+        /* ================= ABSENSI ================= */
         .absensi-badges-row {
             display: flex;
             align-items: center;
@@ -655,124 +783,357 @@
             color: #15803d;
         }
 
-        /* Detail Link in Card Footer */
-        .card-detail-footer {
-            text-align: right;
-            margin-top: 0.75rem;
+        /* ================= KALENDER ================= */
+        .kalender-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.85rem;
         }
 
-        .link-card-detail {
-            color: var(--primary-maroon);
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-decoration: none;
+        .kalender-bulan {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #111827;
+        }
+
+        .kalender-nav {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .kalender-nav a {
             display: inline-flex;
             align-items: center;
-            gap: 0.25rem;
-            transition: color 0.15s ease, transform 0.15s ease;
-        }
-
-        .link-card-detail:hover {
-            color: var(--primary-maroon-hover);
-            transform: translateX(2px);
-            text-decoration: underline;
-        }
-
-        /* Bottom Full-width Cards */
-        .bottom-card {
-            padding: 1.15rem 1.45rem;
-            margin-bottom: 1.35rem;
-            min-height: 76px;
-            display: flex;
-            align-items: flex-start;
-            cursor: pointer;
-        }
-
-        .bottom-card-icon {
-            color: var(--primary-maroon);
-            width: 26px;
-            height: 26px;
-            flex-shrink: 0;
-        }
-
-        /* ================= MODAL ================= */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.45);
-            backdrop-filter: blur(2px);
-            z-index: 100;
-            align-items: center;
             justify-content: center;
-            padding: 1.5rem;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal-box {
-            background: #ffffff;
-            border-radius: 16px;
-            max-width: 480px;
-            width: 100%;
-            padding: 1.85rem;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15);
-            position: relative;
-            animation: modalFadeIn 0.2s ease-out;
-            border: 1.5px solid var(--maroon-border);
-        }
-
-        @keyframes modalFadeIn {
-            from { opacity: 0; transform: translateY(8px) scale(0.98); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        .modal-title {
-            font-size: 1.25rem;
-            font-weight: 700;
+            width: 30px;
+            height: 30px;
+            border: 1.2px solid var(--maroon-border);
+            border-radius: 8px;
             color: var(--primary-maroon);
-            margin-bottom: 0.75rem;
-        }
-
-        .modal-body {
-            font-size: 0.95rem;
-            color: #374151;
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
-        }
-
-        .btn-modal-close {
-            position: absolute;
-            top: 1.25rem;
-            right: 1.25rem;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #94a3b8;
+            text-decoration: none;
+            font-weight: 800;
             line-height: 1;
         }
 
-        .btn-modal-action {
-            width: 100%;
-            background-color: var(--primary-maroon);
+        .kalender-nav a:hover {
+            background: var(--maroon-tint);
+        }
+
+        .kalender-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 4px;
+        }
+
+        .kalender-hari {
+            text-align: center;
+            padding: 0.3rem 0;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .kalender-cell {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            min-height: 42px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            background: #fbf9f8;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #374151;
+            text-decoration: none;
+        }
+
+        a.kalender-cell:hover {
+            border-color: var(--maroon-border);
+            background: #fff8f9;
+        }
+
+        .kalender-cell.luar {
+            background: transparent;
+            color: #cbd5e1;
+        }
+
+        .kalender-cell.hari-ini {
+            border-color: var(--gold, #c9a96a);
+        }
+
+        .kalender-cell.terpilih {
+            background: var(--primary-maroon);
+            border-color: var(--primary-maroon);
             color: #ffffff;
-            padding: 0.75rem;
-            border-radius: 10px;
-            border: none;
+        }
+
+        .kalender-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--primary-maroon);
+        }
+
+        .kalender-cell.terpilih .kalender-dot {
+            background: #ffffff;
+        }
+
+        .kalender-detail {
+            margin-top: 1rem;
+            padding-top: 0.9rem;
+            border-top: 1px dashed #eadfda;
+        }
+
+        .kalender-detail-title {
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: var(--primary-maroon);
+            margin-bottom: 0.5rem;
+        }
+
+        .kalender-item {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.6rem;
+            padding: 0.5rem 0.65rem;
+            border: 1px solid #f0e2dc;
+            border-radius: 9px;
+            background: #fffdfc;
+        }
+
+        .kalender-item + .kalender-item {
+            margin-top: 0.4rem;
+        }
+
+        .kalender-item-title {
+            font-size: 0.82rem;
             font-weight: 700;
-            font-size: 0.92rem;
+            color: #1f2937;
+        }
+
+        .kalender-item-sub {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .kalender-item-jam {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--primary-maroon);
+            white-space: nowrap;
+        }
+
+        /* ================= DAFTAR RINGKAS ================= */
+        .ringkas-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+        }
+
+        .ringkas-item {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.6rem;
+            padding: 0.55rem 0.7rem;
+            border: 1px solid #f0e2dc;
+            border-radius: 9px;
+            background: #fffdfc;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .ringkas-item:hover {
+            border-color: #d9c8c1;
+            background: #fff8f9;
+        }
+
+        .ringkas-item-main {
+            min-width: 0;
+        }
+
+        .ringkas-mapel {
+            font-size: 0.66rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--primary-maroon);
+        }
+
+        .ringkas-title {
+            font-size: 0.84rem;
+            font-weight: 700;
+            color: #1f2937;
+            line-height: 1.35;
+            word-break: break-word;
+        }
+
+        .ringkas-sub {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+            margin-top: 1px;
+        }
+
+        .ringkas-nilai {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 3px;
+            padding: 0.2rem 0.55rem;
+            border-radius: 999px;
+            background: #dcfce7;
+            color: #15803d;
+            font-size: 0.68rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .ringkas-nilai span {
+            font-size: 0.86rem;
+        }
+
+        .ringkas-kosong {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            padding: 1.1rem 0.75rem;
+            border: 1px dashed #eadfda;
+            border-radius: 10px;
+            background: #fffdfc;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+
+        .izin-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            margin-top: 0.35rem;
+        }
+
+        .izin-chip {
+            flex: 1 1 88px;
+            padding: 0.45rem 0.5rem;
+            border-radius: 9px;
+            border: 1px solid #f0e2dc;
+            background: #fffdfc;
+            text-align: center;
+        }
+
+        .izin-chip .angka {
+            display: block;
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #1f2937;
+            line-height: 1.2;
+        }
+
+        .izin-chip .teks {
+            font-size: 0.66rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            line-height: 1.2;
+        }
+
+        .izin-chip.menunggu .angka { color: #b45309; }
+        .izin-chip.disetujui .angka { color: #15803d; }
+        .izin-chip.ditolak .angka { color: #b91c1c; }
+        .izin-chip.selesai .angka { color: #1d4ed8; }
+
+        /* ================= NOTIFIKASI ================= */
+        .notif-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .notif-form {
+            margin: 0;
+        }
+
+        .notif-button {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.55rem;
+            width: 100%;
+            padding: 0.55rem 0.7rem;
+            border: 1px solid #f0e2dc;
+            border-radius: 9px;
+            background: #fffdfc;
             cursor: pointer;
-            transition: background-color 0.2s;
+            text-align: left;
+            font-family: inherit;
         }
 
-        .btn-modal-action:hover {
-            background-color: var(--primary-maroon-hover);
+        .notif-button:hover {
+            background: #fff8f9;
+            border-color: #d9c8c1;
         }
 
-        /* Backdrop for Mobile Sidebar */
+        .notif-button.belum {
+            background: #fff7f2;
+            border-color: #e9d3c6;
+        }
+
+        .notif-ikon {
+            flex-shrink: 0;
+            font-size: 0.95rem;
+            line-height: 1.35;
+        }
+
+        .notif-body {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .notif-judul {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.81rem;
+            font-weight: 700;
+            color: #1f2937;
+            line-height: 1.35;
+        }
+
+        .notif-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #dc2626;
+            flex-shrink: 0;
+        }
+
+        .notif-pesan {
+            margin-top: 1px;
+            font-size: 0.73rem;
+            color: var(--text-muted);
+            line-height: 1.45;
+        }
+
+        .notif-waktu {
+            margin-top: 2px;
+            font-size: 0.67rem;
+            font-weight: 700;
+            color: #9ca3af;
+        }
+
+        /* ================= MODAL & BACKDROP ================= */
         .sidebar-backdrop {
             display: none;
             position: fixed;
@@ -794,7 +1155,7 @@
                 left: -300px;
                 z-index: 46;
                 transition: left 0.3s ease;
-                box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+                box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
             }
 
             .sidebar.active {
@@ -813,6 +1174,38 @@
                 padding: 1.5rem 1.25rem 2.5rem 1.25rem;
             }
         }
+
+        @media (max-width: 560px) {
+            .brand-title {
+                font-size: 1.15rem;
+            }
+
+            .brand-logo-img {
+                height: 34px;
+            }
+
+            .top-navbar {
+                padding: 0 0.9rem;
+            }
+
+            .welcome-heading {
+                font-size: 1.45rem;
+            }
+
+            .kalender-cell {
+                min-height: 36px;
+                font-size: 0.72rem;
+            }
+
+            .kalender-hari {
+                font-size: 0.6rem;
+            }
+
+            .va-inline {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
     </style>
 </head>
 <body>
@@ -820,116 +1213,32 @@
     <!-- ================= TOP NAVBAR ================= -->
     <header class="top-navbar">
         <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <!-- Mobile Menu Toggle Button -->
             <button type="button" class="mobile-toggle-btn" id="mobileMenuBtn" aria-label="Buka Menu">
                 <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
                 </svg>
             </button>
 
-            <!-- Brand SIMAHAD -->
             <a href="{{ route('dashboard') }}" class="navbar-brand-wrap">
                 <img src="{{ asset('images/logo_uin.png') }}" alt="Logo SIMAHAD" class="brand-logo-img">
                 <span class="brand-title">SIMAHAD</span>
             </a>
         </div>
 
-    <div class="navbar-actions">
-    <!-- Notification Bell Icon -->
-     <button type="button" class="btn-circle-action btn-bell-badge"title="Pemberitahuan"onclick="openInfoModal('Pemberitahuan', 'Tidak ada pemberitahuan baru saat ini. Semua tagihan dan absensi Anda dalam keadaan terkini.')">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2"stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-        </svg>
-    </button>
-
-   <!-- User Profile Dropdown -->
-<details style="position: relative;">
-    <summary
-        class="btn-circle-action btn-profile-badge"
-        title="Profil Pengguna"
-        style="
-            list-style: none;
-            cursor: pointer;
-            overflow: hidden;
-            border-radius: 50%;
-        ">
-
-        @if(auth()->user()->foto_profil)
-            <img
-                src="{{ asset('storage/' . auth()->user()->foto_profil) }}"
-                alt="Foto Profil"
-                style="
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                    border-radius: 50%;
-                    display: block;
-                ">
-        @else
-            <svg viewBox="0 0 24 24"
-                fill="none"
-                stroke="#262626"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-        @endif
-
-    </summary>
-
-    <div style="
-        position: absolute;
-        top: 50px;
-        right: 0;
-        width: 180px;
-        background: white;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 9999;
-        overflow: hidden;
-    ">
-
-        <a href="{{ route('profil.mhs') }}"
-            style="
-                display: block;
-                padding: 12px 15px;
-                color: #6B0D1B;
-                text-decoration: none;
-            ">
-            Lihat Profil
-        </a>
-
-        <a href="#"
-            style="
-                display: block;
-                padding: 12px 15px;
-                color: #6B0D1B;
-                text-decoration: none;
-            ">
-            Data Mahasiswa
-        </a>
-
-    </div>
-</details>
-</div>
+        <div class="navbar-actions">
+            <x-notifikasi-dropdown />
+            <x-mahasiswa.profile-dropdown />
+        </div>
     </header>
 
-    <!-- Mobile Backdrop -->
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
     <div class="dashboard-body">
         <!-- ================= SIDEBAR ================= -->
         <aside class="sidebar" id="sidebar">
-            <!-- Architectural Campus Photo Background -->
             <div class="sidebar-bg"></div>
-            <!-- Translucent Overlay -->
             <div class="sidebar-overlay"></div>
 
-            <!-- Campus Watermark matching the design -->
             <div class="sidebar-watermark">
                 <svg class="watermark-emblem" width="60" height="60" viewBox="0 0 100 100" fill="none">
                     <polygon points="50,4 92,25 92,75 50,96 8,75 8,25" stroke="#a16207" stroke-width="3" fill="none" />
@@ -939,10 +1248,8 @@
                 <div class="watermark-text-2">UIN Imam Bonjol</div>
             </div>
 
-            <!-- Sidebar Navigation Content -->
             <div class="sidebar-content">
                 <nav class="sidebar-nav">
-                    <!-- 1. Dashboard (Active) -->
                     <a href="{{ route('dashboard') }}" class="nav-pill active">
                         <span class="nav-icon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -956,7 +1263,6 @@
                         <span class="nav-chevron">&gt;</span>
                     </a>
 
-                    <!-- 2. Pendaftaran -->
                     <a href="{{ route('pendaftaran.pribadi') }}" class="nav-pill">
                         <span class="nav-icon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -967,22 +1273,29 @@
                         <span class="nav-label">Pendaftaran</span>
                     </a>
 
-                    
-<!-- Pembelajaran -->
-<a href="{{ route('pembelajaran.mhs') }}" class="nav-pill">
-    <span class="nav-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-        </svg>
-    </span>
-    <span class="nav-label">Pembelajaran</span>
-</a>
+                    <a href="{{ route('pembelajaran.mhs') }}" class="nav-pill">
+                        <span class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-label">Pembelajaran</span>
+                    </a>
 
+                    <a href="{{ route('tugas.mhs.index') }}" class="nav-pill">
+                        <span class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="4" y="3" width="16" height="18" rx="2"></rect>
+                                <path d="M8 8h8M8 12h8M8 16h5"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-label">Tugas</span>
+                        @if ($jumlahTugasBelum > 0)
+                            <span class="nav-badge-count">{{ $jumlahTugasBelum }}</span>
+                        @endif
+                    </a>
 
-                    <!-- 3. Informasi Kamar -->
                     <a href="{{ route('kamar') }}" class="nav-pill">
                         <span class="nav-icon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -995,7 +1308,6 @@
                         <span class="nav-label">Informasi Kamar</span>
                     </a>
 
-                    <!-- 4. Pembayaran -->
                     <a href="{{ route('pembayaran') }}" class="nav-pill">
                         <span class="nav-icon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1007,66 +1319,42 @@
                         <span class="nav-label">Pembayaran</span>
                     </a>
 
-                    <!-- 5. Absensi -->
-                    
-<a href="{{ route('absensi.mhs') }}" class="nav-pill">
-    <span class="nav-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round">
-            <rect x="8" y="2" width="8" height="4" rx="1"></rect>
-            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-            <path d="m9 14 2 2 4-4"></path>
-        </svg>
-    </span>
-    <span class="nav-label">Absensi</span>
-</a>
+                    <a href="{{ route('absensi.mhs') }}" class="nav-pill">
+                        <span class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="8" y="2" width="8" height="4" rx="1"></rect>
+                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                                <path d="m9 14 2 2 4-4"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-label">Absensi</span>
+                    </a>
 
+                    <a href="{{ route('surat.perizinan.mhs') }}" class="nav-pill">
+                        <span class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                            </svg>
+                        </span>
+                        <span class="nav-label">Surat dan Perizinan</span>
+                    </a>
 
-                    <!-- 6. Surat dan Perizinan -->
-                    
-<a href="{{ route('surat.perizinan.mhs') }}" class="nav-pill">
-    <span class="nav-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-            <polyline points="10 9 9 9 8 9"></polyline>
-        </svg>
-    </span>
-    <span class="nav-label">Surat dan Perizinan</span>
-</a>
-
-
-                    <!-- 7. Pengumuman -->
-                    
-<a href="{{ route('pengumuman.mhs') }}" class="nav-pill">
-    <span class="nav-icon">
-        <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-        >
-            <path d="m3 11 18-5v12L3 14v-3z"></path>
-            <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path>
-        </svg>
-    </span>
-
-    <span class="nav-label">Pengumuman</span>
-</a>
-
+                    <a href="{{ route('pengumuman.mhs') }}" class="nav-pill">
+                        <span class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m3 11 18-5v12L3 14v-3z"></path>
+                                <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-label">Pengumuman</span>
+                    </a>
                 </nav>
 
-                <!-- Bottom Section -->
                 <div class="sidebar-nav-bottom">
-                    <!-- 8. Pengaturan Akun -->
-                    <a href="javascript:void(0)" class="nav-pill" onclick="openInfoModal('Pengaturan Akun', 'Pengaturan Profil Mahasiswa:<br>• Ubah Kata Sandi<br>• Kontak Darurat Wali<br>• Preferensi Notifikasi')">
+                    <a href="{{ route('profil.mhs') }}" class="nav-pill">
                         <span class="nav-icon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="12" r="3"></circle>
@@ -1076,132 +1364,107 @@
                         <span class="nav-label">Pengaturan Akun</span>
                     </a>
 
-                    
-<!-- 9. Keluar -->
-<a href="{{ route('logout.confirm') }}" class="btn-keluar-pill" style="text-decoration: none;">
-    <!-- Pertahankan ikon SVG keluar yang sudah ada -->
-    <span class="nav-icon">
-        <svg viewBox="0 0 24 24" width="22" height="22"
-             fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round">
-            <path d="M10 17l5-5-5-5"/>
-            <path d="M15 12H3"/>
-            <path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/>
-        </svg>
-    </span>
-    <span class="nav-label">Keluar</span>
-</a>
-
+                    <a href="{{ route('logout.confirm') }}" class="btn-keluar-pill">
+                        <span class="nav-icon">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M10 17l5-5-5-5"/>
+                                <path d="M15 12H3"/>
+                                <path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/>
+                            </svg>
+                        </span>
+                        <span class="nav-label">Keluar</span>
+                    </a>
                 </div>
             </div>
         </aside>
 
         <!-- ================= MAIN CONTENT ================= -->
         <main class="main-content">
-            <!-- Greeting Header -->
-            <h1 class="welcome-heading">
-                Assalamu’alaikum <span>👋</span>
-            </h1>
-
-            <!-- Section 1: Ringkasan Mahasiswa -->
-            <section class="simahad-card student-summary-card">
-                <div class="card-heading-maroon">
-                    Ringkasan Mahasiswa
+            @if (session('success'))
+                <div style="margin-bottom:1rem; padding:0.7rem 0.9rem; border:1px solid #bbf7d0; border-radius:10px; background:#f0fdf4; color:#166534; font-size:0.82rem; font-weight:600;">
+                    {{ session('success') }}
                 </div>
+            @endif
+
+            @if ($errors->any())
+                <div style="margin-bottom:1rem; padding:0.7rem 0.9rem; border:1px solid #fecaca; border-radius:10px; background:#fef2f2; color:#991b1b; font-size:0.82rem; font-weight:600;">
+                    {{ $errors->first() }}
+                </div>
+            @endif
+
+            <h1 class="welcome-heading">
+                {{ $sapaan }}, {{ $user->name }} <span>👋</span>
+            </h1>
+            <p class="welcome-sub">
+                Assalamu'alaikum. Berikut ringkasan aktivitas pembelajaran dan keasramaan Anda di Ma'had Al-Jami'ah.
+            </p>
+
+            @php
+                $pembayaran = $ringkasanPembayaran;
+                $pengaturanBayar = $pembayaran['pengaturan'] ?? null;
+                $statusPendaftaran = $pendaftaran?->status ? ucwords(str_replace('_', ' ', $pendaftaran->status)) : 'Belum Mendaftar';
+                $statusAkun = $user->status ? ucwords(str_replace('_', ' ', $user->status)) : 'Belum Diketahui';
+                $kelasStatusAkun = in_array(strtolower((string) $user->status), ['aktif'], true) ? 'ok' : 'warning';
+                $programStudi = $pendaftaran?->program_studi ?: 'Mahasiswa Ma\'had';
+                $angkatan = $pendaftaran?->tahun_angkatan ?: '-';
+            @endphp
+
+            <!-- SECTION 1: RINGKASAN MAHASISWA -->
+            <section class="simahad-card student-summary-card">
+                <div class="card-heading-maroon">Ringkasan Mahasiswa</div>
+
                 <div class="student-profile-row">
                     <div class="student-avatar-box">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
+                        @if ($user->foto_profil)
+                            <img src="{{ asset('storage/'.$user->foto_profil) }}" alt="Foto {{ $user->name }}">
+                        @else
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        @endif
                     </div>
+
                     <div class="student-info-col">
-                        <div class="student-name">
-                            {{ Auth::user()->name ?? 'Nama Mahasiswa' }}
-                        </div>
-                        <div class="student-program">
-                            Program studi – Angkatan
-                        </div>
-                        <div class="student-status">
-                            Status: Penghuni Ma'had
-                        </div>
+                        <div class="student-name">{{ $user->name }}</div>
+                        <div class="student-program">{{ $programStudi }} &middot; Angkatan {{ $angkatan }}</div>
+                        <div class="student-status">{{ $kelompok }}</div>
+                    </div>
+                </div>
+
+                <div class="status-chip-row">
+                    <div class="status-chip {{ $statusPendaftaran === 'Disetujui' ? 'ok' : 'warning' }}">
+                        <span class="chip-label">Status Pendaftaran</span>
+                        <span class="chip-value">{{ $statusPendaftaran }}</span>
+                    </div>
+
+                    <div class="status-chip {{ $kelasStatusAkun }}">
+                        <span class="chip-label">Status Keaktifan</span>
+                        <span class="chip-value">{{ $statusAkun }}</span>
+                    </div>
+
+                    <div class="status-chip {{ $kamar ? 'ok' : 'warning' }}">
+                        <span class="chip-label">Kamar &amp; Lantai</span>
+                        <span class="chip-value">
+                            @if ($kamar)
+                                {{ $kamar->nama_kamar }}@if ($kamar->gedung) &middot; {{ $kamar->gedung }}@endif
+                                @if ($kamar->lantai) &middot; Lantai {{ $kamar->lantai }}@endif
+                            @else
+                                Belum Mendapatkan Kamar
+                            @endif
+                        </span>
+                    </div>
+
+                    <div class="status-chip">
+                        <span class="chip-label">Kelompok Belajar</span>
+                        <span class="chip-value">{{ $kelompok }}</span>
                     </div>
                 </div>
             </section>
 
-            <!-- Section 2: 2x2 Grid of Cards -->
+            <!-- SECTION 2: PEMBAYARAN & ABSENSI -->
             <div class="dashboard-grid">
-                <!-- Card 1: Jadwal Pembelajaran -->
-                <div class="simahad-card grid-card">
-                    <div>
-                        <div class="card-header-flex">
-                            <div class="card-heading-maroon" style="margin-bottom: 0;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                                </svg>
-                                <span>Jadwal Pembelajaran</span>
-                            </div>
-                            <div class="card-date-badge" onclick="openInfoModal('Kalender Pembelajaran', 'Jadwal aktif untuk semester ganjil tahun ajaran 2026/2027.')">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                                </svg>
-                                <span>{{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM Y') }}</span>
-                                <span style="font-size: 0.8rem;">&#9662;</span>
-                            </div>
-                        </div>
-
-                        <!-- Inner Box: Belum ada jadwal -->
-                        <div class="jadwal-inner-box">
-                            <div class="jadwal-inner-header">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="4" width="18" height="18" rx="2"></rect>
-                                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                                </svg>
-                                <span>Jadwal Pembelajaran</span>
-                            </div>
-                            <div class="jadwal-inner-title">Tidak Ada Jadwal Saat Ini</div>
-                            <div class="jadwal-inner-subtitle">Belum ada jadwal pembelajaran. Tetap semangat belajar mandiri, ya!</div>
-                        </div>
-
-                        <!-- Meta Row -->
-                        <div class="jadwal-meta-row">
-                            <div class="jadwal-meta-item">
-                                <span class="jadwal-meta-icon">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                        <circle cx="9" cy="7" r="4"></circle>
-                                    </svg>
-                                </span>
-                                <span class="jadwal-meta-label">Kelompok Belajar</span>
-                                <span class="jadwal-meta-val">Kelompok mahasiswa</span>
-                            </div>
-                            <div class="jadwal-meta-item">
-                                <span class="jadwal-meta-icon">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                                    </svg>
-                                </span>
-                                <span class="jadwal-meta-label">Mata Pelajaran</span>
-                                <a href="javascript:void(0)" onclick="openInfoModal('Mata Pelajaran Asrama', '1. Bahasa Arab Dasar & Lanjutan<br>2. Tahsin Tilawah Al-Qur\'an<br>3. Fiqih Ibadah & Muamalah<br>4. Akhlak & Adab Santri')" style="color: var(--primary-maroon); text-decoration: none; font-weight: 600;" class="jadwal-meta-val">Lihat Mata Pelajaran</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card-detail-footer">
-                        <a href="javascript:void(0)" onclick="openInfoModal('Detail Pembelajaran', 'Kalender & Jadwal Pembelajaran Ma\'had:<br>• Subuh: Kajian Al-Qur\'an & Tahsin (05:30 - 06:30)<br>• Pagi: Bahasa Arab (08:00 - 10:00)<br>• Maghrib: Kajian Kitab Kuning / Akhlak (18:45 - 19:45)')" class="link-card-detail">Detail pembelajaran &rarr;</a>
-                    </div>
-                </div>
-
-                <!-- Card 2: Total Tagihan -->
+                <!-- Kartu 1: Ringkasan Pembayaran -->
                 <div class="simahad-card grid-card">
                     <div>
                         <div class="card-heading-maroon">
@@ -1210,51 +1473,80 @@
                                 <path d="M16 3H4a2 2 0 0 0-2 2v2"></path>
                                 <circle cx="16" cy="14" r="1.5" fill="currentColor"></circle>
                             </svg>
-                            <span>Total Tagihan</span>
+                            <span>Ringkasan Pembayaran</span>
                         </div>
 
-                        <!-- Center Empty Notice -->
-                        <div class="tagihan-center-wrap">
-                            <div class="tagihan-empty-title">Belum Ada Tagihan Baru</div>
-                            <div class="tagihan-empty-desc">Terimakasih telah melunasi tagihan periode ini</div>
-                        </div>
-                    </div>
-
-                    <div class="card-detail-footer">
-                        <a href="{{ route('pembayaran') }}" class="link-card-detail">Detail pembayaran &rarr;</a>
-                    </div>
-                </div>
-
-                <!-- Card 3: Informasi Kamar -->
-                <div class="simahad-card grid-card compact-height">
-                    <div>
-                        <div class="card-heading-maroon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M2 4v16"></path>
-                                <path d="M2 8h18a2 2 0 0 1 2 2v10"></path>
-                                <path d="M2 17h20"></path>
-                                <path d="M6 8v9"></path>
-                            </svg>
-                            <span>Informasi Kamar</span>
-                        </div>
-
-                        <!-- Room Content / Empty Placeholder matching screenshot -->
-                        <div style="min-height: 48px; display: flex; align-items: center; padding: 0.25rem 0;">
-                            @if(isset($kamar) && $kamar)
-                                <div style="font-size: 0.92rem; color: #1f2937;">
-                                    <strong>{{ $kamar->nama_kamar }}</strong> - Gedung {{ $kamar->gedung ?? 'Utama' }} (Lantai {{ $kamar->lantai ?? '1' }})
+                        @if (! $pembayaran['dibuka'])
+                            <div class="tagihan-center-wrap">
+                                <div class="tagihan-empty-title">Periode Belum Dibuka</div>
+                                <div class="tagihan-empty-desc">
+                                    @if ($pengaturanBayar)
+                                        Periode {{ $pengaturanBayar->periode }} ({{ $pengaturanBayar->nama_tahap }}) akan dibuka pada {{ $pengaturanBayar->periodeDibukaTeks() }}.
+                                    @else
+                                        Belum ada periode pembayaran yang dibuka oleh Ma'had.
+                                    @endif
                                 </div>
-                            @endif
-                        </div>
+                            </div>
+                        @else
+                            <div class="tagihan-body">
+                                <div class="tagihan-nominal">{{ $pembayaran['nominal_rupiah'] }}</div>
+                                <div class="tagihan-sub">
+                                    {{ $pembayaran['tahap'] }} &middot; {{ $pengaturanBayar->periode }}
+                                </div>
+
+                                <div class="tagihan-meta-row">
+                                    <span>Jatuh tempo: <strong>{{ $pembayaran['jatuh_tempo'] }}</strong></span>
+                                    <span class="badge-status {{ $pembayaran['kelas_status'] }}">{{ $pembayaran['label_status'] }}</span>
+                                </div>
+
+                                @if (filled($pembayaran['va_nomor']))
+                                    <div class="va-inline">
+                                        <div>
+                                            <div class="va-label">Virtual Account {{ $pengaturanBayar->va_bank ?: 'BSI' }}</div>
+                                            <div class="va-number">{{ $pembayaran['va_nomor'] }}</div>
+                                        </div>
+                                        <button type="button" class="btn-copy-mini" data-copy-va="{{ $pembayaran['va_nomor'] }}">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+                                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                            </svg>
+                                            Salin VA
+                                        </button>
+                                    </div>
+                                @endif
+
+                                @if ($pembayaran['status'] === 'lunas')
+                                    <a href="{{ route('pembayaran.detail') }}" class="reminder-alert success">
+                                        Tagihan sudah dikonfirmasi Lunas oleh Rektorat. Pengingat dihentikan.
+                                    </a>
+                                @elseif ($pembayaran['status'] === 'terlambat')
+                                    <a href="{{ route('pembayaran.detail') }}" class="reminder-alert danger">
+                                        Tagihan melewati jatuh tempo {{ $pembayaran['jatuh_tempo'] }}. Klik untuk detail pembayaran.
+                                    </a>
+                                @elseif ($pembayaran['status'] === 'menunggu')
+                                    <a href="{{ route('pembayaran.detail') }}" class="reminder-alert info">
+                                        Menunggu konfirmasi Rektorat. Status Lunas mengikuti rekap pembayaran resmi.
+                                    </a>
+                                @elseif ($pembayaran['pengingat'])
+                                    <a href="{{ route('pembayaran.detail') }}" class="reminder-alert danger">
+                                        Pengingat: jatuh tempo tinggal {{ $pembayaran['sisa_hari'] }} hari ({{ $pembayaran['jatuh_tempo'] }}).
+                                    </a>
+                                @else
+                                    <a href="{{ route('pembayaran.detail') }}" class="reminder-alert info">
+                                        Tagihan belum dibayar. Bayar sebelum {{ $pembayaran['jatuh_tempo'] }}.
+                                    </a>
+                                @endif
+                            </div>
+                        @endif
                     </div>
 
                     <div class="card-detail-footer">
-                        <a href="{{ route('kamar') }}" class="link-card-detail">Detail informasi kamar &rarr;</a>
+                        <a href="{{ route('pembayaran.detail') }}" class="link-card-detail">Detail pembayaran &rarr;</a>
                     </div>
                 </div>
 
-                <!-- Card 4: Absensi -->
-                <div class="simahad-card grid-card compact-height">
+                <!-- Kartu 2: Ringkasan Absensi -->
+                <div class="simahad-card grid-card">
                     <div>
                         <div class="card-heading-maroon" style="margin-bottom: 0.45rem;">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1262,101 +1554,365 @@
                                 <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
                                 <path d="m9 14 2 2 4-4"></path>
                             </svg>
-                            <span>Absensi</span>
+                            <span>Ringkasan Absensi</span>
                         </div>
 
-                        <!-- 3 Badges: Hadir, Izin, Alpa -->
                         <div class="absensi-badges-row">
                             <div class="stat-pill hadir">
-                                <span class="stat-number">10</span>
+                                <span class="stat-number">{{ $absensi['hadir'] }}</span>
                                 <span class="stat-label">Hadir</span>
                             </div>
                             <div class="stat-pill izin">
-                                <span class="stat-number">2</span>
-                                <span class="stat-label">Izin</span>
+                                <span class="stat-number">{{ $absensi['izin'] + $absensi['sakit'] }}</span>
+                                <span class="stat-label">Izin/Sakit</span>
                             </div>
                             <div class="stat-pill alpa">
-                                <span class="stat-number">1</span>
+                                <span class="stat-number">{{ $absensi['alpa'] }}</span>
                                 <span class="stat-label">Alpa</span>
                             </div>
                         </div>
 
-                        <!-- Progress Bar & Count -->
-                        <div class="absensi-meeting-count">Total pertemuan: 16 kali</div>
+                        <div class="absensi-meeting-count">Total pertemuan: {{ $absensi['total'] }} kali</div>
                         <div class="attendance-progress-track">
-                            <div class="attendance-progress-bar" style="width: 75%;"></div>
+                            <div class="attendance-progress-bar" style="width: {{ min(100, $absensi['persentase']) }}%;"></div>
                         </div>
                         <div class="attendance-progress-footer">
                             <span>Persentase kehadiran</span>
-                            <span class="attendance-percentage-val">75%</span>
+                            <span class="attendance-percentage-val">{{ $absensi['persentase'] }}%</span>
                         </div>
                     </div>
 
                     <div class="card-detail-footer">
-                        <a href="javascript:void(0)" onclick="openInfoModal('Detail Absensi', 'Statistik Kehadiran Mahasiswa:<br>• Total Pertemuan: 16 Pertemuan<br>• Kehadiran: 10 Pertemuan<br>• Izin: 2 Pertemuan<br>• Alpa: 1 Pertemuan<br>• Persentase: 75% (Status: Memenuhi Syarat Minimal 70%)')" class="link-card-detail">Detail absensi &rarr;</a>
+                        <a href="{{ route('absensi.mhs') }}" class="link-card-detail">Detail absensi &rarr;</a>
                     </div>
                 </div>
             </div>
 
-            <!-- Section 3: Bottom Full-Width Card (Pengumuman) -->
-            <section class="simahad-card bottom-card" onclick="openInfoModal('Pengumuman Asrama', 'Belum ada pengumuman terbaru hari ini. Silakan periksa kembali secara berkala.')">
-                <div class="bottom-card-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="m3 11 18-5v12L3 14v-3z"></path>
-                        <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path>
-                    </svg>
+            <!-- SECTION 3: KALENDER JADWAL PEMBELAJARAN -->
+            <section class="simahad-card grid-card full-width" style="margin-bottom: 1.35rem;">
+                <div class="kalender-header">
+                    <div class="card-heading-maroon" style="margin-bottom: 0;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        <span>Kalender Jadwal Pembelajaran</span>
+                    </div>
+
+                    <div class="kalender-nav">
+                        <span class="kalender-bulan">{{ ucfirst($kalender['bulan_format']) }}</span>
+                        <a href="{{ route('dashboard', ['bulan' => $kalender['bulan_sebelumnya']]) }}" title="Bulan sebelumnya" aria-label="Bulan sebelumnya">&lsaquo;</a>
+                        <a href="{{ route('dashboard', ['bulan' => $kalender['bulan_berikutnya']]) }}" title="Bulan berikutnya" aria-label="Bulan berikutnya">&rsaquo;</a>
+                    </div>
+                </div>
+
+                <div class="kalender-grid">
+                    @foreach ($kalender['hari'] as $namaHari)
+                        <div class="kalender-hari">{{ $namaHari }}</div>
+                    @endforeach
+
+                    @foreach ($kalender['minggu'] as $pekan)
+                        @foreach ($pekan as $sel)
+                            @if ($sel['dalam_bulan'])
+                                <a href="{{ route('dashboard', ['bulan' => $kalender['bulan']->format('Y-m'), 'tanggal' => $sel['tanggal']->format('Y-m-d')]) }}"
+                                   class="kalender-cell {{ $sel['hari_ini'] ? 'hari-ini' : '' }} {{ $sel['terpilih'] ? 'terpilih' : '' }}"
+                                   title="{{ $sel['tanggal']->locale('id')->translatedFormat('d F Y') }}">
+                                    <span>{{ $sel['tanggal']->day }}</span>
+                                    @if ($sel['jadwal']->isNotEmpty())
+                                        <span class="kalender-dot"></span>
+                                    @endif
+                                </a>
+                            @else
+                                <span class="kalender-cell luar">{{ $sel['tanggal']->day }}</span>
+                            @endif
+                        @endforeach
+                    @endforeach
+                </div>
+
+                <div class="kalender-detail">
+                    @if ($kalender['tanggal_dipilih'])
+                        <div class="kalender-detail-title">
+                            Jadwal {{ $kalender['tanggal_dipilih']->locale('id')->translatedFormat('l, d F Y') }}
+                        </div>
+
+                        @forelse ($kalender['jadwal_tanggal_dipilih'] as $jadwal)
+                            <div class="kalender-item">
+                                <div>
+                                    <div class="kalender-item-title">{{ $jadwal->namaMataPelajaran() }}</div>
+                                    <div class="kalender-item-sub">
+                                        {{ $jadwal->guru_pengampu ?: 'Pengajar Ma\'had' }} &middot; {{ $jadwal->kelompok }}
+                                    </div>
+                                </div>
+                                <span class="kalender-item-jam">{{ $jadwal->jamTeks() }}</span>
+                            </div>
+                        @empty
+                            <div class="kalender-item-sub">Tidak ada jadwal pembelajaran pada tanggal ini.</div>
+                        @endforelse
+                    @else
+                        <div class="kalender-item-sub">
+                            Klik tanggal yang memiliki penanda untuk melihat mata pelajaran, guru, waktu, dan kelompok.
+                        </div>
+                    @endif
+                </div>
+
+                <div class="card-detail-footer">
+                    <a href="{{ route('pembelajaran.mhs') }}" class="link-card-detail">Lihat pembelajaran &rarr;</a>
                 </div>
             </section>
 
-            <!-- Section 4: Bottom Full-Width Card (Surat dan Perizinan) -->
-            <section class="simahad-card bottom-card" onclick="openInfoModal('Surat dan Perizinan', 'Tidak ada pengajuan perizinan aktif. Klik untuk mengajukan izin bermalam atau keluar asrama.')">
-                <div class="bottom-card-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                        <polyline points="10 9 9 9 8 9"></polyline>
-                    </svg>
+            <!-- SECTION 4: TUGAS & NILAI -->
+            <div class="dashboard-grid">
+                <!-- Kartu 3: Ringkasan Tugas -->
+                <div class="simahad-card grid-card">
+                    <div>
+                        <div class="card-header-flex">
+                            <div class="card-heading-maroon" style="margin-bottom: 0;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="4" y="3" width="16" height="18" rx="2"></rect>
+                                    <path d="M8 8h8M8 12h8M8 16h5"></path>
+                                </svg>
+                                <span>Tugas Terbaru</span>
+                            </div>
+                            @if ($jumlahTugasBelum > 0)
+                                <span class="badge-status belum">{{ $jumlahTugasBelum }} belum dikumpulkan</span>
+                            @endif
+                        </div>
+
+                        <div class="ringkas-list" style="margin-top: 0.7rem;">
+                            @forelse ($tugasTerbaru as $item)
+                                @php
+                                    $tugasItem = $item['tugas'];
+                                @endphp
+                                <a href="{{ route('tugas.mhs.show', $tugasItem) }}" class="ringkas-item">
+                                    <div class="ringkas-item-main">
+                                        <div class="ringkas-mapel">{{ $tugasItem->namaMataPelajaran() }}</div>
+                                        <div class="ringkas-title">{{ \Illuminate\Support\Str::limit($tugasItem->judul, 62) }}</div>
+                                        <div class="ringkas-sub">
+                                            {{ $tugasItem->namaGuru() }} &middot; Batas {{ $tugasItem->batasTeks() }}
+                                        </div>
+                                    </div>
+                                    <span class="badge-status {{ $item['status']['kelas'] }}">{{ $item['status']['label'] }}</span>
+                                </a>
+                            @empty
+                                <div class="ringkas-kosong">
+                                    Belum ada tugas yang dipublikasikan untuk {{ $kelompok }}.
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+
+                    <div class="card-detail-footer">
+                        <a href="{{ route('tugas.mhs.index') }}" class="link-card-detail">Lihat semua tugas &rarr;</a>
+                    </div>
+                </div>
+
+                <!-- Kartu 4: Ringkasan Nilai -->
+                <div class="simahad-card grid-card">
+                    <div>
+                        <div class="card-heading-maroon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"></path>
+                            </svg>
+                            <span>Nilai Terbaru</span>
+                        </div>
+
+                        <div class="ringkas-list" style="margin-top: 0.7rem;">
+                            @forelse ($nilaiTerbaru as $nilai)
+                                <a href="{{ $nilai->tugas ? route('tugas.mhs.show', $nilai->tugas) : route('tugas.mhs.index') }}" class="ringkas-item">
+                                    <div class="ringkas-item-main">
+                                        <div class="ringkas-mapel">{{ $nilai->tugas?->namaMataPelajaran() ?? 'Mata Pelajaran' }}</div>
+                                        <div class="ringkas-title">{{ \Illuminate\Support\Str::limit($nilai->tugas?->judul ?? 'Tugas', 62) }}</div>
+                                        <div class="ringkas-sub">Dinilai {{ $nilai->dinilaiTeks() }}</div>
+                                    </div>
+                                    <span class="ringkas-nilai"><span>{{ $nilai->nilai }}</span>/100</span>
+                                </a>
+                            @empty
+                                <div class="ringkas-kosong">
+                                    Belum ada nilai yang dipublikasikan oleh Guru.
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+
+                    <div class="card-detail-footer">
+                        <a href="{{ route('tugas.mhs.index') }}" class="link-card-detail">Lihat semua tugas &rarr;</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 5: PENGUMUMAN TERBARU -->
+            <section class="simahad-card grid-card full-width" style="margin-bottom: 1.35rem;">
+                <div>
+                    <div class="card-heading-maroon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m3 11 18-5v12L3 14v-3z"></path>
+                            <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path>
+                        </svg>
+                        <span>Pengumuman Terbaru</span>
+                    </div>
+
+                    <div class="ringkas-list">
+                        @forelse ($pengumumanTerbaru as $pengumuman)
+                            <a href="{{ route('pengumuman.mhs.show', $pengumuman) }}" class="ringkas-item">
+                                <div class="ringkas-item-main">
+                                    <div class="ringkas-mapel">{{ $pengumuman->kategori }}</div>
+                                    <div class="ringkas-title">{{ $pengumuman->judul }}</div>
+                                    <div class="ringkas-sub">{{ $pengumuman->ringkasan(150) }}</div>
+                                </div>
+                                <span class="ringkas-sub" style="white-space: nowrap;">{{ $pengumuman->tanggalTeks() }}</span>
+                            </a>
+                        @empty
+                            <div class="ringkas-kosong">Belum ada pengumuman yang dipublikasikan Musyrifah.</div>
+                        @endforelse
+                    </div>
+                </div>
+
+                <div class="card-detail-footer">
+                    <a href="{{ route('pengumuman.mhs') }}" class="link-card-detail">Lihat semua pengumuman &rarr;</a>
                 </div>
             </section>
+
+            <!-- SECTION 6: PERIZINAN & NOTIFIKASI -->
+            <div class="dashboard-grid" style="margin-bottom: 0;">
+                <!-- Kartu 5: Status Perizinan -->
+                <div class="simahad-card grid-card compact-height">
+                    <div>
+                        <div class="card-heading-maroon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                            </svg>
+                            <span>Status Perizinan</span>
+                        </div>
+
+                        <div class="ringkas-sub">Total {{ $perizinan['total'] }} pengajuan surat dan perizinan.</div>
+
+                        <div class="izin-chips">
+                            <div class="izin-chip menunggu">
+                                <span class="angka">{{ $perizinan['menunggu'] }}</span>
+                                <span class="teks">Menunggu</span>
+                            </div>
+                            <div class="izin-chip disetujui">
+                                <span class="angka">{{ $perizinan['disetujui'] }}</span>
+                                <span class="teks">Disetujui</span>
+                            </div>
+                            <div class="izin-chip ditolak">
+                                <span class="angka">{{ $perizinan['ditolak'] }}</span>
+                                <span class="teks">Ditolak</span>
+                            </div>
+                            <div class="izin-chip selesai">
+                                <span class="angka">{{ $perizinan['selesai'] }}</span>
+                                <span class="teks">Selesai</span>
+                            </div>
+                        </div>
+
+                        @if ($perizinan['terakhir'])
+                            <div class="ringkas-sub" style="margin-top: 0.6rem;">
+                                Terakhir: {{ $perizinan['terakhir']->labelStatus() }} &middot;
+                                {{ $perizinan['terakhir']->created_at?->locale('id')->translatedFormat('d F Y') }}
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="card-detail-footer">
+                        <a href="{{ route('surat.perizinan.mhs') }}" class="link-card-detail">Buka surat &amp; perizinan &rarr;</a>
+                    </div>
+                </div>
+
+                <!-- Kartu 6: Notifikasi Terbaru -->
+                <div class="simahad-card grid-card compact-height">
+                    <div>
+                        <div class="card-header-flex">
+                            <div class="card-heading-maroon" style="margin-bottom: 0;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                                </svg>
+                                <span>Notifikasi Terbaru</span>
+                            </div>
+                            @if ($jumlahNotifikasiBelumDibaca > 0)
+                                <span class="badge-status terlambat">{{ $jumlahNotifikasiBelumDibaca }} belum dibaca</span>
+                            @endif
+                        </div>
+
+                        <div class="notif-list" style="margin-top: 0.7rem;">
+                            @forelse ($notifikasi as $itemNotif)
+                                <form method="POST" action="{{ route('notifikasi.baca', $itemNotif) }}" class="notif-form">
+                                    @csrf
+                                    <button type="submit" class="notif-button {{ $itemNotif->sudahDibaca() ? '' : 'belum' }}">
+                                        <span class="notif-ikon">{{ $itemNotif->ikon() }}</span>
+                                        <span class="notif-body">
+                                            <span class="notif-judul">
+                                                @unless ($itemNotif->sudahDibaca())
+                                                    <span class="notif-dot"></span>
+                                                @endunless
+                                                {{ $itemNotif->judul }}
+                                            </span>
+                                            @if (filled($itemNotif->pesan))
+                                                <span class="notif-pesan">{{ \Illuminate\Support\Str::limit($itemNotif->pesan, 90) }}</span>
+                                            @endif
+                                            <span class="notif-waktu">{{ $itemNotif->created_at?->locale('id')->diffForHumans() }}</span>
+                                        </span>
+                                    </button>
+                                </form>
+                            @empty
+                                <div class="ringkas-kosong">Belum ada notifikasi.</div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
-    <!-- ================= INFO MODAL DIALOG ================= -->
-    <div id="infoModal" class="modal-overlay" onclick="closeModalOnBackdrop(event)">
-        <div class="modal-box">
-            <button type="button" class="btn-modal-close" onclick="closeModal()">&times;</button>
-            <h3 class="modal-title" id="modalTitle">Informasi</h3>
-            <div class="modal-body" id="modalBody">Konten</div>
-            <button type="button" class="btn-modal-action" onclick="closeModal()">Tutup</button>
-        </div>
-    </div>
-
     <script>
-        // Modal logic
-        function openInfoModal(title, content) {
-            document.getElementById('modalTitle').innerHTML = title;
-            document.getElementById('modalBody').innerHTML = content;
-            document.getElementById('infoModal').classList.add('active');
-        }
+        // Tombol salin nomor Virtual Account BSI.
+        document.querySelectorAll('[data-copy-va]').forEach(function (tombol) {
+            tombol.addEventListener('click', async function () {
+                const nomor = tombol.dataset.copyVa || '';
 
-        function closeModal() {
-            document.getElementById('infoModal').classList.remove('active');
-        }
+                if (! nomor) {
+                    return;
+                }
 
-        function closeModalOnBackdrop(event) {
-            if (event.target === document.getElementById('infoModal')) {
-                closeModal();
-            }
-        }
+                try {
+                    if (navigator.clipboard && window.isSecureContext) {
+                        await navigator.clipboard.writeText(nomor);
+                    } else {
+                        const area = document.createElement('textarea');
+                        area.value = nomor;
+                        area.setAttribute('readonly', 'readonly');
+                        area.style.position = 'fixed';
+                        area.style.opacity = '0';
+                        document.body.appendChild(area);
+                        area.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(area);
+                    }
 
-        // Mobile sidebar toggle
+                    const teksAsli = tombol.innerHTML;
+                    tombol.classList.add('is-copied');
+                    tombol.textContent = 'Tersalin';
+                    setTimeout(function () {
+                        tombol.classList.remove('is-copied');
+                        tombol.innerHTML = teksAsli;
+                    }, 1800);
+                } catch (error) {
+                    tombol.textContent = 'Salin manual';
+                }
+            });
+        });
+
+        // Sidebar mobile.
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const sidebar = document.getElementById('sidebar');
         const sidebarBackdrop = document.getElementById('sidebarBackdrop');
 
-        if (mobileMenuBtn) {
+        if (mobileMenuBtn && sidebar && sidebarBackdrop) {
             mobileMenuBtn.addEventListener('click', function () {
                 sidebar.classList.toggle('active');
                 sidebarBackdrop.classList.toggle('active');

@@ -354,8 +354,8 @@
 
             <a class="btn outline" href="{{ route('dashboard') }}">Kembali</a>
 
-            <a class="btn" href="{{ route('pendaftaran.pilihKamarMhs') }}">
-                Lanjut Pilih Kamar
+            <a class="btn" href="{{ route('kamar') }}">
+                Pilih Kamar
             </a>
 
         </div>

@@ -1,7 +1,18 @@
-
 @extends('layouts.musyrifah')
 
 @section('content')
+@php
+    $pengumuman = $pengumuman ?? null;
+    $mode = $mode ?? 'tambah';
+    $modeLihat = $mode === 'lihat';
+    $modeEdit = $mode === 'edit';
+    $kategoriTersedia = \App\Models\Pengumuman::kategoriTersedia();
+    $statusTersedia = \App\Models\Pengumuman::statusPilihan();
+    $kategoriTerpilih = old('kategori', $pengumuman?->kategori ?? '');
+    $statusTerpilih = old('status', $pengumuman?->status ?? \App\Models\Pengumuman::STATUS_DRAFT);
+    $tanggalTerpilih = old('tanggal_publikasi', $pengumuman?->tanggal_publikasi?->toDateString() ?? now()->toDateString());
+@endphp
+
 <style>
     .detail-pengumuman {
         padding: 26px 30px;
@@ -10,7 +21,7 @@
     }
 
     .detail-header {
-        margin: 0 0 112px 12px;
+        margin: 0 0 34px 12px;
     }
 
     .detail-header h1 {
@@ -22,6 +33,120 @@
     .detail-header p {
         font-size: 20px;
         margin: 0 0 0 30px;
+        color: #6f6668;
+    }
+
+    .detail-alert {
+        margin: 0 0 22px;
+        padding: 14px 20px;
+        border-radius: 14px;
+        border: 1px solid #C9A96A;
+        background: #fdf6e8;
+        color: #6B0D1B;
+        font-size: 17px;
+        font-weight: 600;
+    }
+
+    .detail-alert.info {
+        border-color: #d8c3c7;
+        background: #f5e9ec;
+        color: #424242;
+        font-weight: 500;
+    }
+
+    .ringkasan-pengumuman {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .pengumuman-tag {
+        display: inline-block;
+        padding: 5px 14px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 700;
+        background: #fff;
+        border: 1px solid #C9A96A;
+        color: #6B0D1B;
+    }
+
+    .pengumuman-status {
+        display: inline-block;
+        padding: 5px 14px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .pengumuman-status.terbit {
+        background: #e7f5ec;
+        color: #1f7a4a;
+    }
+
+    .pengumuman-status.draft {
+        background: #fdefd6;
+        color: #96610a;
+    }
+
+    .meta-pengumuman {
+        color: #6f6668;
+        font-size: 15px;
+    }
+
+    .judul-pengumuman {
+        font-size: 26px;
+        font-weight: 700;
+        line-height: 1.35;
+        margin: 0 0 18px;
+        color: #171717;
+    }
+
+    .isi-pengumuman {
+        background: #f5e7ea;
+        border-radius: 20px;
+        padding: 24px 26px;
+        font-size: 18px;
+        line-height: 1.75;
+        color: #2f2b2c;
+        overflow-wrap: anywhere;
+    }
+
+    .gambar-pengumuman {
+        display: block;
+        width: 100%;
+        max-width: 520px;
+        border-radius: 18px;
+        border: 1px solid #d8c3c7;
+        margin-bottom: 22px;
+    }
+
+    .berkas-pengumuman {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        margin-top: 22px;
+        font-size: 16px;
+        color: #424242;
+    }
+
+    .btn-berkas {
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: 1px solid #6B0D1B;
+        background: #fff;
+        color: #6B0D1B;
+        font-size: 15px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .btn-berkas:hover {
+        background: #6B0D1B;
+        color: #fff;
     }
 
     .form-pengumuman {
@@ -54,7 +179,7 @@
     }
 
     .form-control-pengumuman:focus {
-        border-color: #790d20;
+        border-color: #6B0D1B;
     }
 
     .form-control-pengumuman::placeholder {
@@ -67,8 +192,24 @@
     }
 
     textarea.form-control-pengumuman {
-        min-height: 144px;
+        min-height: 210px;
         resize: vertical;
+        line-height: 1.6;
+    }
+
+    .bantuan-form {
+        display: block;
+        margin: 6px 0 0 14px;
+        font-size: 14px;
+        color: #81797b;
+    }
+
+    .pesan-galat {
+        display: block;
+        margin: 6px 0 0 14px;
+        font-size: 15px;
+        color: #a3162b;
+        font-weight: 600;
     }
 
     .lampiran-label {
@@ -80,7 +221,7 @@
         align-items: center;
         justify-content: center;
         width: 70%;
-        min-height: 144px;
+        min-height: 132px;
         padding: 20px;
         box-sizing: border-box;
         background: #f5e7ea;
@@ -117,20 +258,47 @@
         overflow-wrap: anywhere;
     }
 
+    .berkas-tersimpan {
+        margin-top: 10px;
+        font-size: 15px;
+        color: #424242;
+    }
+
+    .berkas-tersimpan a {
+        color: #6B0D1B;
+        font-weight: 700;
+    }
+
+    .cek-hapus {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+        font-size: 14px;
+        color: #a3162b;
+        font-weight: 600;
+    }
+
     .form-actions {
         display: flex;
-        gap: 38px;
+        flex-wrap: wrap;
+        gap: 18px;
         margin-top: 27px;
     }
 
     .btn-form {
-        width: 187px;
+        min-width: 187px;
         min-height: 47px;
+        padding: 0 22px;
         border: none;
         border-radius: 25px;
         font-size: 16px;
         font-weight: 700;
         cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .btn-batal {
@@ -139,7 +307,7 @@
     }
 
     .btn-simpan {
-        background: #790d20;
+        background: #6B0D1B;
         color: #fff;
     }
 
@@ -148,7 +316,27 @@
     }
 
     .btn-simpan:hover {
-        background: #5f0918;
+        background: #4d0813;
+    }
+
+    .btn-hapus-pengumuman {
+        background: #a3162b;
+        color: #fff;
+    }
+
+    .btn-hapus-pengumuman:hover {
+        background: #7d1020;
+    }
+
+    .aksi-detail {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 30px;
+    }
+
+    .aksi-detail form {
+        margin: 0;
     }
 
     @media (max-width: 768px) {
@@ -157,7 +345,7 @@
         }
 
         .detail-header {
-            margin: 0 0 55px;
+            margin: 0 0 26px;
         }
 
         .detail-header h1 {
@@ -181,149 +369,359 @@
             width: 100%;
         }
 
-        .form-actions {
-            gap: 12px;
-        }
-
         .btn-form {
-            width: 50%;
+            width: 100%;
         }
     }
 </style>
 
 <div class="detail-pengumuman">
 
-    <div class="detail-header">
-        <h1>+ Pengumuman</h1>
-        <p>Buat Pengumuman Baru Untuk Mahasantri</p>
-    </div>
+    @if (session('success'))
+        <div class="detail-alert" role="status">{{ session('success') }}</div>
+    @endif
 
-    <form class="form-pengumuman"
-          id="formPengumuman"
-          enctype="multipart/form-data">
+    @if ($modeLihat)
+        <div class="detail-header">
+            <h1>Detail Pengumuman</h1>
+            <p>Informasi lengkap pengumuman yang dikelola Musyrifah</p>
+        </div>
 
-        @csrf
+        <div class="ringkasan-pengumuman">
+            <span class="pengumuman-tag">{{ $pengumuman->kategori }}</span>
+            <span class="pengumuman-status {{ $pengumuman->kelasStatus() }}">
+                {{ $pengumuman->labelStatus() }}
+            </span>
+            <span class="meta-pengumuman">Publikasi: {{ $pengumuman->tanggalTeks() }}</span>
+            <span class="meta-pengumuman">Penulis: {{ $pengumuman->penulisTeks() }}</span>
+            @if ($pengumuman->dipublikasikan_pada)
+                <span class="meta-pengumuman">
+                    Terbit pada: {{ $pengumuman->dipublikasikan_pada->locale('id')->translatedFormat('d F Y H:i') }}
+                </span>
+            @endif
+        </div>
 
-        <div class="form-group">
-            <label for="judul">Judul Pengumuman</label>
-            <input
-                type="text"
-                id="judul"
-                name="judul"
-                class="form-control-pengumuman"
-                placeholder="Masukan Judul Pengumuman"
-                required
+        @if ($pengumuman->isDraft())
+            <div class="detail-alert info">
+                Pengumuman ini masih berstatus draft sehingga belum tampil pada halaman Pengumuman mahasiswa.
+            </div>
+        @endif
+
+        <h2 class="judul-pengumuman">{{ $pengumuman->judul }}</h2>
+
+        @if ($pengumuman->punyaGambar())
+            <img
+                src="{{ route('musyrifah.pengumuman.berkas', [$pengumuman, 'gambar']) }}"
+                alt="Gambar pengumuman {{ $pengumuman->judul }}"
+                class="gambar-pengumuman"
             >
-        </div>
+        @endif
 
-        <div class="form-group">
-            <label for="kategori">Kategori</label>
-            <select
-                id="kategori"
-                name="kategori"
-                class="form-control-pengumuman"
-                required
-            >
-                <option value="" selected disabled>
-                    Pilih Kategori Pengumuman
-                </option>
-                <option value="Akademik">Akademik</option>
-                <option value="Asrama">Asrama</option>
-                <option value="Kegiatan">Kegiatan</option>
-                <option value="Administrasi">Administrasi</option>
-                <option value="Lainnya">Lainnya</option>
-            </select>
-        </div>
+        <div class="isi-pengumuman">{!! nl2br(e($pengumuman->isi)) !!}</div>
 
-        <div class="form-group">
-            <label for="isi">Isi Pengumuman</label>
-            <textarea
-                id="isi"
-                name="isi"
-                class="form-control-pengumuman"
-                placeholder="Tuliskan Isi pengumuman Secara Lengkap"
-                required
-            ></textarea>
-        </div>
-
-        <div class="form-group">
-            <label for="lampiran" class="lampiran-label">
-                Lampiran (Opsional)
-            </label>
-
-            <label for="lampiran" class="upload-area">
-                <div>
-                    <strong>Unggah File atau Gambar</strong>
-                    <span>PDF, JPG, PNG</span>
-                    <span class="nama-file" id="namaFile"></span>
-                </div>
-
-                <input
-                    type="file"
-                    id="lampiran"
-                    name="lampiran"
-                    accept=".pdf,.jpg,.jpeg,.png"
+        @if ($pengumuman->punyaDokumen())
+            <div class="berkas-pengumuman">
+                <span>Dokumen pendukung: {{ $pengumuman->namaBerkas('dokumen') }}</span>
+                <a
+                    href="{{ route('musyrifah.pengumuman.berkas', [$pengumuman, 'dokumen']) }}"
+                    class="btn-berkas"
                 >
-            </label>
+                    Unduh Dokumen
+                </a>
+            </div>
+        @endif
+
+        <div class="aksi-detail">
+            <a href="{{ route('musyrifah.pengumuman.edit', $pengumuman) }}" class="btn-form btn-simpan">
+                Edit Pengumuman
+            </a>
+
+            <form method="POST" action="{{ route('musyrifah.pengumuman.status', $pengumuman) }}">
+                @csrf
+                <input
+                    type="hidden"
+                    name="status"
+                    value="{{ $pengumuman->isDipublikasikan() ? \App\Models\Pengumuman::STATUS_DRAFT : \App\Models\Pengumuman::STATUS_DIPUBLIKASIKAN }}"
+                >
+                <button type="submit" class="btn-form btn-batal">
+                    {{ $pengumuman->isDipublikasikan() ? 'Jadikan Draft' : 'Publikasikan' }}
+                </button>
+            </form>
+
+            <form
+                method="POST"
+                action="{{ route('musyrifah.pengumuman.destroy', $pengumuman) }}"
+                onsubmit="return confirm('Hapus pengumuman ini? Data yang dihapus tidak dapat dikembalikan.');"
+            >
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn-form btn-hapus-pengumuman">Hapus</button>
+            </form>
+
+            <a href="{{ route('musyrifah.pengumuman') }}" class="btn-form btn-batal">
+                Kembali
+            </a>
+        </div>
+    @else
+        <div class="detail-header">
+            <h1>{{ $modeEdit ? 'Edit Pengumuman' : '+ Pengumuman' }}</h1>
+            <p>
+                {{ $modeEdit
+                    ? 'Perbarui Informasi Pengumuman Untuk Mahasantri'
+                    : 'Buat Pengumuman Baru Untuk Mahasantri' }}
+            </p>
         </div>
 
-        <div class="form-actions">
-            <button
-                type="button"
-                class="btn-form btn-batal"
-                onclick="window.location.href='{{ route('musyrifah.pengumuman') }}'"
-            >
-                Batal
-            </button>
+        <form
+            class="form-pengumuman"
+            id="formPengumuman"
+            method="POST"
+            enctype="multipart/form-data"
+            action="{{ $modeEdit
+                ? route('musyrifah.pengumuman.update', $pengumuman)
+                : route('musyrifah.pengumuman.store') }}"
+        >
+            @csrf
+            @if ($modeEdit)
+                @method('PUT')
+            @endif
 
-            <button
-                type="submit"
-                class="btn-form btn-simpan"
-            >
-                Simpan
-            </button>
-        </div>
-    </form>
+            <div class="form-group">
+                <label for="judul">Judul Pengumuman</label>
+                <input
+                    type="text"
+                    id="judul"
+                    name="judul"
+                    class="form-control-pengumuman"
+                    placeholder="Masukan Judul Pengumuman"
+                    value="{{ old('judul', $pengumuman?->judul) }}"
+                    maxlength="150"
+                    required
+                >
+                @error('judul')
+                    <span class="pesan-galat">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="kategori">Kategori</label>
+                <select id="kategori" name="kategori" class="form-control-pengumuman" required>
+                    <option value="" disabled @selected($kategoriTerpilih === '')>
+                        Pilih Kategori Pengumuman
+                    </option>
+                    @foreach ($kategoriTersedia as $kategori)
+                        <option value="{{ $kategori }}" @selected($kategoriTerpilih === $kategori)>
+                            {{ $kategori }}
+                        </option>
+                    @endforeach
+                    <option value="lainnya" @selected($kategoriTerpilih === 'lainnya')>
+                        Kategori Lainnya
+                    </option>
+                </select>
+                @error('kategori')
+                    <span class="pesan-galat">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="form-group" id="grupKategoriBaru" hidden>
+                <label for="kategori_baru">Nama Kategori Baru</label>
+                <input
+                    type="text"
+                    id="kategori_baru"
+                    name="kategori_baru"
+                    class="form-control-pengumuman"
+                    placeholder="Contoh: Beasiswa"
+                    value="{{ old('kategori_baru') }}"
+                    maxlength="60"
+                >
+                <span class="bantuan-form">
+                    Kategori baru akan tersimpan dan tersedia pada filter berikutnya.
+                </span>
+                @error('kategori_baru')
+                    <span class="pesan-galat">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="isi">Isi Pengumuman</label>
+                <textarea
+                    id="isi"
+                    name="isi"
+                    class="form-control-pengumuman"
+                    placeholder="Tuliskan Isi pengumuman Secara Lengkap"
+                    required
+                >{{ old('isi', $pengumuman?->isi) }}</textarea>
+                @error('isi')
+                    <span class="pesan-galat">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="gambar" class="lampiran-label">Gambar Pengumuman (Opsional)</label>
+
+                <label for="gambar" class="upload-area">
+                    <div>
+                        <strong>Unggah Gambar</strong>
+                        <span>JPG, JPEG, PNG, WEBP (maks. 5 MB)</span>
+                        <span class="nama-file" id="namaGambar">
+                            {{ $pengumuman?->namaBerkas('gambar') ?? '' }}
+                        </span>
+                    </div>
+
+                    <input
+                        type="file"
+                        id="gambar"
+                        name="gambar"
+                        accept=".jpg,.jpeg,.png,.webp"
+                    >
+                </label>
+
+                @if ($pengumuman?->punyaGambar())
+                    <div class="berkas-tersimpan">
+                        Gambar tersimpan:
+                        <a
+                            href="{{ route('musyrifah.pengumuman.berkas', [$pengumuman, 'gambar']) }}"
+                            target="_blank"
+                            rel="noopener"
+                        >{{ $pengumuman->namaBerkas('gambar') }}</a>
+
+                        <label class="cek-hapus" for="hapus_gambar">
+                            <input type="checkbox" id="hapus_gambar" name="hapus_gambar" value="1">
+                            Hapus gambar ini
+                        </label>
+                    </div>
+                @endif
+
+                @error('gambar')
+                    <span class="pesan-galat">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="dokumen" class="lampiran-label">Dokumen Pendukung (Opsional)</label>
+
+                <label for="dokumen" class="upload-area">
+                    <div>
+                        <strong>Unggah Dokumen</strong>
+                        <span>PDF, JPG, PNG (maks. 5 MB)</span>
+                        <span class="nama-file" id="namaDokumen">
+                            {{ $pengumuman?->namaBerkas('dokumen') ?? '' }}
+                        </span>
+                    </div>
+
+                    <input
+                        type="file"
+                        id="dokumen"
+                        name="dokumen"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                    >
+                </label>
+
+                @if ($pengumuman?->punyaDokumen())
+                    <div class="berkas-tersimpan">
+                        Dokumen tersimpan:
+                        <a
+                            href="{{ route('musyrifah.pengumuman.berkas', [$pengumuman, 'dokumen']) }}"
+                            target="_blank"
+                            rel="noopener"
+                        >{{ $pengumuman->namaBerkas('dokumen') }}</a>
+
+                        <label class="cek-hapus" for="hapus_dokumen">
+                            <input type="checkbox" id="hapus_dokumen" name="hapus_dokumen" value="1">
+                            Hapus dokumen ini
+                        </label>
+                    </div>
+                @endif
+
+                @error('dokumen')
+                    <span class="pesan-galat">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="tanggal_publikasi">Tanggal Publikasi</label>
+                <input
+                    type="date"
+                    id="tanggal_publikasi"
+                    name="tanggal_publikasi"
+                    class="form-control-pengumuman"
+                    value="{{ $tanggalTerpilih }}"
+                    required
+                >
+                @error('tanggal_publikasi')
+                    <span class="pesan-galat">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="status">Status Pengumuman</label>
+                <select id="status" name="status" class="form-control-pengumuman" required>
+                    @foreach ($statusTersedia as $nilai => $label)
+                        <option value="{{ $nilai }}" @selected($statusTerpilih === $nilai)>
+                            {{ $label }}
+                        </option>
+                    @endforeach
+                </select>
+                <span class="bantuan-form">
+                    Pengumuman berstatus Draft hanya terlihat oleh Musyrifah.
+                </span>
+                @error('status')
+                    <span class="pesan-galat">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="form-actions">
+                <a href="{{ route('musyrifah.pengumuman') }}" class="btn-form btn-batal">
+                    Batal
+                </a>
+
+                <button type="submit" class="btn-form btn-simpan">
+                    Simpan
+                </button>
+            </div>
+        </form>
+    @endif
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const inputLampiran = document.getElementById('lampiran');
-        const namaFile = document.getElementById('namaFile');
-        const form = document.getElementById('formPengumuman');
+        const kategori = document.getElementById('kategori');
+        const grupKategoriBaru = document.getElementById('grupKategoriBaru');
+        const kategoriBaru = document.getElementById('kategori_baru');
 
-        inputLampiran.addEventListener('change', function () {
-            const file = this.files[0];
+        if (kategori && grupKategoriBaru) {
+            const aturKategoriBaru = function () {
+                const tampil = kategori.value === 'lainnya';
 
-            if (!file) {
-                namaFile.textContent = '';
+                grupKategoriBaru.hidden = !tampil;
+                kategoriBaru.required = tampil;
+
+                if (tampil) {
+                    kategoriBaru.focus();
+                }
+            };
+
+            kategori.addEventListener('change', aturKategoriBaru);
+            aturKategoriBaru();
+        }
+
+        const pasanganBerkas = [
+            { input: 'gambar', label: 'namaGambar' },
+            { input: 'dokumen', label: 'namaDokumen' }
+        ];
+
+        pasanganBerkas.forEach(function (pasangan) {
+            const inputBerkas = document.getElementById(pasangan.input);
+            const namaBerkas = document.getElementById(pasangan.label);
+
+            if (!inputBerkas || !namaBerkas) {
                 return;
             }
 
-            const tipeDiizinkan = [
-                'application/pdf',
-                'image/jpeg',
-                'image/png'
-            ];
-
-            if (!tipeDiizinkan.includes(file.type)) {
-                alert('Format lampiran harus PDF, JPG, atau PNG.');
-                this.value = '';
-                namaFile.textContent = '';
-                return;
-            }
-
-            namaFile.textContent = file.name;
-        });
-
-        form.addEventListener('submit', function (event) {
-            event.preventDefault();
-
-            alert(
-                'Tampilan formulir sudah siap. ' +
-                'Fitur penyimpanan pengumuman perlu dihubungkan ' +
-                'ke database terlebih dahulu.'
-            );
+            inputBerkas.addEventListener('change', function () {
+                const file = this.files[0];
+                namaBerkas.textContent = file ? file.name : '';
+            });
         });
     });
 </script>
