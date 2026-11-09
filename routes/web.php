@@ -35,6 +35,7 @@ use App\Http\Controllers\PimpinanPembelajaranController;
 use App\Http\Controllers\ProfilMhsController;
 use App\Http\Controllers\SuratPerizinanMhsController;
 use App\Http\Controllers\TugasMhsController;
+use App\Services\LaporanMahadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -589,11 +590,11 @@ Route::middleware('auth')->group(function () {
         'kamar',
     ])->name('pimpinan.laporan-kamar');
 
-    // Laporan pembelajaran
-    Route::get('/pimpinan/laporan-pembelajaran', [
+    // Laporan kehadiran
+    Route::get('/pimpinan/laporan-kehadiran', [
         PimpinanLaporanMahadController::class,
-        'pembelajaran',
-    ])->name('pimpinan.laporan-pembelajaran');
+        'kehadiran',
+    ])->name('pimpinan.laporan-kehadiran');
 
     // Laporan pembayaran
     Route::get('/pimpinan/laporan-pembayaran', [
@@ -601,11 +602,18 @@ Route::middleware('auth')->group(function () {
         'pembayaran',
     ])->name('pimpinan.laporan-pembayaran');
 
-    // Laporan perizinan
-    Route::get('/pimpinan/laporan-perizinan', [
+    // Laporan pendaftaran
+    Route::get('/pimpinan/laporan-pendaftaran', [
         PimpinanLaporanMahadController::class,
-        'perizinan',
-    ])->name('pimpinan.laporan-perizinan');
+        'pendaftaran',
+    ])->name('pimpinan.laporan-pendaftaran');
+
+    // Unduh laporan monitoring (hanya baca)
+    Route::get('/pimpinan/laporan/unduh/{jenis}', [
+        PimpinanLaporanMahadController::class,
+        'unduh',
+    ])->whereIn('jenis', LaporanMahadService::JENIS_PIMPINAN)
+        ->name('pimpinan.laporan.unduh');
 
     /*
     |--------------------------------------------------------------------------
@@ -800,6 +808,18 @@ Route::middleware('auth')->group(function () {
         MusyrifahLaporanController::class,
         'index',
     ])->name('musyrifah.laporan');
+
+    Route::get('/musyrifah/laporan/{jenis}/unduh', [
+        MusyrifahLaporanController::class,
+        'unduh',
+    ])->whereIn('jenis', LaporanMahadService::JENIS_MUSYRIFAH)
+        ->name('musyrifah.laporan.unduh');
+
+    Route::get('/musyrifah/laporan/{jenis}', [
+        MusyrifahLaporanController::class,
+        'show',
+    ])->whereIn('jenis', LaporanMahadService::JENIS_MUSYRIFAH)
+        ->name('musyrifah.laporan.detail');
 
     // Pengaturan akun Musyrifah
     Route::get('/musyrifah/pengaturan-akun', [

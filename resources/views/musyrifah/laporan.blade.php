@@ -269,26 +269,14 @@
                 <label for="periode">Periode laporan</label>
 
                 <select name="periode" id="periode">
-                    @php
-                        $tahunSekarang = now()->year;
-                    @endphp
-
-                    @for ($tahun = $tahunSekarang - 3; $tahun <= $tahunSekarang + 1; $tahun++)
-                        @for ($bulan = 1; $bulan <= 12; $bulan++)
-                            @php
-                                $value = sprintf('%04d-%02d', $tahun, $bulan);
-                                $label = \Carbon\Carbon::create($tahun, $bulan, 1)
-                                    ->translatedFormat('F Y');
-                            @endphp
-
-                            <option
-                                value="{{ $value }}"
-                                {{ $periode === $value ? 'selected' : '' }}
-                            >
-                                {{ $label }}
-                            </option>
-                        @endfor
-                    @endfor
+                    @foreach ($opsiPeriode as $opsi)
+                        <option
+                            value="{{ $opsi['value'] }}"
+                            @selected($periode === $opsi['value'])
+                        >
+                            {{ $opsi['label'] }}
+                        </option>
+                    @endforeach
                 </select>
             </div>
 
@@ -353,13 +341,9 @@
                     <p>{{ $item['deskripsi'] }}</p>
 
                     <div class="laporan-actions">
-                        <button
-                            type="button"
-                            class="btn-lihat"
-                            onclick="alert('Fitur lihat dan unduh laporan akan dihubungkan setelah data laporan tersedia.')"
-                        >
-                            Lihat / Unduh
-                        </button>
+                        <a href="{{ $item['url'] }}" class="btn-lihat">
+                            Lihat Laporan
+                        </a>
                     </div>
                 </div>
 

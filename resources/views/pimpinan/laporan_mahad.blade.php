@@ -214,8 +214,8 @@
         <div>
             <h1>Laporan Ma’had</h1>
             <p>
-                Informasi dan ringkasan data operasional Ma’had
-                dalam satu halaman.
+                Monitoring data operasional Ma’had dalam satu halaman.
+                Data ditampilkan hanya untuk dilihat dan diunduh.
             </p>
         </div>
 
@@ -231,8 +231,23 @@
         </div>
     </div>
 
-    
-
+    <div class="laporan-info">
+        <div class="laporan-info-icon">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/>
+                <circle cx="12" cy="12" r="3"/>
+            </svg>
+        </div>
+        <div>
+            <h3>Mode Monitoring</h3>
+            <p>
+                Pimpinan hanya dapat melihat dan mengunduh laporan.
+                Perubahan data dilakukan melalui menu operasional Musyrifah.
+            </p>
+        </div>
     </div>
 
     <h2 class="laporan-section-title">Kategori Laporan</h2>

@@ -2,298 +2,166 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\LaporanMahadService;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PimpinanLaporanMahadController extends Controller
 {
- // Halaman utama laporan Ma'had
-    public function index()
+    public function __construct(private readonly LaporanMahadService $laporanMahad) {}
+
+    /**
+     * Halaman utama laporan Ma'had untuk Pimpinan (monitoring).
+     */
+    public function index(Request $request): View
     {
+        $this->pastikanPimpinan($request);
+
         $laporan = [
             [
                 'ikon' => 'users',
                 'judul' => 'Laporan Penghuni',
-                'deskripsi' => 'Melihat informasi data penghuni Ma’had, termasuk NIM, nama, program studi, angkatan, dan kamar.',
+                'deskripsi' => 'Monitoring data penghuni Ma’had, termasuk NIM, nama, program studi, angkatan, dan kamar.',
                 'url' => route('pimpinan.laporan-penghuni'),
             ],
             [
                 'ikon' => 'bed',
                 'judul' => 'Laporan Kamar',
-                'deskripsi' => 'Melihat informasi penggunaan kamar dan data penghuni berdasarkan kamar.',
+                'deskripsi' => 'Monitoring penggunaan kamar dan jumlah penghuni pada setiap kamar.',
                 'url' => route('pimpinan.laporan-kamar'),
             ],
             [
                 'ikon' => 'book-open',
-                'judul' => 'Laporan Pembelajaran',
-                'deskripsi' => 'Melihat informasi kegiatan dan pelaksanaan pembelajaran di Ma’had.',
-                'url' => route('pimpinan.laporan-pembelajaran'),
+                'judul' => 'Laporan Kehadiran',
+                'deskripsi' => 'Monitoring rekap kehadiran mahasiswa pada kegiatan pembelajaran Ma’had.',
+                'url' => route('pimpinan.laporan-kehadiran'),
             ],
             [
                 'ikon' => 'wallet',
                 'judul' => 'Laporan Pembayaran',
-                'deskripsi' => 'Melihat informasi pembayaran dan administrasi keuangan penghuni Ma’had.',
+                'deskripsi' => 'Monitoring status pembayaran dan administrasi keuangan penghuni Ma’had.',
                 'url' => route('pimpinan.laporan-pembayaran'),
             ],
             [
                 'ikon' => 'file-check',
-                'judul' => 'Laporan Administrasi',
-                'deskripsi' => 'Melihat informasi administrasi dan dokumen penghuni Ma’had.',
-                'url' => '#',
+                'judul' => 'Laporan Pendaftaran',
+                'deskripsi' => 'Monitoring data pendaftar dan status pendaftaran Ma’had.',
+                'url' => route('pimpinan.laporan-pendaftaran'),
             ],
         ];
 
         return view('pimpinan.laporan_mahad', compact('laporan'));
     }
 
-    // Halaman detail laporan penghuni
-    public function penghuni(Request $request)
+    public function penghuni(Request $request): View
     {
-        // Data contoh penghuni
-        $semuaPenghuni = [
-            [
-                'nim' => '202600101',
-                'nama' => 'Nadia Putri',
-                'prodi' => 'Sistem Informasi',
-                'angkatan' => '2026',
-                'kamar' => 'Kamar A-01',
-                'status' => 'Aktif',
-            ],
-            [
-                'nim' => '202600102',
-                'nama' => 'Alya Rahma',
-                'prodi' => 'Informatika',
-                'angkatan' => '2026',
-                'kamar' => 'Kamar A-02',
-                'status' => 'Aktif',
-            ],
-            [
-                'nim' => '202600103',
-                'nama' => 'Siti Azzahra',
-                'prodi' => 'Sistem Informasi',
-                'angkatan' => '2026',
-                'kamar' => 'Kamar A-03',
-                'status' => 'Aktif',
-            ],
-            [
-                'nim' => '202600104',
-                'nama' => 'Nurul Hidayah',
-                'prodi' => 'Manajemen Pendidikan Islam',
-                'angkatan' => '2026',
-                'kamar' => 'Kamar B-01',
-                'status' => 'Tidak Aktif',
-            ],
-            [
-                'nim' => '202600105',
-                'nama' => 'Putri Amelia',
-                'prodi' => 'Pendidikan Agama Islam',
-                'angkatan' => '2026',
-                'kamar' => 'Kamar B-02',
-                'status' => 'Aktif',
-            ],
-        ];
+        return $this->tampilkan('penghuni', $request);
+    }
 
-        // Pencarian berdasarkan NIM atau nama
-        $keyword = $request->query('cari', '');
+    public function kamar(Request $request): View
+    {
+        return $this->tampilkan('kamar', $request);
+    }
 
-        $dataPenghuni = collect($semuaPenghuni);
+    public function kehadiran(Request $request): View
+    {
+        return $this->tampilkan('kehadiran', $request);
+    }
 
-        $penghuni = $dataPenghuni
-            ->filter(function ($item) use ($keyword) {
-                return stripos($item['nama'], $keyword) !== false
-                    || stripos($item['nim'], $keyword) !== false;
-            })
-            ->values();
+    public function pembayaran(Request $request): View
+    {
+        return $this->tampilkan('pembayaran', $request);
+    }
 
-        // Mengirim data ke halaman laporan penghuni
-        return view('pimpinan.laporan_penghuni', [
-            'penghuni' => $penghuni,
-            'totalPenghuni' => $dataPenghuni->count(),
-            'penghuniAktif' => $dataPenghuni
-                ->where('status', 'Aktif')
-                ->count(),
+    public function pendaftaran(Request $request): View
+    {
+        return $this->tampilkan('pendaftaran', $request);
+    }
+
+    /**
+     * Mengunduh laporan terpilih dalam format CSV (hanya baca).
+     */
+    public function unduh(Request $request, string $jenis): StreamedResponse
+    {
+        $this->pastikanPimpinan($request);
+        abort_unless(in_array($jenis, LaporanMahadService::JENIS_PIMPINAN, true), 404);
+
+        $periode = $this->laporanMahad->normalisasiPeriode($request->query('periode'));
+        $keyword = trim((string) $request->query('cari', ''));
+
+        $laporan = $this->laporanMahad->laporan($jenis, $periode, $keyword);
+        $namaBerkas = 'laporan-'.$jenis.'-'.$periode.'.csv';
+
+        return response()->streamDownload(function () use ($laporan): void {
+            $berkas = fopen('php://output', 'wb');
+
+            if ($berkas === false) {
+                return;
+            }
+
+            fwrite($berkas, "\xEF\xBB\xBF");
+
+            fputcsv($berkas, array_map(
+                fn (array $kolom): string => $kolom['label'],
+                $laporan['kolom']
+            ));
+
+            foreach ($laporan['baris'] as $baris) {
+                fputcsv($berkas, array_map(
+                    fn (array $kolom): string => (string) ($baris[$kolom['key']] ?? '-'),
+                    $laporan['kolom']
+                ));
+            }
+
+            fclose($berkas);
+        }, $namaBerkas, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    /**
+     * Menampilkan satu laporan dalam mode monitoring (tanpa aksi ubah data).
+     */
+    private function tampilkan(string $jenis, Request $request): View
+    {
+        $this->pastikanPimpinan($request);
+        abort_unless(in_array($jenis, LaporanMahadService::JENIS_PIMPINAN, true), 404);
+
+        $periode = $this->laporanMahad->normalisasiPeriode($request->query('periode'));
+        $keyword = trim((string) $request->query('cari', ''));
+
+        return view('pimpinan.laporan_detail', [
+            'laporan' => $this->laporanMahad->laporan($jenis, $periode, $keyword),
             'keyword' => $keyword,
+            'opsiPeriode' => $this->laporanMahad->opsiPeriode(),
+            'filterAction' => route($this->namaRoute($jenis)),
+            'backUrl' => route('pimpinan.laporan-mahad'),
+            'unduhUrl' => route('pimpinan.laporan.unduh', [
+                'jenis' => $jenis,
+                'periode' => $periode,
+                'cari' => $keyword,
+            ]),
+            'modeMonitoring' => true,
         ]);
     }
-    
-public function kamar(Request $request)
-{
-    $semuaKamar = [
-        [
-            'lantai' => 'Lantai 1',
-            'nomor_kamar' => 'A-01',
-            'kapasitas' => 4,
-            'jumlah_penghuni' => 3,
-            'status' => 'Terisi',
-        ],
-        [
-            'lantai' => 'Lantai 1',
-            'nomor_kamar' => 'A-02',
-            'kapasitas' => 4,
-            'jumlah_penghuni' => 4,
-            'status' => 'Penuh',
-        ],
-        [
-            'lantai' => 'Lantai 1',
-            'nomor_kamar' => 'A-03',
-            'kapasitas' => 4,
-            'jumlah_penghuni' => 0,
-            'status' => 'Kosong',
-        ],
-        [
-            'lantai' => 'Lantai 2',
-            'nomor_kamar' => 'B-01',
-            'kapasitas' => 4,
-            'jumlah_penghuni' => 2,
-            'status' => 'Terisi',
-        ],
-    ];
 
-    $dataKamar = collect($semuaKamar);
+    private function namaRoute(string $jenis): string
+    {
+        return match ($jenis) {
+            'penghuni' => 'pimpinan.laporan-penghuni',
+            'kamar' => 'pimpinan.laporan-kamar',
+            'kehadiran' => 'pimpinan.laporan-kehadiran',
+            'pembayaran' => 'pimpinan.laporan-pembayaran',
+            'pendaftaran' => 'pimpinan.laporan-pendaftaran',
+            default => abort(404),
+        };
+    }
 
-    // Pencarian kamar
-    $keyword = $request->query('cari', '');
-
-    $kamar = $dataKamar
-        ->filter(function ($item) use ($keyword) {
-            return stripos($item['nomor_kamar'], $keyword) !== false
-                || stripos($item['lantai'], $keyword) !== false;
-        })
-        ->values();
-
-    // Statistik seluruh kamar
-    $totalKamar = $dataKamar->count();
-
-    $kamarTerisi = $dataKamar
-        ->where('jumlah_penghuni', '>', 0)
-        ->count();
-
-    $kamarKosong = $dataKamar
-        ->where('jumlah_penghuni', 0)
-        ->count();
-
-    return view('pimpinan.laporan_kamar', compact(
-        'kamar',
-        'totalKamar',
-        'kamarTerisi',
-        'kamarKosong',
-        'keyword'
-    ));
-}
-
-
-public function pembelajaran(Request $request)
-{
-    // Data contoh pembelajaran
-    $semuaPembelajaran = [
-        [
-            'kelompok' => 'Kelompok A',
-            'pengajar' => 'Ustaz Ahmad',
-            'jumlah_pertemuan' => 12,
-            'kehadiran' => '90%',
-        ],
-        [
-            'kelompok' => 'Kelompok B',
-            'pengajar' => 'Ustazah Fatimah',
-            'jumlah_pertemuan' => 10,
-            'kehadiran' => '85%',
-        ],
-        [
-            'kelompok' => 'Kelompok C',
-            'pengajar' => 'Ustaz Abdullah',
-            'jumlah_pertemuan' => 8,
-            'kehadiran' => '95%',
-        ],
-    ];
-
-    $dataPembelajaran = collect($semuaPembelajaran);
-
-    $keyword = $request->query('cari', '');
-
-    $pembelajaran = $dataPembelajaran
-        ->filter(function ($item) use ($keyword) {
-            return stripos($item['kelompok'], $keyword) !== false
-                || stripos($item['pengajar'], $keyword) !== false;
-        })
-        ->values();
-
-    $totalKelompok = $dataPembelajaran->count();
-
-    $totalPertemuan = $dataPembelajaran->sum('jumlah_pertemuan');
-
-    $totalAbsensi = $dataPembelajaran->sum(function ($item) {
-        return (float) str_replace('%', '', $item['kehadiran']);
-    });
-
-    return view('pimpinan.laporan_pembelajaran', compact(
-        'pembelajaran',
-        'totalKelompok',
-        'totalPertemuan',
-        'totalAbsensi',
-        'keyword'
-    ));
-}
-
-
-public function pembayaran(Request $request)
-{
-    // Data contoh pembayaran
-    $semuaPembayaran = [
-        [
-            'nim' => '202600101',
-            'nama' => 'Nadia Putri',
-            'jenis_tagihan' => 'Uang Asrama',
-            'jumlah_pembayaran' => 1500000,
-            'tanggal_pembayaran' => '01-11-2026',
-            'status_pembayaran' => 'Lunas',
-        ],
-        [
-            'nim' => '202600102',
-            'nama' => 'Alya Rahma',
-            'jenis_tagihan' => 'Uang Makan',
-            'jumlah_pembayaran' => 750000,
-            'tanggal_pembayaran' => '02-11-2026',
-            'status_pembayaran' => 'Belum Dibayar',
-        ],
-        [
-            'nim' => '202600103',
-            'nama' => 'Siti Azzahra',
-            'jenis_tagihan' => 'Uang Asrama',
-            'jumlah_pembayaran' => 1500000,
-            'tanggal_pembayaran' => '03-11-2026',
-            'status_pembayaran' => 'Lunas',
-        ],
-    ];
-
-    $dataPembayaran = collect($semuaPembayaran);
-
-    $keyword = $request->query('cari', '');
-
-    // Pencarian berdasarkan NIM atau nama
-    $pembayaran = $dataPembayaran
-        ->filter(function ($item) use ($keyword) {
-            return stripos($item['nim'], $keyword) !== false
-                || stripos($item['nama'], $keyword) !== false;
-        })
-        ->values();
-
-    // Statistik berdasarkan seluruh data, bukan hasil pencarian
-    $totalTagihan = $dataPembayaran->count();
-
-    $totalSudahDibayar = $dataPembayaran
-        ->where('status_pembayaran', 'Lunas')
-        ->count();
-
-    $totalBelumDibayar = $dataPembayaran
-        ->where('status_pembayaran', 'Belum Dibayar')
-        ->count();
-
-    return view('pimpinan.laporan_pembayaran', compact(
-        'pembayaran',
-        'totalTagihan',
-        'totalSudahDibayar',
-        'totalBelumDibayar',
-        'keyword'
-    ));
-}
-
+    /**
+     * Pimpinan hanya boleh melihat laporan, bukan mengubah data.
+     */
+    private function pastikanPimpinan(Request $request): void
+    {
+        $role = strtolower((string) $request->user()?->role);
+        abort_unless(in_array($role, ['pimpinan', 'admin'], true), 403);
+    }
 }

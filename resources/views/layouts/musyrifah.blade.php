@@ -427,7 +427,7 @@
             </a>
             <a
                 href="{{ route('musyrifah.laporan') }}"
-                class="{{ request()->routeIs('musyrifah.laporan') ? 'active' : '' }}"
+                class="{{ request()->routeIs('musyrifah.laporan*') ? 'active' : '' }}"
             >
                 <span class="menu-icon">▤</span>
                 <span>Laporan</span>
