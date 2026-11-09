@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Dashboard Guru') - SIMAHAD</title>
+    <title>@yield('title', 'Dashboard Guru') - {{ $namaSistem ?? 'SIMAHAD' }}</title>
 
     <style>
         * {
@@ -304,7 +304,7 @@
                 onerror="this.style.display='none'"
             >
 
-            <span>SIMAHAD</span>
+            <span>{{ $namaSistem ?? 'SIMAHAD' }}</span>
         </div>
 
         <div class="header-actions">
@@ -365,8 +365,8 @@
                 <span>Tugas</span>
             </a>
 
-            <a href="{{ url('/guru/pengaturan-akun') }}"
-                class="{{ request()->is('guru/pengaturan-akun*') ? 'active' : '' }}">
+            <a href="{{ route('guru.pengaturan-akun') }}"
+                class="{{ request()->routeIs('guru.pengaturan-akun') ? 'active' : '' }}">
                 <span class="menu-icon">⚙</span>
                 <span>Pengaturan Akun</span>
             </a>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Dashboard Pimpinan') - SIMAHAD</title>
+    <title>@yield('title', 'Dashboard Pimpinan') - {{ $namaSistem ?? 'SIMAHAD' }}</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -363,7 +363,7 @@
             <a href="{{ url('/pimpinan/dashboard') }}" class="brand">
                 <img src="{{ asset('images/logo_uin.png') }}"
                     alt="Logo SIMAHAD">
-                <span>SIMAHAD</span>
+                <span>{{ $namaSistem ?? 'SIMAHAD' }}</span>
             </a>
 
         </div>
@@ -478,8 +478,8 @@
         {{-- MENU BAWAH --}}
         <div class="sidebar-bottom">
 
-            <a href="{{ url('/pimpinan/pengaturan-akun') }}"
-                class="menu-link {{ request()->is('pimpinan/pengaturan-akun*') ? 'active' : '' }}">
+            <a href="{{ route('pimpinan.pengaturan-akun') }}"
+                class="menu-link {{ request()->routeIs('pimpinan.pengaturan-akun') ? 'active' : '' }}">
 
                 <svg viewBox="0 0 24 24"
                     fill="none"

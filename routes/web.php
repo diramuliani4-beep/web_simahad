@@ -20,7 +20,6 @@ use App\Http\Controllers\MusyrifahLaporanController;
 use App\Http\Controllers\MusyrifahManajemenPembelajaranController;
 use App\Http\Controllers\MusyrifahPembayaranController;
 use App\Http\Controllers\MusyrifahPendaftaranController;
-use App\Http\Controllers\MusyrifahPengaturanAkunController;
 use App\Http\Controllers\MusyrifahPengumumanController;
 use App\Http\Controllers\MusyrifahSuratPerizinanController;
 use App\Http\Controllers\NotifikasiController;
@@ -28,6 +27,7 @@ use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\PembelajaranController;
 use App\Http\Controllers\PendaftaranController;
 use App\Http\Controllers\PengajuanIzinPulangController;
+use App\Http\Controllers\PengaturanAkunController;
 use App\Http\Controllers\PengumumanMhsController;
 use App\Http\Controllers\PimpinanDataPenghuniController;
 use App\Http\Controllers\PimpinanLaporanMahadController;
@@ -96,6 +96,24 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [AuthController::class, 'dashboard'])
         ->name('dashboard');
 
+    /*
+    |--------------------------------------------------------------------------
+    | Pengaturan Akun Mandiri (semua role)
+    |--------------------------------------------------------------------------
+    */
+
+    Route::put('/pengaturan-akun', [PengaturanAkunController::class, 'updateProfil'])
+        ->name('pengaturan-akun.update');
+
+    Route::post('/pengaturan-akun/foto', [PengaturanAkunController::class, 'updateFoto'])
+        ->name('pengaturan-akun.foto.update');
+
+    Route::delete('/pengaturan-akun/foto', [PengaturanAkunController::class, 'hapusFoto'])
+        ->name('pengaturan-akun.foto.destroy');
+
+    Route::put('/pengaturan-akun/password', [PengaturanAkunController::class, 'updatePassword'])
+        ->name('pengaturan-akun.password.update');
+
     // Dashboard lama untuk kompatibilitas
     Route::get('/dashboard_admin', [AuthController::class, 'dashboard'])
         ->name('dashboard_admin');
@@ -156,6 +174,10 @@ Route::middleware('auth')->group(function () {
 
     Route::delete('/profil-mhs/foto', [ProfilMhsController::class, 'hapusFoto'])
         ->name('profil.mhs.foto.destroy');
+
+    // Ubah kata sandi akun mahasiswa dari halaman Pengaturan Akun.
+    Route::put('/profil-mhs/password', [PengaturanAkunController::class, 'updatePassword'])
+        ->name('profil.mhs.password.update');
 
     // Data mahasiswa milik akun yang sedang login
     Route::get('/data-mahasiswa', [DataMahasiswaMhsController::class, 'index'])
@@ -394,6 +416,17 @@ Route::middleware('auth')->group(function () {
         'index',
     ])->name('admin.pengaturan-sistem');
 
+    Route::put('/admin/pengaturan-sistem', [
+        AdminPengaturanSistemController::class,
+        'update',
+    ])->name('admin.pengaturan-sistem.update');
+
+    // Pengaturan akun Admin (profil pribadi, berbeda dari pengaturan sistem).
+    Route::get('/admin/pengaturan-akun', [
+        PengaturanAkunController::class,
+        'admin',
+    ])->name('admin.pengaturan-akun');
+
     // Log aktivitas
     Route::get('/admin/log-aktivitas', [
         AdminLogAktivitasController::class,
@@ -519,6 +552,12 @@ Route::middleware('auth')->group(function () {
         'index',
     ])->name('guru.kegiatan-dokumentasi');
 
+    // Pengaturan akun Guru
+    Route::get('/guru/pengaturan-akun', [
+        PengaturanAkunController::class,
+        'guru',
+    ])->name('guru.pengaturan-akun');
+
     // Tugas yang dibuat Guru sesuai mata pelajaran dan kelompok penugasannya
     Route::get('/guru/tugas', [GuruTugasController::class, 'index'])
         ->name('guru.tugas.index');
@@ -577,6 +616,12 @@ Route::middleware('auth')->group(function () {
         PimpinanPembelajaranController::class,
         'index',
     ])->name('pimpinan.pembelajaran');
+
+    // Pengaturan akun Pimpinan
+    Route::get('/pimpinan/pengaturan-akun', [
+        PengaturanAkunController::class,
+        'pimpinan',
+    ])->name('pimpinan.pengaturan-akun');
 
     // Halaman Laporan Penghuni
     Route::get('/pimpinan/laporan-penghuni', [
@@ -823,8 +868,8 @@ Route::middleware('auth')->group(function () {
 
     // Pengaturan akun Musyrifah
     Route::get('/musyrifah/pengaturan-akun', [
-        MusyrifahPengaturanAkunController::class,
-        'index',
+        PengaturanAkunController::class,
+        'musyrifah',
     ])->name('musyrifah.pengaturan_akun');
 
     // Pengumuman Musyrifah

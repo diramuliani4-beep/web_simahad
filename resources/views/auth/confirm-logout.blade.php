@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Konfirmasi Keluar - SIMAHAD</title>
+    <title>Konfirmasi Keluar - {{ $namaSistem ?? 'SIMAHAD' }}</title>
 
     <style>
         * {

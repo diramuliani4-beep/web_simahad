@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Dashboard Admin') - SIMAHAD</title>
+    <title>@yield('title', 'Dashboard Admin') - {{ $namaSistem ?? 'SIMAHAD' }}</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -123,11 +123,149 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            background: #fff;
+            padding: 0;
+            overflow: hidden;
+            cursor: pointer;
+            font: inherit;
+            transition: border-color .2s, color .2s;
+        }
+
+        .profile-icon:hover,
+        .profile-icon[aria-expanded="true"] {
+            border-color: var(--maroon);
+            color: var(--maroon);
+        }
+
+        .profile-icon img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
         }
 
         .profile-icon svg {
             width: 44px;
             height: 44px;
+        }
+
+        .profile-menu {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .profile-panel {
+            position: absolute;
+            top: calc(100% + 14px);
+            right: 0;
+            width: 292px;
+            max-width: calc(100vw - 32px);
+            background: #fff;
+            border: 1px solid #e7ded8;
+            border-radius: 14px;
+            box-shadow: 0 18px 42px rgba(56, 10, 18, .18);
+            padding: 12px;
+            z-index: 80;
+        }
+
+        .profile-panel[hidden] {
+            display: none;
+        }
+
+        .profile-panel__head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 8px 14px;
+            border-bottom: 1px solid #f0e9e4;
+            margin-bottom: 8px;
+        }
+
+        .profile-panel__avatar {
+            width: 46px;
+            height: 46px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: #f6ece8;
+            color: #790d20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            overflow: hidden;
+        }
+
+        .profile-panel__avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-panel__identitas {
+            min-width: 0;
+        }
+
+        .profile-panel__nama {
+            font-size: 15px;
+            font-weight: 600;
+            color: #2b2b2b;
+            line-height: 1.3;
+        }
+
+        .profile-panel__email {
+            font-size: 12.5px;
+            color: #8a8a8a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .profile-panel__peran {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 2px 9px;
+            border-radius: 999px;
+            background: #f6ece8;
+            color: #790d20;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .profile-panel__item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 9px;
+            color: #3d3d3d;
+            font-size: 14.5px;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .profile-panel__item:hover {
+            background: #faf5f2;
+            color: #790d20;
+        }
+
+        .profile-panel__item svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .profile-panel__item--keluar {
+            color: #b3261e;
+        }
+
+        .profile-panel__item--keluar:hover {
+            background: #fdf0ef;
+            color: #8f1d17;
         }
 
         /* SIDEBAR */
@@ -362,7 +500,7 @@
 
             <a href="{{ url('/admin/dashboard') }}" class="brand">
                 <img src="{{ asset('images/logo_uin.png') }}" alt="Logo SIMAHAD">
-                <span>SIMAHAD</span>
+                <span>{{ $namaSistem ?? 'SIMAHAD' }}</span>
             </a>
         </div>
 
@@ -385,11 +523,72 @@
                 </svg>
             </button>
 
-            <div class="profile-icon" title="Profil Admin">
-                <svg viewBox="0 0 48 48" fill="currentColor">
-                    <circle cx="24" cy="16" r="11"/>
-                    <path d="M5 44c0-11 8-17 19-17s19 6 19 17z"/>
-                </svg>
+            <div class="profile-menu">
+                <button type="button"
+                    class="profile-icon"
+                    id="profileMenuToggle"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                    aria-controls="profileMenuPanel"
+                    title="Menu akun">
+
+                    @if (auth()->user()?->foto_profil)
+                        <img src="{{ asset('storage/'.auth()->user()->foto_profil) }}"
+                            alt="Foto profil {{ auth()->user()->name }}">
+                    @else
+                        <svg viewBox="0 0 48 48" fill="currentColor" aria-hidden="true">
+                            <circle cx="24" cy="16" r="11"/>
+                            <path d="M5 44c0-11 8-17 19-17s19 6 19 17z"/>
+                        </svg>
+                    @endif
+                </button>
+
+                <div class="profile-panel" id="profileMenuPanel" hidden>
+                    <div class="profile-panel__head">
+                        <div class="profile-panel__avatar">
+                            @if (auth()->user()?->foto_profil)
+                                <img src="{{ asset('storage/'.auth()->user()->foto_profil) }}"
+                                    alt="Foto profil {{ auth()->user()->name }}">
+                            @else
+                                {{ strtoupper(mb_substr(auth()->user()?->name ?? 'A', 0, 1)) }}
+                            @endif
+                        </div>
+
+                        <div class="profile-panel__identitas">
+                            <div class="profile-panel__nama">
+                                {{ auth()->user()?->name ?? 'Administrator' }}
+                            </div>
+                            <div class="profile-panel__email">
+                                {{ auth()->user()?->email ?? '-' }}
+                            </div>
+                            <span class="profile-panel__peran">Admin</span>
+                        </div>
+                    </div>
+
+                    <a href="{{ route('admin.pengaturan-akun') }}" class="profile-panel__item">
+                        <svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
+                            <circle cx="12" cy="8" r="4"/>
+                            <path d="M4 21v-2a8 8 0 0 1 16 0v2"/>
+                        </svg>
+                        <span>Pengaturan Akun</span>
+                    </a>
+
+                    <a href="{{ route('logout.confirm') }}"
+                        class="profile-panel__item profile-panel__item--keluar">
+                        <svg viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
+                            <path d="M10 17l5-5-5-5"/>
+                            <path d="M15 12H3"/>
+                            <path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/>
+                        </svg>
+                        <span>Keluar</span>
+                    </a>
+                </div>
             </div>
         </div>
     </header>
@@ -460,7 +659,7 @@
         </nav>
 
         <div class="sidebar-bottom">
-        <a href="{{ route('admin.pengaturan-sistem') }}"
+            <a href="{{ route('admin.pengaturan-sistem') }}"
         class="menu-link {{ request()->is('admin/pengaturan-sistem*') ? 'active' : '' }}">
             <svg viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2"
@@ -471,9 +670,7 @@
             <span>Pengaturan Sistem</span>
         </a>
 
-
-            
-<a href="{{ route('logout.confirm') }}" class="menu-link">
+        <a href="{{ route('logout.confirm') }}" class="menu-link">
     <svg viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2"
         stroke-linecap="round" stroke-linejoin="round">
@@ -561,6 +758,40 @@
             window.addEventListener('resize', restoreSidebar);
 
             restoreSidebar();
+        });
+
+        // Panel menu akun di sudut kanan atas header
+        document.addEventListener('DOMContentLoaded', function () {
+            const tombolMenu = document.getElementById('profileMenuToggle');
+            const panelMenu = document.getElementById('profileMenuPanel');
+
+            if (!tombolMenu || !panelMenu) return;
+
+            function tutupPanel() {
+                panelMenu.hidden = true;
+                tombolMenu.setAttribute('aria-expanded', 'false');
+            }
+
+            tombolMenu.addEventListener('click', function (event) {
+                event.stopPropagation();
+
+                const akanDibuka = panelMenu.hidden;
+
+                panelMenu.hidden = !akanDibuka;
+                tombolMenu.setAttribute('aria-expanded', String(akanDibuka));
+            });
+
+            document.addEventListener('click', function (event) {
+                if (!panelMenu.hidden && !event.target.closest('.profile-menu')) {
+                    tutupPanel();
+                }
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    tutupPanel();
+                }
+            });
         });
 
     </script>

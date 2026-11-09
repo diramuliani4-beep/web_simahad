@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'SIMAHAD') - SIMAHAD UIN Imam Bonjol</title>
+    <title>@yield('title', 'SIMAHAD') - {{ $namaSistem ?? 'SIMAHAD' }} UIN Imam Bonjol</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -324,7 +324,7 @@
 
             <a href="{{ route('dashboard') }}" class="navbar-brand-wrap">
                 <img src="{{ asset('images/logo_uin.png') }}" alt="Logo SIMAHAD" class="brand-logo-img">
-                <span class="brand-title">SIMAHAD</span>
+                <span class="brand-title">{{ $namaSistem ?? 'SIMAHAD' }}</span>
             </a>
         </div>
 

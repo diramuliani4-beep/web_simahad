@@ -98,6 +98,12 @@ class Notifikasi extends Model
             return null;
         }
 
+        $pengaturan = self::pengaturanSistem();
+
+        if ($pengaturan && ! $pengaturan->notifikasiAktif($tipe)) {
+            return null;
+        }
+
         $data = [
             'tipe' => $tipe,
             'judul' => $judul,
@@ -113,5 +119,18 @@ class Notifikasi extends Model
         }
 
         return self::create($data + ['user_id' => $userId, 'kunci' => null]);
+    }
+
+    /**
+     * Pengaturan sistem bisa belum ada saat instalasi awal, sehingga
+     * kegagalan pengambilan data diabaikan dan notifikasi tetap dikirim.
+     */
+    private static function pengaturanSistem(): ?PengaturanSistem
+    {
+        try {
+            return PengaturanSistem::aktif();
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

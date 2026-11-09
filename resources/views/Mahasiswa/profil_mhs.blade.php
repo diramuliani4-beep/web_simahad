@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil Mahasiswa - SIMAHAD</title>
+    <title>Profil &amp; Pengaturan Akun - {{ $namaSistem ?? 'SIMAHAD' }}</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -661,7 +661,7 @@
     <header class="navbar">
         <a href="{{ route('dashboard') }}" class="brand">
             <img src="{{ asset('images/logo_uin.png') }}" alt="Logo SIMAHAD">
-            <span>SIMAHAD</span>
+            <span>{{ $namaSistem ?? 'SIMAHAD' }}</span>
         </a>
 
         <div class="navbar-kanan">
@@ -904,6 +904,44 @@
                             </span>
                         </div>
                     </div>
+
+                    <h2 class="judul-bagian">Keamanan Akun</h2>
+
+                    <form action="{{ route('profil.mhs.password.update') }}" method="POST" class="form-edit" autocomplete="off">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="form-edit__grup form-edit__grup--penuh">
+                            <label for="password_lama">Kata Sandi Saat Ini</label>
+                            <input type="password" name="password_lama" id="password_lama" required autocomplete="current-password">
+                            @error('password_lama')
+                                <span class="form-edit__error">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="form-edit__grup">
+                            <label for="password">Kata Sandi Baru</label>
+                            <input type="password" name="password" id="password" minlength="8" required autocomplete="new-password">
+                            @error('password')
+                                <span class="form-edit__error">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="form-edit__grup">
+                            <label for="password_confirmation">Konfirmasi Kata Sandi Baru</label>
+                            <input type="password" name="password_confirmation" id="password_confirmation" minlength="8" required autocomplete="new-password">
+                        </div>
+
+                        <div class="form-edit__grup form-edit__grup--penuh">
+                            <p class="form-edit__bantuan">
+                                Gunakan minimal 8 karakter. Kata sandi baru harus berbeda dari kata sandi saat ini.
+                            </p>
+                        </div>
+
+                        <div class="form-edit__aksi">
+                            <button type="submit" class="tombol tombol--utama">Perbarui Kata Sandi</button>
+                        </div>
+                    </form>
 
                     <div class="catatan">
                         Data akademik dan penerimaan (fakultas, program studi, angkatan, NIM, serta status)
