@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ActivityLog;
-use App\Models\JadwalPembelajaran;
 use App\Models\Kamar;
 use App\Models\PengajuanKamar;
-use App\Models\Tugas;
 use App\Models\User;
+use App\Services\DashboardRingkasanService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +16,11 @@ use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
+    /**
+     * Ringkasan dashboard per peran yang seluruhnya bersumber dari database.
+     */
+    public function __construct(private readonly DashboardRingkasanService $ringkasan) {}
+
     /**
      * Menampilkan halaman login.
      */
@@ -61,6 +64,15 @@ class AuthController extends Controller
 
         $user = Auth::user();
 
+        // Akun staf yang belum diaktifkan lewat tautan email
+        if (in_array(strtolower((string) $user->status), ['menunggu aktivasi', 'menunggu'], true)) {
+            Auth::logout();
+
+            return redirect()
+                ->route('login')
+                ->with('error', 'Akun Anda belum diaktifkan. Buka tautan aktivasi yang dikirim ke email '.$user->email.'. Bila tautan sudah kedaluwarsa, minta Admin Sistem mengirim ulang tautan aktivasi.');
+        }
+
         // Akun belum diverifikasi admin
         if ($user->status === 'pending') {
             Auth::logout();
@@ -80,6 +92,7 @@ class AuthController extends Controller
         }
 
         // Akun sudah disetujui
+        $user->forceFill(['last_login_at' => now()])->save();
         $request->session()->regenerate();
 
         return $this->redirectToRoleDashboard();
@@ -169,6 +182,14 @@ class AuthController extends Controller
                 ->withInput(['login' => $email]);
         }
 
+        // Akun staf yang belum diaktifkan tidak boleh masuk lewat Google
+        // karena kata sandinya belum pernah dibuat sendiri oleh pemilik akun.
+        if (in_array(strtolower((string) $user->status), ['menunggu aktivasi', 'menunggu'], true)) {
+            return redirect()
+                ->route('login')
+                ->with('error', 'Akun Anda belum diaktifkan. Buka tautan aktivasi yang dikirim ke email '.$user->email.' terlebih dahulu.');
+        }
+
         // Akun belum diverifikasi admin
         if ($user->status === 'pending') {
             return redirect()
@@ -184,6 +205,7 @@ class AuthController extends Controller
         }
 
         // Login memakai akun SIMAHAD yang sudah cocok, bukan membuat akun baru.
+        $user->forceFill(['last_login_at' => now()])->save();
         Auth::login($user, true);
         $request->session()->regenerate();
 
@@ -202,7 +224,7 @@ class AuthController extends Controller
     /**
      * Menentukan dashboard sesuai role pengguna.
      */
-    protected function redirectToRoleDashboard(): RedirectResponse
+    public function redirectToRoleDashboard(): RedirectResponse
     {
         $user = Auth::user();
 
@@ -287,6 +309,7 @@ class AuthController extends Controller
             'nim' => $validated['nim'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'password_set_at' => now(),
             'status' => 'pending',
         ]);
 
@@ -341,6 +364,7 @@ class AuthController extends Controller
         }
 
         $user->password = Hash::make($validated['password']);
+        $user->password_set_at = now();
         $user->save();
 
         return redirect()->route('login')
@@ -377,7 +401,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Dashboard Musyrifah.
+     * Dashboard Musyrifah: pekerjaan operasional harian dari data sebenarnya.
      */
     public function dashboardMusyrifah(): View|RedirectResponse
     {
@@ -387,47 +411,25 @@ class AuthController extends Controller
             return $redirect;
         }
 
-        return view('musyrifah.dashboard');
+        return view('musyrifah.dashboard', [
+            'ringkasan' => $this->ringkasan->musyrifah(),
+        ]);
     }
 
     /**
-     * Dashboard Admin.
+     * Dashboard Admin Sistem: pengelolaan akun dan teknis sistem.
      */
-    public function dashboardAdmin()
+    public function dashboardAdmin(): View|RedirectResponse
     {
-        $user = auth()->user();
+        $redirect = $this->authorizeRole('admin');
 
-        // Menghitung total seluruh pengguna
-        $totalPengguna = User::count();
+        if ($redirect) {
+            return $redirect;
+        }
 
-        // Menghitung akun aktif
-        $akunAktif = User::where('status', 'aktif')->count();
-
-        // Menghitung akun yang menunggu aktivasi
-        $menungguAktivasi = User::where(
-            'status',
-            'menunggu aktivasi'
-        )->count();
-
-        // Menghitung akun nonaktif
-        $akunNonaktif = User::where(
-            'status',
-            'nonaktif'
-        )->count();
-
-        // Mengambil 5 aktivitas terbaru
-        $aktivitasTerbaru = ActivityLog::latest()
-            ->take(5)
-            ->get();
-
-        return view('Admin.dashboard_admin', compact(
-            'user',
-            'totalPengguna',
-            'akunAktif',
-            'menungguAktivasi',
-            'akunNonaktif',
-            'aktivitasTerbaru'
-        ));
+        return view('Admin.dashboard_admin', [
+            'ringkasan' => $this->ringkasan->admin(),
+        ]);
     }
 
     /**
@@ -442,24 +444,15 @@ class AuthController extends Controller
         }
 
         $guru = Auth::user();
-        $jadwal = JadwalPembelajaran::jadwalUntuk($guru);
-        $penugasan = JadwalPembelajaran::penugasanUntuk($guru);
 
         return view('guru.dashboard', [
             'guru' => $guru,
-            'jumlahMapel' => $penugasan->pluck('mata_pelajaran_id')->filter()->unique()->count(),
-            'jumlahKelompok' => $penugasan->pluck('kelompok')->filter()->unique()->count(),
-            'jadwalMingguIni' => $jadwal->count(),
-            'absensiPerluDiisi' => $jadwal->filter(
-                fn (JadwalPembelajaran $item) => $item->absensis()->count() === 0
-            )->count(),
-            'jadwalMendatang' => $jadwal->take(4),
-            'jumlahTugas' => Tugas::query()->where('user_id', $guru->id)->count(),
+            'ringkasan' => $this->ringkasan->guru($guru),
         ]);
     }
 
     /**
-     * Dashboard Pimpinan.
+     * Dashboard Pimpinan: monitoring dan evaluasi, bukan operasional harian.
      */
     public function dashboardPimpinan(): View|RedirectResponse
     {
@@ -469,7 +462,9 @@ class AuthController extends Controller
             return $redirect;
         }
 
-        return view('pimpinan.dashboard');
+        return view('pimpinan.dashboard', [
+            'ringkasan' => $this->ringkasan->pimpinan(),
+        ]);
     }
 
     /**

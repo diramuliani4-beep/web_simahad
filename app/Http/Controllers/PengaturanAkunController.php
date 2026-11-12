@@ -12,8 +12,9 @@ use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 /**
- * Pengaturan akun mandiri untuk seluruh role:
- * profil, foto, kata sandi, serta ringkasan akses sesuai kebutuhan role.
+ * Pengaturan akun mandiri untuk seluruh role: pembuatan kata sandi pertama,
+ * penggantian kata sandi, penggantian email terverifikasi, foto profil, serta
+ * ringkasan akses sesuai kebutuhan role.
  */
 class PengaturanAkunController extends Controller
 {
@@ -42,7 +43,7 @@ class PengaturanAkunController extends Controller
         'musyrifah' => [
             'label' => 'Musyrifah',
             'tampilan' => 'musyrifah.pengaturan_akun',
-            'halaman' => 'musyrifah.pengaturan_akun',
+            'halaman' => 'pengaturan-akun.index',
             'akses' => [
                 'Pendaftaran', 'Data Kamar', 'Pembayaran', 'Manajemen Pembelajaran',
                 'Surat & Perizinan', 'Pengumuman', 'Laporan',
@@ -52,7 +53,7 @@ class PengaturanAkunController extends Controller
         'guru' => [
             'label' => 'Guru',
             'tampilan' => 'guru.pengaturan_akun',
-            'halaman' => 'guru.pengaturan-akun',
+            'halaman' => 'pengaturan-akun.index',
             'akses' => [
                 'Jadwal Saya', 'Absensi', 'Kegiatan & Dokumentasi',
                 'Tugas', 'Pengumpulan & Penilaian',
@@ -62,14 +63,14 @@ class PengaturanAkunController extends Controller
         'pimpinan' => [
             'label' => 'Pimpinan',
             'tampilan' => 'pimpinan.pengaturan_akun',
-            'halaman' => 'pimpinan.pengaturan-akun',
+            'halaman' => 'pengaturan-akun.index',
             'akses' => ['Data Penghuni', 'Laporan Ma’had', 'Pembelajaran'],
             'tautan' => ['label' => 'Buka Laporan Ma’had', 'route' => 'pimpinan.laporan-mahad'],
         ],
         'admin' => [
             'label' => 'Admin',
             'tampilan' => 'Admin.pengaturan_akun',
-            'halaman' => 'admin.pengaturan-akun',
+            'halaman' => 'pengaturan-akun.index',
             'akses' => [
                 'Manajemen Pengguna', 'Data Pegawai', 'Data Mahasiswa',
                 'Log Aktivitas', 'Pengaturan Sistem',
@@ -78,10 +79,7 @@ class PengaturanAkunController extends Controller
         ],
     ];
 
-    /** Role yang mengelola profilnya melalui halaman pengaturan akun (bukan halaman profil mahasiswa). */
-    private const PERAN_STAF = ['musyrifah', 'guru', 'pimpinan', 'admin'];
-
-    /** Role yang boleh memakai form perubahan kata sandi dan foto profil bersama. */
+    /** Role yang boleh memakai form kata sandi, email, dan foto profil bersama. */
     private const PERAN_MANDIRI = ['mahasiswa', 'musyrifah', 'guru', 'pimpinan', 'admin'];
 
     public function musyrifah(Request $request): View
@@ -105,54 +103,87 @@ class PengaturanAkunController extends Controller
     }
 
     /**
-     * Menyimpan perubahan nama, email, dan nomor WhatsApp milik akun staf.
-     * Perubahan diselaraskan ke biodata pegawai yang tertaut agar tidak ada data ganda.
+     * Halaman Pengaturan Akun terpadu untuk seluruh role.
+     * Form memakai route yang sesuai dengan hak masing-masing role,
+     * sehingga akun mahasiswa tetap memakai alur halaman profilnya.
      */
-    public function updateProfil(Request $request): RedirectResponse
+    public function saya(Request $request): View
     {
-        $user = $this->pengguna($request, self::PERAN_STAF);
+        $user = $this->pengguna($request, self::PERAN_MANDIRI);
+        $peran = strtolower(trim((string) $user->role));
+        $konfigurasi = self::PERAN[$peran] ?? self::PERAN['mahasiswa'];
+        $mahasiswa = $peran === 'mahasiswa';
+
+        return view('pengaturan.index', [
+            'user' => $user,
+            'pegawai' => $user->pegawai,
+            'labelPeran' => $konfigurasi['label'],
+            'daftarAkses' => $konfigurasi['akses'],
+            'tautanAkses' => $konfigurasi['tautan'],
+            // Akun mahasiswa tetap memakai formulir profil lamanya, sedangkan
+            // staf mengubah data pribadi dari halaman Data Saya.
+            'aksiProfil' => $mahasiswa ? 'profil.mhs.update' : null,
+            'aksiFoto' => $mahasiswa ? 'profil.mhs.foto.update' : 'pengaturan-akun.foto.update',
+            'aksiHapusFoto' => $mahasiswa ? 'profil.mhs.foto.destroy' : 'pengaturan-akun.foto.destroy',
+            'aksiPassword' => $mahasiswa ? 'profil.mhs.password.update' : 'pengaturan-akun.password.update',
+            'aksiEmail' => 'pengaturan-akun.email.update',
+        ]);
+    }
+
+    /**
+     * Mengganti email akun dengan verifikasi kata sandi saat ini.
+     * Email ikut diselaraskan ke biodata pegawai agar tidak ada data ganda.
+     */
+    public function updateEmail(Request $request): RedirectResponse
+    {
+        $user = $this->pengguna($request, self::PERAN_MANDIRI);
+
+        abort_unless(
+            $user->sudahPunyaKataSandi(),
+            403,
+            'Buat kata sandi terlebih dahulu sebelum mengganti email akun.'
+        );
+
         $pegawai = $user->pegawai;
 
-        $aturanEmail = [
-            'required',
-            'email',
-            'max:255',
-            Rule::unique('users', 'email')->ignore($user->getKey()),
-            Rule::unique('pegawais', 'email')->ignore($pegawai?->getKey()),
-        ];
-
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => $aturanEmail,
-            'no_hp' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s()]*$/'],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($user->getKey()),
+                Rule::unique('pegawais', 'email')->ignore($pegawai?->getKey()),
+            ],
+            'password_saat_ini' => ['required', 'string', 'current_password'],
         ], [
-            'name.required' => 'Nama lengkap wajib diisi.',
-            'name.max' => 'Nama lengkap maksimal 255 karakter.',
-            'email.required' => 'Email wajib diisi.',
+            'email.required' => 'Email baru wajib diisi.',
             'email.email' => 'Format email tidak valid.',
             'email.max' => 'Email maksimal 255 karakter.',
             'email.unique' => 'Email tersebut sudah digunakan akun atau data pegawai lain.',
-            'no_hp.max' => 'Nomor WhatsApp maksimal 20 karakter.',
-            'no_hp.regex' => 'Nomor WhatsApp hanya boleh berisi angka, spasi, tanda +, -, atau kurung.',
+            'password_saat_ini.required' => 'Kata sandi saat ini wajib diisi sebagai verifikasi.',
+            'password_saat_ini.current_password' => 'Kata sandi saat ini tidak cocok. Email tidak diubah.',
         ]);
 
-        // Nilai kosong disimpan sebagai null agar konsisten di database.
-        $validated['name'] = trim($validated['name']);
-        $validated['no_hp'] = filled($validated['no_hp'] ?? null) ? trim($validated['no_hp']) : null;
+        $emailBaru = strtolower(trim($validated['email']));
 
-        DB::transaction(function () use ($user, $pegawai, $validated): void {
-            $user->update($validated);
+        if ($emailBaru === strtolower((string) $user->email)) {
+            return $this->kembali($user, 'Email baru sama dengan email yang sedang dipakai.', 'error');
+        }
 
-            $pegawai?->update([
-                'nama_pegawai' => $user->name,
-                'email' => $user->email,
-                'no_hp' => $user->no_hp,
+        DB::transaction(function () use ($user, $pegawai, $emailBaru): void {
+            // Kepemilikan akun sudah diverifikasi dengan kata sandi saat ini,
+            // sehingga email baru langsung ditandai terverifikasi.
+            $user->update([
+                'email' => $emailBaru,
+                'email_verified_at' => now(),
             ]);
+
+            $pegawai?->update(['email' => $emailBaru]);
         });
 
-        $this->catat($request, 'Perbarui Profil', 'Memperbarui nama, email, dan nomor WhatsApp akun.');
+        $this->catat($request, 'Ubah Email Akun', 'Mengganti email akun melalui verifikasi kata sandi.');
 
-        return $this->kembali($user, 'Informasi akun berhasil diperbarui.');
+        return $this->kembali($user, 'Email akun berhasil diperbarui.');
     }
 
     /**
@@ -186,7 +217,7 @@ class PengaturanAkunController extends Controller
 
         $this->catat($request, 'Ganti Foto Profil', 'Mengganti foto profil akun.');
 
-        return $this->kembali($user, 'Foto profil berhasil diperbarui.');
+        return $this->kembali($user, 'Foto profil berhasil diperbarui.', 'success', $this->tujuanFoto($user));
     }
 
     /**
@@ -207,34 +238,75 @@ class PengaturanAkunController extends Controller
 
         $this->catat($request, 'Hapus Foto Profil', 'Menghapus foto profil akun.');
 
-        return $this->kembali($user, 'Foto profil berhasil dihapus. Avatar default digunakan kembali.');
+        return $this->kembali(
+            $user,
+            'Foto profil berhasil dihapus. Avatar default digunakan kembali.',
+            'success',
+            $this->tujuanFoto($user)
+        );
     }
 
     /**
-     * Memperbarui kata sandi akun setelah memverifikasi kata sandi saat ini.
+     * Memperbarui kata sandi akun. Bila pemilik akun belum pernah menentukan
+     * kata sandi sendiri (akun dibuat Admin), formulir berlaku sebagai
+     * pembuatan kata sandi pertama dan identitas dikonfirmasi lewat email akun.
      */
     public function updatePassword(Request $request): RedirectResponse
     {
         $user = $this->pengguna($request, self::PERAN_MANDIRI);
+        $kataSandiPertama = ! $user->sudahPunyaKataSandi();
 
-        $validated = $request->validate([
-            'password_lama' => ['required', 'string', 'current_password'],
-            'password' => ['required', 'string', 'min:8', 'confirmed', 'different:password_lama'],
-        ], [
-            'password_lama.required' => 'Kata sandi saat ini wajib diisi.',
-            'password_lama.current_password' => 'Kata sandi saat ini tidak cocok.',
+        $aturan = [
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ];
+
+        $pesan = [
             'password.required' => 'Kata sandi baru wajib diisi.',
             'password.min' => 'Kata sandi baru minimal 8 karakter.',
             'password.confirmed' => 'Konfirmasi kata sandi baru tidak sama.',
-            'password.different' => 'Kata sandi baru harus berbeda dari kata sandi saat ini.',
-        ]);
+        ];
+
+        if ($kataSandiPertama) {
+            $aturan['email_konfirmasi'] = ['required', 'email'];
+            $pesan['email_konfirmasi.required'] = 'Ketik email akun Anda untuk konfirmasi pembuatan kata sandi.';
+            $pesan['email_konfirmasi.email'] = 'Format email konfirmasi tidak valid.';
+        } else {
+            $aturan['password_lama'] = ['required', 'string', 'current_password'];
+            $aturan['password'][] = 'different:password_lama';
+            $pesan['password_lama.required'] = 'Kata sandi saat ini wajib diisi.';
+            $pesan['password_lama.current_password'] = 'Kata sandi saat ini tidak cocok.';
+            $pesan['password.different'] = 'Kata sandi baru harus berbeda dari kata sandi saat ini.';
+        }
+
+        $validated = $request->validate($aturan, $pesan);
+
+        if ($kataSandiPertama
+            && strcasecmp(trim((string) $validated['email_konfirmasi']), (string) $user->email) !== 0) {
+            return $this->kembali(
+                $user,
+                'Email konfirmasi tidak sesuai dengan email akun Anda.',
+                'error'
+            );
+        }
 
         // Cast 'hashed' pada model User mengamankan nilai kata sandi baru.
-        $user->update(['password' => $validated['password']]);
+        $user->update([
+            'password' => $validated['password'],
+            'password_set_at' => now(),
+        ]);
 
-        $this->catat($request, 'Ubah Kata Sandi', 'Memperbarui kata sandi akun.');
+        $this->catat(
+            $request,
+            $kataSandiPertama ? 'Buat Kata Sandi' : 'Ubah Kata Sandi',
+            $kataSandiPertama
+                ? 'Membuat kata sandi pertama kali untuk akun sendiri.'
+                : 'Memperbarui kata sandi akun.'
+        );
 
-        return $this->kembali($user, 'Kata sandi berhasil diperbarui.');
+        return $this->kembali(
+            $user,
+            $kataSandiPertama ? 'Kata sandi berhasil dibuat. Gunakan kata sandi baru saat masuk.' : 'Kata sandi berhasil diperbarui.'
+        );
     }
 
     /**
@@ -276,12 +348,26 @@ class PengaturanAkunController extends Controller
     }
 
     /**
-     * Mengarahkan kembali ke halaman pengaturan akun milik role pengguna.
+     * Halaman yang menerima hasil unggah atau penghapusan foto profil.
+     * Menu kamera berada di halaman Lihat Profil, bukan di Pengaturan Akun.
      */
-    private function kembali(User $user, string $pesan, string $jenis = 'success'): RedirectResponse
+    private function tujuanFoto(User $user): string
     {
+        return strtolower(trim((string) $user->role)) === 'mahasiswa' ? 'profil.mhs' : 'profil.pengguna';
+    }
+
+    /**
+     * Mengarahkan kembali ke halaman pengaturan akun milik role pengguna,
+     * atau ke halaman tujuan tertentu bila diisi.
+     */
+    private function kembali(
+        User $user,
+        string $pesan,
+        string $jenis = 'success',
+        ?string $tujuan = null
+    ): RedirectResponse {
         $role = strtolower(trim((string) $user->role));
-        $halaman = self::PERAN[$role]['halaman'] ?? 'dashboard';
+        $halaman = $tujuan ?? self::PERAN[$role]['halaman'] ?? 'dashboard';
 
         return redirect()->route($halaman)->with($jenis, $pesan);
     }

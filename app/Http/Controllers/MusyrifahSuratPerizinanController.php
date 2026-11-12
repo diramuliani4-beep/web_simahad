@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SuratPerizinan;
+use App\Services\AuditTrailService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -13,6 +14,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class MusyrifahSuratPerizinanController extends Controller
 {
+    public function __construct(private readonly AuditTrailService $audit) {}
+
     /**
      * Daftar pengajuan mahasiswa dengan filter jenis, status, nama, dan periode.
      */
@@ -145,6 +148,7 @@ class MusyrifahSuratPerizinanController extends Controller
 
         $musyrifah = $request->user();
         $catatan = filled($validated['catatan_musyrifah'] ?? null) ? trim($validated['catatan_musyrifah']) : null;
+        $statusSebelum = $suratPerizinan->status;
 
         // Update bersyarat mencegah dua Musyrifah memutus pengajuan yang sama.
         $berhasil = SuratPerizinan::query()
@@ -166,6 +170,17 @@ class MusyrifahSuratPerizinanController extends Controller
             $validated['keputusan'],
             $catatan,
             $musyrifah
+        );
+
+        $this->audit->catat(
+            'perizinan',
+            'verifikasi_'.$validated['keputusan'],
+            'Izin '.$suratPerizinan->labelJenis(),
+            (int) $suratPerizinan->getKey(),
+            'Keputusan izin menjadi '.$validated['keputusan'].'.',
+            $musyrifah,
+            ['status' => $statusSebelum],
+            ['status' => $validated['keputusan'], 'catatan_musyrifah' => $catatan],
         );
 
         $pesan = $validated['keputusan'] === SuratPerizinan::STATUS_DISETUJUI
@@ -214,6 +229,7 @@ class MusyrifahSuratPerizinanController extends Controller
 
         $musyrifah = $request->user();
         $catatan = filled($validated['catatan_musyrifah'] ?? null) ? trim($validated['catatan_musyrifah']) : null;
+        $statusSebelum = $suratPerizinan->status;
 
         $suratPerizinan->update([
             'status' => $validated['status'],
@@ -224,6 +240,17 @@ class MusyrifahSuratPerizinanController extends Controller
         ]);
 
         $suratPerizinan->catatRiwayat($validated['status'], $catatan, $musyrifah);
+
+        $this->audit->catat(
+            'perizinan',
+            'verifikasi_surat_'.$validated['status'],
+            'Surat izin '.$suratPerizinan->labelJenis(),
+            (int) $suratPerizinan->getKey(),
+            'Verifikasi surat bertanda tangan menjadi '.$validated['status'].'.',
+            $musyrifah,
+            ['status' => $statusSebelum],
+            ['status' => $validated['status'], 'catatan_musyrifah' => $catatan],
+        );
 
         $pesan = $validated['status'] === SuratPerizinan::STATUS_SELESAI
             ? 'Surat bertanda tangan berhasil diverifikasi.'

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Pendaftaran;
 use App\Models\User;
+use App\Services\AuditTrailService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -11,6 +12,8 @@ use Illuminate\View\View;
 
 class DataMahasiswaMhsController extends Controller
 {
+    public function __construct(private readonly AuditTrailService $audit) {}
+
     /**
      * Menampilkan data mahasiswa milik akun yang sedang login.
      */
@@ -68,6 +71,8 @@ class DataMahasiswaMhsController extends Controller
         ]);
 
         // Hanya kolom data diri yang diizinkan; NIM, status, dan data verifikasi tetap milik Musyrifah/Admin.
+        $sebelum = $pendaftaran->getAttributes();
+
         $pendaftaran->update([
             'nama_lengkap' => trim($validated['nama_lengkap']),
             'jenis_kelamin' => $validated['jenis_kelamin'],
@@ -82,6 +87,17 @@ class DataMahasiswaMhsController extends Controller
             'name' => trim($validated['nama_lengkap']),
             'no_hp' => $this->nilaiTeks($validated['no_hp'] ?? null),
         ]);
+
+        $this->audit->catat(
+            'mahasiswa',
+            'data_diperbarui',
+            'Data mahasiswa '.$pendaftaran->nama_lengkap,
+            (int) $pendaftaran->getKey(),
+            'Mahasiswa memperbarui data dirinya.',
+            $request->user(),
+            ['nama_lengkap' => $sebelum['nama_lengkap'] ?? null, 'jenis_kelamin' => $sebelum['jenis_kelamin'] ?? null, 'no_wa' => $sebelum['no_wa'] ?? null],
+            ['nama_lengkap' => $pendaftaran->nama_lengkap, 'jenis_kelamin' => $pendaftaran->jenis_kelamin, 'no_wa' => $pendaftaran->no_wa],
+        );
 
         return redirect()
             ->route('data.mahasiswa')

@@ -368,6 +368,11 @@
         font-size: 11px;
     }
 
+    .um-inline {
+        display: inline-flex;
+        margin: 0;
+    }
+
     .um-empty {
         padding: 38px 15px !important;
         text-align: center;
@@ -415,10 +420,10 @@
     }
 
     .um-dialog {
-        width: min(100%, 710px);
+        width: min(100%, 460px);
         max-height: calc(100dvh - 36px);
         overflow-y: auto;
-        padding: 40px 44px;
+        padding: 22px 24px 20px;
         border: 1px solid var(--um-wine);
         border-radius: 11px;
         background: #fff;
@@ -429,28 +434,30 @@
     .um-dialog-icon {
         display: grid;
         place-items: center;
-        width: 90px;
-        height: 90px;
-        margin: 0 auto 23px;
+        width: 54px;
+        height: 54px;
+        margin: 0 auto 13px;
         border-radius: 50%;
         background: #f8edef;
         color: var(--um-wine);
     }
 
     .um-dialog-icon svg {
-        width: 40px;
-        height: 40px;
+        width: 25px;
+        height: 25px;
     }
 
     .um-dialog h2 {
-        margin: 0 0 14px;
-        font-size: 25px;
+        margin: 0 0 8px;
+        font-size: 17px;
+        line-height: 1.35;
     }
 
     .um-dialog p {
+        margin: 0;
         color: #797377;
-        font-size: 15px;
-        line-height: 1.65;
+        font-size: 12.5px;
+        line-height: 1.55;
     }
 
     .um-dialog strong {
@@ -461,23 +468,25 @@
     .um-dialog-actions {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 18px;
-        margin-top: 33px;
+        gap: 10px;
+        margin-top: 18px;
     }
 
     .um-dialog-actions .um-btn {
-        min-height: 54px;
-        font-size: 15px;
+        min-height: 38px;
+        padding: 7px 12px;
+        font-size: 12px;
     }
 
     .um-note {
-        padding: 12px 14px;
+        margin-top: 10px !important;
+        padding: 9px 11px;
         border: 1px solid #ebd2d8;
         border-radius: 9px;
         background: #fcf3f5;
         color: #714151;
-        font-size: 12px !important;
-        line-height: 1.7;
+        font-size: 11.5px !important;
+        line-height: 1.55;
     }
 
     @media (max-width: 720px) {
@@ -493,29 +502,35 @@
         }
 
         .um-dialog {
-            padding: 26px 18px;
+            padding: 18px 16px 16px;
         }
 
         .um-dialog-icon {
-            width: 74px;
-            height: 74px;
+            width: 46px;
+            height: 46px;
+            margin-bottom: 11px;
+        }
+
+        .um-dialog-icon svg {
+            width: 22px;
+            height: 22px;
         }
 
         .um-dialog h2 {
-            font-size: 21px;
+            font-size: 16px;
         }
 
         .um-dialog p {
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .um-dialog-actions {
-            gap: 10px;
+            gap: 8px;
         }
 
         .um-dialog-actions .um-btn {
-            min-height: 46px;
-            font-size: 13px;
+            min-height: 36px;
+            font-size: 11.5px;
         }
     }
 </style>
@@ -588,7 +603,7 @@
             </form>
 
             <nav class="um-filters" aria-label="Filter status akun">
-                @foreach (['' => 'Semua', 'aktif' => 'Aktif', 'nonaktif' => 'Nonaktif'] as $filter => $label)
+                @foreach (['' => 'Semua', 'aktif' => 'Aktif', 'menunggu' => 'Menunggu Aktivasi', 'nonaktif' => 'Nonaktif'] as $filter => $label)
                     <a
                         href="{{ route('admin.manajemen-pengguna', array_filter([
                             'search' => $search ?? '',
@@ -629,6 +644,7 @@
                             $stateLabel = match ($statusAkun) {
                                 'aktif' => 'Aktif',
                                 'nonaktif' => 'Nonaktif',
+                                'menunggu aktivasi', 'menunggu', 'pending' => 'Menunggu Aktivasi',
                                 default => 'Status perlu diatur',
                             };
 
@@ -685,6 +701,15 @@
 
                             <td>
                                 <div class="um-actions">
+                                    @if (in_array($statusAkun, ['menunggu aktivasi', 'menunggu', 'pending'], true))
+                                        <form method="POST" action="{{ route('admin.manajemen-pengguna.aktivasi', $user->getKey()) }}" class="um-inline">
+                                            @csrf
+                                            <button type="submit" class="um-btn" title="Kirim tautan aktivasi baru ke email pengguna">
+                                                Kirim Aktivasi
+                                            </button>
+                                        </form>
+                                    @endif
+
                                     <a
                                         class="um-btn"
                                         href="{{ route('admin.manajemen-pengguna.edit', $user->getKey()) }}"

@@ -433,20 +433,41 @@
         </div>
     </div>
 
+    @if (empty($sembunyikanFilter))
     <form action="{{ $filterAction }}" method="GET" class="lap-filter lap-no-print">
-        <div class="lap-field">
-            <label for="lap-periode">Periode laporan</label>
-            <select name="periode" id="lap-periode">
-                @foreach ($opsiPeriode as $opsi)
-                    <option
-                        value="{{ $opsi['value'] }}"
-                        @selected($laporan['periode'] === $opsi['value'])
-                    >
-                        {{ $opsi['label'] }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+        @if (! empty($opsiPeriode))
+            <div class="lap-field">
+                <label for="lap-periode">Periode laporan</label>
+                <select name="periode" id="lap-periode">
+                    @foreach ($opsiPeriode as $opsi)
+                        <option
+                            value="{{ $opsi['value'] }}"
+                            @selected(($laporan['periode'] ?? null) === $opsi['value'])
+                        >
+                            {{ $opsi['label'] }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        @endif
+
+        @foreach (($filterTambahan ?? []) as $tambahan)
+            <div class="lap-field">
+                <label for="lap-filter-{{ $tambahan['name'] }}">{{ $tambahan['label'] }}</label>
+                <select name="{{ $tambahan['name'] }}" id="lap-filter-{{ $tambahan['name'] }}">
+                    <option value="">Semua</option>
+
+                    @foreach ($tambahan['options'] as $opsi)
+                        <option
+                            value="{{ $opsi['value'] }}"
+                            @selected((string) ($tambahan['nilai'] ?? '') === (string) $opsi['value'])
+                        >
+                            {{ $opsi['label'] }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        @endforeach
 
         <div class="lap-field lap-field-search">
             <label for="lap-cari">Pencarian</label>
@@ -460,12 +481,21 @@
         </div>
 
         <button type="submit" class="lap-btn">Terapkan</button>
+
+        @if (! empty($resetUrl))
+            <a href="{{ $resetUrl }}" class="lap-btn lap-btn-outline">Reset</a>
+        @endif
     </form>
+    @endif
 
     <div id="lap-area">
         <div class="lap-print-head">
             <h1>{{ $laporan['judul'] }}</h1>
-            <p>Periode {{ $laporan['periode_label'] }} · Dicetak {{ now()->format('d/m/Y H:i') }}</p>
+            <p>Periode {{ $laporan['periode_label'] ?? '-' }} · Dicetak {{ now()->format('d/m/Y H:i') }}</p>
+
+            @foreach (($metaCetak ?? []) as $labelMeta => $nilaiMeta)
+                <p>{{ $labelMeta }}: {{ $nilaiMeta }}</p>
+            @endforeach
         </div>
 
         <div class="lap-summary">
@@ -488,6 +518,12 @@
 
                     @if (! empty($unduhUrl))
                         <a href="{{ $unduhUrl }}" class="lap-btn">Unduh CSV</a>
+                    @endif
+
+                    @if (! empty($tautanTambahan))
+                        @foreach ($tautanTambahan as $tautan)
+                            <a href="{{ $tautan['url'] }}" class="lap-btn lap-btn-outline">{{ $tautan['label'] }}</a>
+                        @endforeach
                     @endif
                 </div>
             </div>

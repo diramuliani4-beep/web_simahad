@@ -3,9 +3,13 @@
 namespace App\Services;
 
 use App\Models\AbsensiPembelajaran;
+use App\Models\JadwalPembelajaran;
 use App\Models\Kamar;
 use App\Models\Pembayaran;
 use App\Models\Pendaftaran;
+use App\Models\PengumpulanTugas;
+use App\Models\SuratPerizinan;
+use App\Models\Tugas;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -23,10 +27,18 @@ class LaporanMahadService
     public const JENIS_MUSYRIFAH = ['kehadiran', 'pembayaran', 'pendaftaran', 'kamar'];
 
     /** @var array<int, string> */
-    public const JENIS_PIMPINAN = ['penghuni', 'kamar', 'kehadiran', 'pembayaran', 'pendaftaran'];
+    public const JENIS_PIMPINAN = [
+        'penghuni',
+        'kamar',
+        'kehadiran',
+        'pembayaran',
+        'pendaftaran',
+        'pembelajaran',
+        'perizinan',
+    ];
 
     /** @var array<int, string> */
-    private const NAMA_BULAN = [
+    public const NAMA_BULAN = [
         1 => 'Januari',
         2 => 'Februari',
         3 => 'Maret',
@@ -73,6 +85,70 @@ class LaporanMahadService
     }
 
     /**
+     * Rekap laporan yang dibangkitkan otomatis oleh sistem.
+     *
+     * Dipakai halaman Laporan Pimpinan sebagai sumber pratinjau yang selalu
+     * tersedia, sekaligus memenuhi keterangan "laporan sistem" ketika belum
+     * ada laporan yang diterbitkan Musyrifah.
+     *
+     * @return array<int, array{jenis: string, judul: string, deskripsi: string, url: string, ikon: string}>
+     */
+    public function kategoriSistem(): array
+    {
+        return [
+            [
+                'jenis' => 'penghuni',
+                'judul' => 'Laporan Penghuni',
+                'deskripsi' => 'Data penghuni Ma’had beserta kamar yang ditempati.',
+                'url' => route('pimpinan.laporan-penghuni'),
+                'ikon' => 'mahasiswa',
+            ],
+            [
+                'jenis' => 'kamar',
+                'judul' => 'Laporan Kamar',
+                'deskripsi' => 'Rekap kapasitas kamar dan jumlah penghuni pada setiap kamar.',
+                'url' => route('pimpinan.laporan-kamar'),
+                'ikon' => 'kamar',
+            ],
+            [
+                'jenis' => 'kehadiran',
+                'judul' => 'Laporan Kehadiran',
+                'deskripsi' => 'Rekap kehadiran mahasiswa pada kegiatan pembelajaran.',
+                'url' => route('pimpinan.laporan-kehadiran'),
+                'ikon' => 'absensi',
+            ],
+            [
+                'jenis' => 'pembelajaran',
+                'judul' => 'Laporan Pembelajaran',
+                'deskripsi' => 'Rekap kelompok, jadwal, tugas, dan capaian pembelajaran.',
+                'url' => route('pimpinan.laporan-pembelajaran'),
+                'ikon' => 'pembelajaran',
+            ],
+            [
+                'jenis' => 'pembayaran',
+                'judul' => 'Laporan Pembayaran',
+                'deskripsi' => 'Status pembayaran dan administrasi keuangan penghuni.',
+                'url' => route('pimpinan.laporan-pembayaran'),
+                'ikon' => 'pembayaran',
+            ],
+            [
+                'jenis' => 'perizinan',
+                'judul' => 'Laporan Perizinan',
+                'deskripsi' => 'Rekap pengajuan izin beserta status verifikasinya.',
+                'url' => route('pimpinan.laporan-perizinan'),
+                'ikon' => 'surat',
+            ],
+            [
+                'jenis' => 'pendaftaran',
+                'judul' => 'Laporan Pendaftaran',
+                'deskripsi' => 'Rekap pendaftar dan status pendaftaran Ma’had.',
+                'url' => route('pimpinan.laporan-pendaftaran'),
+                'ikon' => 'pendaftaran',
+            ],
+        ];
+    }
+
+    /**
      * Memastikan periode berformat Y-m dan berada pada rentang wajar.
      */
     public function normalisasiPeriode(?string $periode): string
@@ -92,6 +168,25 @@ class LaporanMahadService
         $tanggal = CarbonImmutable::createFromFormat('Y-m-d', $periode.'-01');
 
         return self::NAMA_BULAN[(int) $tanggal->month].' '.$tanggal->year;
+    }
+
+    /**
+     * Opsi lantai yang benar-benar memiliki data kamar.
+     *
+     * @return array<int, array{value: string, label: string}>
+     */
+    public function daftarLantai(): array
+    {
+        return Kamar::query()
+            ->whereNotNull('lantai')
+            ->distinct()
+            ->orderBy('lantai')
+            ->pluck('lantai')
+            ->map(fn ($lantai): array => [
+                'value' => (string) (int) $lantai,
+                'label' => 'Lantai '.(int) $lantai,
+            ])
+            ->all();
     }
 
     /**
@@ -132,6 +227,8 @@ class LaporanMahadService
             'pendaftaran' => $this->laporanPendaftaran($periode, $keyword),
             'kamar' => $this->laporanKamar($keyword),
             'penghuni' => $this->laporanPenghuni($keyword),
+            'pembelajaran' => $this->laporanPembelajaran($periode, $keyword),
+            'perizinan' => $this->laporanPerizinan($periode, $keyword),
             default => abort(404),
         };
 
@@ -359,6 +456,166 @@ class LaporanMahadService
     }
 
     /**
+     * Rekap pembelajaran per kelompok tanpa akses pengelolaan operasional.
+     *
+     * @return array<string, mixed>
+     */
+    private function laporanPembelajaran(string $periode, string $keyword): array
+    {
+        [$mulai, $akhir] = $this->rentangBulan($periode);
+
+        $jadwal = JadwalPembelajaran::query()
+            ->with('mataPelajaran')
+            ->get()
+            ->groupBy(fn (JadwalPembelajaran $item): string => (string) $item->kelompok);
+
+        $absensi = AbsensiPembelajaran::query()
+            ->whereBetween('tanggal', [$mulai->toDateString(), $akhir->toDateString()])
+            ->get()
+            ->groupBy(fn (AbsensiPembelajaran $item): string => (string) $item->kelompok);
+
+        $tugas = Tugas::query()
+            ->where(function ($query) use ($mulai, $akhir): void {
+                $query->whereBetween('created_at', [$mulai, $akhir])
+                    ->orWhereBetween('batas_pengumpulan', [
+                        $mulai->toDateString(),
+                        $akhir->toDateString(),
+                    ]);
+            })
+            ->get()
+            ->groupBy(fn (Tugas $item): string => (string) $item->kelompok);
+
+        $pengumpulan = $tugas->flatten()->isEmpty()
+            ? collect()
+            : PengumpulanTugas::query()
+                ->whereIn('tugas_id', $tugas->flatten()->pluck('id')->all())
+                ->get()
+                ->groupBy('tugas_id');
+
+        $baris = $jadwal->map(function (Collection $daftarJadwal, string $kelompok) use ($absensi, $tugas, $pengumpulan): array {
+            $daftarAbsensi = $absensi->get($kelompok, collect());
+            $daftarTugas = $tugas->get($kelompok, collect());
+            $jumlahHadir = $daftarAbsensi->filter(
+                fn (AbsensiPembelajaran $item): bool => strtolower((string) $item->status) === 'hadir'
+            )->count();
+            $totalAbsensi = $daftarAbsensi->count();
+
+            $nilai = $daftarTugas
+                ->flatMap(fn (Tugas $item): Collection => $pengumpulan->get($item->id, collect()))
+                ->pluck('nilai')
+                ->filter(fn ($item) => $item !== null);
+
+            return [
+                'kelompok' => $kelompok !== '' ? $kelompok : 'Tanpa Kelompok',
+                'mata_pelajaran' => $daftarJadwal
+                    ->map(fn (JadwalPembelajaran $item): string => $item->namaMataPelajaran())
+                    ->filter()
+                    ->unique()
+                    ->implode(', ') ?: '-',
+                'jadwal' => $daftarJadwal->count(),
+                'pertemuan' => $totalAbsensi,
+                'kehadiran' => $totalAbsensi > 0 ? (int) round($jumlahHadir / $totalAbsensi * 100).'%' : '-',
+                'tugas' => $daftarTugas->count(),
+                'pengumpulan' => $daftarTugas
+                    ->sum(fn (Tugas $item): int => $pengumpulan->get($item->id, collect())->count()),
+                'rata_nilai' => $nilai->isEmpty() ? '-' : (string) round((float) $nilai->avg(), 1),
+            ];
+        })->values();
+
+        $baris = $this->saring($baris, $keyword, ['kelompok', 'mata_pelajaran'])->sortBy('kelompok')->values();
+
+        return [
+            'judul' => 'Laporan Pembelajaran',
+            'deskripsi' => 'Rekap kelompok, jadwal, kehadiran, dan tugas pada periode '.$this->labelPeriode($periode).'.',
+            'judul_tabel' => 'Rekap Pembelajaran per Kelompok',
+            'placeholder_cari' => 'Cari kelompok atau mata pelajaran...',
+            'ringkasan' => [
+                ['label' => 'Total Kelompok', 'nilai' => $baris->count()],
+                ['label' => 'Total Jadwal', 'nilai' => (int) $baris->sum('jadwal')],
+                ['label' => 'Pertemuan Tercatat', 'nilai' => (int) $baris->sum('pertemuan')],
+                ['label' => 'Tugas Periode Ini', 'nilai' => (int) $baris->sum('tugas')],
+            ],
+            'kolom' => [
+                ['key' => 'kelompok', 'label' => 'Kelompok', 'class' => 'nim'],
+                ['key' => 'mata_pelajaran', 'label' => 'Mata Pelajaran'],
+                ['key' => 'jadwal', 'label' => 'Jadwal', 'align' => 'center'],
+                ['key' => 'pertemuan', 'label' => 'Pertemuan', 'align' => 'center'],
+                ['key' => 'kehadiran', 'label' => 'Kehadiran', 'align' => 'center'],
+                ['key' => 'tugas', 'label' => 'Tugas', 'align' => 'center'],
+                ['key' => 'pengumpulan', 'label' => 'Pengumpulan', 'align' => 'center'],
+                ['key' => 'rata_nilai', 'label' => 'Rata-rata Nilai', 'align' => 'center'],
+            ],
+            'baris' => $baris->all(),
+            'total' => $baris->count(),
+        ];
+    }
+
+    /**
+     * Rekap pengajuan perizinan beserta status verifikasinya.
+     *
+     * @return array<string, mixed>
+     */
+    private function laporanPerizinan(string $periode, string $keyword): array
+    {
+        [$mulai, $akhir] = $this->rentangBulan($periode);
+
+        $semuaIzin = SuratPerizinan::query()
+            ->with(['user' => fn ($query) => $query->select('id', 'name', 'nim')])
+            ->whereBetween('created_at', [$mulai, $akhir])
+            ->orderBy('created_at')
+            ->get()
+            ->map(function (SuratPerizinan $item): array {
+                return [
+                    'tanggal' => $this->formatTanggal($item->created_at),
+                    'nim' => $item->user?->nim ?: '-',
+                    'nama' => $item->user?->name ?? 'Mahasiswa',
+                    'jenis' => $item->labelJenis(),
+                    'mulai' => $item->tanggal_mulai ? $this->formatTanggal($item->tanggal_mulai) : '-',
+                    'selesai' => $item->tanggal_selesai ? $this->formatTanggal($item->tanggal_selesai) : '-',
+                    'durasi' => $item->durasi_hari ? $item->durasi_hari.' hari' : '-',
+                    'status' => $item->labelStatus(),
+                ];
+            });
+
+        $baris = $this->saring($semuaIzin, $keyword, ['nama', 'nim', 'jenis'])->values();
+
+        return [
+            'judul' => 'Laporan Perizinan',
+            'deskripsi' => 'Rekap pengajuan izin mahasiswa pada periode '.$this->labelPeriode($periode).'.',
+            'judul_tabel' => 'Rekap Pengajuan Perizinan',
+            'placeholder_cari' => 'Cari NIM, nama, atau jenis izin...',
+            'ringkasan' => [
+                ['label' => 'Total Pengajuan', 'nilai' => $semuaIzin->count()],
+                ['label' => 'Menunggu', 'nilai' => $semuaIzin->where('status', 'Menunggu Persetujuan')->count()],
+                ['label' => 'Disetujui', 'nilai' => $semuaIzin->where('status', 'Disetujui')->count()],
+                ['label' => 'Ditolak', 'nilai' => $semuaIzin->where('status', 'Ditolak')->count()],
+            ],
+            'kolom' => [
+                ['key' => 'tanggal', 'label' => 'Tanggal Ajuan'],
+                ['key' => 'nim', 'label' => 'NIM', 'class' => 'nim'],
+                ['key' => 'nama', 'label' => 'Nama Mahasiswa'],
+                ['key' => 'jenis', 'label' => 'Jenis Izin'],
+                ['key' => 'mulai', 'label' => 'Mulai'],
+                ['key' => 'selesai', 'label' => 'Selesai'],
+                ['key' => 'durasi', 'label' => 'Durasi', 'align' => 'center'],
+                [
+                    'key' => 'status',
+                    'label' => 'Status',
+                    'badge' => [
+                        'Disetujui' => 'disetujui',
+                        'Menunggu Persetujuan' => 'menunggu',
+                        'Ditolak' => 'ditolak',
+                        'Perlu Perbaikan' => 'perbaikan',
+                        'Selesai' => 'aktif',
+                    ],
+                ],
+            ],
+            'baris' => $baris->all(),
+            'total' => $baris->count(),
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function laporanKamar(string $keyword): array
@@ -524,7 +781,7 @@ class LaporanMahadService
         })->values();
     }
 
-    private function statusKamar(Kamar $kamar, int $terisi, int $kapasitas): string
+    public function statusKamar(Kamar $kamar, int $terisi, int $kapasitas): string
     {
         $statusMentah = strtolower(trim((string) $kamar->status));
 
@@ -547,7 +804,7 @@ class LaporanMahadService
         };
     }
 
-    private function labelStatusPengguna(?string $status): string
+    public function labelStatusPengguna(?string $status): string
     {
         return match (strtolower((string) $status)) {
             'aktif' => 'Aktif',
@@ -556,7 +813,7 @@ class LaporanMahadService
         };
     }
 
-    private function formatRupiah(float $nilai): string
+    public function formatRupiah(float $nilai): string
     {
         return 'Rp '.number_format($nilai, 0, ',', '.');
     }

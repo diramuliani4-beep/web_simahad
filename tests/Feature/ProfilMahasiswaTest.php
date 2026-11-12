@@ -36,12 +36,12 @@ class ProfilMahasiswaTest extends TestCase
         $response->assertSee('aisyah@example.com');
         $response->assertSee('081234567890');
         $response->assertSee('Lihat Foto');
-        $response->assertSee('Ganti Foto');
+        $response->assertSee('Edit Foto');
         $response->assertSee('Hapus Foto');
         $response->assertSee('Edit Profil');
     }
 
-    public function test_dropdown_navbar_berisi_foto_nama_dan_dua_menu(): void
+    public function test_dropdown_navbar_berisi_foto_nama_dan_tiga_menu(): void
     {
         $mahasiswa = $this->buatMahasiswa([
             'name' => 'Aisyah Putri',
@@ -52,10 +52,11 @@ class ProfilMahasiswaTest extends TestCase
         $response = $this->actingAs($mahasiswa)->get(route('dashboard'));
 
         $response->assertOk();
-        $response->assertSee('mhs-profil-dropdown', false);
+        $response->assertSee('profilDropdown', false);
         $response->assertSee('Aisyah Putri');
         $response->assertSee('Lihat Profil');
-        $response->assertSee('Data Mahasiswa');
+        $response->assertSee('>Data Saya<', false);
+        $response->assertSee('Pengaturan Akun');
         $response->assertSee(route('profil.mhs'), false);
         $response->assertSee(route('data.mahasiswa'), false);
         $response->assertSee('storage/foto-profil/aisyah.png', false);

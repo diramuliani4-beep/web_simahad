@@ -9,6 +9,7 @@ use App\Models\KelompokPengajar;
 use App\Models\MataPelajaran;
 use App\Models\Notifikasi;
 use App\Models\User;
+use App\Services\AuditTrailService;
 use Carbon\Carbon;
 use Database\Seeders\PembelajaranSeeder;
 use Illuminate\Http\JsonResponse;
@@ -20,6 +21,8 @@ use Illuminate\View\View;
 
 class MusyrifahManajemenPembelajaranController extends Controller
 {
+    public function __construct(private readonly AuditTrailService $audit) {}
+
     /**
      * Menampilkan halaman manajemen pembelajaran Musyrifah lengkap dengan 5 menu utama.
      */
@@ -89,6 +92,8 @@ class MusyrifahManajemenPembelajaranController extends Controller
      */
     public function storeKelompok(Request $request): RedirectResponse|JsonResponse
     {
+        $this->pastikanPengelola($request);
+
         $validated = $request->validate([
             'nama_pengajar' => ['required', 'string', 'max:255'],
             'program' => ['required', 'string', 'max:255'],
@@ -105,6 +110,17 @@ class MusyrifahManajemenPembelajaranController extends Controller
             'keterangan' => $validated['keterangan'] ?? null,
         ]);
 
+        $this->audit->catat(
+            'pembelajaran',
+            'pengajar_ditambahkan',
+            'Pengajar '.$item->nama_pengajar,
+            (int) $item->getKey(),
+            'Data pengajar kelompok ditambahkan.',
+            $request->user(),
+            [],
+            $item->getAttributes(),
+        );
+
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Data kelompok pengajar berhasil ditambahkan.', 'data' => $item]);
         }
@@ -118,6 +134,8 @@ class MusyrifahManajemenPembelajaranController extends Controller
      */
     public function updateKelompok(Request $request, int $id): RedirectResponse|JsonResponse
     {
+        $this->pastikanPengelola($request);
+
         $validated = $request->validate([
             'nama_pengajar' => ['required', 'string', 'max:255'],
             'program' => ['required', 'string', 'max:255'],
@@ -127,7 +145,19 @@ class MusyrifahManajemenPembelajaranController extends Controller
         ]);
 
         $item = KelompokPengajar::findOrFail($id);
+        $sebelum = $item->getAttributes();
         $item->update($validated);
+
+        $this->audit->catat(
+            'pembelajaran',
+            'pengajar_diperbarui',
+            'Pengajar '.$item->nama_pengajar,
+            (int) $item->getKey(),
+            'Data pengajar kelompok diperbarui.',
+            $request->user(),
+            $sebelum,
+            $item->getAttributes(),
+        );
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Data kelompok pengajar berhasil diperbarui.', 'data' => $item]);
@@ -142,8 +172,23 @@ class MusyrifahManajemenPembelajaranController extends Controller
      */
     public function destroyKelompok(Request $request, int $id): RedirectResponse|JsonResponse
     {
+        $this->pastikanPengelola($request);
+
         $item = KelompokPengajar::findOrFail($id);
+        $nama = $item->nama_pengajar;
+        $idItem = (int) $item->getKey();
         $item->delete();
+
+        $this->audit->catat(
+            'pembelajaran',
+            'pengajar_dihapus',
+            'Pengajar '.$nama,
+            $idItem,
+            'Data pengajar kelompok dihapus.',
+            $request->user(),
+            ['nama_pengajar' => $nama],
+            [],
+        );
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Data kelompok pengajar berhasil dihapus.']);
@@ -158,6 +203,8 @@ class MusyrifahManajemenPembelajaranController extends Controller
      */
     public function storeJadwal(Request $request): RedirectResponse|JsonResponse
     {
+        $this->pastikanPengelola($request);
+
         $validated = $request->validate([
             'nama_mata_pelajaran' => ['required', 'string', 'max:255'],
             'kelompok' => ['required', 'string', 'max:100'],
@@ -185,6 +232,17 @@ class MusyrifahManajemenPembelajaranController extends Controller
 
         $this->kirimNotifikasiJadwal($jadwal, 'jadwal-baru', 'Jadwal pembelajaran baru');
 
+        $this->audit->catat(
+            'pembelajaran',
+            'jadwal_ditambahkan',
+            'Jadwal '.$jadwal->nama_mata_pelajaran.' ('.$jadwal->kelompok.')',
+            (int) $jadwal->getKey(),
+            'Jadwal pembelajaran ditambahkan pada '.$jadwal->hari.' '.$jadwal->jam_mulai.'-'.$jadwal->jam_selesai.'.',
+            $request->user(),
+            [],
+            $jadwal->getAttributes(),
+        );
+
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Jadwal pembelajaran berhasil ditambahkan.', 'data' => $jadwal]);
         }
@@ -198,6 +256,8 @@ class MusyrifahManajemenPembelajaranController extends Controller
      */
     public function updateJadwal(Request $request, int $id): RedirectResponse|JsonResponse
     {
+        $this->pastikanPengelola($request);
+
         $validated = $request->validate([
             'nama_mata_pelajaran' => ['required', 'string', 'max:255'],
             'kelompok' => ['required', 'string', 'max:100'],
@@ -211,12 +271,24 @@ class MusyrifahManajemenPembelajaranController extends Controller
 
         $jadwal = JadwalPembelajaran::findOrFail($id);
         $mapel = MataPelajaran::where('nama', $validated['nama_mata_pelajaran'])->first();
+        $sebelum = $jadwal->getAttributes();
 
         $jadwal->update(array_merge($validated, [
             'mata_pelajaran_id' => $mapel?->id ?? $jadwal->mata_pelajaran_id,
         ]));
 
         $this->kirimNotifikasiJadwal($jadwal, 'jadwal-ubah', 'Perubahan jadwal pembelajaran');
+
+        $this->audit->catat(
+            'pembelajaran',
+            'jadwal_diperbarui',
+            'Jadwal '.$jadwal->nama_mata_pelajaran.' ('.$jadwal->kelompok.')',
+            (int) $jadwal->getKey(),
+            'Jadwal pembelajaran diperbarui.',
+            $request->user(),
+            $sebelum,
+            $jadwal->getAttributes(),
+        );
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Jadwal pembelajaran berhasil diperbarui.', 'data' => $jadwal]);
@@ -231,11 +303,28 @@ class MusyrifahManajemenPembelajaranController extends Controller
      */
     public function destroyJadwal(Request $request, int $id): RedirectResponse|JsonResponse
     {
+        $this->pastikanPengelola($request);
+
         $jadwal = JadwalPembelajaran::findOrFail($id);
 
         $this->kirimNotifikasiJadwal($jadwal, 'jadwal-hapus', 'Jadwal pembelajaran dihapus');
 
+        $sebelum = $jadwal->getAttributes();
+        $label = 'Jadwal '.$jadwal->nama_mata_pelajaran.' ('.$jadwal->kelompok.')';
+        $idJadwal = (int) $jadwal->getKey();
+
         $jadwal->delete();
+
+        $this->audit->catat(
+            'pembelajaran',
+            'jadwal_dihapus',
+            $label,
+            $idJadwal,
+            'Jadwal pembelajaran dihapus.',
+            $request->user(),
+            $sebelum,
+            [],
+        );
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Jadwal pembelajaran berhasil dihapus.']);
@@ -522,5 +611,14 @@ class MusyrifahManajemenPembelajaranController extends Controller
         } catch (\Throwable $e) {
             report($e);
         }
+    }
+
+    /**
+     * Hanya Musyrifah/Pengelola/Admin yang boleh mengubah data pembelajaran.
+     */
+    private function pastikanPengelola(Request $request): void
+    {
+        $role = strtolower((string) $request->user()?->role);
+        abort_unless(in_array($role, ['musyrifah', 'pengelola', 'admin'], true), 403);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\Pembayaran;
 use App\Models\User;
+use App\Services\AuditTrailService;
 use Database\Seeders\PembayaranSeeder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -118,6 +119,9 @@ class MusyrifahPembayaranController extends Controller
      */
     public function updateStatus(Request $request, int $id): JsonResponse
     {
+        $role = strtolower((string) $request->user()?->role);
+        abort_unless(in_array($role, ['musyrifah', 'pengelola', 'admin'], true), 403);
+
         $validated = $request->validate([
             'status' => ['required', 'in:lunas,menunggu,belum_lunas'],
             'catatan' => ['nullable', 'string', 'max:255'],
@@ -125,6 +129,7 @@ class MusyrifahPembayaranController extends Controller
 
         $pembayaran = Pembayaran::with('user')->findOrFail($id);
         $statusLama = $pembayaran->status_label;
+        $statusSebelum = $pembayaran->status;
         $statusDipilih = $validated['status'];
 
         $updateData = ['status' => $statusDipilih];
@@ -141,6 +146,7 @@ class MusyrifahPembayaranController extends Controller
         $petugas = Auth::user();
         $mahasiswa = $pembayaran->user;
         $statusLabelBaru = $pembayaran->fresh()->status_label;
+        $catatan = trim((string) ($validated['catatan'] ?? ''));
 
         ActivityLog::create([
             'user_id' => $mahasiswa?->id,
@@ -148,10 +154,22 @@ class MusyrifahPembayaranController extends Controller
             'user_email' => $mahasiswa?->email,
             'user_role' => 'mahasiswa',
             'activity' => 'Verifikasi Pembayaran',
-            'description' => 'Musyrifah '.($petugas?->name ?? 'Musyrifah')." memperbarui status pembayaran {$pembayaran->nama_tagihan} ({$mahasiswa?->name} - {$mahasiswa?->nim}) dari {$statusLama} menjadi {$statusLabelBaru}.".($validated['catatan'] ? " Catatan: {$validated['catatan']}" : ''),
+            'description' => 'Musyrifah '.($petugas?->name ?? 'Musyrifah')." memperbarui status pembayaran {$pembayaran->nama_tagihan} ({$mahasiswa?->name} - {$mahasiswa?->nim}) dari {$statusLama} menjadi {$statusLabelBaru}.".($catatan !== '' ? " Catatan: {$catatan}" : ''),
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);
+
+        // Audit trail oleh pelaku sebenarnya (Musyrifah), bukan mahasiswa.
+        app(AuditTrailService::class)->catat(
+            'pembayaran',
+            'status_'.$statusDipilih,
+            'Pembayaran '.$pembayaran->nama_tagihan.' ('.$mahasiswa?->name.')',
+            (int) $pembayaran->getKey(),
+            'Status pembayaran diubah dari '.$statusLama.' menjadi '.$statusLabelBaru.'.',
+            $petugas,
+            ['status' => $statusSebelum],
+            ['status' => $statusDipilih, 'catatan' => $catatan ?: null],
+        );
 
         return response()->json([
             'success' => true,

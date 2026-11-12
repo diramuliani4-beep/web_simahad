@@ -20,12 +20,16 @@ use Illuminate\Support\Collection;
     'nim',
     'kamar_id',
     'password',
+    'password_set_at',
     'role',
     'no_hp',
     'status',
     'foto_profil',
+    'activation_token',
+    'activation_expires_at',
+    'last_login_at',
 ])]
-#[Hidden(['password', 'remember_token'])]
+#[Hidden(['password', 'remember_token', 'activation_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -144,7 +148,69 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'activation_expires_at' => 'datetime',
+            'last_login_at' => 'datetime',
+            'password_set_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Pemilik akun sudah menentukan kata sandinya sendiri.
+     *
+     * Akun yang dibuat Admin belum memilikinya, sehingga Pengaturan Akun
+     * menampilkan formulir pembuatan kata sandi pertama tanpa meminta
+     * kata sandi saat ini.
+     */
+    public function sudahPunyaKataSandi(): bool
+    {
+        return filled($this->password) && filled($this->password_set_at);
+    }
+
+    /** Akun pegawai (Guru, Musyrifah, Pimpinan) masih menunggu aktivasi mandiri. */
+    public function menungguAktivasi(): bool
+    {
+        return in_array(strtolower((string) $this->status), ['menunggu aktivasi', 'menunggu', 'pending'], true)
+            && strtolower((string) $this->role) !== 'mahasiswa';
+    }
+
+    /** Nama peran dalam bahasa tampilan. */
+    public function labelPeran(): string
+    {
+        return match (strtolower((string) $this->role)) {
+            'mahasiswa' => 'Mahasiswa',
+            'guru' => 'Guru',
+            'musyrifah' => 'Musyrifah',
+            'pimpinan' => 'Pimpinan',
+            'admin' => 'Admin Sistem',
+            default => ucfirst((string) $this->role),
+        };
+    }
+
+    /** Inisial nama untuk avatar tanpa foto. */
+    public function inisial(): string
+    {
+        $nama = trim((string) $this->name);
+
+        if ($nama === '') {
+            return '?';
+        }
+
+        $kata = preg_split('/\s+/', $nama) ?: [];
+        $inisial = mb_substr($kata[0] ?? '', 0, 1);
+
+        if (count($kata) > 1) {
+            $inisial .= mb_substr($kata[count($kata) - 1], 0, 1);
+        }
+
+        return mb_strtoupper($inisial);
+    }
+
+    /** URL foto profil bila tersedia. */
+    public function urlFotoProfil(): ?string
+    {
+        return filled($this->foto_profil)
+            ? asset('storage/'.$this->foto_profil)
+            : null;
     }
 }

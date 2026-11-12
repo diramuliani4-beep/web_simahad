@@ -6,6 +6,7 @@ use App\Models\Kamar;
 use App\Models\KamarFoto;
 use App\Models\PengajuanKamar;
 use App\Models\User;
+use App\Services\AuditTrailService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -17,6 +18,8 @@ use Illuminate\View\View;
 
 class MusyrifahDataKamarController extends Controller
 {
+    public function __construct(private readonly AuditTrailService $audit) {}
+
     /**
      * Menampilkan halaman data kamar untuk Musyrifah.
      */
@@ -180,6 +183,17 @@ class MusyrifahDataKamarController extends Controller
 
         $this->simpanBerkasFoto($kamar, $berkasFoto);
 
+        $this->audit->catat(
+            'kamar',
+            'kamar_dibuat',
+            'Kamar '.$kamar->nomor_kamar,
+            (int) $kamar->getKey(),
+            'Kamar baru ditambahkan pada lantai '.$kamar->lantai.'.',
+            $request->user(),
+            [],
+            ['nomor_kamar' => $kamar->nomor_kamar, 'lantai' => $kamar->lantai, 'kapasitas' => $kamar->kapasitas, 'status' => $kamar->status],
+        );
+
         return redirect()
             ->route('musyrifah.data_kamar')
             ->with('success', 'Data kamar berhasil ditambahkan.');
@@ -191,6 +205,8 @@ class MusyrifahDataKamarController extends Controller
     public function update(Request $request, Kamar $kamar): RedirectResponse
     {
         $this->pastikanPengelola($request);
+
+        $sebelum = $kamar->getAttributes();
 
         $validated = $request->validate([
             'nomor_kamar' => [
@@ -247,6 +263,17 @@ class MusyrifahDataKamarController extends Controller
         }
 
         $kamar->update($data);
+
+        $this->audit->catat(
+            'kamar',
+            'kamar_diperbarui',
+            'Kamar '.$kamar->nomor_kamar,
+            (int) $kamar->getKey(),
+            'Data kamar diperbarui.',
+            $request->user(),
+            $sebelum,
+            $kamar->getAttributes(),
+        );
 
         return redirect()
             ->route('musyrifah.data_kamar')
@@ -356,6 +383,17 @@ class MusyrifahDataKamarController extends Controller
 
         $kamar->delete();
 
+        $this->audit->catat(
+            'kamar',
+            'kamar_dihapus',
+            'Kamar '.$kamar->nomor_kamar,
+            (int) $kamar->getKey(),
+            'Kamar dihapus.',
+            $request->user(),
+            ['nomor_kamar' => $kamar->nomor_kamar, 'lantai' => $kamar->lantai, 'kapasitas' => $kamar->kapasitas],
+            [],
+        );
+
         return redirect()
             ->route('musyrifah.data_kamar')
             ->with('success', 'Kamar berhasil dihapus.');
@@ -427,6 +465,21 @@ class MusyrifahDataKamarController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
+        $pengajuan->refresh()->load(['kamar', 'kamarAsal', 'user']);
+
+        $this->audit->catat(
+            'kamar',
+            $pindahKamar ? 'pindah_kamar' : 'penempatan_kamar',
+            'Pengajuan kamar '.$pengajuan->user?->name,
+            (int) $pengajuan->getKey(),
+            $pindahKamar
+                ? 'Perpindahan kamar disetujui dari '.($pengajuan->kamarAsal?->nomor_kamar ?? '-').' ke '.($pengajuan->kamar?->nomor_kamar ?? '-').'.'
+                : 'Penempatan kamar '.($pengajuan->kamar?->nomor_kamar ?? '-').' disetujui.',
+            $request->user(),
+            ['kamar' => $pengajuan->kamarAsal?->nomor_kamar, 'status' => PengajuanKamar::STATUS_MENUNGGU],
+            ['kamar' => $pengajuan->kamar?->nomor_kamar, 'status' => PengajuanKamar::STATUS_DISETUJUI],
+        );
+
         return redirect()
             ->route('musyrifah.data_kamar')
             ->with(
@@ -465,6 +518,17 @@ class MusyrifahDataKamarController extends Controller
             'diverifikasi_oleh' => $request->user()?->id,
             'updated_at' => now(),
         ]);
+
+        $this->audit->catat(
+            'kamar',
+            'pengajuan_kamar_ditolak',
+            'Pengajuan kamar '.$pengajuan->user?->name,
+            (int) $pengajuan->getKey(),
+            'Pengajuan kamar ditolak. Catatan: '.$catatan,
+            $request->user(),
+            ['status' => PengajuanKamar::STATUS_MENUNGGU],
+            ['status' => PengajuanKamar::STATUS_DITOLAK, 'catatan' => $catatan],
+        );
 
         return redirect()
             ->route('musyrifah.data_kamar')

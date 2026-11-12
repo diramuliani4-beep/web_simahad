@@ -7,6 +7,7 @@ use App\Http\Controllers\AdminHakAksesController;
 use App\Http\Controllers\AdminLogAktivitasController;
 use App\Http\Controllers\AdminManajemenPenggunaController;
 use App\Http\Controllers\AdminPengaturanSistemController;
+use App\Http\Controllers\AktivasiAkunController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DataMahasiswaMhsController;
 use App\Http\Controllers\GuruAbsensiController;
@@ -29,13 +30,18 @@ use App\Http\Controllers\PendaftaranController;
 use App\Http\Controllers\PengajuanIzinPulangController;
 use App\Http\Controllers\PengaturanAkunController;
 use App\Http\Controllers\PengumumanMhsController;
+use App\Http\Controllers\PimpinanAuditController;
 use App\Http\Controllers\PimpinanDataPenghuniController;
 use App\Http\Controllers\PimpinanLaporanMahadController;
+use App\Http\Controllers\PimpinanLaporanRegisterController;
+use App\Http\Controllers\PimpinanMonitoringController;
 use App\Http\Controllers\PimpinanPembelajaranController;
+use App\Http\Controllers\ProfilAkunController;
 use App\Http\Controllers\ProfilMhsController;
 use App\Http\Controllers\SuratPerizinanMhsController;
 use App\Http\Controllers\TugasMhsController;
 use App\Services\LaporanMahadService;
+use App\Services\PimpinanMonitoringService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -86,6 +92,22 @@ Route::post('/forgot-password', [AuthController::class, 'resetPassword'])
 
 /*
 |--------------------------------------------------------------------------
+| Aktivasi Akun Staf (Guru, Musyrifah, Pimpinan, Admin)
+|--------------------------------------------------------------------------
+| Tautan dikirim melalui email; pemilik akun membuat kata sandinya sendiri.
+| Halaman ini harus tetap dapat diakses tanpa login.
+*/
+
+Route::get('/aktivasi-akun/{token}', [AktivasiAkunController::class, 'form'])
+    ->middleware('throttle:30,1')
+    ->name('aktivasi.form');
+
+Route::post('/aktivasi-akun/{token}', [AktivasiAkunController::class, 'simpan'])
+    ->middleware('throttle:10,1')
+    ->name('aktivasi.simpan');
+
+/*
+|--------------------------------------------------------------------------
 | Fitur Pengguna yang Sudah Login
 |--------------------------------------------------------------------------
 */
@@ -102,9 +124,6 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::put('/pengaturan-akun', [PengaturanAkunController::class, 'updateProfil'])
-        ->name('pengaturan-akun.update');
-
     Route::post('/pengaturan-akun/foto', [PengaturanAkunController::class, 'updateFoto'])
         ->name('pengaturan-akun.foto.update');
 
@@ -113,6 +132,38 @@ Route::middleware('auth')->group(function () {
 
     Route::put('/pengaturan-akun/password', [PengaturanAkunController::class, 'updatePassword'])
         ->name('pengaturan-akun.password.update');
+
+    Route::put('/pengaturan-akun/email', [PengaturanAkunController::class, 'updateEmail'])
+        ->name('pengaturan-akun.email.update');
+
+    // Halaman Pengaturan Akun terpadu untuk seluruh role.
+    Route::get('/pengaturan-akun', [PengaturanAkunController::class, 'saya'])
+        ->name('pengaturan-akun.index');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Profil dan Data Akun Staf (Guru, Musyrifah, Pimpinan, Admin Sistem)
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/profil', [ProfilAkunController::class, 'profil'])
+        ->name('profil.pengguna');
+
+    // Foto profil staf dikelola dari menu kamera pada halaman Lihat Profil.
+    // Penanganan unggah tetap memakai alur Pengaturan Akun agar aturan
+    // penyimpanan foto seluruh role hanya ada di satu tempat.
+    Route::post('/profil/foto', [PengaturanAkunController::class, 'updateFoto'])
+        ->name('profil.pengguna.foto.update');
+
+    Route::delete('/profil/foto', [PengaturanAkunController::class, 'hapusFoto'])
+        ->name('profil.pengguna.foto.destroy');
+
+    Route::get('/data-akun', [ProfilAkunController::class, 'data'])
+        ->name('data.pengguna');
+
+    // Penyimpanan data pribadi dilakukan dari halaman Data Saya.
+    Route::put('/data-akun', [ProfilAkunController::class, 'update'])
+        ->name('data.pengguna.update');
 
     // Dashboard lama untuk kompatibilitas
     Route::get('/dashboard_admin', [AuthController::class, 'dashboard'])
@@ -404,6 +455,12 @@ Route::middleware('auth')->group(function () {
         'tolak',
     ])->name('admin.manajemen-pengguna.tolak');
 
+    // Kirim ulang tautan aktivasi akun (tanpa membuat kata sandi).
+    Route::post('/admin/manajemen-pengguna/{user}/aktivasi', [
+        AdminManajemenPenggunaController::class,
+        'kirimAktivasi',
+    ])->whereNumber('user')->name('admin.manajemen-pengguna.aktivasi');
+
     // Hak akses admin (dipertahankan untuk kompatibilitas).
     Route::get('/admin/hak-akses', [
         AdminHakAksesController::class,
@@ -653,12 +710,83 @@ Route::middleware('auth')->group(function () {
         'pendaftaran',
     ])->name('pimpinan.laporan-pendaftaran');
 
+    // Laporan pembelajaran
+    Route::get('/pimpinan/laporan-pembelajaran', [
+        PimpinanLaporanMahadController::class,
+        'pembelajaran',
+    ])->name('pimpinan.laporan-pembelajaran');
+
+    // Laporan perizinan
+    Route::get('/pimpinan/laporan-perizinan', [
+        PimpinanLaporanMahadController::class,
+        'perizinan',
+    ])->name('pimpinan.laporan-perizinan');
+
     // Unduh laporan monitoring (hanya baca)
     Route::get('/pimpinan/laporan/unduh/{jenis}', [
         PimpinanLaporanMahadController::class,
         'unduh',
     ])->whereIn('jenis', LaporanMahadService::JENIS_PIMPINAN)
         ->name('pimpinan.laporan.unduh');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Monitoring Pimpinan (hanya lihat, tanpa aksi operasional)
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/pimpinan/monitoring', [
+        PimpinanMonitoringController::class,
+        'index',
+    ])->name('pimpinan.monitoring');
+
+    Route::get('/pimpinan/monitoring/mahasiswa', [
+        PimpinanMonitoringController::class,
+        'mahasiswa',
+    ])->name('pimpinan.monitoring.mahasiswa');
+
+    Route::get('/pimpinan/monitoring/kamar', [
+        PimpinanMonitoringController::class,
+        'kamar',
+    ])->name('pimpinan.monitoring.kamar');
+
+    Route::get('/pimpinan/monitoring/pembayaran', [
+        PimpinanMonitoringController::class,
+        'pembayaran',
+    ])->name('pimpinan.monitoring.pembayaran');
+
+    Route::get('/pimpinan/monitoring/pembelajaran', [
+        PimpinanMonitoringController::class,
+        'pembelajaran',
+    ])->name('pimpinan.monitoring.pembelajaran');
+
+    Route::get('/pimpinan/monitoring/perizinan', [
+        PimpinanMonitoringController::class,
+        'perizinan',
+    ])->name('pimpinan.monitoring.perizinan');
+
+    Route::get('/pimpinan/monitoring/{jenis}/unduh', [
+        PimpinanMonitoringController::class,
+        'unduh',
+    ])->whereIn('jenis', PimpinanMonitoringService::KATEGORI)
+        ->name('pimpinan.monitoring.unduh');
+
+    // Detail register laporan + cetak (hanya baca)
+    Route::get('/pimpinan/laporan/{laporan}', [
+        PimpinanLaporanRegisterController::class,
+        'detail',
+    ])->whereNumber('laporan')->name('pimpinan.laporan.detail');
+
+    Route::get('/pimpinan/laporan/{laporan}/cetak', [
+        PimpinanLaporanRegisterController::class,
+        'cetak',
+    ])->whereNumber('laporan')->name('pimpinan.laporan.cetak');
+
+    // Audit trail (Pimpinan dan Admin Sistem)
+    Route::get('/pimpinan/audit', [
+        PimpinanAuditController::class,
+        'index',
+    ])->name('pimpinan.audit');
 
     /*
     |--------------------------------------------------------------------------
@@ -853,6 +981,22 @@ Route::middleware('auth')->group(function () {
         MusyrifahLaporanController::class,
         'index',
     ])->name('musyrifah.laporan');
+
+    // Register laporan Musyrifah: catat draft, terbitkan, arsipkan.
+    Route::post('/musyrifah/laporan', [
+        MusyrifahLaporanController::class,
+        'simpanLaporan',
+    ])->name('musyrifah.laporan.simpan');
+
+    Route::patch('/musyrifah/laporan/{laporan}/terbitkan', [
+        MusyrifahLaporanController::class,
+        'terbitkanLaporan',
+    ])->whereNumber('laporan')->name('musyrifah.laporan.terbitkan');
+
+    Route::patch('/musyrifah/laporan/{laporan}/arsipkan', [
+        MusyrifahLaporanController::class,
+        'arsipkanLaporan',
+    ])->whereNumber('laporan')->name('musyrifah.laporan.arsipkan');
 
     Route::get('/musyrifah/laporan/{jenis}/unduh', [
         MusyrifahLaporanController::class,

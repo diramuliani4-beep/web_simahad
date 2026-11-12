@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pendaftaran;
+use App\Services\AuditTrailService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -12,6 +13,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class MusyrifahPendaftaranController extends Controller
 {
+    public function __construct(private readonly AuditTrailService $audit) {}
+
     /**
      * Menampilkan pendaftar asli beserta informasi validasi.
      */
@@ -99,6 +102,7 @@ class MusyrifahPendaftaranController extends Controller
         }
 
         $musyrifah = $request->user();
+        $statusSebelum = $pendaftaran->status;
 
         // Update bersyarat mencegah konflik validasi.
         $berhasil = Pendaftaran::query()
@@ -117,6 +121,18 @@ class MusyrifahPendaftaranController extends Controller
         if (! $berhasil) {
             return back()->with('error', 'Pendaftaran sudah diproses Musyrifah lain. Muat ulang daftar.');
         }
+
+        // Audit dicatat setelah perubahan benar-benar tersimpan.
+        $this->audit->catat(
+            'pendaftaran',
+            'validasi_'.$validated['status'],
+            'Pendaftaran '.$pendaftaran->nama_lengkap,
+            (int) $pendaftaran->getKey(),
+            'Validasi pendaftaran menjadi '.$validated['status'].'.',
+            $musyrifah,
+            ['status' => $statusSebelum],
+            ['status' => $validated['status'], 'catatan_validasi' => $validated['catatan_validasi'] ?? null],
+        );
 
         $pesanSukses = match ($validated['status']) {
             'disetujui' => 'Pendaftaran berhasil disetujui.',

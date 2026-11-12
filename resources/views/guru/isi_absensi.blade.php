@@ -874,16 +874,15 @@
 
     .isi-absensi .modal-box {
         width: 100%;
-        max-width: 560px;
-        min-height: 300px;
-        padding: 34px 24px;
+        max-width: 420px;
+        padding: 22px 22px 20px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         background: #fff;
         border: 1px solid #790d20;
-        border-radius: 8px;
+        border-radius: 10px;
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
         text-align: center;
         animation: modalMasuk 0.2s ease-out;
@@ -893,32 +892,33 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        width: 56px;
-        height: 56px;
-        margin-bottom: 14px;
+        width: 46px;
+        height: 46px;
+        margin-bottom: 11px;
         border-radius: 50%;
         background: #f9edef;
         color: #790d20;
     }
 
     .isi-absensi .modal-icon svg {
-        width: 27px;
-        height: 27px;
+        width: 22px;
+        height: 22px;
     }
 
     .isi-absensi .modal-title {
-        margin: 0 0 12px;
+        margin: 0 0 8px;
         color: #292929;
-        font-size: 20px;
+        font-size: 16.5px;
         font-weight: 600;
+        line-height: 1.35;
     }
 
     .isi-absensi .modal-description {
-        max-width: 460px;
-        margin: 0 0 24px;
+        max-width: 340px;
+        margin: 0 0 16px;
         color: #85817f;
         font-size: 12px;
-        line-height: 1.7;
+        line-height: 1.55;
     }
 
     .isi-absensi .modal-actions {
@@ -932,8 +932,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        min-height: 48px;
-        padding: 10px 12px;
+        min-height: 38px;
+        padding: 8px 12px;
         border: 1px solid #e4dedd;
         border-radius: 7px;
         font-family: inherit;
@@ -975,22 +975,21 @@
 
     @media (max-width: 480px) {
         .isi-absensi .modal-box {
-            min-height: 250px;
-            padding: 25px 16px;
+            padding: 18px 16px 16px;
         }
 
         .isi-absensi .modal-title {
-            font-size: 18px;
+            font-size: 15px;
         }
 
         .isi-absensi .modal-description {
-            font-size: 11px;
+            font-size: 11.5px;
         }
 
         .isi-absensi .modal-btn {
-            min-height: 44px;
-            padding: 9px 6px;
-            font-size: 11px;
+            min-height: 36px;
+            padding: 8px 6px;
+            font-size: 11.5px;
         }
     }
 

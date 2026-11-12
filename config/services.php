@@ -8,7 +8,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | This file is for storing the credentials for third party services such
-    | as Resend, Postmark, AWS, and more. This file provides the de facto
+    | as Postmark, AWS, and more. This file provides the de facto
     | location for this type of information, allowing packages to have
     | a conventional file to locate the various service credentials.
     |
@@ -23,10 +23,6 @@ return [
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         // Redirect URI harus absolut dan sama persis dengan yang didaftarkan di Google Cloud Console.
         'redirect' => env('GOOGLE_REDIRECT_URI', rtrim(env('APP_URL', 'http://127.0.0.1:8000'), '/').'/auth/google/callback'),
-    ],
-
-    'resend' => [
-        'key' => env('RESEND_API_KEY'),
     ],
 
     'ses' => [

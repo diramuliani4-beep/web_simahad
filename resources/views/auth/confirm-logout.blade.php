@@ -60,35 +60,35 @@
             position: relative;
             z-index: 1;
             width: 100%;
-            max-width: 900px;
+            max-width: 440px;
             min-height: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 55px 50px;
+            padding: 32px 28px 28px;
             background: #fff;
             border: 1px solid #800d22;
-            border-radius: 9px;
+            border-radius: 11px;
             box-shadow: 0 15px 50px rgba(0, 0, 0, 0.18);
         }
 
         /* IKON KELUAR */
         .logout-icon {
-            width: 100px;
-            height: 100px;
+            width: 58px;
+            height: 58px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 25px;
+            margin-bottom: 14px;
             border-radius: 50%;
             background: #f9edef;
             color: #800d22;
         }
 
         .logout-icon svg {
-            width: 38px;
-            height: 38px;
+            width: 26px;
+            height: 26px;
             fill: none;
             stroke: currentColor;
             stroke-width: 2.5;
@@ -98,19 +98,20 @@
 
         /* JUDUL */
         .logout-card h1 {
-            margin-bottom: 22px;
+            margin-bottom: 9px;
             color: #222;
-            font-size: 30px;
+            font-size: 19px;
             font-weight: 500;
+            line-height: 1.35;
             text-align: center;
         }
 
         /* DESKRIPSI */
         .logout-card p {
-            margin-bottom: 65px;
+            margin-bottom: 24px;
             color: #888;
-            font-size: 21px;
-            line-height: 1.6;
+            font-size: 13px;
+            line-height: 1.55;
             text-align: center;
         }
 
@@ -120,8 +121,8 @@
             display: flex;
             align-items: stretch;
             justify-content: space-between;
-            gap: 25px;
-            padding: 0 4%;
+            gap: 12px;
+            padding: 0;
         }
 
         /* AREA BATAL DAN FORM LOGOUT SAMA BESAR */
@@ -130,7 +131,7 @@
             flex: 1 1 0;
             width: 0;
             min-width: 0;
-            height: 60px;
+            height: 42px;
             margin: 0;
         }
 
@@ -147,14 +148,15 @@
             justify-content: center;
             flex: 1 1 auto;
             width: 100%;
-            height: 60px;
-            min-height: 60px;
+            height: 42px;
+            min-height: 42px;
             margin: 0;
             padding: 0 12px;
             border: 1px solid #800d22;
-            border-radius: 14px;
+            border-radius: 9px;
             font-family: inherit;
-            font-size: 20px;
+            font-size: 13px;
+            font-weight: 600;
             line-height: 1.2;
             cursor: pointer;
             transition:
@@ -195,37 +197,37 @@
 
             .logout-card {
                 width: 100%;
-                max-width: 480px;
+                max-width: 400px;
                 min-height: 0;
-                padding: 38px 24px;
+                padding: 24px 18px;
             }
 
             .logout-icon {
-                width: 80px;
-                height: 80px;
-                margin-bottom: 22px;
+                width: 50px;
+                height: 50px;
+                margin-bottom: 12px;
             }
 
             .logout-icon svg {
-                width: 32px;
-                height: 32px;
+                width: 22px;
+                height: 22px;
             }
 
             .logout-card h1 {
-                margin-bottom: 17px;
-                font-size: 25px;
+                margin-bottom: 8px;
+                font-size: 17px;
             }
 
             .logout-card p {
-                margin-bottom: 35px;
-                font-size: 16px;
+                margin-bottom: 20px;
+                font-size: 12.5px;
             }
 
             /* TOMBOL TERSUSUN VERTIKAL DI HP */
             .logout-actions {
                 flex-direction: column-reverse;
                 align-items: stretch;
-                gap: 13px;
+                gap: 9px;
                 padding: 0;
             }
 
@@ -233,31 +235,31 @@
             .logout-actions > form {
                 flex: none;
                 width: 100%;
-                height: 48px;
+                height: 40px;
                 min-width: 0;
             }
 
             .logout-actions button {
                 flex: none;
                 width: 100%;
-                height: 48px;
-                min-height: 48px;
-                font-size: 17px;
+                height: 40px;
+                min-height: 40px;
+                font-size: 12.5px;
             }
         }
 
         /* RESPONSIVE HP KECIL */
         @media (max-width: 380px) {
             .logout-card {
-                padding: 30px 17px;
+                padding: 20px 15px;
             }
 
             .logout-card h1 {
-                font-size: 22px;
+                font-size: 16px;
             }
 
             .logout-card p {
-                font-size: 14px;
+                font-size: 12px;
             }
         }
     </style>

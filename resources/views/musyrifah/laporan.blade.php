@@ -356,6 +356,109 @@
 
     </section>
 
+    {{-- REGISTER LAPORAN MUSYRIFAH --}}
+    <section class="filter-wrapper" style="max-width: 900px;">
+        @if (session('status'))
+            <div class="filter-card" style="margin-bottom: 16px; border-left: 4px solid #700b20; color: #700b20; font-size: 15px; font-weight: 600;">
+                {{ session('status') }}
+            </div>
+        @endif
+
+        <form action="{{ route('musyrifah.laporan.simpan') }}" method="POST" class="filter-card">
+            @csrf
+
+            <h2 class="filter-title">Catat Laporan Baru</h2>
+            <p style="margin: 0 0 16px; color: #777; font-size: 14px; line-height: 1.6;">
+                Laporan dicatat atas nama Anda beserta lantai/unit sumber laporan.
+                Laporan tersimpan sebagai draft sebelum diterbitkan.
+            </p>
+
+            <div class="filter-group">
+                <label for="reg-jenis-baru">Jenis laporan</label>
+                <select name="jenis" id="reg-jenis-baru" required>
+                    @foreach ($opsiJenis as $opsi)
+                        <option value="{{ $opsi['value'] }}">{{ $opsi['label'] }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="reg-periode-baru">Periode laporan</label>
+                <select name="periode" id="reg-periode-baru" required>
+                    @foreach ($opsiPeriode as $opsi)
+                        <option value="{{ $opsi['value'] }}" @selected($periode === $opsi['value'])>
+                            {{ $opsi['label'] }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="reg-lantai-baru">Lantai sumber laporan</label>
+                <select name="lantai" id="reg-lantai-baru">
+                    <option value="">Seluruh Ma’had</option>
+                    @foreach ($opsiLantai as $opsi)
+                        <option value="{{ $opsi['value'] }}">{{ $opsi['label'] }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="reg-catatan-baru">Catatan (opsional)</label>
+                <input type="text" name="catatan" id="reg-catatan-baru" maxlength="500"
+                    placeholder="Misalnya: rekap kehadiran pekan ke-2"
+                    style="width: 100%; height: 50px; padding: 0 12px; box-sizing: border-box; border: 1px solid #d8d8d8; border-radius: 12px; font-family: inherit; font-size: 16px;">
+            </div>
+
+            <button type="submit" class="btn-tampilkan">Simpan sebagai Draft</button>
+        </form>
+
+        <div class="filter-card" style="margin-top: 16px;">
+            <h2 class="filter-title">Register Laporan {{ $labelPeriode }}</h2>
+
+            @forelse ($register as $item)
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #f1e6e8;">
+                    <div style="min-width: 200px;">
+                        <strong style="display: block; color: #700b20; font-size: 15px;">{{ $item->judul }}</strong>
+                        <span style="color: #888; font-size: 13px;">
+                            {{ $item->labelUnit() }} · {{ $item->identitasPembuat() }}
+                        </span>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span style="padding: 3px 10px; border-radius: 999px; background: #f9edef; color: #700b20; font-size: 12px; font-weight: 700;">
+                            {{ $item->labelStatus() }} · v{{ (int) $item->versi }}
+                        </span>
+
+                        @if ($item->status !== \App\Models\LaporanMahad::STATUS_DITERBITKAN)
+                            <form action="{{ route('musyrifah.laporan.terbitkan', $item) }}" method="POST" style="display: inline;">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" style="padding: 7px 12px; border: 0; border-radius: 9px; background: #700b20; color: #fff; font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer;">
+                                    Terbitkan
+                                </button>
+                            </form>
+                        @endif
+
+                        @if ($item->status !== \App\Models\LaporanMahad::STATUS_DIARSIPKAN)
+                            <form action="{{ route('musyrifah.laporan.arsipkan', $item) }}" method="POST" style="display: inline;">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" style="padding: 7px 12px; border: 1px solid #ead8dd; border-radius: 9px; background: #fff; color: #700b20; font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer;">
+                                    Arsipkan
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                </div>
+            @empty
+                <div class="laporan-empty">
+                    Belum ada laporan yang Anda catat pada periode ini.
+                </div>
+            @endforelse
+        </div>
+    </section>
+
 </div>
 
 @endsection

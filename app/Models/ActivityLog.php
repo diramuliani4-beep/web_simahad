@@ -12,11 +12,28 @@ class ActivityLog extends Model
         'user_name',
         'user_email',
         'user_role',
+        'modul',
+        'aksi',
+        'objek',
+        'objek_id',
+        'data_sebelum',
+        'data_sesudah',
         'activity',
         'description',
         'ip_address',
         'user_agent',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'data_sebelum' => 'array',
+            'data_sesudah' => 'array',
+        ];
+    }
 
     public function user(): BelongsTo
     {

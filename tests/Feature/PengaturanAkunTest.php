@@ -53,70 +53,155 @@ class PengaturanAkunTest extends TestCase
         $this->actingAs($musyrifah)->get(route('admin.pengaturan-akun'))->assertForbidden();
     }
 
-    public function test_mahasiswa_tidak_dapat_memakai_form_profil_staf(): void
+    public function test_halaman_pengaturan_akun_staf_hanya_berisi_kata_sandi_dan_email(): void
     {
+        $pimpinan = $this->buatPengguna('pimpinan');
+
+        $this->actingAs($pimpinan)
+            ->get(route('pimpinan.pengaturan-akun'))
+            ->assertOk()
+            ->assertSee('Keamanan Akun')
+            ->assertSee('Email Akun')
+            ->assertDontSee('Informasi Profil')
+            ->assertDontSee('Menu foto profil');
+
+        // Akun mahasiswa tetap memakai formulir profil lamanya.
         $mahasiswa = $this->buatPengguna('mahasiswa');
 
-        $this->actingAs($mahasiswa)->put(route('pengaturan-akun.update'), [
-            'name' => 'Nama Baru',
-            'email' => 'baru@example.com',
-        ])->assertForbidden();
+        $this->actingAs($mahasiswa)
+            ->get(route('pengaturan-akun.index'))
+            ->assertOk()
+            ->assertSee('Informasi Profil')
+            ->assertSee('Menu foto profil');
     }
 
-    public function test_staf_memperbarui_profil_dan_biodata_pegawai_ikut_selaras(): void
+    public function test_staf_mengganti_email_dengan_verifikasi_kata_sandi(): void
     {
         $pegawai = Pegawai::create([
-            'nama_pegawai' => 'Nama Lama',
+            'nama_pegawai' => 'Musyrifah Contoh',
             'email' => 'lama@example.com',
             'status_pegawai' => true,
         ]);
 
         $musyrifah = $this->buatPengguna('musyrifah', [
-            'name' => 'Nama Lama',
             'email' => 'lama@example.com',
         ], $pegawai);
 
-        $response = $this->actingAs($musyrifah)->put(route('pengaturan-akun.update'), [
-            'name' => 'Nama Baru',
+        $response = $this->actingAs($musyrifah)->put(route('pengaturan-akun.email.update'), [
             'email' => 'baru@example.com',
-            'no_hp' => '081234567890',
+            'password_saat_ini' => 'password',
         ]);
 
-        $response->assertRedirect(route('musyrifah.pengaturan_akun'));
+        $response->assertRedirect(route('pengaturan-akun.index'));
         $response->assertSessionHas('success');
 
-        $this->assertDatabaseHas('users', [
-            'id' => $musyrifah->id,
-            'name' => 'Nama Baru',
-            'email' => 'baru@example.com',
-            'no_hp' => '081234567890',
-        ]);
-
-        $this->assertDatabaseHas('pegawais', [
-            'id' => $pegawai->id,
-            'nama_pegawai' => 'Nama Baru',
-            'email' => 'baru@example.com',
-            'no_hp' => '081234567890',
-        ]);
+        $this->assertSame('baru@example.com', $musyrifah->fresh()->email);
+        $this->assertSame('baru@example.com', $pegawai->fresh()->email);
+        $this->assertNotNull($musyrifah->fresh()->email_verified_at);
 
         $this->assertDatabaseHas('activity_logs', [
             'user_id' => $musyrifah->id,
-            'activity' => 'Perbarui Profil',
+            'activity' => 'Ubah Email Akun',
         ]);
     }
 
-    public function test_perubahan_profil_staf_divalidasi(): void
+    public function test_ganti_email_ditolak_bila_kata_sandi_salah_atau_email_dipakai(): void
     {
-        $musyrifah = $this->buatPengguna('musyrifah');
+        $pimpinan = $this->buatPengguna('pimpinan', ['email' => 'lama@example.com']);
         $this->buatPengguna('guru', ['email' => 'dipakai@example.com']);
 
-        $response = $this->actingAs($musyrifah)->put(route('pengaturan-akun.update'), [
-            'name' => '',
+        $this->actingAs($pimpinan)->put(route('pengaturan-akun.email.update'), [
+            'email' => 'baru@example.com',
+            'password_saat_ini' => 'salah',
+        ])->assertSessionHasErrors('password_saat_ini');
+
+        $this->assertSame('lama@example.com', $pimpinan->fresh()->email);
+
+        $this->actingAs($pimpinan)->put(route('pengaturan-akun.email.update'), [
             'email' => 'dipakai@example.com',
-            'no_hp' => 'bukan nomor',
+            'password_saat_ini' => 'password',
+        ])->assertSessionHasErrors('email');
+
+        $this->assertSame('lama@example.com', $pimpinan->fresh()->email);
+    }
+
+    public function test_akun_buatan_admin_membuat_kata_sandi_pertama(): void
+    {
+        $pimpinan = User::factory()->belumPunyaKataSandi()->create([
+            'role' => 'pimpinan',
+            'status' => 'menunggu aktivasi',
+            'email' => 'pimpinan@example.com',
         ]);
 
-        $response->assertSessionHasErrors(['name', 'email', 'no_hp']);
+        $this->actingAs($pimpinan)
+            ->get(route('pimpinan.pengaturan-akun'))
+            ->assertOk()
+            ->assertSee('Buat Kata Sandi')
+            ->assertSee('Email Akun')
+            ->assertDontSee('Kata Sandi Saat Ini')
+            ->assertDontSee('name="password_lama"', false);
+
+        // Penggantian email belum tersedia sebelum kata sandi dibuat sendiri.
+        $this->actingAs($pimpinan)->put(route('pengaturan-akun.email.update'), [
+            'email' => 'baru@example.com',
+            'password_saat_ini' => 'password',
+        ])->assertForbidden();
+
+        $response = $this->actingAs($pimpinan)->put(route('pengaturan-akun.password.update'), [
+            'email_konfirmasi' => 'pimpinan@example.com',
+            'password' => 'sandi-pertama-123',
+            'password_confirmation' => 'sandi-pertama-123',
+        ]);
+
+        $response->assertRedirect(route('pengaturan-akun.index'));
+        $response->assertSessionHas('success');
+
+        $pimpinan->refresh();
+
+        $this->assertNotNull($pimpinan->password_set_at);
+        $this->assertNotSame('sandi-pertama-123', $pimpinan->password);
+        $this->assertTrue(Hash::check('sandi-pertama-123', $pimpinan->password));
+
+        $this->assertDatabaseHas('activity_logs', [
+            'user_id' => $pimpinan->id,
+            'activity' => 'Buat Kata Sandi',
+        ]);
+    }
+
+    public function test_kata_sandi_pertama_memerlukan_email_konfirmasi_yang_sesuai(): void
+    {
+        $pimpinan = User::factory()->belumPunyaKataSandi()->create([
+            'role' => 'pimpinan',
+            'status' => 'menunggu aktivasi',
+            'email' => 'pimpinan@example.com',
+        ]);
+
+        $response = $this->actingAs($pimpinan)->put(route('pengaturan-akun.password.update'), [
+            'email_konfirmasi' => 'bukan-email-akun@example.com',
+            'password' => 'sandi-pertama-123',
+            'password_confirmation' => 'sandi-pertama-123',
+        ]);
+
+        $response->assertSessionHas('error');
+        $this->assertNull($pimpinan->fresh()->password_set_at);
+    }
+
+    public function test_kata_sandi_tidak_pernah_ditampilkan_di_halaman_maupun_array_model(): void
+    {
+        $hash = Hash::make('rahasia-sekali');
+        $pimpinan = User::factory()->create([
+            'role' => 'pimpinan',
+            'status' => 'aktif',
+            'password' => $hash,
+        ]);
+
+        $this->assertArrayNotHasKey('password', $pimpinan->toArray());
+
+        $this->actingAs($pimpinan)
+            ->get(route('pimpinan.pengaturan-akun'))
+            ->assertOk()
+            ->assertDontSee($hash)
+            ->assertDontSee('rahasia-sekali');
     }
 
     public function test_staf_dapat_mengubah_kata_sandi(): void
@@ -129,7 +214,7 @@ class PengaturanAkunTest extends TestCase
             'password_confirmation' => 'sandi-baru-123',
         ]);
 
-        $response->assertRedirect(route('guru.pengaturan-akun'));
+        $response->assertRedirect(route('pengaturan-akun.index'));
         $response->assertSessionHas('success');
 
         $this->assertTrue(Hash::check('sandi-baru-123', $guru->fresh()->password));
@@ -159,7 +244,7 @@ class PengaturanAkunTest extends TestCase
 
         $this->actingAs($admin)->post(route('pengaturan-akun.foto.update'), [
             'foto_profil' => UploadedFile::fake()->image('baru.jpg'),
-        ])->assertRedirect(route('admin.pengaturan-akun'));
+        ])->assertRedirect(route('profil.pengguna'));
 
         $admin->refresh();
 
@@ -170,7 +255,7 @@ class PengaturanAkunTest extends TestCase
         $fotoBaru = $admin->foto_profil;
 
         $this->actingAs($admin)->delete(route('pengaturan-akun.foto.destroy'))
-            ->assertRedirect(route('admin.pengaturan-akun'));
+            ->assertRedirect(route('profil.pengguna'));
 
         $this->assertNull($admin->fresh()->foto_profil);
         Storage::disk('public')->assertMissing($fotoBaru);

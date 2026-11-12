@@ -1,517 +1,214 @@
-
 @extends('layouts.guru')
 
 @section('title', 'Dashboard Guru')
 
 @section('content')
+    @include('partials.dashboard-gaya')
 
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+    <div class="dash">
 
-    .guru-dashboard {
-        font-family: 'Poppins', sans-serif;
-        color: #292929;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .guru-dashboard *,
-    .guru-dashboard *::before,
-    .guru-dashboard *::after {
-        box-sizing: border-box;
-    }
-
-    /* SAPAAN GURU */
-    .guru-dashboard .welcome h1 {
-        font-size: 30px;
-        font-weight: 600;
-        line-height: 1.4;
-        color: #080808;
-        margin: 0 0 8px;
-    }
-
-    .guru-dashboard .welcome p {
-        margin: 0 0 17px 3px;
-        font-size: 20px;
-        line-height: 1.5;
-        color: #111;
-    }
-
-    /* RINGKASAN DASHBOARD */
-    .guru-dashboard .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 13px;
-        margin: 0 0 19px 3px;
-    }
-
-    .guru-dashboard .stat-card {
-        min-width: 0;
-        min-height: 105px;
-        padding: 14px 15px 12px;
-        background: #fff;
-        border: 1px solid #eadfda;
-        border-radius: 11px;
-    }
-
-    .guru-dashboard .stat-icon {
-        display: block;
-        width: 25px;
-        height: 25px;
-        color: #780d20;
-        margin-bottom: 2px;
-    }
-
-    .guru-dashboard .stat-number {
-        font-size: 27px;
-        line-height: 1.35;
-        font-weight: 500;
-        color: #292929;
-    }
-
-    .guru-dashboard .stat-label {
-        margin-top: 4px;
-        font-size: 15px;
-        line-height: 1.4;
-        color: #77716e;
-    }
-
-    /* KARTU JADWAL */
-    .guru-dashboard .schedule-card {
-        background: #fff;
-        border: 1px solid #eadfda;
-        border-radius: 11px;
-        padding: 14px 14px 15px;
-        margin: 0 0 20px 3px;
-    }
-
-    .guru-dashboard .section-heading {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        color: #780d20;
-        font-size: 17px;
-        font-weight: 600;
-        line-height: 1.5;
-        margin: 0 0 12px;
-    }
-
-    .guru-dashboard .section-heading svg {
-        width: 24px;
-        height: 24px;
-        flex-shrink: 0;
-    }
-
-    /* DAFTAR JADWAL */
-    .guru-dashboard .schedule-list {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .guru-dashboard .schedule-item {
-        min-width: 0;
-        background: #fff;
-        border: 1px solid #e8e5e3;
-        border-radius: 11px;
-        padding: 13px 15px 12px;
-        transition: border-color 0.2s ease;
-    }
-
-    .guru-dashboard .schedule-item:hover {
-        border-color: #c8a1a8;
-    }
-
-    .guru-dashboard .schedule-time {
-        font-size: 16px;
-        font-weight: 600;
-        line-height: 1.5;
-        color: #252525;
-        margin-bottom: 5px;
-    }
-
-    .guru-dashboard .schedule-subject {
-        font-size: 16px;
-        font-weight: 500;
-        line-height: 1.5;
-        color: #292929;
-        margin: 0 0 4px;
-    }
-
-    .guru-dashboard .schedule-detail {
-        color: #85817f;
-        font-size: 14px;
-        line-height: 1.5;
-        margin: 0 0 5px;
-    }
-
-    .guru-dashboard .schedule-link {
-        display: inline-block;
-        color: #780d20;
-        font-size: 15px;
-        font-weight: 500;
-        text-decoration: none;
-        margin-top: 2px;
-        transition: color 0.2s ease;
-    }
-
-    .guru-dashboard .schedule-link:hover {
-        color: #a51a35;
-        text-decoration: underline;
-    }
-
-    .guru-dashboard .schedule-link:focus-visible {
-        outline: 2px solid #780d20;
-        outline-offset: 3px;
-        border-radius: 3px;
-    }
-
-    /* AKTIVITAS TERBARU */
-    .guru-dashboard .activity-card {
-        background: #fff;
-        border: 1px solid #eadfda;
-        border-radius: 10px;
-        padding: 15px 14px 8px;
-        margin: 0 0 20px 3px;
-    }
-
-    .guru-dashboard .activity-title {
-        color: #780d20;
-        font-size: 17px;
-        font-weight: 600;
-        line-height: 1.5;
-        margin: 0 0 9px;
-    }
-
-    .guru-dashboard .activity-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        padding: 10px 0 15px;
-        border-bottom: 1px solid #eadfda;
-    }
-
-    .guru-dashboard .activity-item:last-child {
-        border-bottom: none;
-    }
-
-    .guru-dashboard .activity-icon {
-        width: 20px;
-        height: 20px;
-        flex-shrink: 0;
-        margin-top: 1px;
-    }
-
-    .guru-dashboard .activity-icon.success {
-        color: #368c5d;
-    }
-
-    .guru-dashboard .activity-icon.normal {
-        color: #780d20;
-    }
-
-    .guru-dashboard .activity-name {
-        font-size: 14px;
-        line-height: 1.5;
-        color: #555;
-        margin: 0;
-    }
-
-    .guru-dashboard .activity-description {
-        font-size: 12px;
-        line-height: 1.6;
-        color: #77716e;
-        margin: 3px 0 0;
-    }
-
-    /* RESPONSIVE TABLET DAN HP */
-    @media (max-width: 768px) {
-        .guru-dashboard .welcome h1 {
-            font-size: 22px;
-        }
-
-        .guru-dashboard .welcome p {
-            font-size: 14px;
-            margin-left: 0;
-        }
-
-        .guru-dashboard .stats-grid {
-            gap: 10px;
-            margin-left: 0;
-        }
-
-        .guru-dashboard .stat-card {
-            min-height: 100px;
-            padding: 12px 11px;
-        }
-
-        .guru-dashboard .stat-icon {
-            width: 22px;
-            height: 22px;
-        }
-
-        .guru-dashboard .stat-number {
-            font-size: 24px;
-        }
-
-        .guru-dashboard .stat-label {
-            font-size: 12px;
-        }
-
-        .guru-dashboard .schedule-card,
-        .guru-dashboard .activity-card {
-            margin-left: 0;
-        }
-
-        .guru-dashboard .section-heading,
-        .guru-dashboard .activity-title {
-            font-size: 15px;
-        }
-
-        .guru-dashboard .schedule-item {
-            padding: 12px;
-        }
-
-        .guru-dashboard .schedule-time,
-        .guru-dashboard .schedule-subject {
-            font-size: 15px;
-        }
-
-        .guru-dashboard .schedule-detail {
-            font-size: 13px;
-        }
-    }
-
-    @media (max-width: 380px) {
-        .guru-dashboard .stats-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>
-
-<div class="guru-dashboard">
-
-    {{-- SAPAAN GURU --}}
-    <section class="welcome">
-        <h1>Assalamu’alaikum, {{ $guru?->name ?? 'Ustazah' }}! 👋</h1>
-
-        <p>
-            Semoga kegiatan mengajar hari ini berjalan lancar.
-        </p>
-    </section>
-
-    {{-- RINGKASAN DASHBOARD --}}
-    <section class="stats-grid">
-
-        {{-- MATA PELAJARAN --}}
-        <article class="stat-card">
-            <svg class="stat-icon"
-                 viewBox="0 0 24 24"
-                 fill="none"
-                 stroke="currentColor"
-                 stroke-width="2"
-                 stroke-linecap="round"
-                 stroke-linejoin="round"
-                 aria-hidden="true">
-                <path d="M12 7v14"/>
-                <path d="M3 5.5A2.5 2.5 0 0 1 5.5 3H12v18H5.5A2.5 2.5 0 0 0 3 23z"/>
-                <path d="M21 5.5A2.5 2.5 0 0 0 18.5 3H12v18h6.5A2.5 2.5 0 0 1 21 23z"/>
-            </svg>
-
-            <div class="stat-number">
-                {{ $jumlahMapel ?? 0 }}
+        <header class="dash-kepala">
+            <div class="dash-sapaan">
+                <h1>Assalamu’alaikum, {{ $guru?->name ?? 'Ustazah' }}</h1>
+                <p>Ringkasan penugasan, absensi, dan tugas yang menjadi tanggung jawab Anda.</p>
+                <span class="dash-peran">Guru</span>
             </div>
 
-            <div class="stat-label">Mata Pelajaran</div>
-        </article>
+            <span class="dash-tanggal">
+                <x-panel.ikon nama="jadwal" />
+                {{ now()->locale('id')->translatedFormat('l, d F Y') }}
+            </span>
+        </header>
 
-        {{-- KELOMPOK DIAJAR --}}
-        <article class="stat-card">
-            <svg class="stat-icon"
-                 viewBox="0 0 24 24"
-                 fill="none"
-                 stroke="currentColor"
-                 stroke-width="2"
-                 stroke-linecap="round"
-                 stroke-linejoin="round"
-                 aria-hidden="true">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="10" cy="7" r="4"/>
-                <path d="M20 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
+        {{-- Ringkasan angka --}}
+        <div class="dash-grid">
+            <x-dash.statistik
+                label="Mata Pelajaran"
+                :nilai="$ringkasan['jumlahMapel']"
+                ikon="pembelajaran"
+                :ket="$ringkasan['jumlahKelompok'].' kelompok diajar'"
+                :tautan="route('guru.jadwal-saya')" />
 
-            <div class="stat-number">
-                {{ $jumlahKelompok ?? 0 }}
-            </div>
+            <x-dash.statistik
+                label="Jadwal Mengajar"
+                :nilai="$ringkasan['jumlahJadwal']"
+                ikon="jadwal"
+                :ket="$ringkasan['jadwalHariIni']->count().' jadwal hari ini'"
+                :tautan="route('guru.jadwal-saya')" />
 
-            <div class="stat-label">Kelompok Diajar</div>
-        </article>
+            <x-dash.statistik
+                label="Absensi Hari Ini"
+                :nilai="$ringkasan['absensiHariIni']"
+                ikon="absensi"
+                :nada="$ringkasan['absensiBelumDiisi'] > 0 ? 'bahaya' : 'sukses'"
+                :ket="$ringkasan['absensiBelumDiisi'].' jadwal belum diisi'"
+                :tautan="route('guru.absensi')" />
 
-        {{-- JADWAL MINGGU INI --}}
-        <article class="stat-card">
-            <svg class="stat-icon"
-                 viewBox="0 0 24 24"
-                 fill="none"
-                 stroke="currentColor"
-                 stroke-width="2"
-                 stroke-linecap="round"
-                 stroke-linejoin="round"
-                 aria-hidden="true">
-                <rect x="3" y="4" width="18" height="17" rx="2"/>
-                <path d="M16 2v4M8 2v4M3 10h18"/>
-            </svg>
+            <x-dash.statistik
+                label="Tugas Aktif"
+                :nilai="$ringkasan['tugasAktif']"
+                ikon="tugas"
+                :ket="$ringkasan['tugasDraft'].' tugas masih draft'"
+                :tautan="route('guru.tugas.index')" />
 
-            <div class="stat-number">
-                {{ $jadwalMingguIni ?? 0 }}
-            </div>
+            <x-dash.statistik
+                label="Pengumpulan Masuk"
+                :nilai="$ringkasan['jumlahPengumpulan']"
+                ikon="pendaftaran"
+                ket="Dari seluruh tugas Anda"
+                :tautan="route('guru.tugas.index')" />
 
-            <div class="stat-label">Jadwal Minggu Ini</div>
-        </article>
-
-        {{-- ABSENSI PERLU DIISI --}}
-        <article class="stat-card">
-            <svg class="stat-icon"
-                 viewBox="0 0 24 24"
-                 fill="none"
-                 stroke="currentColor"
-                 stroke-width="2"
-                 stroke-linecap="round"
-                 stroke-linejoin="round"
-                 aria-hidden="true">
-                <rect x="5" y="4" width="14" height="18" rx="2"/>
-                <path d="M9 4V2h6v2M9 13l2 2 4-4"/>
-            </svg>
-
-            <div class="stat-number">
-                {{ $absensiPerluDiisi ?? 0 }}
-            </div>
-
-            <div class="stat-label">Absensi Perlu Diisi</div>
-        </article>
-
-    </section>
-
-    {{-- JADWAL MENGAJAR BERIKUTNYA --}}
-    <section class="schedule-card">
-
-        <div class="section-heading">
-            <span>Jadwal Mengajar Berikutnya</span>
-
-            <svg viewBox="0 0 24 24"
-                 fill="none"
-                 stroke="currentColor"
-                 stroke-width="2"
-                 stroke-linecap="round"
-                 stroke-linejoin="round"
-                 aria-hidden="true">
-                <rect x="3" y="5" width="18" height="16" rx="2"/>
-                <path d="M16 3v4M8 3v4M3 10h18"/>
-                <path d="M12 13v4l3 2"/>
-            </svg>
+            <x-dash.statistik
+                label="Belum Dinilai"
+                :nilai="$ringkasan['belumDinilai']"
+                ikon="laporan"
+                :nada="$ringkasan['belumDinilai'] > 0 ? 'emas' : 'sukses'"
+                ket="Pengumpulan menunggu penilaian"
+                :tautan="route('guru.tugas.index')" />
         </div>
 
-        <div class="schedule-list">
+        {{-- Aksi cepat --}}
+        <div class="dash-aksi">
+            <a href="{{ route('guru.tugas.create') }}">
+                <x-panel.ikon nama="tugas" />
+                <span>Buat Tugas</span>
+            </a>
 
-            @forelse ($jadwalMendatang ?? collect() as $jadwal)
-                <article class="schedule-item">
+            <a href="{{ route('guru.tugas.index') }}">
+                <x-panel.ikon nama="pendaftaran" />
+                <span>Periksa Pengumpulan</span>
+                @if ($ringkasan['belumDinilai'] > 0)
+                    <span class="dash-aksi-badge">{{ $ringkasan['belumDinilai'] }}</span>
+                @endif
+            </a>
 
-                    <div class="schedule-time">
-                        {{ $jadwal->hari }}, {{ $jadwal->jamTeks() }}
+            <a href="{{ route('guru.absensi') }}">
+                <x-panel.ikon nama="absensi" />
+                <span>Isi Absensi</span>
+                @if ($ringkasan['absensiBelumDiisi'] > 0)
+                    <span class="dash-aksi-badge">{{ $ringkasan['absensiBelumDiisi'] }}</span>
+                @endif
+            </a>
+
+            <a href="{{ route('guru.jadwal-saya') }}">
+                <x-panel.ikon nama="jadwal" />
+                <span>Lihat Jadwal</span>
+            </a>
+
+            <a href="{{ route('guru.kegiatan-dokumentasi') }}">
+                <x-panel.ikon nama="kegiatan" />
+                <span>Kegiatan &amp; Dokumentasi</span>
+            </a>
+        </div>
+
+        <div class="dash-kolom">
+
+            {{-- Jadwal hari ini --}}
+            <x-dash.panel judul="Jadwal Mengajar Hari Ini" ikon="jadwal"
+                :tautan="route('guru.jadwal-saya')" label-tautan="Jadwal Saya" rapat>
+                @forelse ($ringkasan['jadwalHariIni'] as $jadwal)
+                    <div class="dash-baris">
+                        <span class="dash-baris-ikon"><x-panel.ikon nama="jadwal" /></span>
+                        <span class="dash-baris-isi">
+                            <span class="dash-baris-utama">{{ $jadwal->namaMataPelajaran() }}</span>
+                            <span class="dash-baris-ket">
+                                {{ $jadwal->kelompok ?: '-' }} · {{ $jadwal->ruangan ?: 'Ruang Kelas' }}
+                            </span>
+                        </span>
+                        <span class="dash-baris-akhir">{{ $jadwal->jamTeks() }}</span>
                     </div>
+                @empty
+                    <x-dash.kosong pesan="Tidak ada jadwal mengajar hari ini."
+                        petunjuk="Jadwal ditetapkan oleh Musyrifah pada menu Manajemen Pembelajaran." />
+                @endforelse
+            </x-dash.panel>
 
-                    <h3 class="schedule-subject">
-                        {{ $jadwal->namaMataPelajaran() }} · {{ $jadwal->kelompok }}
-                    </h3>
+            {{-- Kelompok & mapel --}}
+            <x-dash.panel judul="Kelompok & Mata Pelajaran" ikon="pembelajaran">
+                <p class="dash-catatan" style="margin-top: 0;">Kelompok yang Anda ajar</p>
 
-                    <p class="schedule-detail">
-                        {{ $jadwal->ruangan ?: 'Ruang Kelas' }}
-                    </p>
+                @forelse ($ringkasan['kelompok'] as $kelompok)
+                    <span class="dash-pil" style="margin: 0 4px 6px 0;">{{ $kelompok }}</span>
+                @empty
+                    <x-dash.kosong pesan="Belum ada kelompok yang ditugaskan."
+                        petunjuk="Hubungi Musyrifah bila penugasan belum tersedia." />
+                @endforelse
 
-                    <a href="{{ route('guru.jadwal-saya') }}"
-                       class="schedule-link">
-                        Buka jadwal &rarr;
-                    </a>
+                <p class="dash-catatan" style="margin-top: 8px;">Mata pelajaran</p>
 
-                </article>
-            @empty
-                <article class="schedule-item">
-                    <h3 class="schedule-subject">Belum ada jadwal mengajar</h3>
-                    <p class="schedule-detail">
-                        Jadwal akan tampil setelah Musyrifah menetapkan penugasan pembelajaran.
-                    </p>
-                </article>
-            @endforelse
+                @forelse ($ringkasan['mataPelajaran'] as $mapel)
+                    <div class="dash-baris">
+                        <span class="dash-baris-ikon"><x-panel.ikon nama="pembelajaran" /></span>
+                        <span class="dash-baris-isi">
+                            <span class="dash-baris-utama">{{ $mapel }}</span>
+                        </span>
+                    </div>
+                @empty
+                    <x-dash.kosong pesan="Belum ada mata pelajaran yang ditugaskan." />
+                @endforelse
+            </x-dash.panel>
+
+            {{-- Tugas terbaru --}}
+            <x-dash.panel judul="Tugas Terbaru" ikon="tugas"
+                :tautan="route('guru.tugas.index')" label-tautan="Semua Tugas" rapat>
+                @forelse ($ringkasan['tugasDaftar'] as $tugas)
+                    <div class="dash-baris">
+                        <span class="dash-baris-ikon"><x-panel.ikon nama="tugas" /></span>
+                        <span class="dash-baris-isi">
+                            <span class="dash-baris-utama">{{ $tugas->judul }}</span>
+                            <span class="dash-baris-ket">
+                                {{ $tugas->kelompok ?: '-' }} · {{ $tugas->pengumpulan_count }} pengumpulan
+                                @if ($tugas->batas_pengumpulan)
+                                    · batas {{ $tugas->batas_pengumpulan->locale('id')->translatedFormat('d M Y H:i') }}
+                                @endif
+                            </span>
+                        </span>
+                        <span class="dash-baris-akhir">
+                            <span class="dash-pil"
+                                data-nada="{{ $tugas->status === \App\Models\Tugas::STATUS_DIPUBLIKASIKAN ? 'sukses' : 'emas' }}">
+                                {{ $tugas->status === \App\Models\Tugas::STATUS_DIPUBLIKASIKAN ? 'Aktif' : 'Draft' }}
+                            </span>
+                        </span>
+                    </div>
+                @empty
+                    <x-dash.kosong pesan="Belum ada tugas yang dibuat."
+                        petunjuk="Gunakan tombol Buat Tugas untuk memulai." />
+                @endforelse
+            </x-dash.panel>
+
+            {{-- Aktivitas --}}
+            <x-dash.panel judul="Aktivitas Terbaru" ikon="log" rapat>
+                @forelse ($ringkasan['aktivitas'] as $aktivitas)
+                    <div class="dash-baris">
+                        <span class="dash-baris-ikon"><x-panel.ikon nama="log" /></span>
+                        <span class="dash-baris-isi">
+                            <span class="dash-baris-utama">{{ $aktivitas['judul'] }}</span>
+                            <span class="dash-baris-ket">{{ $aktivitas['keterangan'] }}</span>
+                        </span>
+                        <span class="dash-baris-akhir">{{ $aktivitas['waktu']?->locale('id')->diffForHumans() }}</span>
+                    </div>
+                @empty
+                    <x-dash.kosong pesan="Belum ada aktivitas terbaru."
+                        petunjuk="Aktivitas tugas dan pengumpulan akan tampil di sini." />
+                @endforelse
+            </x-dash.panel>
+
+            {{-- Pengumuman --}}
+            <x-dash.panel judul="Pengumuman Ma’had" ikon="pengumuman" rapat>
+                @forelse ($ringkasan['pengumuman'] as $pengumuman)
+                    <div class="dash-baris">
+                        <span class="dash-baris-ikon"><x-panel.ikon nama="pengumuman" /></span>
+                        <span class="dash-baris-isi">
+                            <span class="dash-baris-utama">{{ $pengumuman->judul }}</span>
+                            <span class="dash-baris-ket">{{ $pengumuman->ringkasan(80) }}</span>
+                        </span>
+                        <span class="dash-baris-akhir">{{ $pengumuman->tanggalTeks() }}</span>
+                    </div>
+                @empty
+                    <x-dash.kosong pesan="Belum ada pengumuman yang dipublikasikan." />
+                @endforelse
+            </x-dash.panel>
 
         </div>
-
-    </section>
-
-    {{-- AKTIVITAS TERBARU --}}
-    <section class="activity-card">
-
-        <h2 class="activity-title">
-            Aktivitas Terbaru
-        </h2>
-
-        {{-- TUGAS --}}
-        <div class="activity-item">
-
-            <svg class="activity-icon success"
-                 viewBox="0 0 24 24"
-                 fill="none"
-                 stroke="currentColor"
-                 stroke-width="2"
-                 stroke-linecap="round"
-                 stroke-linejoin="round"
-                 aria-hidden="true">
-                <rect x="4" y="3" width="16" height="18" rx="2"/>
-                <path d="M8 8h8M8 12h8M8 16h5"/>
-            </svg>
-
-            <div>
-                <p class="activity-name">
-                    {{ $jumlahTugas ?? 0 }} tugas telah dibuat
-                </p>
-
-                <p class="activity-description">
-                    Kelola tugas, pengumpulan, dan penilaian mahasiswa pada menu Tugas.
-                </p>
-            </div>
-
-        </div>
-
-        {{-- PENGUMPULAN --}}
-        <div class="activity-item">
-
-            <svg class="activity-icon normal"
-                 viewBox="0 0 24 24"
-                 fill="none"
-                 stroke="currentColor"
-                 stroke-width="2"
-                 stroke-linecap="round"
-                 stroke-linejoin="round"
-                 aria-hidden="true">
-                <path d="M12 3v12"/>
-                <path d="m7 10 5 5 5-5"/>
-                <path d="M5 21h14"/>
-            </svg>
-
-            <div>
-                <p class="activity-name">
-                    Pengumpulan tugas mahasiswa
-                </p>
-
-                <p class="activity-description">
-                    Pengumpulan terbaru otomatis masuk ke halaman Pengumpulan Tugas.
-                </p>
-            </div>
-
-        </div>
-
-    </section>
-
-</div>
-
+    </div>
 @endsection

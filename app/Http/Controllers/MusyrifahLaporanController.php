@@ -2,14 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LaporanMahad;
 use App\Services\LaporanMahadService;
+use App\Services\LaporanRegisterService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MusyrifahLaporanController extends Controller
 {
-    public function __construct(private readonly LaporanMahadService $laporanMahad) {}
+    public function __construct(
+        private readonly LaporanMahadService $laporanMahad,
+        private readonly LaporanRegisterService $register,
+    ) {}
 
     /**
      * Menampilkan daftar kategori laporan Musyrifah.
@@ -44,7 +50,78 @@ class MusyrifahLaporanController extends Controller
             'periode' => $periode,
             'jenis' => $jenis,
             'opsiPeriode' => $this->laporanMahad->opsiPeriode(),
+            'labelPeriode' => $this->laporanMahad->labelPeriode($periode),
+            'register' => $this->register->daftar([
+                'sumber' => LaporanMahad::SUMBER_MUSYRIFAH,
+                'periode' => $periode,
+            ], 10),
+            'opsiJenis' => collect(LaporanRegisterService::JUDUL)
+                ->map(fn (string $judul, string $kunci): array => ['value' => $kunci, 'label' => $judul])
+                ->values()
+                ->all(),
+            'opsiLantai' => $this->laporanMahad->daftarLantai(),
         ]);
+    }
+
+    /**
+     * Mencatat laporan baru milik Musyrifah (status awal: draft).
+     */
+    public function simpanLaporan(Request $request): RedirectResponse
+    {
+        $this->pastikanPengelola($request);
+
+        $data = $request->validate([
+            'jenis' => ['required', 'string', 'in:'.implode(',', LaporanRegisterService::JENIS_SISTEM)],
+            'periode' => ['required', 'string', 'regex:/^\d{4}-(0[1-9]|1[0-2])$/'],
+            'lantai' => ['nullable', 'integer', 'between:1,10'],
+            'unit' => ['nullable', 'string', 'max:100'],
+            'catatan' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $laporan = $this->register->buatLaporanMusyrifah(
+            $request->user(),
+            $data['jenis'],
+            $data['periode'],
+            isset($data['lantai']) ? (int) $data['lantai'] : null,
+            $data['unit'] ?? null,
+            $data['catatan'] ?? null,
+        );
+
+        return redirect()
+            ->route('musyrifah.laporan', ['periode' => $laporan->periode])
+            ->with('status', 'Laporan '.$laporan->judul.' berhasil dibuat sebagai draft.');
+    }
+
+    /**
+     * Menerbitkan laporan milik Musyrifah.
+     */
+    public function terbitkanLaporan(Request $request, LaporanMahad $laporan): RedirectResponse
+    {
+        $this->pastikanPengelola($request);
+        $this->pastikanMilikMusyrifah($laporan);
+
+        $catatan = trim((string) $request->input('catatan', ''));
+        $this->register->terbitkan($laporan, $request->user(), $catatan ?: null);
+
+        return redirect()
+            ->route('musyrifah.laporan', ['periode' => $laporan->periode])
+            ->with('status', 'Laporan '.$laporan->judul.' berhasil diterbitkan.');
+    }
+
+    /**
+     * Mengarsipkan laporan milik Musyrifah.
+     */
+    public function arsipkanLaporan(Request $request, LaporanMahad $laporan): RedirectResponse
+    {
+        $this->pastikanPengelola($request);
+        $this->pastikanMilikMusyrifah($laporan);
+
+        $catatan = trim((string) $request->input('catatan', ''));
+        $this->register->arsipkan($laporan, $request->user(), $catatan ?: null);
+
+        return redirect()
+            ->route('musyrifah.laporan', ['periode' => $laporan->periode])
+            ->with('status', 'Laporan '.$laporan->judul.' berhasil diarsipkan.');
     }
 
     /**
@@ -127,5 +204,13 @@ class MusyrifahLaporanController extends Controller
     {
         $role = strtolower((string) $request->user()?->role);
         abort_unless(in_array($role, ['musyrifah', 'pengelola', 'admin'], true), 403);
+    }
+
+    /**
+     * Hanya laporan bersumber Musyrifah yang boleh diubah statusnya di sini.
+     */
+    private function pastikanMilikMusyrifah(LaporanMahad $laporan): void
+    {
+        abort_unless($laporan->sumber === LaporanMahad::SUMBER_MUSYRIFAH, 403);
     }
 }

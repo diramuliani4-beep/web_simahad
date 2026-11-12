@@ -100,7 +100,7 @@
         <div class="um-card">
             <div class="um-card-title">
                 <h2>Formulir Akun Pengguna</h2>
-                <p>Identitas, hak akses, kata sandi, dan status login dikelola oleh Admin.</p>
+                <p>Identitas, email, dan role ditentukan Admin. Kata sandi dibuat sendiri oleh pemilik akun melalui tautan aktivasi.</p>
             </div>
 
             <section class="um-section" aria-labelledby="infoPengguna">
@@ -174,38 +174,21 @@
                         @error('role')<span class="um-error">{{ $message }}</span>@enderror
                     </div>
                 </div>
-                <div class="um-note neutral" role="status" id="umSourceNote">Ketik data secara manual atau pilih pegawai dari saran nama. Password dan status login tetap ditentukan Admin.</div>
+                <div class="um-note neutral" role="status" id="umSourceNote">Ketik data secara manual atau pilih pegawai dari saran nama. Admin tidak membuat kata sandi; tautan aktivasi dikirim ke email pengguna.</div>
             </section>
 
             <section class="um-section" aria-labelledby="keamananPengguna">
-                <h3 id="keamananPengguna"><span class="um-step">02</span> Keamanan dan Status Login</h3>
-                <div class="um-grid">
-                    <div class="um-field">
-                        <label class="um-label" for="password">Kata Sandi <span class="um-required">*</span></label>
-                        <input id="password" name="password" type="password" minlength="8" maxlength="255" required
-                            class="um-control @error('password') is-invalid @enderror" placeholder="Minimal 8 karakter" autocomplete="new-password">
-                        <p class="um-help">Minimal 8 karakter. Gunakan kata sandi yang kuat.</p>
-                        @error('password')<span class="um-error">{{ $message }}</span>@enderror
-                    </div>
-                    <div class="um-field">
-                        <label class="um-label" for="password_confirmation">Konfirmasi Kata Sandi <span class="um-required">*</span></label>
-                        <input id="password_confirmation" name="password_confirmation" type="password" minlength="8" maxlength="255" required
-                            class="um-control" placeholder="Ulangi kata sandi" autocomplete="new-password">
-                    </div>
-                    <div class="um-field">
-                        <label class="um-label" for="status">Status Akun <span class="um-required">*</span></label>
-                        <select id="status" name="status" class="um-control @error('status') is-invalid @enderror" required>
-                            <option value="aktif" @selected(old('status', 'aktif') === 'aktif')>Aktif </option>
-                            <option value="nonaktif" @selected(old('status', 'aktif') === 'nonaktif')>Nonaktif</option>
-                        </select>
-                        <p class="um-help">Status akun untuk izin login, terpisah dari status kepegawaian.</p>
-                        @error('status')<span class="um-error">{{ $message }}</span>@enderror
-                    </div>
+                <h3 id="keamananPengguna"><span class="um-step">02</span> Aktivasi Akun</h3>
+                <div class="um-note">
+                    <strong>Admin tidak membuat dan tidak mengetahui kata sandi pengguna.</strong>
+                    Setelah akun disimpan, SIMAHAD mengirim tautan aktivasi ke email pengguna. Melalui tautan tersebut
+                    pemilik akun membuat kata sandi sendiri. Tautan berlaku 48 jam dan hanya dapat dipakai satu kali.
+                    Akun berstatus <em>Menunggu Aktivasi</em> sampai pemiliknya menyelesaikan proses ini.
                 </div>
             </section>
             <div class="um-form-foot">
                 <a class="um-btn" href="{{ route('admin.manajemen-pengguna') }}">Batal</a>
-                <button class="um-btn um-btn-primary" type="submit" id="umSubmit">Simpan Pengguna</button>
+                <button class="um-btn um-btn-primary" type="submit" id="umSubmit">Simpan &amp; Kirim Aktivasi</button>
             </div>
         </div>
     </form>
@@ -284,9 +267,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (selectedPegawai && roleInput.value === 'mahasiswa') {
             sourceNote.textContent = 'Data Pegawai tidak dapat dipakai untuk role Mahasiswa. Batalkan pilihan pegawai terlebih dahulu.';
         } else if (selectedPegawai) {
-            sourceNote.textContent = 'Identitas diambil dari Data Pegawai. Role, password, dan status akun tetap ditentukan Admin.';
+            sourceNote.textContent = 'Identitas diambil dari Data Pegawai. Role tetap ditentukan Admin; kata sandi dibuat pemilik akun lewat tautan aktivasi.';
         } else {
-            sourceNote.textContent = 'Input manual aktif. Jika akun dibuat untuk Guru, Musyrifah (Pengelola), atau Pimpinan, biodata dasar pegawai akan dibuat otomatis.';
+            sourceNote.textContent = 'Input manual aktif. Jika akun dibuat untuk Guru, Musyrifah (Pengelola), atau Pimpinan, biodata dasar pegawai akan dibuat otomatis. Tautan aktivasi dikirim ke email pengguna.';
         }
     }
     function applySelection(option, restoring = false) {

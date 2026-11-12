@@ -1,4 +1,3 @@
-
 @extends('layouts.pimpinan')
 
 @section('title', 'Laporan Ma’had')
@@ -24,7 +23,7 @@
         margin: 0 0 8px;
         font-size: 27px;
         font-weight: 700;
-        color: #780d20;
+        color: #6B0D1B;
     }
 
     .laporan-heading p {
@@ -39,7 +38,7 @@
         border: 1px solid #eadde0;
         border-radius: 10px;
         background: #fff;
-        color: #780d20;
+        color: #6B0D1B;
         font-size: 13px;
         font-weight: 600;
     }
@@ -51,7 +50,7 @@
         padding: 18px;
         margin-bottom: 26px;
         border: 1px solid #f0dfe3;
-        border-left: 4px solid #780d20;
+        border-left: 4px solid #6B0D1B;
         border-radius: 12px;
         background: #fff9fa;
     }
@@ -64,8 +63,8 @@
         width: 42px;
         height: 42px;
         border-radius: 10px;
-        background: #f5e5e9;
-        color: #780d20;
+        background: #F8EDEF;
+        color: #6B0D1B;
     }
 
     .laporan-info h3 {
@@ -87,6 +86,10 @@
         font-weight: 700;
     }
 
+    .laporan-section-title.geser {
+        margin-top: 32px;
+    }
+
     .laporan-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -102,14 +105,13 @@
         border-radius: 15px;
         background: #fff;
         box-shadow: 0 4px 15px rgba(50, 20, 30, .04);
-        transition: transform .2s ease, box-shadow .2s ease,
-                    border-color .2s ease;
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
     }
 
     .laporan-card:hover {
         transform: translateY(-4px);
         border-color: #d9b5bd;
-        box-shadow: 0 10px 25px rgba(120, 13, 32, .09);
+        box-shadow: 0 10px 25px rgba(107, 13, 27, .09);
     }
 
     .laporan-card-top {
@@ -127,11 +129,11 @@
         width: 48px;
         height: 48px;
         border-radius: 12px;
-        background: #f7e9ec;
-        color: #780d20;
+        background: #F8EDEF;
+        color: #6B0D1B;
     }
 
-    .laporan-icon svg,
+    .laporan-icon .ikon-menu,
     .laporan-info-icon svg {
         width: 23px;
         height: 23px;
@@ -163,7 +165,7 @@
         align-items: center;
         gap: 8px;
         width: fit-content;
-        color: #780d20;
+        color: #6B0D1B;
         font-size: 13px;
         font-weight: 700;
         text-decoration: none;
@@ -183,13 +185,200 @@
         transform: translateX(4px);
     }
 
+    /* Register laporan */
+    .reg-filter {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        border: 1px solid #eee7e9;
+        border-radius: 14px;
+        background: #fff;
+    }
+
+    .reg-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 155px;
+    }
+
+    .reg-field.cari {
+        flex: 1;
+        min-width: 210px;
+    }
+
+    .reg-field label {
+        color: #81777d;
+        font-size: 11.5px;
+        font-weight: 600;
+    }
+
+    .reg-field select,
+    .reg-field input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 9px 11px;
+        border: 1px solid #e8dfe2;
+        border-radius: 9px;
+        background: #fff;
+        color: #30272b;
+        font-family: inherit;
+        font-size: 12.5px;
+        outline-color: #6B0D1B;
+    }
+
+    .reg-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
+        border: 1px solid #6B0D1B;
+        border-radius: 9px;
+        background: #6B0D1B;
+        color: #fff;
+        font-family: inherit;
+        font-size: 12.5px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .reg-btn:hover {
+        background: #560A16;
+        border-color: #560A16;
+    }
+
+    .reg-btn.garis {
+        background: #fff;
+        color: #6B0D1B;
+        border-color: #ecd9dd;
+    }
+
+    .reg-btn.garis:hover {
+        background: #F8EDEF;
+        border-color: #C9A96A;
+        color: #6B0D1B;
+    }
+
+    .reg-kartu {
+        padding: 18px;
+        border: 1px solid #eee7e9;
+        border-radius: 15px;
+        background: #fff;
+        box-shadow: 0 4px 15px rgba(50, 20, 30, .04);
+    }
+
+    .reg-wrap {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .reg-tabel {
+        width: 100%;
+        min-width: 900px;
+        border-collapse: collapse;
+    }
+
+    .reg-tabel th {
+        padding: 11px 10px;
+        border-bottom: 1px solid #eee1e4;
+        background: #F8EDEF;
+        color: #6B0D1B;
+        text-align: left;
+        font-size: 11.5px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .reg-tabel td {
+        padding: 12px 10px;
+        border-bottom: 1px solid #f1ebed;
+        color: #51474c;
+        font-size: 12px;
+        vertical-align: top;
+    }
+
+    .reg-tabel tbody tr:hover {
+        background: #fffafb;
+    }
+
+    .reg-kosong {
+        padding: 26px !important;
+        color: #91858a !important;
+        text-align: center;
+    }
+
+    .reg-judul {
+        display: block;
+        color: #6B0D1B;
+        font-size: 12.5px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .reg-judul:hover {
+        text-decoration: underline;
+    }
+
+    .reg-sub {
+        display: block;
+        margin-top: 3px;
+        color: #91858a;
+        font-size: 11px;
+    }
+
+    .reg-badge {
+        display: inline-block;
+        padding: 3px 9px;
+        border-radius: 999px;
+        font-size: 10.5px;
+        font-weight: 700;
+    }
+
+    .reg-badge.draft {
+        background: #f4f1ed;
+        color: #7a6a54;
+    }
+
+    .reg-badge.diterbitkan {
+        background: #edf5ee;
+        color: #2f6b3a;
+    }
+
+    .reg-badge.diarsipkan {
+        background: #F8EDEF;
+        color: #6B0D1B;
+    }
+
+    .reg-aksi {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .reg-aksi a {
+        color: #6B0D1B;
+        font-size: 11.5px;
+        font-weight: 600;
+        text-decoration: none;
+        border-bottom: 1px solid #C9A96A;
+        padding-bottom: 1px;
+    }
+
+    .reg-paginasi {
+        margin-top: 14px;
+    }
+
     @media (max-width: 1000px) {
         .laporan-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 700px) {
         .laporan-heading h1 {
             font-size: 23px;
         }
@@ -206,6 +395,15 @@
             width: 100%;
             box-sizing: border-box;
         }
+
+        .reg-field,
+        .reg-field.cari {
+            min-width: 100%;
+        }
+
+        .reg-filter .reg-btn {
+            width: 100%;
+        }
     }
 </style>
 
@@ -214,8 +412,8 @@
         <div>
             <h1>Laporan Ma’had</h1>
             <p>
-                Monitoring data operasional Ma’had dalam satu halaman.
-                Data ditampilkan hanya untuk dilihat dan diunduh.
+                Register laporan gabungan seluruh lantai. Setiap laporan mencantumkan
+                sumber, pembuat, periode, dan statusnya.
             </p>
         </div>
 
@@ -244,8 +442,9 @@
         <div>
             <h3>Mode Monitoring</h3>
             <p>
-                Pimpinan hanya dapat melihat dan mengunduh laporan.
-                Perubahan data dilakukan melalui menu operasional Musyrifah.
+                Pimpinan hanya dapat melihat, memfilter, mencetak, dan mengunduh laporan.
+                Perubahan data operasional maupun isi laporan dilakukan oleh Musyrifah
+                sesuai lantai atau unitnya.
             </p>
         </div>
     </div>
@@ -257,48 +456,7 @@
             <article class="laporan-card">
                 <div class="laporan-card-top">
                     <div class="laporan-icon">
-                        @if ($item['ikon'] === 'users')
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                 viewBox="0 0 24 24" fill="none"
-                                 stroke="currentColor" stroke-width="2"
-                                 stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                                <circle cx="10" cy="7" r="4"/>
-                                <path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
-                            </svg>
-                        @elseif ($item['ikon'] === 'bed')
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                 viewBox="0 0 24 24" fill="none"
-                                 stroke="currentColor" stroke-width="2"
-                                 stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 7v13M21 7v13M3 12h18M5 12V9a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3"/>
-                                <path d="M12 12V9a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3"/>
-                            </svg>
-                        @elseif ($item['ikon'] === 'book-open')
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                 viewBox="0 0 24 24" fill="none"
-                                 stroke="currentColor" stroke-width="2"
-                                 stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 7v14M3 18V5a2 2 0 0 1 2-2h3a4 4 0 0 1 4 4 4 4 0 0 1 4-4h3a2 2 0 0 1 2 2v13h-5a4 4 0 0 0-4 3 4 4 0 0 0-4-3H3z"/>
-                            </svg>
-                        @elseif ($item['ikon'] === 'wallet')
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                 viewBox="0 0 24 24" fill="none"
-                                 stroke="currentColor" stroke-width="2"
-                                 stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="5" width="18" height="15" rx="2"/>
-                                <path d="M3 9h18M16 14h.01"/>
-                                <path d="M7 5V3h11"/>
-                            </svg>
-                        @elseif ($item['ikon'] === 'file-check')
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                 viewBox="0 0 24 24" fill="none"
-                                 stroke="currentColor" stroke-width="2"
-                                 stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <path d="M14 2v6h6M8 15l2.5 2.5L16 12"/>
-                            </svg>
-                        @endif
+                        <x-panel.ikon :nama="$item['ikon']" />
                     </div>
 
                     <span class="laporan-number">
@@ -319,6 +477,138 @@
                 </a>
             </article>
         @endforeach
+    </div>
+
+    <h2 class="laporan-section-title geser">Register Laporan</h2>
+
+    <form action="{{ route('pimpinan.laporan-mahad') }}" method="GET" class="reg-filter">
+        <div class="reg-field">
+            <label for="reg-jenis">Jenis laporan</label>
+            <select name="jenis" id="reg-jenis">
+                <option value="">Semua jenis</option>
+                @foreach ($opsiJenis as $opsi)
+                    <option value="{{ $opsi['value'] }}" @selected($filter['jenis'] === $opsi['value'])>
+                        {{ $opsi['label'] }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="reg-field">
+            <label for="reg-periode">Periode</label>
+            <select name="periode" id="reg-periode">
+                <option value="">Semua periode</option>
+                @foreach ($opsiPeriode as $opsi)
+                    <option value="{{ $opsi['value'] }}" @selected($filter['periode'] === $opsi['value'])>
+                        {{ $opsi['label'] }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="reg-field">
+            <label for="reg-lantai">Lantai / unit</label>
+            <select name="lantai" id="reg-lantai">
+                <option value="">Semua lantai</option>
+                @foreach ($opsiLantai as $opsi)
+                    <option value="{{ $opsi['value'] }}" @selected($filter['lantai'] === (string) $opsi['value'])>
+                        {{ $opsi['label'] }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="reg-field">
+            <label for="reg-sumber">Sumber</label>
+            <select name="sumber" id="reg-sumber">
+                <option value="">Semua sumber</option>
+                @foreach ($opsiSumber as $opsi)
+                    <option value="{{ $opsi['value'] }}" @selected($filter['sumber'] === $opsi['value'])>
+                        {{ $opsi['label'] }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="reg-field">
+            <label for="reg-status">Status</label>
+            <select name="status" id="reg-status">
+                <option value="">Semua status</option>
+                @foreach ($opsiStatus as $opsi)
+                    <option value="{{ $opsi['value'] }}" @selected($filter['status'] === $opsi['value'])>
+                        {{ $opsi['label'] }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="reg-field cari">
+            <label for="reg-cari">Pencarian</label>
+            <input type="text" name="cari" id="reg-cari" value="{{ $filter['cari'] }}"
+                placeholder="Cari judul, pembuat, atau unit...">
+        </div>
+
+        <button type="submit" class="reg-btn">Terapkan</button>
+        <a href="{{ route('pimpinan.laporan-mahad') }}" class="reg-btn garis">Reset</a>
+    </form>
+
+    <div class="reg-kartu">
+        <div class="reg-wrap">
+            <table class="reg-tabel">
+                <thead>
+                    <tr>
+                        <th>Laporan</th>
+                        <th>Periode</th>
+                        <th>Lantai / Unit</th>
+                        <th>Pembuat</th>
+                        <th>Status</th>
+                        <th>Dibuat</th>
+                        <th>Terakhir Diperbarui</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($daftar as $item)
+                        <tr>
+                            <td>
+                                <a href="{{ route('pimpinan.laporan.detail', $item) }}" class="reg-judul">
+                                    {{ $item->judul }}
+                                </a>
+                                <span class="reg-sub">
+                                    {{ \App\Services\LaporanRegisterService::JUDUL[$item->jenis] ?? $item->jenis }}
+                                </span>
+                            </td>
+                            <td>{{ $item->labelPeriode() }}</td>
+                            <td>{{ $item->labelUnit() }}</td>
+                            <td>
+                                {{ $item->identitasPembuat() }}
+                                <span class="reg-sub">{{ $item->labelSumber() }}</span>
+                            </td>
+                            <td>
+                                <span class="reg-badge {{ $item->kelasStatus() }}">{{ $item->labelStatus() }}</span>
+                                <span class="reg-sub">Versi {{ (int) $item->versi }}</span>
+                            </td>
+                            <td>{{ $item->created_at?->format('d/m/Y H:i') ?? '-' }}</td>
+                            <td>{{ $item->updated_at?->format('d/m/Y H:i') ?? '-' }}</td>
+                            <td>
+                                <div class="reg-aksi">
+                                    <a href="{{ route('pimpinan.laporan.detail', $item) }}">Detail</a>
+                                    <a href="{{ route('pimpinan.laporan.cetak', $item) }}" target="_blank">Cetak</a>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="reg-kosong">
+                                Belum ada laporan yang sesuai dengan filter ini.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <div class="reg-paginasi">{{ $daftar->links() }}</div>
     </div>
 </div>
 @endsection

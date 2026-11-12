@@ -3,55 +3,59 @@
 namespace App\Http\Controllers;
 
 use App\Services\LaporanMahadService;
+use App\Services\LaporanRegisterService;
+use App\Services\PimpinanMonitoringService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PimpinanLaporanMahadController extends Controller
 {
-    public function __construct(private readonly LaporanMahadService $laporanMahad) {}
+    public function __construct(
+        private readonly LaporanMahadService $laporanMahad,
+        private readonly LaporanRegisterService $register,
+        private readonly PimpinanMonitoringService $monitoring,
+    ) {}
 
     /**
-     * Halaman utama laporan Ma'had untuk Pimpinan (monitoring).
+     * Halaman Laporan Ma'had untuk Pimpinan (monitoring, hanya lihat).
      */
     public function index(Request $request): View
     {
         $this->pastikanPimpinan($request);
 
-        $laporan = [
-            [
-                'ikon' => 'users',
-                'judul' => 'Laporan Penghuni',
-                'deskripsi' => 'Monitoring data penghuni Ma’had, termasuk NIM, nama, program studi, angkatan, dan kamar.',
-                'url' => route('pimpinan.laporan-penghuni'),
-            ],
-            [
-                'ikon' => 'bed',
-                'judul' => 'Laporan Kamar',
-                'deskripsi' => 'Monitoring penggunaan kamar dan jumlah penghuni pada setiap kamar.',
-                'url' => route('pimpinan.laporan-kamar'),
-            ],
-            [
-                'ikon' => 'book-open',
-                'judul' => 'Laporan Kehadiran',
-                'deskripsi' => 'Monitoring rekap kehadiran mahasiswa pada kegiatan pembelajaran Ma’had.',
-                'url' => route('pimpinan.laporan-kehadiran'),
-            ],
-            [
-                'ikon' => 'wallet',
-                'judul' => 'Laporan Pembayaran',
-                'deskripsi' => 'Monitoring status pembayaran dan administrasi keuangan penghuni Ma’had.',
-                'url' => route('pimpinan.laporan-pembayaran'),
-            ],
-            [
-                'ikon' => 'file-check',
-                'judul' => 'Laporan Pendaftaran',
-                'deskripsi' => 'Monitoring data pendaftar dan status pendaftaran Ma’had.',
-                'url' => route('pimpinan.laporan-pendaftaran'),
-            ],
+        $filter = [
+            'jenis' => trim((string) $request->query('jenis', '')),
+            'periode' => trim((string) $request->query('periode', '')),
+            'lantai' => trim((string) $request->query('lantai', '')),
+            'sumber' => trim((string) $request->query('sumber', '')),
+            'status' => trim((string) $request->query('status', '')),
+            'cari' => trim((string) $request->query('cari', '')),
         ];
 
-        return view('pimpinan.laporan_mahad', compact('laporan'));
+        // Rekap otomatis sistem dipastikan tercatat untuk periode terpilih.
+        $this->register->pastikanRekapSistem($filter['periode']);
+
+        return view('pimpinan.laporan_mahad', [
+            'laporan' => $this->laporanMahad->kategoriSistem(),
+            'daftar' => $this->register->daftar($filter),
+            'filter' => $filter,
+            'opsiPeriode' => $this->laporanMahad->opsiPeriode(),
+            'opsiJenis' => collect(LaporanRegisterService::JUDUL)
+                ->map(fn (string $judul, string $jenis): array => ['value' => $jenis, 'label' => $judul])
+                ->values()
+                ->all(),
+            'opsiLantai' => $this->monitoring->opsiLantai(),
+            'opsiStatus' => [
+                ['value' => 'draft', 'label' => 'Draft'],
+                ['value' => 'diterbitkan', 'label' => 'Diterbitkan'],
+                ['value' => 'diarsipkan', 'label' => 'Diarsipkan'],
+            ],
+            'opsiSumber' => [
+                ['value' => 'sistem', 'label' => 'Rekap Sistem'],
+                ['value' => 'musyrifah', 'label' => 'Musyrifah'],
+            ],
+        ]);
     }
 
     public function penghuni(Request $request): View
@@ -77,6 +81,16 @@ class PimpinanLaporanMahadController extends Controller
     public function pendaftaran(Request $request): View
     {
         return $this->tampilkan('pendaftaran', $request);
+    }
+
+    public function pembelajaran(Request $request): View
+    {
+        return $this->tampilkan('pembelajaran', $request);
+    }
+
+    public function perizinan(Request $request): View
+    {
+        return $this->tampilkan('perizinan', $request);
     }
 
     /**
@@ -152,6 +166,8 @@ class PimpinanLaporanMahadController extends Controller
             'kehadiran' => 'pimpinan.laporan-kehadiran',
             'pembayaran' => 'pimpinan.laporan-pembayaran',
             'pendaftaran' => 'pimpinan.laporan-pendaftaran',
+            'pembelajaran' => 'pimpinan.laporan-pembelajaran',
+            'perizinan' => 'pimpinan.laporan-perizinan',
             default => abort(404),
         };
     }

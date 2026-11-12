@@ -6,11 +6,13 @@ use App\Models\ActivityLog;
 use App\Models\Pegawai;
 use App\Models\PegawaiAkun;
 use App\Models\User;
+use App\Services\AktivasiAkunService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -27,6 +29,10 @@ class AdminManajemenPenggunaController extends Controller
     private const STATUS_AKUN = ['aktif', 'nonaktif'];
 
     private const STATUS_MENUNGGU = ['menunggu aktivasi', 'menunggu', 'pending'];
+
+    public function __construct(
+        private readonly AktivasiAkunService $aktivasi,
+    ) {}
 
     private function pastikanAdmin(Request $request): void
     {
@@ -106,8 +112,6 @@ class AdminManajemenPenggunaController extends Controller
             'email' => ['nullable', 'email', 'max:255'],
             'no_hp' => ['nullable', 'string', 'max:20'],
             'role' => ['required', Rule::in(self::ROLES)],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'status' => ['required', Rule::in(self::STATUS_AKUN)],
         ]);
 
         $pegawaiId = isset($data['pegawai_id']) ? (int) $data['pegawai_id'] : null;
@@ -125,7 +129,7 @@ class AdminManajemenPenggunaController extends Controller
             ]);
         }
 
-        DB::transaction(function () use ($request, $data, $pegawaiId): void {
+        $akunBaru = DB::transaction(function () use ($request, $data, $pegawaiId): User {
             $pegawai = null;
 
             if ($pegawaiId) {
@@ -161,14 +165,15 @@ class AdminManajemenPenggunaController extends Controller
                 }
             }
 
-            // Model User sudah memiliki cast password => hashed.
+            // Kata sandi acak tidak diketahui siapa pun (termasuk Admin);
+            // pemilik akun menentukan kata sandinya lewat tautan aktivasi.
             $akun = User::create([
                 'name' => $nama,
                 'email' => $email,
                 'no_hp' => $noHp,
                 'role' => $data['role'],
-                'password' => $data['password'],
-                'status' => $data['status'],
+                'password' => Str::random(40),
+                'status' => 'menunggu aktivasi',
             ]);
 
             if (! $pegawai && in_array($akun->role, self::ROLES_AUTO_PEGAWAI, true)) {
@@ -189,11 +194,19 @@ class AdminManajemenPenggunaController extends Controller
                 ]);
             }
 
-            $this->catat($request, 'create_user', 'Menambahkan pengguna baru: '.$akun->name);
+            $this->catat($request, 'create_user', 'Menambahkan pengguna baru (menunggu aktivasi): '.$akun->name);
+
+            return $akun;
         }, 3);
 
+        $hasil = $this->aktivasi->kirimTautan($akunBaru);
+
+        $pesan = $hasil['terkirim']
+            ? 'Akun '.$akunBaru->name.' berhasil dibuat. Tautan aktivasi sudah dikirim ke '.$akunBaru->email.' agar pemilik akun membuat kata sandinya sendiri.'
+            : 'Akun '.$akunBaru->name.' berhasil dibuat, tetapi email aktivasi gagal dikirim. '.$hasil['alasan'].' Gunakan tombol "Kirim Aktivasi" pada daftar pengguna untuk mengirim ulang.';
+
         return redirect()->route('admin.manajemen-pengguna')
-            ->with('success', 'Akun pengguna berhasil ditambahkan.');
+            ->with($hasil['terkirim'] ? 'success' : 'error', $pesan);
     }
 
     public function edit(Request $request, User $user): View
@@ -215,8 +228,11 @@ class AdminManajemenPenggunaController extends Controller
             'no_hp' => ['nullable', 'string', 'max:20'],
             'role' => ['required', Rule::in(self::ROLES)],
             'status' => ['required', Rule::in(array_merge(self::STATUS_AKUN, self::STATUS_MENUNGGU))],
-            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
+
+        // Bila Admin memindahkan akun ke status menunggu aktivasi, tautan aktivasi baru dikirim ulang.
+        $perluKirimAktivasi = $data['status'] === 'menunggu aktivasi'
+            && ! in_array(strtolower((string) $user->status), self::STATUS_MENUNGGU, true);
 
         $keluarDariAkunSendiri = DB::transaction(function () use ($request, $user, $data): bool {
             $akun = User::query()->lockForUpdate()->findOrFail($user->getKey());
@@ -271,9 +287,6 @@ class AdminManajemenPenggunaController extends Controller
             $akun->no_hp = $data['no_hp'] ?? null;
             $akun->role = $data['role'];
             $akun->status = $data['status'];
-            if (! empty($data['password'])) {
-                $akun->password = $data['password'];
-            }
             $akun->save();
 
             if ($pegawai) {
@@ -301,6 +314,10 @@ class AdminManajemenPenggunaController extends Controller
             return $hilangAksesAdmin;
         }, 3);
 
+        $hasilAktivasi = $perluKirimAktivasi
+            ? $this->aktivasi->kirimTautan($user->refresh())
+            : null;
+
         if ($keluarDariAkunSendiri) {
             // Hak akses baru harus berlaku sekarang, bukan setelah sesi berakhir.
             Auth::logout();
@@ -309,6 +326,11 @@ class AdminManajemenPenggunaController extends Controller
 
             return redirect()->route('login')
                 ->with('success', 'Perubahan akun berhasil disimpan. Silakan masuk kembali dengan akun yang masih aktif.');
+        }
+
+        if ($hasilAktivasi !== null && ! $hasilAktivasi['terkirim']) {
+            return redirect()->route('admin.manajemen-pengguna')
+                ->with('error', 'Data akun pengguna berhasil diperbarui, tetapi email aktivasi gagal dikirim. '.$hasilAktivasi['alasan']);
         }
 
         return redirect()->route('admin.manajemen-pengguna')
@@ -382,6 +404,25 @@ class AdminManajemenPenggunaController extends Controller
         });
 
         return back()->with('success', 'Aktivasi akun ditolak; akun dinonaktifkan.');
+    }
+
+    /**
+     * Mengirim ulang tautan aktivasi tanpa membuat kata sandi baru.
+     */
+    public function kirimAktivasi(Request $request, User $user): RedirectResponse
+    {
+        $this->pastikanAdmin($request);
+
+        if (! in_array(strtolower((string) $user->status), self::STATUS_MENUNGGU, true)) {
+            return back()->with('error', 'Tautan aktivasi hanya dapat dikirim untuk akun yang belum diaktifkan.');
+        }
+
+        $hasil = $this->aktivasi->kirimTautan($user);
+        $this->catat($request, 'send_activation', 'Mengirim tautan aktivasi akun: '.$user->name);
+
+        return $hasil['terkirim']
+            ? back()->with('success', 'Tautan aktivasi baru sudah dikirim ke '.$user->email.'.')
+            : back()->with('error', 'Tautan aktivasi gagal dikirim ke '.$user->email.'. '.$hasil['alasan']);
     }
 
     private function normalisasiInput(Request $request): void

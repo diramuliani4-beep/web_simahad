@@ -139,9 +139,9 @@ class PengaturanSistemTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.pengaturan-sistem'))
             ->assertOk()
-            ->assertSee('profileMenuToggle', false)
-            ->assertSee('profileMenuPanel', false)
-            ->assertSee(route('admin.pengaturan-akun'), false)
+            ->assertSee('profilDropdown', false)
+            ->assertSee('Lihat Profil')
+            ->assertSee(route('pengaturan-akun.index'), false)
             ->assertSee('Admin SIMAHAD');
     }
 

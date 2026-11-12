@@ -72,20 +72,20 @@
     .dp-dialog-backdrop[hidden] { display: none !important; }
     .dp-dialog-backdrop { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center;
         padding: 20px; background: rgba(12, 20, 32, .70); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
-    .dp-dialog { width: min(100%, 715px); max-height: calc(100dvh - 40px); overflow-y: auto; border: 1px solid #800b22;
-        border-radius: 10px; background: #fff; box-shadow: 0 24px 65px rgba(0,0,0,.27); padding: 42px 48px 38px;
+    .dp-dialog { width: min(100%, 460px); max-height: calc(100dvh - 40px); overflow-y: auto; border: 1px solid #800b22;
+        border-radius: 10px; background: #fff; box-shadow: 0 24px 65px rgba(0,0,0,.27); padding: 22px 24px 20px;
         text-align: center; color: #202020; }
-    .dp-dialog-icon { display: flex; align-items: center; justify-content: center; width: 94px; height: 94px;
-        margin: 0 auto 24px; background: #f9eff1; border-radius: 50%; color: #800b22; }
-    .dp-dialog-icon svg { width: 42px; height: 42px; }
-    .dp-dialog h2 { font-size: 26px; line-height: 1.35; font-weight: 650; margin: 0 0 12px; }
-    .dp-dialog-desc { margin: 0 auto; max-width: 560px; color: #737373; font-size: 15px; line-height: 1.7; }
+    .dp-dialog-icon { display: flex; align-items: center; justify-content: center; width: 54px; height: 54px;
+        margin: 0 auto 13px; background: #f9eff1; border-radius: 50%; color: #800b22; }
+    .dp-dialog-icon svg { width: 25px; height: 25px; }
+    .dp-dialog h2 { font-size: 17px; line-height: 1.35; font-weight: 650; margin: 0 0 8px; }
+    .dp-dialog-desc { margin: 0 auto; max-width: 360px; color: #737373; font-size: 12.5px; line-height: 1.55; }
     .dp-dialog-desc strong { color: #333; overflow-wrap: anywhere; }
-    .dp-dialog-note { margin: 16px auto 0; max-width: 550px; padding: 10px 14px; border-radius: 8px;
-        background: #fbf4f5; color: #74424b; font-size: 12px; line-height: 1.6; }
-    .dp-dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 36px; }
-    .dp-dialog-button { display: inline-flex; justify-content: center; align-items: center; min-height: 55px;
-        padding: 12px 16px; border-radius: 11px; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+    .dp-dialog-note { margin: 10px auto 0; max-width: 360px; padding: 9px 11px; border-radius: 8px;
+        background: #fbf4f5; color: #74424b; font-size: 11.5px; line-height: 1.55; }
+    .dp-dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+    .dp-dialog-button { display: inline-flex; justify-content: center; align-items: center; min-height: 38px;
+        padding: 8px 12px; border-radius: 9px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
     .dp-dialog-cancel { border: 1px solid #800b22; background: #fff; color: #800b22; }
     .dp-dialog-cancel:hover { background: #fdf3f5; }
     .dp-dialog-submit { border: 1px solid #800b22; background: #800b22; color: #fff; }
@@ -109,13 +109,13 @@
         .dp-btn-primary { width: 100%; }
         .dp-search-row button { padding: 0 12px; }
         .dp-search-label { display: none; }
-        .dp-dialog { padding: 28px 20px; }
-        .dp-dialog-icon { width: 78px; height: 78px; margin-bottom: 19px; }
-        .dp-dialog-icon svg { width: 34px; height: 34px; }
-        .dp-dialog h2 { font-size: 22px; }
-        .dp-dialog-desc { font-size: 13px; }
-        .dp-dialog-actions { gap: 10px; margin-top: 28px; }
-        .dp-dialog-button { min-height: 48px; font-size: 13px; }
+        .dp-dialog { padding: 18px 16px 16px; }
+        .dp-dialog-icon { width: 46px; height: 46px; margin-bottom: 11px; }
+        .dp-dialog-icon svg { width: 22px; height: 22px; }
+        .dp-dialog h2 { font-size: 16px; }
+        .dp-dialog-desc { font-size: 12px; }
+        .dp-dialog-actions { gap: 8px; margin-top: 16px; }
+        .dp-dialog-button { min-height: 36px; font-size: 11.5px; }
     }
 </style>
 @endpush

@@ -1,8 +1,22 @@
 @php
+    // Nilai bawaan menjaga halaman lama tetap berjalan, sementara halaman
+    // Pengaturan Akun terpadu dapat mengirim route sesuai role pemilik akun.
+    $aksiProfil = $aksiProfil ?? null;
+    $aksiFoto = $aksiFoto ?? 'pengaturan-akun.foto.update';
+    $aksiHapusFoto = $aksiHapusFoto ?? 'pengaturan-akun.foto.destroy';
+    $aksiPassword = $aksiPassword ?? 'pengaturan-akun.password.update';
+    $aksiEmail = $aksiEmail ?? 'pengaturan-akun.email.update';
+    $daftarAkses = $daftarAkses ?? [];
+    $tautanAkses = $tautanAkses ?? null;
+    $pegawai = $pegawai ?? null;
+
     $adaFoto = filled($user->foto_profil);
-    $urlFoto = $adaFoto ? asset('storage/'.$user->foto_profil) : null;
-    $inisial = strtoupper(mb_substr($user->name ?? 'P', 0, 1));
     $rolePengguna = strtolower(trim((string) $user->role));
+
+    // Halaman staf hanya mengurus kata sandi dan email: foto profil lewat menu
+    // Lihat Profil, data pribadi lewat menu Data Saya. Mahasiswa memakai alur lama.
+    $peranStaf = $rolePengguna !== 'mahasiswa';
+    $punyaSandi = $user->sudahPunyaKataSandi();
 
     $statusAkun = strtolower(trim((string) $user->status));
     $labelStatus = match ($statusAkun) {
@@ -386,6 +400,40 @@
             width: 100%;
         }
     }
+
+    /* Kolom kata sandi dengan tombol tampil/sembunyi */
+    .pa-sandi {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .pa-sandi input {
+        width: 100%;
+        padding-right: 62px;
+    }
+
+    .pa-toggle-sandi {
+        position: absolute;
+        right: 7px;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 5px 10px;
+        border: 1px solid #e3d3d8;
+        border-radius: 7px;
+        background: #fbf5f6;
+        color: #6B0D1B;
+        font-family: inherit;
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: .02em;
+        cursor: pointer;
+    }
+
+    .pa-toggle-sandi:hover {
+        background: #F8EDEF;
+        border-color: #C9A96A;
+    }
 </style>
 
 <div class="pa-page">
@@ -395,7 +443,13 @@
         <div class="pa-breadcrumb">Dashboard / Pengaturan Akun</div>
         <h1>Pengaturan Akun</h1>
         <p class="pa-subtitle">
-            Kelola profil, foto, dan keamanan akun {{ $labelPeran }} SIMAHAD.
+            @if ($peranStaf)
+                Atur kata sandi dan email akun {{ $labelPeran }} SIMAHAD. Data pribadi diubah
+                melalui menu <strong>Data Saya</strong>, sedangkan foto profil melalui menu
+                <strong>Lihat Profil</strong>.
+            @else
+                Kelola profil, foto, dan keamanan akun {{ $labelPeran }} SIMAHAD.
+            @endif
         </p>
     </header>
 
@@ -420,166 +474,319 @@
 
     <div class="pa-grid">
 
-        {{-- PROFIL DAN FOTO --}}
-        <section class="pa-card">
-            <div class="pa-profil-head">
-                <div class="pa-avatar">
-                    @if ($adaFoto)
-                        <img src="{{ $urlFoto }}" alt="Foto profil {{ $user->name }}">
+        <div class="pa-kolom">
+            @if ($peranStaf)
+
+                {{-- KATA SANDI: PEMBUATAN PERTAMA ATAU PENGGANTIAN --}}
+                <section class="pa-card" id="keamananAkun">
+                    <h2 class="pa-judul">Keamanan Akun</h2>
+
+                    @if ($punyaSandi)
+                        <p class="pa-muted">
+                            Masukkan kata sandi saat ini sebagai verifikasi, lalu tentukan kata sandi baru
+                            minimal 8 karakter. Kata sandi disimpan dalam bentuk <strong>hash</strong>
+                            sehingga tidak dapat dibaca Admin Sistem maupun pengguna lain.
+                        </p>
                     @else
-                        <span class="pa-inisial">{{ $inisial }}</span>
+                        <p class="pa-muted">
+                            Akun Anda dibuatkan Admin Sistem sehingga belum memiliki kata sandi pribadi.
+                            Ketik email akun sebagai konfirmasi identitas, lalu buat kata sandi Anda sendiri.
+                            Kata sandi disimpan dalam bentuk <strong>hash</strong> dan tidak dapat dibaca
+                            Admin Sistem maupun pengguna lain.
+                        </p>
                     @endif
-                </div>
 
-                <div class="pa-profil-identitas">
-                    <h2>{{ $user->name }}</h2>
-                    <p>{{ $labelPeran }} · {{ $user->email ?: 'Email belum tersedia' }}</p>
+                    <form class="pa-form" action="{{ route($aksiPassword) }}" method="POST" autocomplete="off">
+                        @csrf
+                        @method('PUT')
 
-                    <div class="pa-foto-aksi">
-                        <form action="{{ route('pengaturan-akun.foto.update') }}" method="POST" enctype="multipart/form-data">
+                        @unless ($punyaSandi)
+                            <div class="pa-field">
+                                <label for="paEmailKonfirmasi">Email Akun <span class="pa-wajib">*</span></label>
+                                <input
+                                    type="email"
+                                    id="paEmailKonfirmasi"
+                                    name="email_konfirmasi"
+                                    value="{{ old('email_konfirmasi', $user->email) }}"
+                                    maxlength="255"
+                                    required
+                                    autocomplete="email"
+                                >
+                            </div>
+                        @else
+                            <div class="pa-field">
+                                <label for="paPasswordLama">Kata Sandi Saat Ini <span class="pa-wajib">*</span></label>
+                                <div class="pa-sandi">
+                                    <input
+                                        type="password"
+                                        id="paPasswordLama"
+                                        name="password_lama"
+                                        required
+                                        autocomplete="current-password"
+                                    >
+                                    <button type="button" class="pa-toggle-sandi" data-sandi="paPasswordLama" aria-label="Tampilkan kata sandi">Lihat</button>
+                                </div>
+                            </div>
+                        @endunless
+
+                        <div class="pa-field">
+                            <label for="paPasswordBaru">Kata Sandi Baru <span class="pa-wajib">*</span></label>
+                            <div class="pa-sandi">
+                                <input
+                                    type="password"
+                                    id="paPasswordBaru"
+                                    name="password"
+                                    minlength="8"
+                                    required
+                                    autocomplete="new-password"
+                                >
+                                <button type="button" class="pa-toggle-sandi" data-sandi="paPasswordBaru" aria-label="Tampilkan kata sandi">Lihat</button>
+                            </div>
+                        </div>
+
+                        <div class="pa-field">
+                            <label for="paPasswordKonfirmasi">Konfirmasi Kata Sandi Baru <span class="pa-wajib">*</span></label>
+                            <div class="pa-sandi">
+                                <input
+                                    type="password"
+                                    id="paPasswordKonfirmasi"
+                                    name="password_confirmation"
+                                    minlength="8"
+                                    required
+                                    autocomplete="new-password"
+                                >
+                                <button type="button" class="pa-toggle-sandi" data-sandi="paPasswordKonfirmasi" aria-label="Tampilkan kata sandi">Lihat</button>
+                            </div>
+                        </div>
+
+                        <div class="pa-aksi">
+                            <button type="submit" class="pa-btn pa-btn--utama">
+                                {{ $punyaSandi ? 'Perbarui Kata Sandi' : 'Buat Kata Sandi' }}
+                            </button>
+                        </div>
+                    </form>
+
+                    @unless ($punyaSandi)
+                        <p class="pa-catatan">
+                            Belum menerima tautan aktivasi atau lupa kata sandi? Minta Admin Sistem
+                            mengirim ulang tautan aktivasi atau reset. Admin hanya mengirim tautan,
+                            sedangkan kata sandi tetap Anda yang membuat sendiri.
+                        </p>
+                    @endunless
+                </section>
+
+                {{-- EMAIL AKUN DENGAN VERIFIKASI KATA SANDI --}}
+                @if ($punyaSandi)
+                    <section class="pa-card" id="emailAkun">
+                        <h2 class="pa-judul">Email Akun</h2>
+                        <p class="pa-muted">
+                            Email ini dipakai untuk masuk ke SIMAHAD. Penggantian email wajib
+                            diverifikasi dengan kata sandi saat ini agar akun tidak diambil alih
+                            pihak lain.
+                        </p>
+
+                        <form class="pa-form" action="{{ route($aksiEmail) }}" method="POST" autocomplete="off">
                             @csrf
-                            <input
-                                type="file"
-                                name="foto_profil"
-                                id="paInputFoto"
-                                accept=".jpg,.jpeg,.png,.webp"
-                                hidden
-                                onchange="this.form.submit()"
-                            >
-                            <label for="paInputFoto" class="pa-btn pa-btn--garis">
-                                {{ $adaFoto ? 'Ganti Foto' : 'Unggah Foto' }}
-                            </label>
+                            @method('PUT')
+
+                            <div class="pa-field">
+                                <label for="paEmailBaru">Email Baru <span class="pa-wajib">*</span></label>
+                                <input
+                                    type="email"
+                                    id="paEmailBaru"
+                                    name="email"
+                                    value="{{ old('email', $user->email) }}"
+                                    maxlength="255"
+                                    required
+                                    autocomplete="email"
+                                >
+                            </div>
+
+                            <div class="pa-field">
+                                <label for="paEmailSandi">Kata Sandi Saat Ini <span class="pa-wajib">*</span></label>
+                                <div class="pa-sandi">
+                                    <input
+                                        type="password"
+                                        id="paEmailSandi"
+                                        name="password_saat_ini"
+                                        required
+                                        autocomplete="current-password"
+                                    >
+                                    <button type="button" class="pa-toggle-sandi" data-sandi="paEmailSandi" aria-label="Tampilkan kata sandi">Lihat</button>
+                                </div>
+                            </div>
+
+                            <div class="pa-aksi">
+                                <button type="submit" class="pa-btn pa-btn--utama">Perbarui Email</button>
+                            </div>
                         </form>
 
-                        @if ($adaFoto)
-                            <form
-                                action="{{ route('pengaturan-akun.foto.destroy') }}"
-                                method="POST"
-                                onsubmit="return confirm('Hapus foto profil akun ini?')"
-                            >
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="pa-btn pa-btn--bahaya">Hapus Foto</button>
-                            </form>
-                        @endif
+                        <p class="pa-catatan">
+                            Setelah tersimpan, gunakan email baru saat masuk. Nama, nomor WhatsApp,
+                            dan biodata pribadi diubah melalui menu <strong>Data Saya</strong>.
+                        </p>
+                    </section>
+                @else
+                    <section class="pa-card">
+                        <h2 class="pa-judul">Email Akun</h2>
+                        <p class="pa-muted" style="margin-bottom: 0;">
+                            Penggantian email aktif setelah Anda membuat kata sandi pertama. Saat ini
+                            email akun <strong>{{ $user->email ?: '-' }}</strong> masih dikelola Admin Sistem.
+                        </p>
+                    </section>
+                @endif
+
+            @else
+
+                {{-- MAHASISWA: FOTO PROFIL DAN INFORMASI PROFIL (ALUR LAMA) --}}
+                <section class="pa-card">
+                    <div class="pa-profil-head">
+                        <x-foto-profil
+                            :pengguna="$user"
+                            :aksi-simpan="$aksiFoto"
+                            :aksi-hapus="$aksiHapusFoto"
+                            :ukuran="96"
+                        />
+
+                        <div class="pa-profil-identitas">
+                            <h2>{{ $user->name }}</h2>
+                            <p>{{ $labelPeran }} · {{ $user->email ?: 'Email belum tersedia' }}</p>
+                            <p class="pa-muted" style="margin: 0;">
+                                Klik ikon kamera pada foto untuk melihat, mengedit, atau menghapus foto profil.
+                            </p>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <p class="pa-muted" style="margin-top: 14px; margin-bottom: 0;">
-                Format JPG, JPEG, PNG, atau WEBP. Ukuran maksimal 2 MB.
-            </p>
+                    <p class="pa-muted" style="margin-top: 14px; margin-bottom: 0;">
+                        Foto otomatis dipotong persegi dan ditampilkan bulat. Format JPG, JPEG, atau PNG, maksimal 2 MB.
+                    </p>
 
-            <hr class="pa-divider">
+                    @if ($aksiProfil)
+                        <hr class="pa-divider">
 
-            <h2 class="pa-judul">Informasi Profil</h2>
-            <p class="pa-muted">
-                Nama dan email ini dipakai untuk masuk serta tampil di seluruh halaman SIMAHAD.
-            </p>
+                        <h2 class="pa-judul">Informasi Profil</h2>
+                        <p class="pa-muted">
+                            Nama dan email ini dipakai untuk masuk serta tampil di seluruh halaman SIMAHAD.
+                        </p>
 
-            <form class="pa-form" action="{{ route('pengaturan-akun.update') }}" method="POST">
-                @csrf
-                @method('PUT')
+                        <form class="pa-form" action="{{ route($aksiProfil) }}" method="POST">
+                            @csrf
+                            @method('PUT')
 
-                <div class="pa-field">
-                    <label for="paNama">Nama Lengkap <span class="pa-wajib">*</span></label>
-                    <input
-                        type="text"
-                        id="paNama"
-                        name="name"
-                        value="{{ old('name', $user->name) }}"
-                        maxlength="255"
-                        required
-                        autocomplete="name"
-                    >
-                </div>
+                            <div class="pa-field">
+                                <label for="paNama">Nama Lengkap <span class="pa-wajib">*</span></label>
+                                <input
+                                    type="text"
+                                    id="paNama"
+                                    name="name"
+                                    value="{{ old('name', $user->name) }}"
+                                    maxlength="255"
+                                    required
+                                    autocomplete="name"
+                                >
+                            </div>
 
-                <div class="pa-field">
-                    <label for="paEmail">Email <span class="pa-wajib">*</span></label>
-                    <input
-                        type="email"
-                        id="paEmail"
-                        name="email"
-                        value="{{ old('email', $user->email) }}"
-                        maxlength="255"
-                        required
-                        autocomplete="email"
-                    >
-                </div>
+                            <div class="pa-field">
+                                <label for="paEmail">Email <span class="pa-wajib">*</span></label>
+                                <input
+                                    type="email"
+                                    id="paEmail"
+                                    name="email"
+                                    value="{{ old('email', $user->email) }}"
+                                    maxlength="255"
+                                    required
+                                    autocomplete="email"
+                                >
+                            </div>
 
-                <div class="pa-field">
-                    <label for="paNoHp">Nomor WhatsApp</label>
-                    <input
-                        type="text"
-                        id="paNoHp"
-                        name="no_hp"
-                        value="{{ old('no_hp', $user->no_hp) }}"
-                        maxlength="20"
-                        inputmode="tel"
-                        placeholder="Contoh: 081234567890"
-                        autocomplete="tel"
-                    >
-                </div>
+                            <div class="pa-field">
+                                <label for="paNoHp">Nomor WhatsApp</label>
+                                <input
+                                    type="text"
+                                    id="paNoHp"
+                                    name="no_hp"
+                                    value="{{ old('no_hp', $user->no_hp) }}"
+                                    maxlength="20"
+                                    inputmode="tel"
+                                    placeholder="Contoh: 081234567890"
+                                    autocomplete="tel"
+                                >
+                            </div>
 
-                <div class="pa-aksi">
-                    <button type="submit" class="pa-btn pa-btn--utama">Simpan Perubahan</button>
-                </div>
-            </form>
-        </section>
+                            <div class="pa-aksi">
+                                <button type="submit" class="pa-btn pa-btn--utama">Simpan Perubahan</button>
+                            </div>
+                        </form>
+                    @endif
+                </section>
+
+            @endif
+        </div>
 
         <div class="pa-kolom">
 
-            {{-- KEAMANAN AKUN --}}
-            <section class="pa-card">
-                <h2 class="pa-judul">Keamanan Akun</h2>
-                <p class="pa-muted">
-                    Gunakan kata sandi yang kuat dan berbeda dari akun lain. Minimal 8 karakter.
-                </p>
+            @unless ($peranStaf)
+                {{-- MAHASISWA: KEAMANAN AKUN --}}
+                <section class="pa-card">
+                    <h2 class="pa-judul">Keamanan Akun</h2>
+                    <p class="pa-muted">
+                        Gunakan kata sandi yang kuat dan berbeda dari akun lain. Minimal 8 karakter.
+                    </p>
 
-                <form class="pa-form" action="{{ route('pengaturan-akun.password.update') }}" method="POST" autocomplete="off">
-                    @csrf
-                    @method('PUT')
+                    <form class="pa-form" action="{{ route($aksiPassword) }}" method="POST" autocomplete="off">
+                        @csrf
+                        @method('PUT')
 
-                    <div class="pa-field">
-                        <label for="paPasswordLama">Kata Sandi Saat Ini <span class="pa-wajib">*</span></label>
-                        <input
-                            type="password"
-                            id="paPasswordLama"
-                            name="password_lama"
-                            required
-                            autocomplete="current-password"
-                        >
-                    </div>
+                        <div class="pa-field">
+                            <label for="paPasswordLama">Kata Sandi Saat Ini <span class="pa-wajib">*</span></label>
+                            <div class="pa-sandi">
+                                <input
+                                    type="password"
+                                    id="paPasswordLama"
+                                    name="password_lama"
+                                    required
+                                    autocomplete="current-password"
+                                >
+                                <button type="button" class="pa-toggle-sandi" data-sandi="paPasswordLama" aria-label="Tampilkan kata sandi">Lihat</button>
+                            </div>
+                        </div>
 
-                    <div class="pa-field">
-                        <label for="paPasswordBaru">Kata Sandi Baru <span class="pa-wajib">*</span></label>
-                        <input
-                            type="password"
-                            id="paPasswordBaru"
-                            name="password"
-                            minlength="8"
-                            required
-                            autocomplete="new-password"
-                        >
-                    </div>
+                        <div class="pa-field">
+                            <label for="paPasswordBaru">Kata Sandi Baru <span class="pa-wajib">*</span></label>
+                            <div class="pa-sandi">
+                                <input
+                                    type="password"
+                                    id="paPasswordBaru"
+                                    name="password"
+                                    minlength="8"
+                                    required
+                                    autocomplete="new-password"
+                                >
+                                <button type="button" class="pa-toggle-sandi" data-sandi="paPasswordBaru" aria-label="Tampilkan kata sandi">Lihat</button>
+                            </div>
+                        </div>
 
-                    <div class="pa-field">
-                        <label for="paPasswordKonfirmasi">Konfirmasi Kata Sandi Baru <span class="pa-wajib">*</span></label>
-                        <input
-                            type="password"
-                            id="paPasswordKonfirmasi"
-                            name="password_confirmation"
-                            minlength="8"
-                            required
-                            autocomplete="new-password"
-                        >
-                    </div>
+                        <div class="pa-field">
+                            <label for="paPasswordKonfirmasi">Konfirmasi Kata Sandi Baru <span class="pa-wajib">*</span></label>
+                            <div class="pa-sandi">
+                                <input
+                                    type="password"
+                                    id="paPasswordKonfirmasi"
+                                    name="password_confirmation"
+                                    minlength="8"
+                                    required
+                                    autocomplete="new-password"
+                                >
+                                <button type="button" class="pa-toggle-sandi" data-sandi="paPasswordKonfirmasi" aria-label="Tampilkan kata sandi">Lihat</button>
+                            </div>
+                        </div>
 
-                    <div class="pa-aksi">
-                        <button type="submit" class="pa-btn pa-btn--utama">Perbarui Kata Sandi</button>
-                    </div>
-                </form>
-            </section>
+                        <div class="pa-aksi">
+                            <button type="submit" class="pa-btn pa-btn--utama">Perbarui Kata Sandi</button>
+                        </div>
+                    </form>
+                </section>
+            @endunless
 
             {{-- INFORMASI AKUN --}}
             <section class="pa-card">
@@ -679,3 +886,24 @@
     </div>
 
 </div>
+
+@once
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.pa-toggle-sandi').forEach(function (tombol) {
+                tombol.addEventListener('click', function () {
+                    const kolom = document.getElementById(tombol.dataset.sandi);
+
+                    if (!kolom) {
+                        return;
+                    }
+
+                    const tampil = kolom.type === 'password';
+                    kolom.type = tampil ? 'text' : 'password';
+                    tombol.textContent = tampil ? 'Sembunyi' : 'Lihat';
+                    tombol.setAttribute('aria-label', tampil ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
+                });
+            });
+        });
+    </script>
+@endonce
