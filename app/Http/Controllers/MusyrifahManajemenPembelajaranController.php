@@ -215,6 +215,135 @@ class MusyrifahManajemenPembelajaranController extends Controller
     }
 
     /**
+     * CRUD Mata Pelajaran: Tambah mata pelajaran baru.
+     */
+    public function storeMataPelajaran(Request $request): RedirectResponse|JsonResponse
+    {
+        $this->pastikanPengelola($request);
+
+        $validated = $request->validate([
+            'nama' => ['required', 'string', 'max:255'],
+            'kode' => ['required', 'string', 'max:50', Rule::unique('mata_pelajarans', 'kode')],
+            'kategori' => ['required', 'string', 'max:100'],
+            'target_pertemuan' => ['required', 'integer', 'min:1', 'max:100'],
+            'deskripsi' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $item = MataPelajaran::create([
+            'nama' => $validated['nama'],
+            'kode' => $validated['kode'],
+            'kategori' => $validated['kategori'],
+            'target_pertemuan' => $validated['target_pertemuan'],
+            'deskripsi' => $validated['deskripsi'] ?? null,
+        ]);
+
+        $this->audit->catat(
+            'pembelajaran',
+            'mata_pelajaran_ditambahkan',
+            'Mata pelajaran '.$item->nama,
+            (int) $item->getKey(),
+            'Data mata pelajaran ditambahkan.',
+            $request->user(),
+            [],
+            $item->getAttributes(),
+        );
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Data mata pelajaran berhasil ditambahkan.', 'data' => $item]);
+        }
+
+        return redirect()->route('musyrifah.manajemen_pembelajaran', ['tab' => 'mapel'])
+            ->with('success', 'Mata pelajaran '.$item->nama.' berhasil ditambahkan.');
+    }
+
+    /**
+     * CRUD Mata Pelajaran: Update data mata pelajaran.
+     */
+    public function updateMataPelajaran(Request $request, int $id): RedirectResponse|JsonResponse
+    {
+        $this->pastikanPengelola($request);
+
+        $validated = $request->validate([
+            'nama' => ['required', 'string', 'max:255'],
+            'kode' => ['required', 'string', 'max:50', Rule::unique('mata_pelajarans', 'kode')->ignore($id)],
+            'kategori' => ['required', 'string', 'max:100'],
+            'target_pertemuan' => ['required', 'integer', 'min:1', 'max:100'],
+            'deskripsi' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $item = MataPelajaran::findOrFail($id);
+        $sebelum = $item->getAttributes();
+        $item->update([
+            'nama' => $validated['nama'],
+            'kode' => $validated['kode'],
+            'kategori' => $validated['kategori'],
+            'target_pertemuan' => $validated['target_pertemuan'],
+            'deskripsi' => $validated['deskripsi'] ?? null,
+        ]);
+
+        $this->audit->catat(
+            'pembelajaran',
+            'mata_pelajaran_diperbarui',
+            'Mata pelajaran '.$item->nama,
+            (int) $item->getKey(),
+            'Data mata pelajaran diperbarui.',
+            $request->user(),
+            $sebelum,
+            $item->getAttributes(),
+        );
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Data mata pelajaran berhasil diperbarui.', 'data' => $item]);
+        }
+
+        return redirect()->route('musyrifah.manajemen_pembelajaran', ['tab' => 'mapel'])
+            ->with('success', 'Mata pelajaran '.$item->nama.' berhasil diperbarui.');
+    }
+
+    /**
+     * CRUD Mata Pelajaran: Hapus data mata pelajaran.
+     */
+    public function destroyMataPelajaran(Request $request, int $id): RedirectResponse|JsonResponse
+    {
+        $this->pastikanPengelola($request);
+
+        $item = MataPelajaran::withCount('jadwals')->findOrFail($id);
+
+        if ($item->jadwals_count > 0) {
+            $pesan = 'Mata pelajaran '.$item->nama.' tidak dapat dihapus karena masih memiliki '.$item->jadwals_count.' jadwal aktif.';
+
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $pesan], 422);
+            }
+
+            return redirect()->route('musyrifah.manajemen_pembelajaran', ['tab' => 'mapel'])
+                ->with('error', $pesan);
+        }
+
+        $nama = $item->nama;
+        $idItem = (int) $item->getKey();
+        $item->delete();
+
+        $this->audit->catat(
+            'pembelajaran',
+            'mata_pelajaran_dihapus',
+            'Mata pelajaran '.$nama,
+            $idItem,
+            'Data mata pelajaran dihapus.',
+            $request->user(),
+            ['nama' => $nama],
+            [],
+        );
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Data mata pelajaran berhasil dihapus.']);
+        }
+
+        return redirect()->route('musyrifah.manajemen_pembelajaran', ['tab' => 'mapel'])
+            ->with('success', 'Mata pelajaran '.$nama.' berhasil dihapus.');
+    }
+
+    /**
      * CRUD Jadwal: Tambah Jadwal Pembelajaran baru.
      */
     public function storeJadwal(Request $request): RedirectResponse|JsonResponse

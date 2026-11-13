@@ -1022,6 +1022,21 @@ Route::middleware('auth')->group(function () {
         'destroyJadwal',
     ])->name('musyrifah.manajemen_pembelajaran.jadwal.destroy');
 
+    Route::post('/musyrifah/manajemen-pembelajaran/mata-pelajaran', [
+        MusyrifahManajemenPembelajaranController::class,
+        'storeMataPelajaran',
+    ])->name('musyrifah.manajemen_pembelajaran.mapel.store');
+
+    Route::put('/musyrifah/manajemen-pembelajaran/mata-pelajaran/{id}', [
+        MusyrifahManajemenPembelajaranController::class,
+        'updateMataPelajaran',
+    ])->name('musyrifah.manajemen_pembelajaran.mapel.update');
+
+    Route::delete('/musyrifah/manajemen-pembelajaran/mata-pelajaran/{id}', [
+        MusyrifahManajemenPembelajaranController::class,
+        'destroyMataPelajaran',
+    ])->name('musyrifah.manajemen_pembelajaran.mapel.destroy');
+
     Route::get('/musyrifah/manajemen-pembelajaran/detail-pemantauan/{id}', [
         MusyrifahManajemenPembelajaranController::class,
         'detailPemantauan',

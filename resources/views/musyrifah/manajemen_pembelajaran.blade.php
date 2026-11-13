@@ -575,6 +575,12 @@
         </div>
     @endif
 
+    @if(session('error'))
+        <div style="background: #fdeef0; color: #8a1224; border: 1px solid #f2ccd2; padding: 12px 18px; border-radius: 10px; margin-bottom: 20px; font-weight: 500;">
+            ⚠ {{ session('error') }}
+        </div>
+    @endif
+
     <!-- RINGKASAN ATAS -->
     <section class="mp-summary-grid" aria-label="Ringkasan pembelajaran">
         <div class="mp-summary-card">
@@ -637,8 +643,11 @@
             <div class="mp-card-header">
                 <div>
                     <h2 class="mp-card-title">Daftar Mata Pelajaran</h2>
-                    <p style="margin: 4px 0 0; color: #64748b; font-size: 13px;">5 Program Pembelajaran Kurikulum Ma'had Al-Jami'ah (Masing-masing 16 Pertemuan).</p>
+                    <p style="margin: 4px 0 0; color: #64748b; font-size: 13px;">{{ $jumlahMataPelajaran }} Program Pembelajaran Kurikulum Ma'had Al-Jami'ah (Dilengkapi fitur CRUD Tambah, Ubah, Hapus).</p>
                 </div>
+                <button type="button" class="btn-action-primary" onclick="openModalTambahMapel()">
+                    + Tambah Mata Pelajaran
+                </button>
             </div>
 
             <div class="mp-table-wrap">
@@ -651,6 +660,7 @@
                             <th>Kategori Program</th>
                             <th>Target Pertemuan</th>
                             <th>Jadwal Aktif</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -671,10 +681,23 @@
                                 <td>
                                     <span class="badge-pill badge-green">{{ $mapel->jadwals_count ?? 2 }} Kelas Terjadwal</span>
                                 </td>
+                                <td>
+                                    <div style="display: flex; gap: 6px; justify-content: center;">
+                                        <button type="button" class="btn-table-edit"
+                                                onclick="openModalEditMapel({{ $mapel->id }}, '{{ addslashes($mapel->kode ?? '') }}', '{{ addslashes($mapel->nama) }}', '{{ addslashes($mapel->kategori ?? '') }}', {{ (int) $mapel->target_pertemuan }}, '{{ addslashes($mapel->deskripsi ?? '') }}')">
+                                            Ubah
+                                        </button>
+                                        <form action="{{ route('musyrifah.manajemen_pembelajaran.mapel.destroy', $mapel->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus mata pelajaran ini?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn-table-del">Hapus</button>
+                                        </form>
+                                    </div>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" style="padding: 25px;">Belum ada mata pelajaran terdaftar.</td>
+                                <td colspan="7" style="padding: 25px;">Belum ada mata pelajaran terdaftar.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -1048,6 +1071,48 @@
 </div>
 
 <!-- ======================================================== -->
+<!-- MODAL 0: TAMBAH / EDIT MATA PELAJARAN (CRUD)             -->
+<!-- ======================================================== -->
+<div class="modal-overlay" id="modalMapel" onclick="closeModalOnBackdrop(event, 'modalMapel')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-top">
+            <div class="modal-top-title" id="modalMapelTitle">Tambah Mata Pelajaran</div>
+            <button type="button" class="modal-close-btn" onclick="closeModal('modalMapel')">&times;</button>
+        </div>
+        <form id="formMapel" method="POST" action="{{ route('musyrifah.manajemen_pembelajaran.mapel.store') }}">
+            @csrf
+            <div id="methodMapelSpoof"></div>
+            <div class="modal-inner">
+                <div class="form-group">
+                    <label class="form-label">Kode Mata Pelajaran</label>
+                    <input type="text" name="kode" id="inputMapelKode" class="form-control" required maxlength="50" placeholder="Contoh: PKK-04">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nama Mata Pelajaran</label>
+                    <input type="text" name="nama" id="inputMapelNama" class="form-control" required placeholder="Contoh: Penguatan Keterampilan Khusus">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kategori Program</label>
+                    <input type="text" name="kategori" id="inputMapelKategori" class="form-control" required placeholder="Contoh: Keislaman &amp; Turots">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Target Pertemuan</label>
+                    <input type="number" name="target_pertemuan" id="inputMapelTarget" class="form-control" required min="1" max="100" value="16">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Deskripsi Singkat</label>
+                    <textarea name="deskripsi" id="inputMapelDeskripsi" class="form-control" style="height: 70px; padding: 10px;" placeholder="Ringkasan cakupan materi mata pelajaran..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer-btns">
+                <button type="button" class="btn-modal-cancel" onclick="closeModal('modalMapel')">Batal</button>
+                <button type="submit" class="btn-action-primary" id="btnSubmitMapel">Simpan Mata Pelajaran</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ======================================================== -->
 <!-- MODAL 1: TAMBAH / EDIT KELOMPOK PENGAJAR                 -->
 <!-- ======================================================== -->
 <div class="modal-overlay" id="modalKelompok" onclick="closeModalOnBackdrop(event, 'modalKelompok')">
@@ -1353,6 +1418,33 @@
         if (event.target.id === modalId) {
             closeModal(modalId);
         }
+    }
+
+    // 2. MODAL MATA PELAJARAN (CRUD)
+    function openModalTambahMapel() {
+        document.getElementById('modalMapelTitle').textContent = 'Tambah Mata Pelajaran';
+        document.getElementById('formMapel').action = "{{ route('musyrifah.manajemen_pembelajaran.mapel.store') }}";
+        document.getElementById('methodMapelSpoof').innerHTML = '';
+        document.getElementById('inputMapelKode').value = '';
+        document.getElementById('inputMapelNama').value = '';
+        document.getElementById('inputMapelKategori').value = '';
+        document.getElementById('inputMapelTarget').value = '16';
+        document.getElementById('inputMapelDeskripsi').value = '';
+        document.getElementById('btnSubmitMapel').textContent = 'Simpan Mata Pelajaran';
+        openModal('modalMapel');
+    }
+
+    function openModalEditMapel(id, kode, nama, kategori, target, deskripsi) {
+        document.getElementById('modalMapelTitle').textContent = 'Ubah Mata Pelajaran';
+        document.getElementById('formMapel').action = "{{ url('/musyrifah/manajemen-pembelajaran/mata-pelajaran') }}/" + id;
+        document.getElementById('methodMapelSpoof').innerHTML = '@method("PUT")';
+        document.getElementById('inputMapelKode').value = kode;
+        document.getElementById('inputMapelNama').value = nama;
+        document.getElementById('inputMapelKategori').value = kategori;
+        document.getElementById('inputMapelTarget').value = target;
+        document.getElementById('inputMapelDeskripsi').value = deskripsi;
+        document.getElementById('btnSubmitMapel').textContent = 'Perbarui Mata Pelajaran';
+        openModal('modalMapel');
     }
 
     // 3. MODAL KELOMPOK PENGAJAR (CRUD)

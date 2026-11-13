@@ -637,7 +637,7 @@
 
     <main id="simahad-musyrifah-dashboard">
         <div class="sd-topline">
-            <span class="sd-eyebrow"><span class="sd-eyebrow-dot"></span> Dashboard Musyrifah</span>
+           
             <span class="sd-date">
                 <x-panel.ikon nama="jadwal" />
                 {{ now($zona)->locale('id')->translatedFormat('l, d F Y') }}
@@ -873,9 +873,6 @@
             </article>
         </div>
 
-        <footer class="sd-footer">
-            <span>SIMAHAD · Panel Musyrifah</span>
-            <span>Diperbarui {{ now($zona)->locale('id')->translatedFormat('d M Y, H:i') }} WIB</span>
-        </footer>
+       
     </main>
 @endsection
