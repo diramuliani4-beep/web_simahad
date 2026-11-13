@@ -18,16 +18,17 @@
         }
 
         :root {
-            --primary-maroon: #6e001b;
-            --primary-maroon-hover: #580015;
-            --maroon-tint: #faedf0;
-            --maroon-border: #7c1a2e;
-            --text-dark: #111827;
-            --text-secondary: #4b5563;
+            --primary-maroon: #6b0d1b;
+            --primary-maroon-hover: #580a16;
+            --maroon-tint: #f8eff2;
+            --maroon-border: #ecd9dd;
+            --text-dark: #1f2430;
+            --text-secondary: #4f5767;
             --text-muted: #6b7280;
-            --bg-page: #ffffff;
-            --sidebar-width: 280px;
-            --header-height: 66px;
+            --line: #ecedf2;
+            --bg-page: #f7f5f4;
+            --sidebar-width: 268px;
+            --header-height: 68px;
         }
 
         body {
@@ -44,36 +45,57 @@
         .top-navbar {
             height: var(--header-height);
             background-color: #ffffff;
-            border-bottom: 1.5px solid var(--maroon-border);
+            border-bottom: 1px solid var(--line);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 2rem;
+            padding: 0 20px;
             position: sticky;
             top: 0;
             z-index: 50;
+            box-shadow: 0 2px 14px rgba(59, 7, 15, 0.05);
         }
 
         .navbar-brand-wrap {
             display: flex;
             align-items: center;
-            gap: 0.85rem;
+            gap: 10px;
             text-decoration: none;
+            min-width: 0;
         }
 
         .brand-logo-img {
-            height: 44px;
+            height: 40px;
             width: auto;
             object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .brand-teks {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+            min-width: 0;
         }
 
         .brand-title {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 1.65rem;
+            font-size: 19px;
             font-weight: 800;
             color: var(--primary-maroon);
-            letter-spacing: -0.01em;
+            letter-spacing: 0.03em;
             text-transform: uppercase;
+        }
+
+        .brand-sub {
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+            color: #c9a96a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .navbar-actions {
@@ -107,128 +129,145 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            border-right: 1.5px solid var(--maroon-border);
+            border-right: 1px solid var(--line);
             overflow: hidden;
-            background-color: #f1f5f9;
-        }
-
-        .sidebar-bg {
-            position: absolute;
-            inset: 0;
-            z-index: 1;
-            background-image: url('{{ asset("images/mahad_al_jamiah.jpeg") }}');
-            background-size: cover;
-            background-position: center top;
-            background-repeat: no-repeat;
-        }
-
-        .sidebar-overlay {
-            position: absolute;
-            inset: 0;
-            z-index: 2;
-            background: linear-gradient(
-                180deg,
-                rgba(219, 234, 254, 0.45) 0%,
-                rgba(241, 245, 249, 0.55) 30%,
-                rgba(255, 255, 255, 0.85) 65%,
-                rgba(255, 255, 255, 0.95) 100%
-            );
-        }
-
-        .sidebar-watermark {
-            position: absolute;
-            top: 55%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 3;
-            pointer-events: none;
-            text-align: center;
-            opacity: 0.28;
-            width: 100%;
-            padding: 0 10px;
-        }
-
-        .watermark-emblem {
-            margin: 0 auto 4px;
-            display: block;
-        }
-
-        .watermark-text-2 {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 1.05rem;
-            font-weight: 800;
-            color: #334155;
-            letter-spacing: -0.01em;
-            line-height: 1.2;
+            background-color: #ffffff;
         }
 
         .sidebar-content {
             position: relative;
-            z-index: 4;
             display: flex;
             flex-direction: column;
             height: 100%;
             justify-content: space-between;
-            padding: 1.25rem 1.15rem 1.5rem 1.15rem;
+            padding: 16px 13px 18px;
+        }
+
+        .sidebar-role {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            background: var(--maroon-tint);
+            border: 1px solid #f0dde1;
+        }
+
+        .sidebar-role-ikon {
+            display: grid;
+            place-items: center;
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+            border-radius: 10px;
+            background: var(--primary-maroon);
+            color: #c9a96a;
+        }
+
+        .sidebar-role-ikon svg {
+            display: block;
+            width: 17px;
+            height: 17px;
+        }
+
+        .sidebar-role-teks {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+            min-width: 0;
+        }
+
+        .sidebar-role-label {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #9b7d84;
+        }
+
+        .sidebar-role-nama {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--primary-maroon);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .sidebar-nav {
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 4px;
             flex-grow: 1;
         }
 
         .nav-pill {
+            position: relative;
             display: flex;
             align-items: center;
-            gap: 0.85rem;
-            height: 46px;
-            padding: 0 1rem;
-            background-color: #ffffff;
-            border: 1.5px solid var(--maroon-border);
+            gap: 12px;
+            width: 100%;
+            min-height: 42px;
+            padding: 10px 13px;
+            background-color: transparent;
+            border: 0;
             border-radius: 12px;
             text-decoration: none;
-            color: #1a1a1a;
-            font-size: 0.92rem;
-            font-weight: 700;
-            transition: all 0.2s ease;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            color: #463b3d;
+            font-size: 13.6px;
+            font-weight: 600;
+            line-height: 1.25;
+            transition: background 0.16s ease, color 0.16s ease;
             cursor: pointer;
-            width: 100%;
         }
 
         .nav-pill:hover {
-            transform: translateX(3px);
-            background-color: #fff8f9;
+            background-color: var(--maroon-tint);
+            color: var(--primary-maroon);
+        }
+
+        .nav-pill:hover .nav-icon svg {
+            stroke: var(--primary-maroon);
         }
 
         .nav-pill.active {
             background-color: var(--maroon-tint);
-            border-color: var(--primary-maroon);
             color: var(--primary-maroon);
+            font-weight: 700;
         }
 
-        .nav-pill.active .nav-icon svg {
-            stroke: var(--primary-maroon);
+        .nav-pill.active::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 22px;
+            border-radius: 0 4px 4px 0;
+            background: #c9a96a;
         }
 
         .nav-icon {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 22px;
-            height: 22px;
+            width: 19px;
+            height: 19px;
             flex-shrink: 0;
         }
 
         .nav-icon svg {
             display: block;
-            stroke: #262626;
+            width: 19px;
+            height: 19px;
+            stroke: #8b7b7f;
+            transition: stroke 0.16s ease;
         }
 
         .nav-pill.active .nav-icon svg {
-            stroke: var(--primary-maroon);
+            stroke: #c9a96a;
         }
 
         .nav-label {
@@ -252,92 +291,240 @@
             font-weight: 800;
         }
 
-        .nav-chevron {
-            font-size: 1.15rem;
-            font-weight: 800;
-            color: var(--primary-maroon);
-            line-height: 1;
-            margin-left: auto;
-        }
-
         .sidebar-nav-bottom {
-            margin-top: 1.5rem;
+            margin-top: 18px;
+            padding-top: 12px;
+            border-top: 1px solid var(--line);
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 4px;
         }
 
         .btn-keluar-pill {
+            position: relative;
             display: flex;
             align-items: center;
-            gap: 0.85rem;
-            height: 46px;
-            padding: 0 1rem;
-            background-color: #ffffff;
-            border: 1.5px solid var(--maroon-border);
-            border-radius: 12px;
-            color: #1a1a1a;
-            font-family: inherit;
-            font-size: 0.92rem;
-            font-weight: 700;
-            transition: all 0.2s ease;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-            cursor: pointer;
+            gap: 12px;
             width: 100%;
+            min-height: 42px;
+            padding: 10px 13px;
+            background-color: transparent;
+            border: 0;
+            border-radius: 12px;
+            color: #9a3b45;
+            font-family: inherit;
+            font-size: 13.6px;
+            font-weight: 600;
+            line-height: 1.25;
+            transition: background 0.16s ease, color 0.16s ease;
+            cursor: pointer;
             text-align: left;
             text-decoration: none;
         }
 
+        .btn-keluar-pill svg {
+            stroke: #8b7b7f;
+        }
+
         .btn-keluar-pill:hover {
-            background-color: #fff1f2;
-            color: #be123c;
-            transform: translateX(3px);
+            background-color: #fdeef0;
+            color: #8a1224;
         }
 
         .btn-keluar-pill:hover svg {
-            stroke: #be123c;
+            stroke: #8a1224;
         }
 
         /* ================= MAIN CONTENT ================= */
         .main-content {
             flex: 1;
-            padding: 2rem 2.75rem 3rem 2.75rem;
+            padding: 1.5rem 2.25rem 3rem 2.25rem;
             display: flex;
             flex-direction: column;
-            background-color: #ffffff;
+            background-color: var(--bg-page);
             overflow-y: auto;
             min-width: 0;
         }
 
-        .welcome-heading {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 1.85rem;
-            font-weight: 800;
-            color: #111827;
-            margin-bottom: 0.35rem;
-            letter-spacing: -0.02em;
+        .dashboard-topline {
             display: flex;
             align-items: center;
-            gap: 0.45rem;
+            justify-content: space-between;
             flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 18px;
         }
 
-        .welcome-sub {
-            font-size: 0.9rem;
+        .dashboard-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .dashboard-eyebrow-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary-maroon);
+        }
+
+        .dashboard-date {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: #ffffff;
+            color: var(--primary-maroon);
+            font-size: 12.5px;
+            font-weight: 700;
+            box-shadow: 0 1px 2px rgba(31, 36, 48, 0.04);
+        }
+
+        .dashboard-date svg {
+            width: 15px;
+            height: 15px;
+            color: var(--primary-maroon);
+        }
+
+        .mhs-hero {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 28px;
+            padding: 32px 34px;
+            border-radius: 20px;
+            background:
+                radial-gradient(120% 160% at 100% 0%, rgba(201, 169, 106, 0.22), transparent 58%),
+                linear-gradient(135deg, #7d1022 0%, #5c0a17 100%);
+            box-shadow: 0 16px 32px -18px rgba(96, 8, 28, 0.55);
+            color: #ffffff;
+            isolation: isolate;
             margin-bottom: 1.35rem;
-            line-height: 1.5;
+        }
+
+        .mhs-hero::before,
+        .mhs-hero::after {
+            content: "";
+            position: absolute;
+            z-index: -1;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .mhs-hero::before {
+            top: -220px;
+            right: -96px;
+            width: 360px;
+            height: 360px;
+            box-shadow: 0 0 0 44px rgba(255, 255, 255, 0.035), 0 0 0 96px rgba(255, 255, 255, 0.022);
+        }
+
+        .mhs-hero::after {
+            right: 190px;
+            bottom: -250px;
+            width: 270px;
+            height: 270px;
+        }
+
+        .mhs-hero-content {
+            position: relative;
+            z-index: 1;
+            min-width: 0;
+        }
+
+        .mhs-hero-label {
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 5px 11px;
+            border: 1px solid rgba(255, 255, 255, 0.26);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.1);
+            font-size: 10.5px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .mhs-hero h1 {
+            margin: 0 0 8px;
+            font-size: clamp(21px, 2vw, 29px);
+            font-weight: 800;
+            line-height: 1.25;
+            letter-spacing: -0.025em;
+            color: #ffffff;
+        }
+
+        .mhs-hero p {
+            margin: 0;
+            max-width: 560px;
+            font-size: 12.5px;
+            line-height: 1.65;
+            color: rgba(255, 255, 255, 0.78);
+        }
+
+        .mhs-hero-board {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 2px;
+            min-width: 330px;
+            padding: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+        }
+
+        .mhs-hero-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 12px 14px;
+            border-radius: 11px;
+        }
+
+        .mhs-hero-stat + .mhs-hero-stat {
+            box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.16);
+        }
+
+        .mhs-hero-stat span {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            color: rgba(255, 255, 255, 0.72);
+        }
+
+        .mhs-hero-stat strong {
+            font-size: clamp(20px, 1.9vw, 26px);
+            font-weight: 750;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+            color: #ffffff;
+            font-variant-numeric: tabular-nums;
         }
 
         .simahad-card {
-            border: 1.5px solid var(--maroon-border);
+            border: 1px solid var(--line);
             border-radius: 16px;
             background-color: #ffffff;
             transition: box-shadow 0.2s ease, border-color 0.2s ease;
         }
 
         .simahad-card:hover {
-            box-shadow: 0 4px 14px rgba(110, 0, 27, 0.06);
+            box-shadow: 0 4px 14px rgba(107, 13, 27, 0.06);
         }
 
         .student-summary-card {
@@ -367,7 +554,7 @@
             width: 56px;
             height: 56px;
             border-radius: 12px;
-            background-color: #fdf2f4;
+            background-color: #f8eff2;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -392,7 +579,7 @@
         .student-name {
             font-size: 1.05rem;
             font-weight: 800;
-            color: #111827;
+            color: #1f2430;
             letter-spacing: -0.01em;
             line-height: 1.2;
         }
@@ -407,7 +594,7 @@
         .student-status {
             font-size: 0.82rem;
             font-weight: 600;
-            color: #16a34a;
+            color: #178154;
             line-height: 1.3;
         }
 
@@ -417,7 +604,7 @@
             gap: 0.6rem;
             margin-top: 1rem;
             padding-top: 0.95rem;
-            border-top: 1px dashed #eadfda;
+            border-top: 1px dashed #e6e2dc;
         }
 
         .status-chip {
@@ -426,9 +613,9 @@
             gap: 0.15rem;
             min-width: 132px;
             padding: 0.5rem 0.75rem;
-            border: 1px solid #f0e2dc;
+            border: 1px solid #ecedf2;
             border-radius: 10px;
-            background: #fffdfc;
+            background: #ffffff;
         }
 
         .status-chip .chip-label {
@@ -436,26 +623,26 @@
             font-weight: 700;
             letter-spacing: 0.04em;
             text-transform: uppercase;
-            color: #9ca3af;
+            color: #6b7280;
         }
 
         .status-chip .chip-value {
             font-size: 0.84rem;
             font-weight: 700;
-            color: #1f2937;
+            color: #1f2430;
             line-height: 1.35;
         }
 
         .status-chip.ok .chip-value {
-            color: #15803d;
+            color: #22653a;
         }
 
         .status-chip.warning .chip-value {
-            color: #b45309;
+            color: #8a5a0d;
         }
 
         .status-chip.danger .chip-value {
-            color: #b91c1c;
+            color: #8a1224;
         }
 
         /* ================= GRID ================= */
@@ -532,7 +719,7 @@
         }
 
         .tagihan-empty-desc {
-            color: #1f2937;
+            color: #1f2430;
             font-size: 0.92rem;
             font-weight: 500;
             max-width: 290px;
@@ -547,7 +734,7 @@
         .tagihan-nominal {
             font-size: 1.75rem;
             font-weight: 800;
-            color: #111827;
+            color: #1f2430;
             line-height: 1.15;
             letter-spacing: -0.02em;
         }
@@ -569,7 +756,7 @@
         }
 
         .tagihan-meta-row strong {
-            color: #374151;
+            color: #4f5767;
             font-weight: 700;
         }
 
@@ -585,33 +772,33 @@
         }
 
         .badge-status.belum {
-            background: #fef3c7;
-            color: #92400e;
+            background: #fff4df;
+            color: #8a5a0d;
         }
 
         .badge-status.menunggu {
-            background: #dbeafe;
-            color: #1d4ed8;
+            background: #eaf0fa;
+            color: #3d5f8f;
         }
 
         .badge-status.terlambat {
-            background: #fee2e2;
-            color: #b91c1c;
+            background: #fdeef0;
+            color: #8a1224;
         }
 
         .badge-status.lunas {
-            background: #dcfce7;
-            color: #15803d;
+            background: #eef7f0;
+            color: #22653a;
         }
 
         .badge-status.terkumpul {
-            background: #dbeafe;
-            color: #1d4ed8;
+            background: #eaf0fa;
+            color: #3d5f8f;
         }
 
         .badge-status.dinilai {
-            background: #dcfce7;
-            color: #15803d;
+            background: #eef7f0;
+            color: #22653a;
         }
 
         .reminder-alert {
@@ -628,21 +815,21 @@
         }
 
         .reminder-alert.danger {
-            border: 1px solid #fecaca;
-            background: #fef2f2;
-            color: #991b1b;
+            border: 1px solid #f2ccd2;
+            background: #fdeef0;
+            color: #8a1224;
         }
 
         .reminder-alert.info {
-            border: 1px solid #bfdbfe;
-            background: #eff6ff;
-            color: #1d4ed8;
+            border: 1px solid #d8e2f0;
+            background: #eff4fb;
+            color: #3d5f8f;
         }
 
         .reminder-alert.success {
-            border: 1px solid #bbf7d0;
-            background: #f0fdf4;
-            color: #166534;
+            border: 1px solid #cfe6d5;
+            background: #eef7f0;
+            color: #22653a;
         }
 
         .va-inline {
@@ -652,9 +839,9 @@
             gap: 0.5rem;
             margin-top: 0.75rem;
             padding: 0.55rem 0.7rem;
-            border: 1px dashed #d9c8c1;
+            border: 1px dashed #ded8d2;
             border-radius: 9px;
-            background: #fffdfc;
+            background: #ffffff;
         }
 
         .va-inline .va-label {
@@ -662,14 +849,14 @@
             font-weight: 800;
             letter-spacing: 0.05em;
             text-transform: uppercase;
-            color: #9ca3af;
+            color: #6b7280;
         }
 
         .va-inline .va-number {
             font-size: 0.92rem;
             font-weight: 800;
             letter-spacing: 0.06em;
-            color: #111827;
+            color: #1f2430;
             word-break: break-all;
         }
 
@@ -678,7 +865,7 @@
             align-items: center;
             gap: 0.3rem;
             padding: 0.35rem 0.6rem;
-            border: 1px solid var(--maroon-border);
+            border: 1px solid var(--line);
             border-radius: 7px;
             background: #fff;
             color: var(--primary-maroon);
@@ -694,9 +881,9 @@
         }
 
         .btn-copy-mini.is-copied {
-            border-color: #15803d;
-            color: #15803d;
-            background: #f0fdf4;
+            border-color: #22653a;
+            color: #22653a;
+            background: #eef7f0;
         }
 
         /* ================= ABSENSI ================= */
@@ -719,21 +906,21 @@
         }
 
         .stat-pill.hadir {
-            background-color: #bbf7d0;
-            border: 1.2px solid #22c55e;
-            color: #15803d;
+            background-color: #cfe6d5;
+            border: 1px solid #cfe6d5;
+            color: #22653a;
         }
 
         .stat-pill.izin {
-            background-color: #fee2e2;
-            border: 1.2px solid #f87171;
-            color: #b91c1c;
+            background-color: #fff4df;
+            border: 1px solid #f0dfc2;
+            color: #8a5a0d;
         }
 
         .stat-pill.alpa {
-            background-color: #fce7f3;
-            border: 1.2px solid #f472b6;
-            color: #9d174d;
+            background-color: #fdeef0;
+            border: 1px solid #f2ccd2;
+            color: #8a1224;
         }
 
         .stat-number {
@@ -757,15 +944,16 @@
         .attendance-progress-track {
             width: 100%;
             height: 5px;
-            background-color: #e2e8f0;
+            background-color: #ecedf2;
             border-radius: 9999px;
             overflow: hidden;
             margin-bottom: 0.3rem;
         }
 
         .attendance-progress-bar {
+            width: 0;
             height: 100%;
-            background-color: #15803d;
+            background-color: #22653a;
             border-radius: 9999px;
             transition: width 0.3s ease;
         }
@@ -780,7 +968,7 @@
 
         .attendance-percentage-val {
             font-weight: 700;
-            color: #15803d;
+            color: #22653a;
         }
 
         /* ================= KALENDER ================= */
@@ -796,7 +984,7 @@
         .kalender-bulan {
             font-size: 0.95rem;
             font-weight: 800;
-            color: #111827;
+            color: #1f2430;
         }
 
         .kalender-nav {
@@ -811,7 +999,7 @@
             justify-content: center;
             width: 30px;
             height: 30px;
-            border: 1.2px solid var(--maroon-border);
+            border: 1px solid var(--line);
             border-radius: 8px;
             color: var(--primary-maroon);
             text-decoration: none;
@@ -849,21 +1037,21 @@
             min-height: 42px;
             border-radius: 8px;
             border: 1px solid transparent;
-            background: #fbf9f8;
+            background: #faf8f6;
             font-size: 0.8rem;
             font-weight: 600;
-            color: #374151;
+            color: #4f5767;
             text-decoration: none;
         }
 
         a.kalender-cell:hover {
             border-color: var(--maroon-border);
-            background: #fff8f9;
+            background: #fbf9f7;
         }
 
         .kalender-cell.luar {
             background: transparent;
-            color: #cbd5e1;
+            color: #b9bcc6;
         }
 
         .kalender-cell.hari-ini {
@@ -890,7 +1078,7 @@
         .kalender-detail {
             margin-top: 1rem;
             padding-top: 0.9rem;
-            border-top: 1px dashed #eadfda;
+            border-top: 1px dashed #e6e2dc;
         }
 
         .kalender-detail-title {
@@ -906,9 +1094,9 @@
             justify-content: space-between;
             gap: 0.6rem;
             padding: 0.5rem 0.65rem;
-            border: 1px solid #f0e2dc;
+            border: 1px solid #ecedf2;
             border-radius: 9px;
-            background: #fffdfc;
+            background: #ffffff;
         }
 
         .kalender-item + .kalender-item {
@@ -918,7 +1106,7 @@
         .kalender-item-title {
             font-size: 0.82rem;
             font-weight: 700;
-            color: #1f2937;
+            color: #1f2430;
         }
 
         .kalender-item-sub {
@@ -947,16 +1135,16 @@
             justify-content: space-between;
             gap: 0.6rem;
             padding: 0.55rem 0.7rem;
-            border: 1px solid #f0e2dc;
+            border: 1px solid #ecedf2;
             border-radius: 9px;
-            background: #fffdfc;
+            background: #ffffff;
             text-decoration: none;
             color: inherit;
         }
 
         .ringkas-item:hover {
-            border-color: #d9c8c1;
-            background: #fff8f9;
+            border-color: #ded8d2;
+            background: #fbf9f7;
         }
 
         .ringkas-item-main {
@@ -974,7 +1162,7 @@
         .ringkas-title {
             font-size: 0.84rem;
             font-weight: 700;
-            color: #1f2937;
+            color: #1f2430;
             line-height: 1.35;
             word-break: break-word;
         }
@@ -992,8 +1180,8 @@
             gap: 3px;
             padding: 0.2rem 0.55rem;
             border-radius: 999px;
-            background: #dcfce7;
-            color: #15803d;
+            background: #eef7f0;
+            color: #22653a;
             font-size: 0.68rem;
             font-weight: 800;
             white-space: nowrap;
@@ -1010,9 +1198,9 @@
             justify-content: center;
             gap: 0.25rem;
             padding: 1.1rem 0.75rem;
-            border: 1px dashed #eadfda;
+            border: 1px dashed #e6e2dc;
             border-radius: 10px;
-            background: #fffdfc;
+            background: #ffffff;
             text-align: center;
             color: var(--text-muted);
             font-size: 0.8rem;
@@ -1030,8 +1218,8 @@
             flex: 1 1 88px;
             padding: 0.45rem 0.5rem;
             border-radius: 9px;
-            border: 1px solid #f0e2dc;
-            background: #fffdfc;
+            border: 1px solid #ecedf2;
+            background: #ffffff;
             text-align: center;
         }
 
@@ -1039,7 +1227,7 @@
             display: block;
             font-size: 1.05rem;
             font-weight: 800;
-            color: #1f2937;
+            color: #1f2430;
             line-height: 1.2;
         }
 
@@ -1050,10 +1238,10 @@
             line-height: 1.2;
         }
 
-        .izin-chip.menunggu .angka { color: #b45309; }
-        .izin-chip.disetujui .angka { color: #15803d; }
-        .izin-chip.ditolak .angka { color: #b91c1c; }
-        .izin-chip.selesai .angka { color: #1d4ed8; }
+        .izin-chip.menunggu .angka { color: #8a5a0d; }
+        .izin-chip.disetujui .angka { color: #22653a; }
+        .izin-chip.ditolak .angka { color: #8a1224; }
+        .izin-chip.selesai .angka { color: #3d5f8f; }
 
         /* ================= NOTIFIKASI ================= */
         .notif-list {
@@ -1072,22 +1260,22 @@
             gap: 0.55rem;
             width: 100%;
             padding: 0.55rem 0.7rem;
-            border: 1px solid #f0e2dc;
+            border: 1px solid #ecedf2;
             border-radius: 9px;
-            background: #fffdfc;
+            background: #ffffff;
             cursor: pointer;
             text-align: left;
             font-family: inherit;
         }
 
         .notif-button:hover {
-            background: #fff8f9;
-            border-color: #d9c8c1;
+            background: #fbf9f7;
+            border-color: #ded8d2;
         }
 
         .notif-button.belum {
-            background: #fff7f2;
-            border-color: #e9d3c6;
+            background: #fdf6f7;
+            border-color: #f0dde2;
         }
 
         .notif-ikon {
@@ -1107,7 +1295,7 @@
             gap: 0.35rem;
             font-size: 0.81rem;
             font-weight: 700;
-            color: #1f2937;
+            color: #1f2430;
             line-height: 1.35;
         }
 
@@ -1115,7 +1303,7 @@
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: #dc2626;
+            background: #8d1c2e;
             flex-shrink: 0;
         }
 
@@ -1130,7 +1318,7 @@
             margin-top: 2px;
             font-size: 0.67rem;
             font-weight: 700;
-            color: #9ca3af;
+            color: #6b7280;
         }
 
         /* ================= MODAL & BACKDROP ================= */
@@ -1138,7 +1326,7 @@
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(33, 10, 14, 0.42);
             z-index: 45;
         }
 
@@ -1173,11 +1361,26 @@
             .main-content {
                 padding: 1.5rem 1.25rem 2.5rem 1.25rem;
             }
+
+            .mhs-hero {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 20px;
+                padding: 25px;
+            }
+
+            .mhs-hero-board {
+                min-width: 0;
+            }
         }
 
         @media (max-width: 560px) {
             .brand-title {
-                font-size: 1.15rem;
+                font-size: 17px;
+            }
+
+            .brand-sub {
+                display: none;
             }
 
             .brand-logo-img {
@@ -1185,11 +1388,33 @@
             }
 
             .top-navbar {
-                padding: 0 0.9rem;
+                padding: 0 14px;
             }
 
-            .welcome-heading {
-                font-size: 1.45rem;
+            .dashboard-topline {
+                margin-bottom: 14px;
+            }
+
+            .dashboard-date {
+                padding: 7px 12px;
+                font-size: 11.5px;
+            }
+
+            .mhs-hero {
+                padding: 22px 20px;
+                border-radius: 16px;
+            }
+
+            .mhs-hero h1 {
+                font-size: 22px;
+            }
+
+            .mhs-hero-stat {
+                padding: 10px 10px;
+            }
+
+            .mhs-hero-stat span {
+                font-size: 10.5px;
             }
 
             .kalender-cell {
@@ -1221,7 +1446,10 @@
 
             <a href="{{ route('dashboard') }}" class="navbar-brand-wrap">
                 <img src="{{ asset('images/logo_uin.png') }}" alt="Logo SIMAHAD" class="brand-logo-img">
-                <span class="brand-title">SIMAHAD</span>
+                <span class="brand-teks">
+                    <span class="brand-title">SIMAHAD</span>
+                    <span class="brand-sub">Ma'had Al-Jami'ah UIN Imam Bonjol</span>
+                </span>
             </a>
         </div>
 
@@ -1236,20 +1464,22 @@
     <div class="dashboard-body">
         <!-- ================= SIDEBAR ================= -->
         <aside class="sidebar" id="sidebar">
-            <div class="sidebar-bg"></div>
-            <div class="sidebar-overlay"></div>
-
-            <div class="sidebar-watermark">
-                <svg class="watermark-emblem" width="60" height="60" viewBox="0 0 100 100" fill="none">
-                    <polygon points="50,4 92,25 92,75 50,96 8,75 8,25" stroke="#a16207" stroke-width="3" fill="none" />
-                    <polygon points="50,14 82,30 82,70 50,86 18,70 18,30" stroke="#64748b" stroke-width="2.5" fill="none" />
-                    <path d="M50 20 L50 80 M25 50 L75 50" stroke="#64748b" stroke-width="2" />
-                </svg>
-                <div class="watermark-text-2">UIN Imam Bonjol</div>
-            </div>
-
             <div class="sidebar-content">
-                <nav class="sidebar-nav">
+                <div>
+                    <div class="sidebar-role">
+                        <span class="sidebar-role-ikon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 10 12 5 2 10l10 5 10-5z"></path>
+                                <path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"></path>
+                            </svg>
+                        </span>
+                        <span class="sidebar-role-teks">
+                            <span class="sidebar-role-label">Mahasiswa</span>
+                            <span class="sidebar-role-nama">{{ $user->name }}</span>
+                        </span>
+                    </div>
+
+                    <nav class="sidebar-nav">
                     <a href="{{ route('dashboard') }}" class="nav-pill active">
                         <span class="nav-icon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1260,7 +1490,6 @@
                             </svg>
                         </span>
                         <span class="nav-label">Dashboard</span>
-                        <span class="nav-chevron">&gt;</span>
                     </a>
 
                     <a href="{{ route('pendaftaran.pribadi') }}" class="nav-pill">
@@ -1313,7 +1542,7 @@
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"></path>
                                 <path d="M16 3H4a2 2 0 0 0-2 2v2"></path>
-                                <circle cx="16" cy="14" r="1.5" fill="#262626"></circle>
+                                <circle cx="16" cy="14" r="1.5" fill="#4f5767"></circle>
                             </svg>
                         </span>
                         <span class="nav-label">Pembayaran</span>
@@ -1352,6 +1581,7 @@
                         <span class="nav-label">Pengumuman</span>
                     </a>
                 </nav>
+                </div>
 
                 <div class="sidebar-nav-bottom">
                     <a href="{{ route('profil.mhs') }}" class="nav-pill">
@@ -1380,24 +1610,28 @@
 
         <!-- ================= MAIN CONTENT ================= -->
         <main class="main-content">
+            <div class="dashboard-topline">
+                
+                <span class="dashboard-date">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+                        <path d="M16 3v4M8 3v4M3 11h18"></path>
+                    </svg>
+                    {{ now('Asia/Jakarta')->locale('id')->translatedFormat('l, d F Y') }}
+                </span>
+            </div>
+
             @if (session('success'))
-                <div style="margin-bottom:1rem; padding:0.7rem 0.9rem; border:1px solid #bbf7d0; border-radius:10px; background:#f0fdf4; color:#166534; font-size:0.82rem; font-weight:600;">
+                <div style="margin-bottom:1rem; padding:0.7rem 0.9rem; border:1px solid #cfe6d5; border-radius:10px; background:#eef7f0; color:#22653a; font-size:0.82rem; font-weight:600;">
                     {{ session('success') }}
                 </div>
             @endif
 
             @if ($errors->any())
-                <div style="margin-bottom:1rem; padding:0.7rem 0.9rem; border:1px solid #fecaca; border-radius:10px; background:#fef2f2; color:#991b1b; font-size:0.82rem; font-weight:600;">
+                <div style="margin-bottom:1rem; padding:0.7rem 0.9rem; border:1px solid #f2ccd2; border-radius:10px; background:#fdeef0; color:#8a1224; font-size:0.82rem; font-weight:600;">
                     {{ $errors->first() }}
                 </div>
             @endif
-
-            <h1 class="welcome-heading">
-                {{ $sapaan }}, {{ $user->name }} <span>👋</span>
-            </h1>
-            <p class="welcome-sub">
-                Assalamu'alaikum. Berikut ringkasan aktivitas pembelajaran dan keasramaan Anda di Ma'had Al-Jami'ah.
-            </p>
 
             @php
                 $pembayaran = $ringkasanPembayaran;
@@ -1407,7 +1641,31 @@
                 $kelasStatusAkun = in_array(strtolower((string) $user->status), ['aktif'], true) ? 'ok' : 'warning';
                 $programStudi = $pendaftaran?->program_studi ?: 'Mahasiswa Ma\'had';
                 $angkatan = $pendaftaran?->tahun_angkatan ?: '-';
+                $persentaseKehadiran = rtrim(rtrim(number_format((float) $absensi['persentase'], 1, ',', '.'), '0'), ',');
+                $lebarKehadiran = min(100, (float) $absensi['persentase']);
             @endphp
+
+            <header class="mhs-hero">
+                <div class="mhs-hero-content">
+                    <span class="mhs-hero-label">Mahasiswa</span>
+                    <h1>Assalamu’alaikum, {{ $user->name }}</h1>
+                    <p>Berikut ringkasan aktivitas pembelajaran dan keasramaan Anda di Ma’had Al-Jami’ah.</p>
+                </div>
+                <div class="mhs-hero-board" role="group" aria-label="Ringkasan hari ini">
+                    <div class="mhs-hero-stat">
+                        <span>Kehadiran</span>
+                        <strong>{{ $persentaseKehadiran }}%</strong>
+                    </div>
+                    <div class="mhs-hero-stat">
+                        <span>Pertemuan</span>
+                        <strong>{{ number_format($absensi['total'], 0, ',', '.') }}</strong>
+                    </div>
+                    <div class="mhs-hero-stat">
+                        <span>Tugas belum</span>
+                        <strong>{{ number_format($jumlahTugasBelum, 0, ',', '.') }}</strong>
+                    </div>
+                </div>
+            </header>
 
             <!-- SECTION 1: RINGKASAN MAHASISWA -->
             <section class="simahad-card student-summary-card">
@@ -1574,11 +1832,11 @@
 
                         <div class="absensi-meeting-count">Total pertemuan: {{ $absensi['total'] }} kali</div>
                         <div class="attendance-progress-track">
-                            <div class="attendance-progress-bar" style="width: {{ min(100, $absensi['persentase']) }}%;"></div>
+                            <div class="attendance-progress-bar" data-lebar="{{ $lebarKehadiran }}"></div>
                         </div>
                         <div class="attendance-progress-footer">
                             <span>Persentase kehadiran</span>
-                            <span class="attendance-percentage-val">{{ $absensi['persentase'] }}%</span>
+                            <span class="attendance-percentage-val">{{ $persentaseKehadiran }}%</span>
                         </div>
                     </div>
 
@@ -1870,6 +2128,11 @@
     </div>
 
     <script>
+        // Lebar bar kehadiran dari data server.
+        document.querySelectorAll('[data-lebar]').forEach(function (bar) {
+            bar.style.width = bar.dataset.lebar + '%';
+        });
+
         // Tombol salin nomor Virtual Account BSI.
         document.querySelectorAll('[data-copy-va]').forEach(function (tombol) {
             tombol.addEventListener('click', async function () {

@@ -65,7 +65,6 @@ class MahasiswaDashboardController extends Controller
             'kamar' => $kamar,
             'kelompok' => $kelompok,
             'pendaftaran' => $pendaftaran,
-            'sapaan' => $this->sapaan(),
             'ringkasanPembayaran' => $ringkasanPembayaran,
             'absensi' => $absensi,
             'kalender' => $kalender,
@@ -294,19 +293,6 @@ class MahasiswaDashboardController extends Controller
                 );
             }
         }
-    }
-
-    /** Sapaan sesuai waktu setempat. */
-    private function sapaan(): string
-    {
-        $jam = (int) now()->format('H');
-
-        return match (true) {
-            $jam < 11 => 'Selamat pagi',
-            $jam < 15 => 'Selamat siang',
-            $jam < 18 => 'Selamat sore',
-            default => 'Selamat malam',
-        };
     }
 
     /** Rute dashboard sesuai role pengguna. */

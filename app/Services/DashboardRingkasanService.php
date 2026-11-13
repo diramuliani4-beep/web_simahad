@@ -29,6 +29,8 @@ use Illuminate\Support\Facades\Schema;
  */
 class DashboardRingkasanService
 {
+    private const ZONA_WAKTU = 'Asia/Jakarta';
+
     private const STATUS_LUNAS = ['lunas', 'paid', 'terkonfirmasi'];
 
     private const STATUS_MENUNGGU_BAYAR = ['menunggu', 'menunggu_konfirmasi', 'pending'];
@@ -126,7 +128,7 @@ class DashboardRingkasanService
                     ->limit(3)
                     ->get(),
             ],
-            'aktivitas' => $this->aktivitasTerbaru(6),
+            'zonaWaktu' => self::ZONA_WAKTU,
         ];
     }
 
@@ -201,8 +203,10 @@ class DashboardRingkasanService
         $jadwal = JadwalPembelajaran::jadwalUntuk($guru);
         $penugasan = JadwalPembelajaran::penugasanUntuk($guru);
 
+        $zona = self::ZONA_WAKTU;
+
         $jadwalHariIni = $jadwal
-            ->filter(fn (JadwalPembelajaran $item) => $item->nomorHari() === now()->dayOfWeekIso)
+            ->filter(fn (JadwalPembelajaran $item) => $item->nomorHari() === now($zona)->dayOfWeekIso)
             ->sortBy('jam_mulai')
             ->values();
 
@@ -210,7 +214,7 @@ class DashboardRingkasanService
         $sudahDiabsen = $jadwalHariIni->isEmpty()
             ? collect()
             : AbsensiPembelajaran::query()
-                ->whereDate('tanggal', now()->toDateString())
+                ->whereDate('tanggal', now($zona)->toDateString())
                 ->whereIn('jadwal_id', $jadwalHariIni->pluck('id')->all())
                 ->distinct()
                 ->pluck('jadwal_id');
@@ -239,7 +243,7 @@ class DashboardRingkasanService
             'jumlahMapel' => $penugasan->pluck('mata_pelajaran_id')->filter()->unique()->count(),
             'kelompok' => $penugasan->pluck('kelompok')->filter()->unique()->values(),
             'mataPelajaran' => $penugasan
-                ->map(fn (JadwalPembelajaran $item) => $item->namaMataPelajaran())
+                ->pluck('nama_mata_pelajaran')
                 ->filter()
                 ->unique()
                 ->values(),
@@ -252,11 +256,12 @@ class DashboardRingkasanService
             'absensiBelumDiisi' => max(0, $jadwalHariIni->count() - $sudahDiabsen->count()),
             'pengumuman' => $this->pengumumanTerbaru(3),
             'aktivitas' => $this->aktivitasUntukGuru($guru, 5),
+            'zonaWaktu' => self::ZONA_WAKTU,
         ];
     }
 
     /**
-     * Ringkasan teknis Admin Sistem: akun, aktivitas login, log, konfigurasi.
+     * Ringkasan teknis Admin Sistem: akun, aktivitas, log, dan konfigurasi.
      *
      * @return array<string, mixed>
      */
@@ -267,9 +272,11 @@ class DashboardRingkasanService
             ->groupBy('peran')
             ->pluck('jumlah', 'peran');
 
-        $aktivitasAkun = ['create_user', 'update_user', 'delete_user', 'verify_user', 'reject_user', 'send_activation'];
+        $zona = self::ZONA_WAKTU;
 
-        $logSistem = ActivityLog::query()->latest('id')->limit(8)->get();
+        $awalHari = now($zona)->startOfDay()->utc();
+        $awalTujuhHari = now($zona)->subDays(6)->startOfDay()->utc();
+        $seriAktivitas = $this->seriAktivitasHarian();
 
         return [
             'totalAkun' => User::query()->count(),
@@ -284,17 +291,15 @@ class DashboardRingkasanService
                 'admin' => (int) ($perRole['admin'] ?? 0),
             ],
             'akunTerbaru' => User::query()->latest('id')->limit(5)->get(['id', 'name', 'email', 'role', 'status', 'created_at']),
-            'loginTerbaru' => User::query()
-                ->whereNotNull('last_login_at')
-                ->orderByDesc('last_login_at')
-                ->limit(5)
-                ->get(['id', 'name', 'email', 'role', 'last_login_at']),
-            'riwayatAkun' => ActivityLog::query()
-                ->whereIn('activity', $aktivitasAkun)
-                ->latest('id')
-                ->limit(6)
-                ->get(),
-            'logSistem' => $logSistem,
+            'aktivitas' => [
+                'hariIni' => ActivityLog::query()->where('created_at', '>=', $awalHari)->count(),
+                'tujuhHari' => array_sum(array_column($seriAktivitas, 'jumlah')),
+                'loginHariIni' => User::query()->where('last_login_at', '>=', $awalHari)->count(),
+                'akunBaruTujuhHari' => User::query()->where('created_at', '>=', $awalTujuhHari)->count(),
+            ],
+            'aktivitasHarian' => $seriAktivitas,
+            'aktivitasTerbaru' => ActivityLog::query()->latest('id')->limit(25)->get(),
+            'zonaWaktu' => $zona,
             'konfigurasi' => $this->statusKonfigurasi(),
         ];
     }
@@ -453,6 +458,35 @@ class DashboardRingkasanService
     private function aktivitasTerbaru(int $batas): Collection
     {
         return ActivityLog::query()->latest('id')->limit($batas)->get();
+    }
+
+    /**
+     * Jumlah aktivitas per hari selama beberapa hari terakhir (zona WIB).
+     *
+     * @return array<int, array{tanggal: string, label: string, jumlah: int}>
+     */
+    private function seriAktivitasHarian(int $hari = 7): array
+    {
+        $awal = now(self::ZONA_WAKTU)->subDays($hari - 1)->startOfDay()->utc();
+
+        $harian = ActivityLog::query()
+            ->where('created_at', '>=', $awal)
+            ->pluck('created_at')
+            ->filter()
+            ->countBy(fn ($waktu): string => $waktu->copy()->timezone(self::ZONA_WAKTU)->toDateString());
+
+        return collect(range($hari - 1, 0))
+            ->map(function (int $mundur) use ($harian): array {
+                $tanggal = now(self::ZONA_WAKTU)->subDays($mundur)->startOfDay();
+                $kunci = $tanggal->toDateString();
+
+                return [
+                    'tanggal' => $kunci,
+                    'label' => $tanggal->locale('id')->translatedFormat('D'),
+                    'jumlah' => (int) ($harian[$kunci] ?? 0),
+                ];
+            })
+            ->all();
     }
 
     /**

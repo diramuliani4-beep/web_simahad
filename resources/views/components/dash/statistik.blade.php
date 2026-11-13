@@ -18,6 +18,16 @@
         <span class="dash-kartu-ikon">
             <x-panel.ikon :nama="$ikon" />
         </span>
+
+        @if ($tautan)
+            <span class="dash-kartu-panah" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17 17 7" />
+                    <path d="M8 7h9v9" />
+                </svg>
+            </span>
+        @endif
     </span>
 
     <span class="dash-kartu-nilai">{{ $nilai }}</span>
