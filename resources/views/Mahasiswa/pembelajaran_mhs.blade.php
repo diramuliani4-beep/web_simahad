@@ -262,10 +262,15 @@
            MAIN CONTENT
         ========================= */
         .main {
-            margin-left: 300px;
+            margin-left: var(--sb-w, 280px);
+            transition: margin-left .22s ease;
             padding: 108px 36px 40px;
             min-height: 100vh;
             min-width: 0;
+        }
+
+        body.sb-sempit .main {
+            margin-left: var(--sb-w-sempit, 84px);
         }
 
         .page-header-row {
@@ -1169,6 +1174,111 @@
             font-weight: 700;
         }
 
+        /* RINGKASAN KEHADIRAN PADA MODAL MATA PELAJARAN */
+        .abs-ringkasan {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .abs-stat {
+            padding: 8px 10px;
+            border: 1px solid #e6dde0;
+            border-radius: 10px;
+            background: #fff;
+            text-align: center;
+        }
+
+        .abs-stat-label {
+            display: block;
+            color: #8b7e84;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .abs-stat strong {
+            display: block;
+            margin-top: 2px;
+            color: var(--maroon);
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .abs-stat.hadir strong { color: #15803d; }
+        .abs-stat.izin strong { color: #1d4ed8; }
+        .abs-stat.sakit strong { color: #b45309; }
+        .abs-stat.alpa strong { color: #b91c1c; }
+
+        .abs-stat--persen {
+            border-color: #e6d7b8;
+            background: #fffdf7;
+        }
+
+        .abs-stat-note {
+            display: block;
+            margin-top: 2px;
+            color: #8b7e84;
+            font-size: 10.5px;
+            line-height: 1.35;
+        }
+
+        .abs-periode {
+            margin-bottom: 12px;
+            border: 1px solid #efe5e7;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .abs-periode-item {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px 10px;
+            padding: 7px 11px;
+            border-bottom: 1px solid #f3ebed;
+            font-size: 11.5px;
+        }
+
+        .abs-periode-item:last-child {
+            border-bottom: none;
+        }
+
+        .abs-periode-nama {
+            flex: 1 1 140px;
+            min-width: 0;
+            color: #322a2d;
+            font-weight: 600;
+            overflow-wrap: anywhere;
+        }
+
+        .abs-periode-detail {
+            color: #8b7e84;
+            font-size: 11px;
+        }
+
+        .abs-periode-persen {
+            padding: 2px 9px;
+            border-radius: 999px;
+            background: #fdf6e8;
+            color: #6B0D1B;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 560px) {
+            .abs-ringkasan {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .modal-inner {
+                padding: 16px;
+            }
+        }
+
         /* SERTIFIKAT MODAL */
         .certificate-wrapper {
             max-width: 680px;
@@ -1209,30 +1319,17 @@
         }
 
         @media (max-width: 1100px) {
-            .sidebar { width: 260px; }
-            .main { margin-left: 260px; padding: 100px 24px 30px; }
+            .main { padding: 100px 24px 30px; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
-        @media (max-width: 768px) {
-            .topbar { height: 72px; padding: 0 16px; }
-            .brand-name { font-size: 22px; }
-            .brand-logo { width: 44px; height: 42px; }
-            .user-info-pill { display: none; }
-            .sidebar {
-                top: 72px;
-                width: min(300px, 85vw);
-                transform: translateX(-100%);
-                transition: transform .25s ease;
+        /* Di bawah 992px sidebar bersama menjadi laci dan konten memakai lebar penuh. */
+        @media (max-width: 991px) {
+            .main,
+            body.sb-sempit .main {
+                margin-left: 0;
             }
-            .sidebar.open { transform: translateX(0); }
-            .mobile-overlay.open {
-                display: block;
-                position: fixed;
-                inset: 72px 0 0;
-                background: rgba(0,0,0,.4);
-                z-index: 40;
-            }
+
             .mobile-toggle {
                 display: inline-flex;
                 align-items: center;
@@ -1246,7 +1343,22 @@
                 cursor: pointer;
                 font-weight: 600;
             }
-            .main { margin-left: 0; padding: 86px 16px 30px; }
+
+            .mobile-overlay.open {
+                display: block;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, .4);
+                z-index: 930;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .topbar { height: 72px; padding: 0 16px; }
+            .brand-name { font-size: 22px; }
+            .brand-logo { width: 44px; height: 42px; }
+            .user-info-pill { display: none; }
+            .main { padding: 86px 16px 30px; }
             .page-title { font-size: 24px; }
             .stats-grid { grid-template-columns: 1fr; }
             .mapel-grid { grid-template-columns: 1fr; }
@@ -1295,116 +1407,8 @@
     <div class="mobile-overlay" id="mobileOverlay" onclick="toggleSidebar()"></div>
 
     <!-- SIDEBAR -->
-    <aside class="sidebar" id="sidebar">
-        <nav class="sidebar-menu" aria-label="Navigasi utama">
-            <a href="{{ route('dashboard') }}" class="nav-pill {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24">
-                        <rect x="3" y="3" width="7" height="7" rx="2"/>
-                        <rect x="14" y="3" width="7" height="7" rx="2"/>
-                        <rect x="3" y="14" width="7" height="7" rx="2"/>
-                        <rect x="14" y="14" width="7" height="7" rx="2"/>
-                    </svg>
-                </span>
-                <span class="nav-label">Dashboard</span>
-            </a>
-
-            <a href="{{ route('pendaftaran.pribadi') }}" class="nav-pill {{ request()->routeIs('pendaftaran.*') ? 'active' : '' }}">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24">
-                        <circle cx="10" cy="8" r="4"/>
-                        <path d="M3 21v-2a7 7 0 0 1 14 0v2"/>
-                        <path d="M19 8v6M16 11h6"/>
-                    </svg>
-                </span>
-                <span class="nav-label">Pendaftaran</span>
-            </a>
-
-            <a href="{{ route('pembelajaran.mhs') }}" class="nav-pill active" aria-current="page">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M12 7L4 4v15l8 3 8-3V4l-8 3Z"/>
-                        <path d="M12 7v15"/>
-                    </svg>
-                </span>
-                <span class="nav-label">Pembelajaran</span>
-                <span class="nav-arrow">&rsaquo;</span>
-            </a>
-
-            <a href="{{ route('kamar') }}" class="nav-pill {{ request()->routeIs('kamar') ? 'active' : '' }}">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24">
-                        <rect x="3" y="11" width="18" height="9" rx="1"/>
-                        <path d="M5 11V6h5a3 3 0 0 1 3 3v2M13 11V8a2 2 0 0 1 2-2h3a3 3 0 0 1 3 3v2M3 20v2M21 20v2"/>
-                    </svg>
-                </span>
-                <span class="nav-label">Informasi Kamar</span>
-            </a>
-
-            <a href="{{ route('pembayaran') }}" class="nav-pill {{ request()->routeIs('pembayaran') ? 'active' : '' }}">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24">
-                        <rect x="3" y="5" width="18" height="15" rx="2"/>
-                        <path d="M3 9h18M16 14h5"/>
-                        <circle cx="16" cy="14" r="1"/>
-                    </svg>
-                </span>
-                <span class="nav-label">Pembayaran</span>
-            </a>
-
-            <a href="{{ route('absensi.mhs') }}" class="nav-pill {{ request()->routeIs('absensi.mhs') ? 'active' : '' }}">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24">
-                        <rect x="4" y="5" width="16" height="16" rx="2"/>
-                        <path d="M9 5V3h6v2M8 13l3 3 5-6"/>
-                    </svg>
-                </span>
-                <span class="nav-label">Absensi</span>
-            </a>
-
-            <a href="{{ route('pengumuman.mhs') }}" class="nav-pill {{ request()->routeIs('pengumuman.mhs') ? 'active' : '' }}">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M3 11v-1l18-7v18L3 14v-3Z"/>
-                        <path d="M7 16l2 5h4l-3-6"/>
-                    </svg>
-                </span>
-                <span class="nav-label">Pengumuman</span>
-            </a>
-
-            <a href="{{ route('surat.perizinan.mhs') }}" class="nav-pill {{ request()->routeIs('surat.perizinan.mhs*') ? 'active' : '' }}">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M6 3h9l5 5v13H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/>
-                        <path d="M14 3v6h6M8 13h8M8 17h6"/>
-                    </svg>
-                </span>
-                <span class="nav-label">Surat dan Perizinan</span>
-            </a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <a href="#" class="nav-pill" onclick="event.preventDefault(); alert('Halaman Pengaturan Akun dapat diakses melalui menu profil.');">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="3"/>
-                        <path d="m19.4 15 .1.1 1.4 1.1-1.5 2.6-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.9h-3l-.3-1.9a8 8 0 0 1-1.7-1l-1.7.7-1.5-2.6 1.4-1.1a7 7 0 0 1 0-2L5.5 12l1.5-2.6 1.7.7a8 8 0 0 1 1.7-1l.3-1.9h3l.3 1.9a8 8 0 0 1 1.7 1l1.7-.7 1.5 2.6-1.4 1.1a7 7 0 0 1-.1 1.9Z"/>
-                    </svg>
-                </span>
-                <span class="nav-label">Pengaturan Akun</span>
-            </a>
-
-            <a href="{{ route('logout.confirm') }}" class="nav-pill">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M10 17l5-5-5-5M15 12H3"/>
-                        <path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/>
-                    </svg>
-                </span>
-                <span class="nav-label">Keluar</span>
-            </a>
-        </div>
-    </aside>
+    {{-- Sidebar bersama seluruh role SIMAHAD. --}}
+    <x-panel.sidebar ragam="tetap" atas="89px" />
 
     <!-- KONTEN UTAMA -->
     <main class="main">
@@ -1573,7 +1577,7 @@
                             </div>
 
                             <button type="button" class="btn-view-detail" onclick="openDetailPertemuan({{ $m['id'] }}, '{{ addslashes($m['nama']) }}', '{{ $m['kode'] }}')">
-                                🔍 Lihat Rincian 16 Pertemuan
+                                Lihat Kehadiran &amp; Pertemuan
                             </button>
                         </div>
                     @empty
@@ -1856,22 +1860,50 @@
     </main>
 
     <!-- ======================================================== -->
-    <!-- MODAL 1: RINCIAN 16 PERTEMUAN (PEMBELAJARAN MAHASISWA)   -->
+    <!-- MODAL 1: KEHADIRAN & RINCIAN PERTEMUAN MAHASISWA         -->
     <!-- ======================================================== -->
     <div class="modal-overlay" id="modalDetailPertemuan" onclick="closeModalOnBackdrop(event, 'modalDetailPertemuan')">
         <div class="modal-card" onclick="event.stopPropagation()">
             <div class="modal-top">
-                <div class="modal-top-title">Detail 16 Pertemuan Pembelajaran</div>
+                <div class="modal-top-title">Kehadiran &amp; Pertemuan Pembelajaran</div>
                 <button type="button" class="modal-close-btn" onclick="closeModal('modalDetailPertemuan')">&times;</button>
             </div>
             <div class="modal-inner">
-                <div style="background: #fdf8f9; border: 1px solid #f1d5dc; border-radius: 12px; padding: 14px 18px; margin-bottom: 16px;">
+                <div style="background: #fdf8f9; border: 1px solid #f1d5dc; border-radius: 12px; padding: 14px 18px; margin-bottom: 12px;">
                     <div style="font-size: 17px; font-weight: 700; color: var(--maroon);" id="detailMapelTitle">—</div>
                     <div style="font-size: 13px; color: #64748b; margin-top: 3px;" id="detailMapelSub">Target: 16 Pertemuan Tatap Muka</div>
                 </div>
 
+                {{-- Ringkasan kehadiran: total per status dan persentase periode berjalan --}}
+                <div class="abs-ringkasan" aria-live="polite">
+                    <div class="abs-stat hadir">
+                        <span class="abs-stat-label">Hadir</span>
+                        <strong id="absHadir">0</strong>
+                    </div>
+                    <div class="abs-stat izin">
+                        <span class="abs-stat-label">Izin</span>
+                        <strong id="absIzin">0</strong>
+                    </div>
+                    <div class="abs-stat sakit">
+                        <span class="abs-stat-label">Sakit</span>
+                        <strong id="absSakit">0</strong>
+                    </div>
+                    <div class="abs-stat alpa">
+                        <span class="abs-stat-label">Alpa</span>
+                        <strong id="absAlpa">0</strong>
+                    </div>
+                    <div class="abs-stat abs-stat--persen">
+                        <span class="abs-stat-label">Persentase</span>
+                        <strong id="absPersen">0%</strong>
+                        <span class="abs-stat-note" id="absTotal">0 pertemuan tercatat</span>
+                    </div>
+                </div>
+
+                {{-- Rekap persentase per periode pembelajaran --}}
+                <div class="abs-periode" id="periodeKehadiran"></div>
+
                 <div style="font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 8px;">
-                    Rincian Status Kehadiran Pertemuan 1 s.d. 16:
+                    Riwayat Kehadiran Setiap Pertemuan:
                 </div>
                 <div class="pertemuan-grid" id="gridPertemuanDetail">
                     <div style="grid-column: 1/-1; text-align: center; padding: 20px; color: #64748b;">Memuat data pertemuan...</div>
@@ -1993,20 +2025,108 @@
             openModal('modalSertifikat');
         }
 
-        // DETAIL 16 PERTEMUAN (AJAX/FETCH)
+        // KEHADIRAN PER MATA PELAJARAN (AJAX/FETCH)
+        function formatPersen(nilai) {
+            return String(Number(nilai || 0)).replace('.', ',') + '%';
+        }
+
+        function resetRingkasanKehadiran() {
+            ['absHadir', 'absIzin', 'absSakit', 'absAlpa'].forEach(function (id) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = '0';
+            });
+
+            const persen = document.getElementById('absPersen');
+            if (persen) persen.textContent = '0%';
+
+            const total = document.getElementById('absTotal');
+            if (total) total.textContent = 'Memuat data kehadiran...';
+
+            const periode = document.getElementById('periodeKehadiran');
+            if (periode) periode.innerHTML = '';
+        }
+
+        function tampilkanRingkasanKehadiran(data) {
+            const ringkasan = data.ringkasan || {};
+
+            const jumlah = {
+                absHadir: ringkasan.hadir || 0,
+                absIzin: ringkasan.izin || 0,
+                absSakit: ringkasan.sakit || 0,
+                absAlpa: ringkasan.alpa || 0,
+            };
+
+            Object.keys(jumlah).forEach(function (id) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = jumlah[id];
+            });
+
+            const persen = document.getElementById('absPersen');
+            if (persen) persen.textContent = formatPersen(ringkasan.persentase);
+
+            const total = document.getElementById('absTotal');
+            if (total) {
+                total.textContent = (ringkasan.total || 0) + ' dari ' + (ringkasan.target || 16) + ' pertemuan';
+            }
+
+            const wadah = document.getElementById('periodeKehadiran');
+            if (!wadah) return;
+
+            wadah.innerHTML = '';
+            const daftar = data.periode || [];
+
+            if (!daftar.length) {
+                wadah.style.display = 'none';
+                return;
+            }
+
+            wadah.style.display = 'block';
+
+            daftar.forEach(function (item) {
+                const baris = document.createElement('div');
+                baris.className = 'abs-periode-item';
+
+                const nama = document.createElement('span');
+                nama.className = 'abs-periode-nama';
+                nama.textContent = item.periode || 'Periode Pembelajaran';
+
+                const detail = document.createElement('span');
+                detail.className = 'abs-periode-detail';
+                detail.textContent = 'H ' + (item.hadir || 0) + ' · I ' + (item.izin || 0) +
+                    ' · S ' + (item.sakit || 0) + ' · A ' + (item.alpa || 0);
+
+                const persenPeriode = document.createElement('span');
+                persenPeriode.className = 'abs-periode-persen';
+                persenPeriode.textContent = formatPersen(item.persentase);
+
+                baris.appendChild(nama);
+                baris.appendChild(detail);
+                baris.appendChild(persenPeriode);
+                wadah.appendChild(baris);
+            });
+        }
+
         function openDetailPertemuan(mapelId, namaMapel, kodeMapel) {
             document.getElementById('detailMapelTitle').textContent = namaMapel + ' (' + kodeMapel + ')';
             document.getElementById('detailMapelSub').textContent = 'Target: 16 Pertemuan Tatap Muka Ma\'had';
 
             const grid = document.getElementById('gridPertemuanDetail');
-            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 25px; color: #64748b;">Memuat data rincian 16 pertemuan...</div>';
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 25px; color: #64748b;">Memuat data kehadiran...</div>';
 
+            resetRingkasanKehadiran();
             openModal('modalDetailPertemuan');
 
             fetch(`{{ url('/pembelajaran-mhs/detail-pertemuan') }}/${mapelId}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success && data.pertemuan) {
+                        tampilkanRingkasanKehadiran(data);
+
+                        const mapel = data.mapel || {};
+                        document.getElementById('detailMapelSub').textContent =
+                            (mapel.periode ? 'Periode ' + mapel.periode + ' · ' : '') +
+                            'Target ' + (mapel.target_pertemuan || 16) + ' Pertemuan Tatap Muka';
+
                         grid.innerHTML = '';
                         data.pertemuan.forEach(p => {
                             let badgeStyle = 'background: #e2e8f0; color: #334155;';
@@ -2038,7 +2158,7 @@
                             grid.appendChild(card);
                         });
                     } else {
-                        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 20px;">Gagal memuat rincian pertemuan.</div>';
+                        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 20px;">Gagal memuat data kehadiran.</div>';
                     }
                 })
                 .catch(() => {

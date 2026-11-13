@@ -13,7 +13,9 @@ use App\Http\Controllers\DataMahasiswaMhsController;
 use App\Http\Controllers\GuruAbsensiController;
 use App\Http\Controllers\GuruJadwalSayaController;
 use App\Http\Controllers\GuruKegiatanDokumentasiController;
+use App\Http\Controllers\GuruPembelajaranController;
 use App\Http\Controllers\GuruPengumpulanController;
+use App\Http\Controllers\GuruPenilaianController;
 use App\Http\Controllers\GuruTugasController;
 use App\Http\Controllers\MusyrifahDataKamarController;
 use App\Http\Controllers\MusyrifahDetailPengumumanController;
@@ -237,19 +239,22 @@ Route::middleware('auth')->group(function () {
     Route::put('/data-mahasiswa', [DataMahasiswaMhsController::class, 'update'])
         ->name('data.mahasiswa.update');
 
-    // Pembayaran mahasiswa
+    // Pembayaran mahasiswa: angsuran, bukti transfer, pengajuan keterlambatan
     Route::get('/pembayaran', [PembayaranController::class, 'index'])
         ->name('pembayaran');
 
-    Route::post('/pembayaran/bayar', [PembayaranController::class, 'bayar'])
-        ->name('pembayaran.bayar');
-
-    Route::post('/pembayaran/reset', [PembayaranController::class, 'reset'])
-        ->name('pembayaran.reset');
-
-    // Detail tagihan periode aktif (nominal, tahap, jatuh tempo, VA BSI)
+    // Halaman detail lama diarahkan ke halaman pembayaran terpadu.
     Route::get('/pembayaran/detail', [PembayaranController::class, 'detail'])
         ->name('pembayaran.detail');
+
+    Route::post('/pembayaran/{pembayaran}/bukti', [PembayaranController::class, 'unggahBukti'])
+        ->name('pembayaran.bukti');
+
+    Route::post('/pembayaran/{pembayaran}/keterlambatan', [PembayaranController::class, 'ajukanKeterlambatan'])
+        ->name('pembayaran.keterlambatan');
+
+    Route::get('/pembayaran/keterlambatan/{pengajuan}/surat', [PembayaranController::class, 'suratKeterlambatan'])
+        ->name('pembayaran.keterlambatan.surat');
 
     // Pendaftaran mahasiswa
     Route::get('/pendaftaran', function () {
@@ -475,8 +480,48 @@ Route::middleware('auth')->group(function () {
 
     Route::put('/admin/pengaturan-sistem', [
         AdminPengaturanSistemController::class,
-        'update',
+        'updateIdentitas',
     ])->name('admin.pengaturan-sistem.update');
+
+    Route::put('/admin/pengaturan-sistem/email', [
+        AdminPengaturanSistemController::class,
+        'updateEmail',
+    ])->name('admin.pengaturan-sistem.email');
+
+    Route::post('/admin/pengaturan-sistem/email/tes', [
+        AdminPengaturanSistemController::class,
+        'tesEmail',
+    ])->name('admin.pengaturan-sistem.email.tes');
+
+    Route::put('/admin/pengaturan-sistem/keamanan', [
+        AdminPengaturanSistemController::class,
+        'updateKeamanan',
+    ])->name('admin.pengaturan-sistem.keamanan');
+
+    Route::put('/admin/pengaturan-sistem/backup', [
+        AdminPengaturanSistemController::class,
+        'updateBackup',
+    ])->name('admin.pengaturan-sistem.backup');
+
+    Route::post('/admin/pengaturan-sistem/backup', [
+        AdminPengaturanSistemController::class,
+        'buatBackup',
+    ])->name('admin.pengaturan-sistem.backup.buat');
+
+    Route::get('/admin/pengaturan-sistem/backup/{berkas}', [
+        AdminPengaturanSistemController::class,
+        'unduhBackup',
+    ])->where('berkas', '[A-Za-z0-9.\-]+')->name('admin.pengaturan-sistem.backup.unduh');
+
+    Route::delete('/admin/pengaturan-sistem/backup/{berkas}', [
+        AdminPengaturanSistemController::class,
+        'hapusBackup',
+    ])->where('berkas', '[A-Za-z0-9.\-]+')->name('admin.pengaturan-sistem.backup.hapus');
+
+    Route::post('/admin/pengaturan-sistem/pemeliharaan', [
+        AdminPengaturanSistemController::class,
+        'pemeliharaan',
+    ])->name('admin.pengaturan-sistem.pemeliharaan');
 
     // Pengaturan akun Admin (profil pribadi, berbeda dari pengaturan sistem).
     Route::get('/admin/pengaturan-akun', [
@@ -563,45 +608,61 @@ Route::middleware('auth')->group(function () {
         'index',
     ])->name('guru.absensi');
 
-    // Detail jadwal guru (data sementara).
-    Route::get('/guru/jadwal-saya/detail/{mapel}', function ($mapel) {
+    // Pembelajaran Guru: pilih mapel, progres 1-16, pertemuan, absensi, materi, tugas.
+    Route::get('/guru/pembelajaran', [
+        GuruPembelajaranController::class,
+        'index',
+    ])->name('guru.pembelajaran');
 
-        // Data contoh mata pelajaran untuk menampilkan halaman detail.
-        // Belum terhubung dengan database atau CRUD.
-        $dataMapel = [
-            'akhlak' => [
-                'mataPelajaran' => 'Akhlak dan Adab',
-                'kelompok' => 'Kelompok A',
-                'instruktur' => 'Nama Guru',
-                'jadwal' => 'Senin, 08.00–09.00',
-                'totalPertemuan' => 16,
-                'absensiTerisi' => 8,
-            ],
+    Route::post('/guru/pembelajaran/mulai', [
+        GuruPembelajaranController::class,
+        'mulai',
+    ])->name('guru.pembelajaran.mulai');
 
-            'alquran' => [
-                'mataPelajaran' => "Al-Qur'an",
-                'kelompok' => 'Kelompok B',
-                'instruktur' => 'Nama Guru',
-                'jadwal' => 'Senin, 13.00–14.00',
-                'totalPertemuan' => 16,
-                'absensiTerisi' => 6,
-            ],
-        ];
+    Route::get('/guru/pembelajaran/pertemuan/{pertemuan}', [
+        GuruPembelajaranController::class,
+        'pertemuan',
+    ])->whereNumber('pertemuan')->name('guru.pembelajaran.pertemuan');
 
-        // Jika kode mata pelajaran tidak tersedia, tampilkan halaman 404.
-        abort_unless(isset($dataMapel[$mapel]), 404);
+    Route::put('/guru/pembelajaran/pertemuan/{pertemuan}/absensi', [
+        GuruPembelajaranController::class,
+        'simpanAbsensi',
+    ])->whereNumber('pertemuan')->name('guru.pembelajaran.absensi');
 
-        // Kirim data contoh ke halaman detail_jadwal.blade.php.
-        return view('guru.detail_jadwal', $dataMapel[$mapel]);
+    Route::post('/guru/pembelajaran/pertemuan/{pertemuan}/materi', [
+        GuruPembelajaranController::class,
+        'unggahMateri',
+    ])->whereNumber('pertemuan')->name('guru.pembelajaran.materi');
 
+    Route::get('/guru/pembelajaran/pertemuan/{pertemuan}/materi/unduh', [
+        GuruPembelajaranController::class,
+        'unduhMateri',
+    ])->whereNumber('pertemuan')->name('guru.pembelajaran.materi.unduh');
+
+    Route::post('/guru/pembelajaran/pertemuan/{pertemuan}/tugas', [
+        GuruPembelajaranController::class,
+        'simpanTugas',
+    ])->whereNumber('pertemuan')->name('guru.pembelajaran.tugas');
+
+    Route::put('/guru/pembelajaran/pertemuan/{pertemuan}/selesai', [
+        GuruPembelajaranController::class,
+        'selesaikan',
+    ])->whereNumber('pertemuan')->name('guru.pembelajaran.selesai');
+
+    // Penilaian Guru mengikuti penugasan mata pelajaran dan kelompok.
+    Route::get('/guru/penilaian', [
+        GuruPenilaianController::class,
+        'index',
+    ])->name('guru.penilaian');
+
+    // Detail jadwal kini menyatu pada menu Pembelajaran (progres 16 pertemuan).
+    Route::get('/guru/jadwal-saya/detail/{mapel}', function () {
+        return redirect()->route('guru.pembelajaran');
     })->name('guru.jadwal.detail');
 
-    // Form isi absensi guru.
+    // Pengisian absensi kini dilakukan di dalam pertemuan Pembelajaran.
     Route::get('/guru/absensi/isi', function () {
-
-        // Menampilkan halaman formulir pengisian absensi.
-        return view('guru.isi_absensi');
-
+        return redirect()->route('guru.pembelajaran');
     })->name('guru.absensi.isi');
 
     Route::get('/guru/kegiatan-dokumentasi', [
@@ -782,6 +843,17 @@ Route::middleware('auth')->group(function () {
         'cetak',
     ])->whereNumber('laporan')->name('pimpinan.laporan.cetak');
 
+    // Unduh dokumen laporan periodik Musyrifah (hanya baca)
+    Route::get('/pimpinan/laporan/{laporan}/pdf', [
+        PimpinanLaporanRegisterController::class,
+        'unduhPdf',
+    ])->whereNumber('laporan')->name('pimpinan.laporan.pdf');
+
+    Route::get('/pimpinan/laporan/{laporan}/excel', [
+        PimpinanLaporanRegisterController::class,
+        'unduhExcel',
+    ])->whereNumber('laporan')->name('pimpinan.laporan.excel');
+
     // Audit trail (Pimpinan dan Admin Sistem)
     Route::get('/pimpinan/audit', [
         PimpinanAuditController::class,
@@ -879,6 +951,42 @@ Route::middleware('auth')->group(function () {
         'updateStatus',
     ])->name('musyrifah.pembayaran.status');
 
+    Route::post('/musyrifah/pembayaran/{id}/verifikasi', [
+        MusyrifahPembayaranController::class,
+        'verifikasiBukti',
+    ])->name('musyrifah.pembayaran.verifikasi');
+
+    Route::post('/musyrifah/pembayaran/{id}/nominal', [
+        MusyrifahPembayaranController::class,
+        'perbaruiNominal',
+    ])->name('musyrifah.pembayaran.nominal');
+
+    Route::post('/musyrifah/pembayaran/jadwal', [
+        MusyrifahPembayaranController::class,
+        'simpanJadwal',
+    ])->name('musyrifah.pembayaran.jadwal');
+
+    // Pembukaan dan pengaturan periode pembayaran (kewenangan Musyrifah).
+    Route::post('/musyrifah/pembayaran/periode', [
+        MusyrifahPembayaranController::class,
+        'simpanPeriode',
+    ])->name('musyrifah.pembayaran.periode.simpan');
+
+    Route::post('/musyrifah/pembayaran/periode/{periode}/buka', [
+        MusyrifahPembayaranController::class,
+        'bukaPeriode',
+    ])->name('musyrifah.pembayaran.periode.buka');
+
+    Route::post('/musyrifah/pembayaran/periode/{periode}/tutup', [
+        MusyrifahPembayaranController::class,
+        'tutupPeriode',
+    ])->name('musyrifah.pembayaran.periode.tutup');
+
+    Route::post('/musyrifah/pembayaran/keterlambatan/{id}', [
+        MusyrifahPembayaranController::class,
+        'putuskanKeterlambatan',
+    ])->name('musyrifah.pembayaran.keterlambatan');
+
     Route::get('/musyrifah/manajemen-pembelajaran', [
         MusyrifahManajemenPembelajaranController::class,
         'index',
@@ -938,19 +1046,11 @@ Route::middleware('auth')->group(function () {
 
     })->name('musyrifah.jadwal-saya');
 
-    // Absensi Musyrifah menggunakan tampilan Guru.
-    Route::get('/musyrifah/absensi', function (Request $request) {
-
-        $role = strtolower((string) $request->user()?->role);
-
-        abort_unless(
-            in_array($role, ['musyrifah', 'pengelola'], true),
-            403
-        );
-
-        return view('guru.absensi');
-
-    })->name('musyrifah.absensi');
+    // Absensi Musyrifah memakai rekap pembelajaran yang sama (tanpa batas penugasan Guru).
+    Route::get('/musyrifah/absensi', [
+        GuruAbsensiController::class,
+        'untukMusyrifah',
+    ])->name('musyrifah.absensi');
 
     Route::get('/musyrifah/surat-perizinan', [
         MusyrifahSuratPerizinanController::class,
@@ -997,6 +1097,47 @@ Route::middleware('auth')->group(function () {
         MusyrifahLaporanController::class,
         'arsipkanLaporan',
     ])->whereNumber('laporan')->name('musyrifah.laporan.arsipkan');
+
+    // Laporan periodik: buat (bulanan/tahunan), pratinjau, simpan, dokumen.
+    Route::get('/musyrifah/laporan/buat', [
+        MusyrifahLaporanController::class,
+        'buatLaporan',
+    ])->name('musyrifah.laporan.buat');
+
+    Route::post('/musyrifah/laporan/buat/pratinjau', [
+        MusyrifahLaporanController::class,
+        'pratinjauPeriodik',
+    ])->name('musyrifah.laporan.pratinjau');
+
+    Route::post('/musyrifah/laporan/buat', [
+        MusyrifahLaporanController::class,
+        'simpanPeriodik',
+    ])->name('musyrifah.laporan.periodik.simpan');
+
+    Route::get('/musyrifah/laporan/periodik/{laporan}', [
+        MusyrifahLaporanController::class,
+        'lihatPeriodik',
+    ])->whereNumber('laporan')->name('musyrifah.laporan.periodik');
+
+    Route::get('/musyrifah/laporan/periodik/{laporan}/cetak', [
+        MusyrifahLaporanController::class,
+        'cetakPeriodik',
+    ])->whereNumber('laporan')->name('musyrifah.laporan.periodik.cetak');
+
+    Route::get('/musyrifah/laporan/periodik/{laporan}/pdf', [
+        MusyrifahLaporanController::class,
+        'unduhPdf',
+    ])->whereNumber('laporan')->name('musyrifah.laporan.periodik.pdf');
+
+    Route::get('/musyrifah/laporan/periodik/{laporan}/excel', [
+        MusyrifahLaporanController::class,
+        'unduhExcel',
+    ])->whereNumber('laporan')->name('musyrifah.laporan.periodik.excel');
+
+    Route::patch('/musyrifah/laporan/periodik/{laporan}/perbarui', [
+        MusyrifahLaporanController::class,
+        'perbaruiPeriodik',
+    ])->whereNumber('laporan')->name('musyrifah.laporan.periodik.perbarui');
 
     Route::get('/musyrifah/laporan/{jenis}/unduh', [
         MusyrifahLaporanController::class,

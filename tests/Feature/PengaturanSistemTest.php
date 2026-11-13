@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\ActivityLog;
 use App\Models\Notifikasi;
 use App\Models\PengaturanSistem;
 use App\Models\User;
+use App\Support\MenuPeran;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
@@ -27,10 +29,23 @@ class PengaturanSistemTest extends TestCase
             ->get(route('admin.pengaturan-sistem'))
             ->assertOk()
             ->assertSee('Pengaturan Sistem')
-            ->assertSee('Informasi Aplikasi')
-            ->assertSee('Notifikasi')
+            ->assertSee('Identitas Aplikasi')
+            ->assertSee('Pengaturan Email')
+            ->assertSee('Nama Aplikasi')
+            ->assertSee('Nama Institusi')
+            ->assertSee('Versi Aplikasi')
+            ->assertSee('v'.config('app.version'))
+            ->assertSee('logo_uin.png')
             ->assertSee('Keamanan Sistem')
-            ->assertSee('Simpan Pengaturan');
+            ->assertSee('Backup dan Pemeliharaan')
+            ->assertSee('Riwayat Aktivitas Pengguna')
+            ->assertSee('Riwayat Perubahan Sistem')
+            ->assertSee('Tes Koneksi')
+            ->assertSee('Buat Backup Sekarang')
+            ->assertSee('data-edit="identitas"', false)
+            ->assertSee('data-batal="identitas"', false)
+            // Pengaturan akun dan preferensi notifikasi tidak diduplikasi di halaman ini.
+            ->assertDontSee('Notifikasi pengumuman');
     }
 
     public function test_selain_admin_tidak_dapat_membuka_pengaturan_sistem(): void
@@ -55,10 +70,6 @@ class PengaturanSistemTest extends TestCase
         $response = $this->actingAs($admin)->put(route('admin.pengaturan-sistem.update'), [
             'nama_sistem' => 'SIMAHAD Akademik',
             'nama_institusi' => 'Ma’had Uji Coba',
-            'durasi_sesi' => 45,
-            'notifikasi_pengumuman' => '1',
-            'notifikasi_pembelajaran' => '0',
-            'notifikasi_pembayaran' => '1',
         ]);
 
         $response->assertRedirect(route('admin.pengaturan-sistem'));
@@ -67,25 +78,78 @@ class PengaturanSistemTest extends TestCase
         $this->assertDatabaseHas('pengaturan_sistems', [
             'nama_sistem' => 'SIMAHAD Akademik',
             'nama_institusi' => 'Ma’had Uji Coba',
-            'durasi_sesi' => 45,
+            // Preferensi notifikasi dan durasi sesi tidak disentuh halaman ini.
+            'durasi_sesi' => 120,
             'notifikasi_pengumuman' => true,
-            'notifikasi_pembelajaran' => false,
-            'notifikasi_pembayaran' => true,
         ]);
 
         $this->assertDatabaseHas('activity_logs', [
             'user_id' => $admin->id,
-            'activity' => 'Pengaturan Sistem',
+            'user_role' => 'admin',
+            'modul' => 'pengaturan',
+            'aksi' => 'diperbarui',
+            'objek' => 'Identitas Aplikasi',
         ]);
 
-        // Nama sistem dan durasi sesi ikut terpakai pada request berikutnya.
+        // Nama aplikasi langsung terpakai dan perubahan tampil pada riwayat sistem.
         $this->actingAs($admin)
             ->get(route('admin.pengaturan-sistem'))
             ->assertOk()
-            ->assertSee('SIMAHAD Akademik');
+            ->assertSee('SIMAHAD Akademik')
+            ->assertSee('Riwayat Perubahan Sistem')
+            ->assertSee('memperbarui identitas aplikasi');
 
-        $this->assertSame(45, config('session.lifetime'));
         $this->assertSame('SIMAHAD Akademik', config('app.name'));
+    }
+
+    public function test_halaman_tidak_mengubah_notifikasi_dan_durasi_sesi(): void
+    {
+        $admin = $this->buatPengguna('admin');
+
+        $this->actingAs($admin)
+            ->put(route('admin.pengaturan-sistem.update'), [
+                'nama_sistem' => 'SIMAHAD',
+                'nama_institusi' => 'Ma’had Al-Jami’ah Tuanku Imam Bonjol',
+                'durasi_sesi' => 5,
+                'notifikasi_pengumuman' => '0',
+            ])
+            ->assertRedirect(route('admin.pengaturan-sistem'));
+
+        $this->assertDatabaseHas('pengaturan_sistems', [
+            'durasi_sesi' => 120,
+            'notifikasi_pengumuman' => true,
+            'notifikasi_pembelajaran' => true,
+            'notifikasi_pembayaran' => true,
+        ]);
+
+        // Tanpa perubahan nilai, riwayat perubahan sistem tidak bertambah.
+        $this->assertDatabaseCount('activity_logs', 0);
+    }
+
+    public function test_riwayat_aktivitas_pengguna_dan_perubahan_sistem_ditampilkan(): void
+    {
+        $admin = $this->buatPengguna('admin', ['name' => 'Admin SIMAHAD']);
+
+        ActivityLog::create([
+            'user_name' => 'Ustadzah Huda',
+            'user_role' => 'musyrifah',
+            'activity' => 'Pengumuman · diterbitkan',
+            'description' => 'Menerbitkan pengumuman jadwal ujian',
+        ]);
+
+        ActivityLog::create([
+            'user_name' => 'Admin Lama',
+            'user_role' => 'admin',
+            'activity' => 'Pengaturan Sistem',
+            'description' => 'Admin Lama memperbarui pengaturan sistem',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.pengaturan-sistem'))
+            ->assertOk()
+            ->assertSee('Ustadzah Huda')
+            ->assertSee('Menerbitkan pengumuman jadwal ujian')
+            ->assertSee('Admin Lama memperbarui pengaturan sistem');
     }
 
     public function test_pengaturan_sistem_divalidasi(): void
@@ -96,9 +160,8 @@ class PengaturanSistemTest extends TestCase
             ->put(route('admin.pengaturan-sistem.update'), [
                 'nama_sistem' => '',
                 'nama_institusi' => '',
-                'durasi_sesi' => 2,
             ])
-            ->assertSessionHasErrors(['nama_sistem', 'nama_institusi', 'durasi_sesi']);
+            ->assertSessionHasErrors(['nama_sistem', 'nama_institusi']);
 
         $this->assertDatabaseHas('pengaturan_sistems', [
             'nama_sistem' => 'SIMAHAD',
@@ -143,6 +206,16 @@ class PengaturanSistemTest extends TestCase
             ->assertSee('Lihat Profil')
             ->assertSee(route('pengaturan-akun.index'), false)
             ->assertSee('Admin SIMAHAD');
+    }
+
+    public function test_sidebar_admin_tidak_lagi_memuat_menu_pengaturan_akun(): void
+    {
+        $admin = $this->buatPengguna('admin');
+
+        $labelMenu = array_column(MenuPeran::bawah($admin), 'label');
+
+        $this->assertContains('Pengaturan Sistem', $labelMenu);
+        $this->assertNotContains('Pengaturan Akun', $labelMenu);
     }
 
     public function test_pengaturan_sistem_aman_disimpan_pada_cache_database(): void

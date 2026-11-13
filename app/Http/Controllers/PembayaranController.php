@@ -4,196 +4,164 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Pembayaran;
-use App\Models\Pendaftaran;
+use App\Models\PengajuanKeterlambatanPembayaran;
+use App\Models\User;
+use App\Services\PembayaranAngsuranService;
+use App\Services\SuratKeterlambatanPdfService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Response;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PembayaranController extends Controller
 {
+    public function __construct(private readonly PembayaranAngsuranService $layanan) {}
+
     /**
-     * Display the payment (Pembayaran) page for Mahasiswa.
+     * Halaman pembayaran mahasiswa: ringkasan tagihan, tiga angsuran,
+     * rekening resmi BSI, riwayat, dan pengajuan keterlambatan.
      */
-    public function index(): View|RedirectResponse
+    public function index(Request $request): View
     {
-        if (! Auth::check()) {
-            return redirect()->route('login');
-        }
-
-        $user = Auth::user();
-
-        // Cari atau buat tagihan aktif untuk mahasiswa ini
-        $pembayaran = Pembayaran::firstOrCreate(
-            [
-                'user_id' => $user->id,
-                'periode' => 'Januari 2027',
-            ],
-            [
-                'kode_transaksi' => 'TRX-'.date('Ymd').'-'.str_pad((string) $user->id, 4, '0', STR_PAD_LEFT),
-                'nama_tagihan' => 'Pembayaran Asrama',
-                'nominal' => 2500000.00,
-                'status' => session('pembayaran_status', 'belum_lunas'),
-                'keterangan' => 'Tagihan Asrama Periode Januari 2027',
-            ]
-        );
-
-        // Jika session diset lunas (misal dari tes fitur atau aksi langsung) sinkronkan ke database
-        if (session('pembayaran_status') === 'lunas' && $pembayaran->status !== 'lunas') {
-            $pembayaran->update([
-                'status' => 'lunas',
-                'metode_pembayaran' => $pembayaran->metode_pembayaran ?? 'Virtual Account BSI',
-                'tanggal_bayar' => $pembayaran->tanggal_bayar ?? now(),
-                'keterangan' => $pembayaran->keterangan ?? 'Pembayaran Asrama Periode Januari 2027 via Virtual Account BSI',
-            ]);
-        }
-
-        $status = ($pembayaran->status === 'lunas' || session('pembayaran_status') === 'lunas')
-            ? 'lunas'
-            : $pembayaran->status;
-
-        $tagihan = [
-            'id' => $pembayaran->id,
-            'nama' => $pembayaran->nama_tagihan ?? 'Pembayaran Asrama',
-            'periode' => $pembayaran->periode ?? 'Januari 2027',
-            'nominal' => '2.500.00,00',
-            'nominal_rupiah' => 'Rp 2.500.000',
-            'status' => $status,
-            'metode' => $pembayaran->metode_pembayaran,
-            'tanggal_bayar' => $pembayaran->tanggal_bayar,
-        ];
-
-        // Riwayat pembayaran
-        $riwayat = [
-            [
-                'periode' => 'Agustus-Desember',
-                'nominal' => '2.500.000,00',
-                'status' => 'Lunas',
-            ],
-        ];
-
-        // Tambahkan riwayat pendaftaran jika ada
-        $pendaftaran = Pendaftaran::where('user_id', $user->id)->first();
-        if ($pendaftaran && $pendaftaran->nominal_pembayaran) {
-            $riwayat[] = [
-                'periode' => 'Awal Pendaftaran',
-                'nominal' => number_format((float) $pendaftaran->nominal_pembayaran, 0, ',', '.').',00',
-                'status' => $pendaftaran->status === 'disetujui' ? 'Lunas' : 'Menunggu Konfirmasi',
-            ];
-        }
+        $mahasiswa = $this->mahasiswa($request);
 
         return view('Mahasiswa.pembayaran', [
-            'tagihan' => $tagihan,
-            'riwayat' => $riwayat,
-            'status' => $status,
-            'user' => $user,
-            'pembayaran' => $pembayaran,
+            'user' => $mahasiswa,
+            'ringkasan' => $this->layanan->ringkasan($mahasiswa),
         ]);
     }
 
     /**
-     * Detail tagihan periode aktif: nominal, tahap, jatuh tempo,
-     * status, dan nomor Virtual Account BSI bersama.
+     * Halaman detail lama diarahkan ke halaman pembayaran yang baru agar
+     * seluruh informasi berada pada satu tempat.
      */
-    public function detail(): View|RedirectResponse
+    public function detail(): RedirectResponse
     {
-        if (! Auth::check()) {
-            return redirect()->route('login');
+        return redirect()->route('pembayaran');
+    }
+
+    /**
+     * Unggah bukti transfer untuk satu angsuran.
+     */
+    public function unggahBukti(Request $request, Pembayaran $pembayaran): RedirectResponse
+    {
+        $mahasiswa = $this->mahasiswa($request);
+
+        abort_unless($pembayaran->user_id === $mahasiswa->id, 403);
+
+        $validated = $request->validate([
+            'bukti' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+        ], [
+            'bukti.required' => 'Berkas bukti transfer wajib dipilih.',
+            'bukti.mimes' => 'Bukti transfer harus berformat PDF, JPG, JPEG, atau PNG.',
+            'bukti.max' => 'Ukuran bukti transfer maksimal 5 MB.',
+        ]);
+
+        try {
+            $this->layanan->unggahBukti($mahasiswa, $pembayaran, $validated['bukti']);
+        } catch (ValidationException $exception) {
+            return back()->withErrors($exception->errors());
         }
 
-        $user = Auth::user();
+        $this->catatAktivitas(
+            $mahasiswa,
+            'Unggah Bukti Pembayaran',
+            'Mahasiswa '.$mahasiswa->name.' ('.$mahasiswa->nim.') mengunggah bukti transfer '.
+                $pembayaran->labelTahap().' sebesar '.$pembayaran->nominal_rupiah.'.',
+            $request
+        );
 
-        return view('Mahasiswa.detail_pembayaran', [
-            'user' => $user,
-            'ringkasan' => Pembayaran::ringkasanUntuk($user),
-        ]);
+        return redirect()->route('pembayaran')->with('success', 'Bukti transfer '.$pembayaran->labelTahap().
+            ' berhasil diunggah. Status tagihan menunggu pemeriksaan Musyrifah.');
     }
 
     /**
-     * Process or simulate bill payment.
+     * Ajukan keterlambatan pembayaran beserta alasan dan rencana tanggal bayar.
      */
-    public function bayar(Request $request): RedirectResponse
+    public function ajukanKeterlambatan(Request $request, Pembayaran $pembayaran): RedirectResponse
     {
+        $mahasiswa = $this->mahasiswa($request);
+
+        abort_unless($pembayaran->user_id === $mahasiswa->id, 403);
+
         $validated = $request->validate([
-            'metode' => ['nullable', 'string', 'max:100'],
+            'alasan' => ['required', 'string', 'min:10', 'max:1000'],
+            'tanggal_rencana_bayar' => ['required', 'date', 'after:today', 'before:+6 months'],
+        ], [
+            'alasan.required' => 'Alasan keterlambatan wajib diisi.',
+            'alasan.min' => 'Alasan keterlambatan minimal 10 karakter.',
+            'tanggal_rencana_bayar.required' => 'Tanggal rencana pembayaran wajib diisi.',
+            'tanggal_rencana_bayar.after' => 'Tanggal rencana pembayaran harus setelah hari ini.',
+            'tanggal_rencana_bayar.before' => 'Tanggal rencana pembayaran maksimal 6 bulan ke depan.',
         ]);
 
-        $user = Auth::user();
-        $metode = $validated['metode'] ?? 'Virtual Account BSI';
+        try {
+            $pengajuan = $this->layanan->ajukanKeterlambatan(
+                $mahasiswa,
+                $pembayaran,
+                $validated['alasan'],
+                $validated['tanggal_rencana_bayar']
+            );
+        } catch (ValidationException $exception) {
+            return back()->withErrors($exception->errors());
+        }
 
-        $pembayaran = Pembayaran::firstOrCreate(
-            [
-                'user_id' => $user->id,
-                'periode' => 'Januari 2027',
-            ],
-            [
-                'kode_transaksi' => 'TRX-'.date('Ymd').'-'.str_pad((string) $user->id, 4, '0', STR_PAD_LEFT),
-                'nama_tagihan' => 'Pembayaran Asrama',
-                'nominal' => 2500000.00,
-            ]
+        $this->catatAktivitas(
+            $mahasiswa,
+            'Pengajuan Keterlambatan Pembayaran',
+            'Mahasiswa '.$mahasiswa->name.' ('.$mahasiswa->nim.') mengajukan keterlambatan '.
+                $pembayaran->labelTahap().' dengan nomor surat '.$pengajuan->nomor_surat.'.',
+            $request
         );
 
-        $pembayaran->update([
-            'status' => 'lunas',
-            'metode_pembayaran' => $metode,
-            'tanggal_bayar' => now(),
-            'keterangan' => "Pembayaran Asrama Periode {$pembayaran->periode} sebesar Rp 2.500.000 via {$metode}",
-        ]);
+        return redirect()->route('pembayaran')->with('success', 'Pengajuan keterlambatan terkirim dengan nomor surat '.
+            $pengajuan->nomor_surat.'. Surat PDF dapat diperiksa pada riwayat pengajuan.');
+    }
 
-        // Catat aktivitas ke log aktivitas sistem
+    /**
+     * Unduh surat pengajuan keterlambatan dalam format PDF.
+     */
+    public function suratKeterlambatan(Request $request, PengajuanKeterlambatanPembayaran $pengajuan): Response
+    {
+        $pengguna = $request->user();
+        $role = strtolower(trim((string) $pengguna?->role));
+
+        abort_unless(
+            $pengguna && ($pengajuan->user_id === $pengguna->id || in_array($role, ['musyrifah', 'pengelola', 'admin'], true)),
+            403
+        );
+
+        $pdf = app(SuratKeterlambatanPdfService::class)->render($pengajuan);
+        $namaBerkas = 'surat-keterlambatan-'.str_replace('/', '-', $pengajuan->nomor_surat).'.pdf';
+
+        return response($pdf, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$namaBerkas.'"',
+        ]);
+    }
+
+    private function mahasiswa(Request $request): User
+    {
+        $user = $request->user();
+        $role = strtolower(trim((string) $user?->role));
+
+        abort_unless($user && $role === 'mahasiswa', 403);
+
+        return $user;
+    }
+
+    private function catatAktivitas(User $mahasiswa, string $aktivitas, string $deskripsi, Request $request): void
+    {
         ActivityLog::create([
-            'user_id' => $user->id,
-            'user_name' => $user->name,
-            'user_email' => $user->email,
-            'user_role' => $user->role ?? 'mahasiswa',
-            'activity' => 'Pembayaran Tagihan',
-            'description' => "Mahasiswa {$user->name} ({$user->nim}) berhasil melakukan pembayaran {$pembayaran->nama_tagihan} periode {$pembayaran->periode} sebesar Rp 2.500.000 via {$metode}.",
+            'user_id' => $mahasiswa->id,
+            'user_name' => $mahasiswa->name,
+            'user_email' => $mahasiswa->email,
+            'user_role' => 'mahasiswa',
+            'activity' => $aktivitas,
+            'description' => $deskripsi,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);
-
-        session(['pembayaran_status' => 'lunas']);
-
-        return redirect()->route('pembayaran')
-            ->with('status', 'Pembayaran Asrama Periode Januari 2027 sebesar Rp 2.500.000 via '.$metode.' berhasil diproses!');
-    }
-
-    /**
-     * Reset payment simulation state to unpaid.
-     */
-    public function reset(Request $request): RedirectResponse
-    {
-        $user = Auth::user();
-
-        if ($user) {
-            $pembayaran = Pembayaran::where('user_id', $user->id)
-                ->where('periode', 'Januari 2027')
-                ->first();
-
-            if ($pembayaran) {
-                $pembayaran->update([
-                    'status' => 'belum_lunas',
-                    'metode_pembayaran' => null,
-                    'tanggal_bayar' => null,
-                    'keterangan' => 'Tagihan Asrama Periode Januari 2027',
-                ]);
-            }
-
-            ActivityLog::create([
-                'user_id' => $user->id,
-                'user_name' => $user->name,
-                'user_email' => $user->email,
-                'user_role' => $user->role ?? 'mahasiswa',
-                'activity' => 'Reset Pembayaran',
-                'description' => "Mahasiswa {$user->name} ({$user->nim}) me-reset status pembayaran tagihan Asrama ke Belum Lunas.",
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-            ]);
-        }
-
-        session()->forget('pembayaran_status');
-
-        return redirect()->route('pembayaran')
-            ->with('status', 'Status tagihan berhasil di-reset kembali ke Belum Lunas.');
     }
 }

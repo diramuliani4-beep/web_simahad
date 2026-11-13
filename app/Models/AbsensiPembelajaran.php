@@ -14,6 +14,7 @@ class AbsensiPembelajaran extends Model
         'user_id',
         'mata_pelajaran_id',
         'jadwal_id',
+        'pertemuan_id',
         'kelompok',
         'pertemuan_ke',
         'tanggal',
@@ -40,5 +41,10 @@ class AbsensiPembelajaran extends Model
     {
         return $this->belongsTo(JadwalPembelajaran::class, 'jadwal_id');
     }
-}
 
+    /** Pertemuan tatap muka yang menjadi sumber absensi ini. */
+    public function pertemuan(): BelongsTo
+    {
+        return $this->belongsTo(PertemuanPembelajaran::class, 'pertemuan_id');
+    }
+}

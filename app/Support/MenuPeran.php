@@ -28,17 +28,15 @@ class MenuPeran
                 self::item('Tugas', 'tugas.mhs.index', ['tugas.mhs.*'], 'tugas'),
                 self::item('Informasi Kamar', 'kamar', ['kamar', 'kamar.*'], 'kamar'),
                 self::item('Pembayaran', 'pembayaran', ['pembayaran', 'pembayaran.*'], 'pembayaran'),
-                self::item('Absensi', 'absensi.mhs', ['absensi.mhs*'], 'absensi'),
                 self::item('Surat dan Perizinan', 'surat.perizinan.mhs', ['surat.perizinan.mhs*'], 'surat'),
                 self::item('Pengumuman', 'pengumuman.mhs', ['pengumuman.mhs*'], 'pengumuman'),
             ],
 
             'guru' => [
                 self::item('Dashboard', 'guru.dashboard', ['guru.dashboard'], 'dashboard'),
-                self::item('Jadwal Saya', 'guru.jadwal-saya', ['guru.jadwal-saya', 'guru.jadwal.detail'], 'jadwal'),
+                self::item('Pembelajaran', 'guru.pembelajaran', ['guru.pembelajaran*', 'guru.tugas.*', 'guru.pengumpulan.*'], 'pembelajaran'),
                 self::item('Absensi', 'guru.absensi', ['guru.absensi*'], 'absensi'),
-                self::item('Kegiatan & Dokumentasi', 'guru.kegiatan-dokumentasi', ['guru.kegiatan-dokumentasi*'], 'kegiatan'),
-                self::item('Tugas', 'guru.tugas.index', ['guru.tugas.*', 'guru.pengumpulan.*'], 'tugas'),
+                self::item('Penilaian', 'guru.penilaian', ['guru.penilaian*'], 'laporan'),
             ],
 
             'musyrifah' => [
@@ -96,11 +94,8 @@ class MenuPeran
             $menu[] = self::item('Pengaturan Sistem', 'admin.pengaturan-sistem', ['admin.pengaturan-sistem*'], 'sistem');
         }
 
-        // Pimpinan mengakses pengaturan akun lewat dropdown profil saja.
-        if (self::peran($pengguna) !== 'pimpinan') {
-            $menu[] = self::item('Pengaturan Akun', 'pengaturan-akun.index', ['pengaturan-akun.*'], 'pengaturan');
-        }
-
+        // Seluruh role mengakses profil serta pengaturan akun lewat ikon profil
+        // di header, sehingga sidebar tidak memuat menu ganda.
         return $menu;
     }
 

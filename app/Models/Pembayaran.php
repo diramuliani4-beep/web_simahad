@@ -2,13 +2,30 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Pembayaran extends Model
 {
     use HasFactory;
+
+    public const STATUS_LUNAS = 'lunas';
+
+    public const STATUS_MENUNGGU_VERIFIKASI = 'menunggu';
+
+    public const STATUS_MENUNGGU_REKTORAT = 'menunggu_konfirmasi';
+
+    public const STATUS_BELUM_LUNAS = 'belum_lunas';
+
+    public const VERIFIKASI_MENUNGGU = 'menunggu';
+
+    public const VERIFIKASI_DITERIMA = 'diterima';
+
+    public const VERIFIKASI_DITOLAK = 'ditolak';
 
     /**
      * The attributes that are mass assignable.
@@ -20,9 +37,19 @@ class Pembayaran extends Model
         'kode_transaksi',
         'nama_tagihan',
         'periode',
+        'angsuran_ke',
         'nominal',
+        'jatuh_tempo',
+        'kategori_biaya',
         'metode_pembayaran',
         'status',
+        'status_verifikasi',
+        'catatan_verifikasi',
+        'diverifikasi_oleh',
+        'tanggal_verifikasi',
+        'tanggal_upload_bukti',
+        'tanggal_konfirmasi_rektorat',
+        'reminder_terakhir_pada',
         'tanggal_bayar',
         'keterangan',
         'bukti_pembayaran',
@@ -35,7 +62,13 @@ class Pembayaran extends Model
      */
     protected $casts = [
         'nominal' => 'decimal:2',
+        'angsuran_ke' => 'integer',
+        'jatuh_tempo' => 'date',
         'tanggal_bayar' => 'datetime',
+        'tanggal_verifikasi' => 'datetime',
+        'tanggal_upload_bukti' => 'datetime',
+        'tanggal_konfirmasi_rektorat' => 'datetime',
+        'reminder_terakhir_pada' => 'datetime',
     ];
 
     /**
@@ -46,16 +79,130 @@ class Pembayaran extends Model
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Label status yang rapi dan konsisten untuk ditampilkan.
-     */
+    /** Musyrifah yang memeriksa bukti transfer. */
+    public function verifikator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'diverifikasi_oleh');
+    }
+
+    /** Pengajuan keterlambatan untuk tagihan ini. */
+    public function pengajuanKeterlambatan(): HasMany
+    {
+        return $this->hasMany(PengajuanKeterlambatanPembayaran::class);
+    }
+
+    public function pengajuanKeterlambatanTerakhir(): HasOne
+    {
+        return $this->hasOne(PengajuanKeterlambatanPembayaran::class)->latestOfMany();
+    }
+
+    public function scopeBelumLunas(Builder $query): Builder
+    {
+        return $query->whereNotIn('status', ['lunas', 'paid', 'terkonfirmasi']);
+    }
+
+    /** Label status yang rapi dan konsisten untuk ditampilkan. */
     public function getStatusLabelAttribute(): string
     {
         return match (strtolower((string) $this->status)) {
             'lunas', 'paid', 'terkonfirmasi' => 'Lunas',
-            'menunggu', 'menunggu_konfirmasi', 'pending' => 'Menunggu',
+            'menunggu_konfirmasi' => 'Menunggu Konfirmasi Rektorat',
+            'menunggu', 'pending' => 'Menunggu Verifikasi Bukti',
             default => 'Belum Lunas',
         };
+    }
+
+    public function sudahLunas(): bool
+    {
+        return in_array(strtolower((string) $this->status), ['lunas', 'paid', 'terkonfirmasi'], true);
+    }
+
+    public function menungguKonfirmasiRektorat(): bool
+    {
+        return strtolower((string) $this->status) === self::STATUS_MENUNGGU_REKTORAT;
+    }
+
+    public function menungguVerifikasiBukti(): bool
+    {
+        return strtolower((string) $this->status_verifikasi) === self::VERIFIKASI_MENUNGGU;
+    }
+
+    public function buktiDiterima(): bool
+    {
+        return strtolower((string) $this->status_verifikasi) === self::VERIFIKASI_DITERIMA;
+    }
+
+    public function buktiDitolak(): bool
+    {
+        return strtolower((string) $this->status_verifikasi) === self::VERIFIKASI_DITOLAK;
+    }
+
+    public function labelVerifikasi(): string
+    {
+        return match (strtolower((string) $this->status_verifikasi)) {
+            self::VERIFIKASI_DITERIMA => 'Bukti Diterima',
+            self::VERIFIKASI_DITOLAK => 'Bukti Ditolak',
+            self::VERIFIKASI_MENUNGGU => 'Menunggu Pemeriksaan',
+            default => filled($this->bukti_pembayaran) ? 'Bukti Terunggah' : 'Belum Ada Bukti',
+        };
+    }
+
+    public function kelasVerifikasi(): string
+    {
+        return match (strtolower((string) $this->status_verifikasi)) {
+            self::VERIFIKASI_DITERIMA => 'diterima',
+            self::VERIFIKASI_DITOLAK => 'ditolak',
+            self::VERIFIKASI_MENUNGGU => 'menunggu',
+            default => filled($this->bukti_pembayaran) ? 'menunggu' : 'kosong',
+        };
+    }
+
+    public function labelTahap(): string
+    {
+        if ($this->angsuran_ke) {
+            return 'Tahap '.$this->angsuran_ke;
+        }
+
+        return $this->periode ?: 'Tagihan';
+    }
+
+    public function jatuhTempoTeks(): string
+    {
+        return $this->jatuh_tempo
+            ? $this->jatuh_tempo->locale('id')->translatedFormat('d F Y')
+            : '-';
+    }
+
+    public function sisaHari(): ?int
+    {
+        if (! $this->jatuh_tempo) {
+            return null;
+        }
+
+        return (int) now()->startOfDay()->diffInDays($this->jatuh_tempo->copy()->startOfDay(), false);
+    }
+
+    public function terlambat(): bool
+    {
+        return ! $this->sudahLunas() && $this->jatuh_tempo !== null && $this->jatuh_tempo->endOfDay()->isPast();
+    }
+
+    /** Tagihan masih dapat diunggah buktinya. */
+    public function dapatDiunggahBukti(): bool
+    {
+        return ! $this->sudahLunas() && ! $this->menungguKonfirmasiRektorat();
+    }
+
+    /** Tagihan masih dapat diajukan keterlambatan. */
+    public function dapatDiajukanKeterlambatan(): bool
+    {
+        return $this->dapatDiunggahBukti() && ! $this->menungguVerifikasiBukti();
+    }
+
+    /** Nama berkas bukti tanpa folder penyimpanan. */
+    public function namaBerkasBukti(): string
+    {
+        return $this->bukti_pembayaran ? basename((string) $this->bukti_pembayaran) : '';
     }
 
     /**
@@ -84,7 +231,7 @@ class Pembayaran extends Model
                 'nominal' => 0.0,
                 'nominal_rupiah' => 'Rp 0',
                 'status' => 'belum_dibuka',
-                'label_status' => 'Periode Belum Dibuka',
+                'label_status' => 'Belum Ada Periode Aktif',
                 'kelas_status' => 'belum',
                 'va_nomor' => null,
                 'tahap' => null,
@@ -99,7 +246,10 @@ class Pembayaran extends Model
             ? static::query()
                 ->where('user_id', $user->id)
                 ->where('periode', $pengaturan->periode)
-                ->latest('id')
+                ->orderByRaw("CASE WHEN LOWER(status) IN ('lunas', 'paid', 'terkonfirmasi') THEN 1 ELSE 0 END")
+                ->orderByRaw('COALESCE(angsuran_ke, 1)')
+                ->orderByRaw('COALESCE(jatuh_tempo, created_at)')
+                ->orderBy('id')
                 ->first()
             : null;
 
@@ -117,7 +267,7 @@ class Pembayaran extends Model
             'lunas' => 'Lunas',
             'menunggu' => 'Menunggu Konfirmasi',
             'terlambat' => 'Terlambat',
-            'belum_dibuka' => 'Periode Belum Dibuka',
+            'belum_dibuka' => 'Belum Ada Periode Aktif',
             default => 'Belum Lunas',
         };
 
@@ -137,10 +287,10 @@ class Pembayaran extends Model
                 'terlambat' => 'terlambat',
                 default => 'belum',
             },
-            'va_nomor' => $dibuka ? $pengaturan->va_nomor : null,
-            'tahap' => $pengaturan->nama_tahap,
-            'jatuh_tempo' => $pengaturan->jatuhTempoTeks(),
-            'sisa_hari' => $pengaturan->sisaHari(),
+            'va_nomor' => $dibuka ? PengaturanPembayaran::REKENING_NOMOR_RESMI : null,
+            'tahap' => $tagihan?->labelTahap() ?? $pengaturan->nama_tahap,
+            'jatuh_tempo' => $tagihan?->jatuh_tempo ? $tagihan->jatuhTempoTeks() : $pengaturan->jatuhTempoTeks(),
+            'sisa_hari' => $tagihan?->jatuh_tempo ? $tagihan->sisaHari() : $pengaturan->sisaHari(),
             'pengingat' => $dibuka
                 && in_array($status, ['belum_lunas', 'menunggu', 'terlambat'], true)
                 && $pengaturan->dalamMasaPengingat(),

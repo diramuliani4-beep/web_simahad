@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Database\Seeders\PembelajaranSeeder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
@@ -43,8 +44,8 @@ class PembelajaranController extends Controller
             for ($i = 1; $i <= 6; $i++) {
                 KelompokBelajar::create([
                     'nomor_kelompok' => $i,
-                    'nama_kelompok' => 'Kelompok ' . $i,
-                    'keterangan' => 'Kelompok Belajar ' . $i . ' Ma\'had Al-Jami\'ah',
+                    'nama_kelompok' => 'Kelompok '.$i,
+                    'keterangan' => 'Kelompok Belajar '.$i.' Ma\'had Al-Jami\'ah',
                 ]);
             }
             $daftarKelompok = KelompokBelajar::orderBy('nomor_kelompok')->get();
@@ -63,8 +64,8 @@ class PembelajaranController extends Controller
                 ?: JadwalPembelajaran::where('mata_pelajaran_id', $m->id)->first();
 
             // Pengajar dari KelompokPengajar atau Jadwal
-            $pengajar = KelompokPengajar::where('program', 'LIKE', '%' . $m->nama . '%')
-                ->where('kelompok_teks', 'LIKE', '%' . $nomorKelompokSaya . '%')
+            $pengajar = KelompokPengajar::where('program', 'LIKE', '%'.$m->nama.'%')
+                ->where('kelompok_teks', 'LIKE', '%'.$nomorKelompokSaya.'%')
                 ->first();
 
             $namaPengajar = $pengajar?->nama_pengajar ?: ($jadwal?->guru_pengampu ?: 'Pengajar Ma\'had');
@@ -87,12 +88,12 @@ class PembelajaranController extends Controller
             return [
                 'id' => $m->id,
                 'nama' => $m->nama,
-                'kode' => $m->kode ?: ('PKK-0' . ($index + 1)),
+                'kode' => $m->kode ?: ('PKK-0'.($index + 1)),
                 'kategori' => $m->kategori ?: 'Program Ma\'had',
                 'deskripsi' => $m->deskripsi,
                 'guru_pengampu' => $namaPengajar,
                 'hari' => $jadwal?->hari ?: 'Senin',
-                'jam' => $jadwal ? ($jadwal->jam_mulai . '–' . $jadwal->jam_selesai . ' WIB') : '08:00–09:30 WIB',
+                'jam' => $jadwal ? ($jadwal->jam_mulai.'–'.$jadwal->jam_selesai.' WIB') : '08:00–09:30 WIB',
                 'ruangan' => $jadwal?->ruangan ?: 'Ruang Kelas',
                 'periode' => $jadwal?->periode ?: 'Semester Ganjil 2026/2027',
                 'target_pertemuan' => $target,
@@ -120,7 +121,7 @@ class PembelajaranController extends Controller
         $persentaseKelulusan = $totalTargetKehadiran > 0
             ? min(100, round(($totalHadirSeluruh / $totalTargetKehadiran) * 100, 1))
             : 0;
-        $nomorSertifikat = 'SERT/SIMAHAD/' . date('Y') . '/' . str_pad((string) ($user?->id ?? 1), 4, '0', STR_PAD_LEFT);
+        $nomorSertifikat = 'SERT/SIMAHAD/'.date('Y').'/'.str_pad((string) ($user?->id ?? 1), 4, '0', STR_PAD_LEFT);
 
         // 4. Jadwal Pembelajaran Kelompok Saya & Mingguan
         $orderCase = "CASE hari 
@@ -176,9 +177,9 @@ class PembelajaranController extends Controller
                     'tanggal' => $targetDate->day,
                     'bulan' => $targetDate->translatedFormat('M'),
                     'tanggal_lengkap' => $targetDate->translatedFormat('d F Y'),
-                    'waktu' => $c->jam_mulai . '–' . $c->jam_selesai . ' WIB',
+                    'waktu' => $c->jam_mulai.'–'.$c->jam_selesai.' WIB',
                     'nama' => $c->nama_mata_pelajaran,
-                    'lokasi' => $c->ruangan . ' (' . $c->kelompok . ')',
+                    'lokasi' => $c->ruangan.' ('.$c->kelompok.')',
                     'guru' => $c->guru_pengampu,
                 ];
 
@@ -196,9 +197,9 @@ class PembelajaranController extends Controller
                     'tanggal' => Carbon::now()->day,
                     'bulan' => Carbon::now()->translatedFormat('M'),
                     'tanggal_lengkap' => Carbon::now()->translatedFormat('d F Y'),
-                    'waktu' => $jdw->jam_mulai . '–' . $jdw->jam_selesai . ' WIB',
+                    'waktu' => $jdw->jam_mulai.'–'.$jdw->jam_selesai.' WIB',
                     'nama' => $jdw->nama_mata_pelajaran,
-                    'lokasi' => $jdw->ruangan . ' (' . $jdw->kelompok . ')',
+                    'lokasi' => $jdw->ruangan.' ('.$jdw->kelompok.')',
                     'guru' => $jdw->guru_pengampu,
                 ];
             }
@@ -206,7 +207,7 @@ class PembelajaranController extends Controller
 
         // 6. Data Pengajar Kelompok Belajar (Sinkron dari Menu 2 Musyrifah)
         $daftarPengajarKelompok = KelompokPengajar::orderBy('id')->get()->map(function ($p) use ($nomorKelompokSaya) {
-            $isMengajarKelompokSaya = (bool) preg_match('/\b' . $nomorKelompokSaya . '\b/', (string) $p->kelompok_teks);
+            $isMengajarKelompokSaya = (bool) preg_match('/\b'.$nomorKelompokSaya.'\b/', (string) $p->kelompok_teks);
 
             return [
                 'id' => $p->id,
@@ -234,7 +235,7 @@ class PembelajaranController extends Controller
                 $calendarEvents[$date->format('Y-m-d')] = $matchingClasses->map(function ($item) {
                     return [
                         'nama' => $item->nama_mata_pelajaran,
-                        'waktu' => $item->jam_mulai . '–' . $item->jam_selesai . ' WIB',
+                        'waktu' => $item->jam_mulai.'–'.$item->jam_selesai.' WIB',
                         'ruangan' => $item->ruangan,
                         'guru' => $item->guru_pengampu,
                     ];
@@ -265,40 +266,71 @@ class PembelajaranController extends Controller
     }
 
     /**
-     * Detail 16 Pertemuan Mahasiswa untuk Mata Pelajaran Tertentu (AJAX/JSON).
+     * Detail kehadiran mahasiswa pada satu mata pelajaran (AJAX/JSON).
+     *
+     * Riwayat, total, dan persentase dihitung dari data absensi yang sudah
+     * ada dan selalu dibatasi pada mahasiswa yang sedang login.
      */
     public function detailPertemuan(Request $request, int $id): JsonResponse
     {
         $user = $request->user();
         $mapel = MataPelajaran::findOrFail($id);
 
+        $absensi = AbsensiPembelajaran::with('pertemuan')
+            ->where('user_id', $user?->id)
+            ->where('mata_pelajaran_id', $mapel->id)
+            ->orderBy('pertemuan_ke')
+            ->get();
+
+        // Data lama tanpa pertemuan_id tetap mendapat periode dari jadwal kelompok.
+        $kelompok = $absensi->first()?->kelompok
+            ?: AbsensiPembelajaran::where('user_id', $user?->id)->value('kelompok');
+
+        $jadwal = JadwalPembelajaran::where('mata_pelajaran_id', $mapel->id)
+            ->when(filled($kelompok), fn ($query) => $query->where('kelompok', $kelompok))
+            ->first()
+            ?: JadwalPembelajaran::where('mata_pelajaran_id', $mapel->id)->first();
+
+        $periodeDefault = trim((string) $jadwal?->periode) ?: 'Semester Ganjil 2026/2027';
+
+        $periodeAbsensi = function (AbsensiPembelajaran $item) use ($periodeDefault): string {
+            return trim((string) $item->pertemuan?->periode) ?: $periodeDefault;
+        };
+
+        $target = (int) ($mapel->target_pertemuan ?: 16);
+        $target = $target > 0 ? $target : 16;
+
+        $absensiPerPertemuan = $absensi->groupBy('pertemuan_ke');
+
         $pertemuanList = [];
-        for ($p = 1; $p <= 16; $p++) {
-            $absensi = AbsensiPembelajaran::where('user_id', $user?->id)
-                ->where('mata_pelajaran_id', $mapel->id)
-                ->where('pertemuan_ke', $p)
-                ->first();
+        for ($p = 1; $p <= $target; $p++) {
+            $item = $absensiPerPertemuan->get($p)?->first();
+            $status = strtolower((string) ($item?->status ?: 'terjadwal'));
 
-            $status = $absensi?->status ?: 'terjadwal';
-            $tanggal = $absensi?->tanggal
-                ? Carbon::parse($absensi->tanggal)->translatedFormat('d M Y')
-                : 'Minggu ke-' . $p;
+            $tanggal = $item?->tanggal
+                ? Carbon::parse($item->tanggal)->translatedFormat('d M Y')
+                : 'Minggu ke-'.$p;
 
-            $catatan = $absensi?->catatan
-                ?: ($absensi ? 'Pertemuan terlaksana' : 'Terjadwal tatap muka');
+            $catatan = $item?->catatan
+                ?: ($item ? 'Pertemuan terlaksana' : 'Terjadwal tatap muka');
 
             $pertemuanList[] = [
                 'pertemuan_ke' => $p,
                 'tanggal' => $tanggal,
                 'status' => $status,
                 'catatan' => $catatan,
+                'periode' => $item ? $periodeAbsensi($item) : $periodeDefault,
             ];
         }
 
-        $totalHadir = AbsensiPembelajaran::where('user_id', $user?->id)
-            ->where('mata_pelajaran_id', $mapel->id)
-            ->where('status', 'hadir')
-            ->count();
+        $ringkasan = $this->ringkasanKehadiran($absensi);
+
+        $ringkasanPeriode = $absensi
+            ->groupBy(fn (AbsensiPembelajaran $item) => $periodeAbsensi($item))
+            ->sortKeys()
+            ->map(fn ($daftar, string $nama) => ['periode' => $nama] + $this->ringkasanKehadiran($daftar))
+            ->values()
+            ->all();
 
         return response()->json([
             'success' => true,
@@ -307,12 +339,41 @@ class PembelajaranController extends Controller
                 'nama' => $mapel->nama,
                 'kode' => $mapel->kode ?: 'PKK',
                 'kategori' => $mapel->kategori ?: 'Program Ma\'had',
-                'target_pertemuan' => 16,
-                'hadir' => $totalHadir,
-                'is_lulus' => ($totalHadir >= 16),
+                'target_pertemuan' => $target,
+                'hadir' => $ringkasan['hadir'],
+                'is_lulus' => ($ringkasan['hadir'] >= $target),
+                'persentase' => $ringkasan['persentase'],
+                'periode' => $periodeDefault,
             ],
+            'ringkasan' => $ringkasan + ['target' => $target],
+            'periode' => $ringkasanPeriode,
             'pertemuan' => $pertemuanList,
         ]);
+    }
+
+    /**
+     * Rekap status kehadiran beserta persentase dari sekumpulan absensi.
+     *
+     * @param  Collection<int, AbsensiPembelajaran>  $absensi
+     * @return array{hadir: int, izin: int, sakit: int, alpa: int, total: int, persentase: float}
+     */
+    protected function ringkasanKehadiran(Collection $absensi): array
+    {
+        $status = $absensi->countBy(
+            fn (AbsensiPembelajaran $item) => strtolower((string) $item->status)
+        );
+
+        $hadir = (int) ($status['hadir'] ?? 0);
+        $total = (int) $absensi->count();
+
+        return [
+            'hadir' => $hadir,
+            'izin' => (int) ($status['izin'] ?? 0),
+            'sakit' => (int) ($status['sakit'] ?? 0),
+            'alpa' => (int) ($status['alpa'] ?? 0),
+            'total' => $total,
+            'persentase' => $total > 0 ? round(($hadir / $total) * 100, 1) : 0.0,
+        ];
     }
 
     /**
@@ -327,7 +388,7 @@ class PembelajaranController extends Controller
 
             if (Schema::hasTable('mata_pelajarans') && Schema::hasTable('kelompok_pengajars')) {
                 if (MataPelajaran::count() === 0 || KelompokPengajar::count() === 0) {
-                    (new PembelajaranSeeder())->run();
+                    (new PembelajaranSeeder)->run();
                 }
             }
         } catch (\Throwable $e) {

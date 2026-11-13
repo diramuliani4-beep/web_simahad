@@ -19,6 +19,8 @@ class LaporanRegisterService
 {
     /** Judul baku untuk setiap jenis laporan. */
     public const JUDUL = [
+        'bulanan' => 'Laporan Bulanan Ma’had',
+        'tahunan' => 'Laporan Tahunan Ma’had',
         'penghuni' => 'Laporan Penghuni',
         'kamar' => 'Laporan Kamar',
         'kehadiran' => 'Laporan Kehadiran',
@@ -128,6 +130,98 @@ class LaporanRegisterService
                 });
             })
             ->orderByDesc('periode')
+            ->orderByDesc('id')
+            ->paginate($perHalaman)
+            ->withQueryString();
+    }
+
+    /**
+     * Menyimpan laporan periodik (bulanan/tahunan) beserta potret isinya.
+     *
+     * @param  array<string, mixed>  $konten
+     */
+    public function buatLaporanPeriodik(
+        User $musyrifah,
+        string $jenis,
+        string $periode,
+        int $tahun,
+        ?int $bulan,
+        array $konten,
+        ?string $catatan = null,
+    ): LaporanMahad {
+        $laporan = LaporanMahad::query()->create([
+            'jenis' => $jenis,
+            'judul' => self::JUDUL[$jenis] ?? ucfirst($jenis),
+            'periode' => $periode,
+            'tahun' => $tahun,
+            'bulan' => $bulan,
+            'lantai' => null,
+            'unit' => 'Seluruh Ma’had',
+            'sumber' => LaporanMahad::SUMBER_MUSYRIFAH,
+            'status' => LaporanMahad::STATUS_DRAFT,
+            'versi' => 1,
+            'dibuat_oleh' => $musyrifah->getKey(),
+            'pembuat_nama' => $musyrifah->name,
+            'pembuat_role' => strtolower((string) $musyrifah->role),
+            'catatan' => $catatan,
+            'konten' => $konten,
+        ]);
+
+        $this->catatAudit($laporan, 'dibuat', 'Laporan periodik dibuat oleh '.$musyrifah->name.'.', $musyrifah, [], [
+            'status' => $laporan->status,
+            'periode' => $laporan->periode,
+            'versi' => (int) $laporan->versi,
+        ]);
+
+        return $laporan;
+    }
+
+    /**
+     * Membangkitkan ulang isi laporan periodik secara sadar oleh Musyrifah.
+     *
+     * Versi bertambah agar isi sebelumnya tetap tercatat pada riwayat audit,
+     * sedangkan pembukaan laporan biasa tidak mengubah apa pun.
+     *
+     * @param  array<string, mixed>  $konten
+     */
+    public function perbaruiKontenPeriodik(LaporanMahad $laporan, User $oleh, array $konten): LaporanMahad
+    {
+        $sebelum = $this->ringkasanLaporan($laporan);
+        $versiLama = (int) $laporan->versi;
+
+        $laporan->konten = $konten;
+        $laporan->versi = $versiLama + 1;
+        $laporan->save();
+
+        $this->catatAudit(
+            $laporan,
+            'diperbarui',
+            'Isi laporan dibangkitkan ulang dari data operasional menjadi versi '.$laporan->versi.'.',
+            $oleh,
+            $sebelum,
+            $this->ringkasanLaporan($laporan),
+        );
+
+        return $laporan;
+    }
+
+    /**
+     * Riwayat laporan periodik dengan filter jenis dan periode.
+     *
+     * @param  array<string, mixed>  $filter
+     * @return LengthAwarePaginator<int, LaporanMahad>
+     */
+    public function daftarPeriodik(array $filter = [], int $perHalaman = 10): LengthAwarePaginator
+    {
+        return LaporanMahad::query()
+            ->with(['pembuat' => fn ($query) => $query->select('id', 'name', 'role')])
+            ->whereIn('jenis', LaporanMahad::JENIS_PERIODIK)
+            ->when(filled($filter['jenis'] ?? null), fn ($query) => $query->where('jenis', $filter['jenis']))
+            ->when(filled($filter['tahun'] ?? null), fn ($query) => $query->where('tahun', (int) $filter['tahun']))
+            ->when(filled($filter['bulan'] ?? null), fn ($query) => $query->where('bulan', (int) $filter['bulan']))
+            ->when(filled($filter['status'] ?? null), fn ($query) => $query->where('status', $filter['status']))
+            ->orderByDesc('tahun')
+            ->orderByDesc('bulan')
             ->orderByDesc('id')
             ->paginate($perHalaman)
             ->withQueryString();

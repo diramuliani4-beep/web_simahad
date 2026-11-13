@@ -3,10 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\LaporanMahad;
+use App\Services\LaporanExcelService;
 use App\Services\LaporanMahadService;
+use App\Services\LaporanPdfService;
+use App\Services\LaporanPeriodikService;
 use App\Services\LaporanRegisterService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -15,6 +19,9 @@ class MusyrifahLaporanController extends Controller
     public function __construct(
         private readonly LaporanMahadService $laporanMahad,
         private readonly LaporanRegisterService $register,
+        private readonly LaporanPeriodikService $periodik,
+        private readonly LaporanPdfService $pdf,
+        private readonly LaporanExcelService $excel,
     ) {}
 
     /**
@@ -26,6 +33,13 @@ class MusyrifahLaporanController extends Controller
 
         $periode = $this->laporanMahad->normalisasiPeriode($request->query('periode'));
         $jenis = (string) $request->query('jenis', 'semua');
+
+        $filterPeriodik = [
+            'jenis' => trim((string) $request->query('p_jenis', '')),
+            'tahun' => trim((string) $request->query('p_tahun', '')),
+            'bulan' => trim((string) $request->query('p_bulan', '')),
+            'status' => trim((string) $request->query('p_status', '')),
+        ];
 
         $kategori = $this->laporanMahad->kategoriMusyrifah();
 
@@ -55,11 +69,24 @@ class MusyrifahLaporanController extends Controller
                 'sumber' => LaporanMahad::SUMBER_MUSYRIFAH,
                 'periode' => $periode,
             ], 10),
-            'opsiJenis' => collect(LaporanRegisterService::JUDUL)
-                ->map(fn (string $judul, string $kunci): array => ['value' => $kunci, 'label' => $judul])
+            'opsiJenis' => collect(LaporanRegisterService::JENIS_SISTEM)
+                ->map(fn (string $kunci): array => [
+                    'value' => $kunci,
+                    'label' => LaporanRegisterService::JUDUL[$kunci] ?? ucfirst($kunci),
+                ])
                 ->values()
                 ->all(),
             'opsiLantai' => $this->laporanMahad->daftarLantai(),
+            'daftarPeriodik' => $this->register->daftarPeriodik($filterPeriodik, 10),
+            'filterPeriodik' => $filterPeriodik,
+            'opsiJenisPeriodik' => $this->periodik->opsiJenis(),
+            'opsiTahun' => $this->periodik->opsiTahun(),
+            'opsiBulan' => $this->periodik->opsiBulan(),
+            'opsiStatusPeriodik' => [
+                ['value' => LaporanMahad::STATUS_DRAFT, 'label' => 'Draft'],
+                ['value' => LaporanMahad::STATUS_DITERBITKAN, 'label' => 'Diterbitkan'],
+                ['value' => LaporanMahad::STATUS_DIARSIPKAN, 'label' => 'Diarsipkan'],
+            ],
         ]);
     }
 
@@ -165,6 +192,194 @@ class MusyrifahLaporanController extends Controller
     }
 
     /**
+     * Halaman "Buat Laporan": memilih Laporan Bulanan atau Laporan Tahunan.
+     */
+    public function buatLaporan(Request $request): View
+    {
+        $this->pastikanPengelola($request);
+
+        $jenis = $this->periodik->normalisasiJenis($request->query('jenis'));
+        $tahun = $this->periodik->normalisasiTahun($request->query('tahun'));
+        $bulan = $this->periodik->normalisasiBulan($request->query('bulan'));
+
+        return view('musyrifah.laporan_buat', [
+            'jenis' => $jenis,
+            'tahun' => $tahun,
+            'bulan' => $bulan,
+            'opsiJenis' => $this->periodik->opsiJenis(),
+            'opsiTahun' => $this->periodik->opsiTahun(),
+            'opsiBulan' => $this->periodik->opsiBulan(),
+            'labelPeriode' => $this->periodik->labelPeriode($jenis, $tahun, $bulan),
+            'riwayatPeriodik' => $this->register->daftarPeriodik([], 5),
+        ]);
+    }
+
+    /**
+     * Pratinjau isi laporan periodik sebelum disimpan menjadi dokumen.
+     */
+    public function pratinjauPeriodik(Request $request): View
+    {
+        $this->pastikanPengelola($request);
+
+        $data = $this->validasiPeriodik($request);
+
+        return view('musyrifah.laporan_periodik', [
+            'laporan' => $this->susunPeriodik($data),
+            'pratinjau' => true,
+            'register' => null,
+            'riwayat' => collect(),
+            'jenis' => $data['jenis'],
+            'tahun' => (int) $data['tahun'],
+            'bulan' => $data['bulan'],
+            'evaluasi' => (string) ($data['evaluasi'] ?? ''),
+            'kendala' => (string) ($data['kendala'] ?? ''),
+            'catatan' => (string) ($data['catatan'] ?? ''),
+            'backUrl' => route('musyrifah.laporan.buat', [
+                'jenis' => $data['jenis'],
+                'tahun' => $data['tahun'],
+                'bulan' => $data['bulan'],
+            ]),
+        ]);
+    }
+
+    /**
+     * Menyimpan laporan periodik beserta potret isinya (status awal draft).
+     */
+    public function simpanPeriodik(Request $request): RedirectResponse
+    {
+        $this->pastikanPengelola($request);
+
+        $data = $this->validasiPeriodik($request);
+        $konten = $this->susunPeriodik($data);
+
+        $laporan = $this->register->buatLaporanPeriodik(
+            $request->user(),
+            (string) $konten['jenis'],
+            (string) $konten['periode'],
+            (int) $data['tahun'],
+            $konten['jenis'] === 'tahunan' ? null : (int) $data['bulan'],
+            $konten,
+            filled($data['catatan'] ?? null) ? (string) $data['catatan'] : null,
+        );
+
+        return redirect()
+            ->route('musyrifah.laporan.periodik', $laporan)
+            ->with('status', $laporan->judul.' periode '.$laporan->labelPeriode().' tersimpan sebagai draft.');
+    }
+
+    /**
+     * Membuka kembali laporan periodik yang sudah tersimpan (isi tidak berubah).
+     */
+    public function lihatPeriodik(Request $request, LaporanMahad $laporan): View
+    {
+        $this->pastikanPengelola($request);
+        $this->pastikanPeriodik($laporan);
+
+        return view('musyrifah.laporan_periodik', [
+            'laporan' => $laporan->konten,
+            'pratinjau' => false,
+            'register' => $laporan,
+            'riwayat' => $this->register->riwayat($laporan),
+            'jenis' => $laporan->jenis,
+            'tahun' => (int) $laporan->tahun,
+            'bulan' => $laporan->bulan,
+            'evaluasi' => (string) ($laporan->konten['catatan']['evaluasi'] ?? ''),
+            'kendala' => (string) ($laporan->konten['catatan']['kendala'] ?? ''),
+            'catatan' => (string) ($laporan->catatan ?? ''),
+            'backUrl' => route('musyrifah.laporan', [
+                'p_jenis' => $laporan->jenis,
+                'p_tahun' => $laporan->tahun,
+            ]),
+        ]);
+    }
+
+    /**
+     * Tampilan siap cetak dokumen laporan periodik.
+     */
+    public function cetakPeriodik(Request $request, LaporanMahad $laporan): View
+    {
+        $this->pastikanPengelola($request);
+        $this->pastikanPeriodik($laporan);
+
+        return view('musyrifah.laporan_periodik_cetak', [
+            'laporan' => $laporan->konten,
+            'meta' => $this->metaDokumen($laporan),
+        ]);
+    }
+
+    /**
+     * Mengunduh dokumen laporan periodik sebagai PDF.
+     */
+    public function unduhPdf(Request $request, LaporanMahad $laporan): Response
+    {
+        $this->pastikanPengelola($request);
+        $this->pastikanPeriodik($laporan);
+
+        return response($this->pdf->render($laporan->konten, $this->metaDokumen($laporan)), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$this->namaBerkas($laporan, 'pdf').'"',
+        ]);
+    }
+
+    /**
+     * Mengunduh dokumen laporan periodik sebagai Excel (.xlsx).
+     */
+    public function unduhExcel(Request $request, LaporanMahad $laporan): Response
+    {
+        $this->pastikanPengelola($request);
+        $this->pastikanPeriodik($laporan);
+
+        return response($this->excel->render($laporan->konten, $this->metaDokumen($laporan)), 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="'.$this->namaBerkas($laporan, 'xlsx').'"',
+        ]);
+    }
+
+    /**
+     * Membangkitkan ulang isi laporan secara sadar; hanya atas perintah Musyrifah.
+     */
+    public function perbaruiPeriodik(Request $request, LaporanMahad $laporan): RedirectResponse
+    {
+        $this->pastikanPengelola($request);
+        $this->pastikanPeriodik($laporan);
+        $this->pastikanPemilikPeriodik($request, $laporan);
+
+        abort_if(
+            $laporan->status === LaporanMahad::STATUS_DIARSIPKAN,
+            403,
+            'Laporan yang sudah diarsipkan tidak dapat dibangkitkan ulang.'
+        );
+
+        $data = $request->validate([
+            'evaluasi' => ['nullable', 'string', 'max:2000'],
+            'kendala' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $catatanLama = (array) ($laporan->konten['catatan'] ?? []);
+        $periode = $this->periodeLaporan($laporan);
+
+        $konten = $this->periodik->susun(
+            $laporan->jenis,
+            $periode['tahun'],
+            $periode['bulan'],
+            [
+                'evaluasi' => $request->has('evaluasi')
+                    ? (string) $data['evaluasi']
+                    : (string) ($catatanLama['evaluasi'] ?? ''),
+                'kendala' => $request->has('kendala')
+                    ? (string) $data['kendala']
+                    : (string) ($catatanLama['kendala'] ?? ''),
+            ],
+        );
+
+        $this->register->perbaruiKontenPeriodik($laporan, $request->user(), $konten);
+
+        return redirect()
+            ->route('musyrifah.laporan.periodik', $laporan)
+            ->with('status', 'Isi laporan dibangkitkan ulang menjadi versi '.(int) $laporan->versi.'.');
+    }
+
+    /**
      * @param  array<string, mixed>  $laporan
      */
     private function unduhCsv(array $laporan): StreamedResponse
@@ -195,6 +410,117 @@ class MusyrifahLaporanController extends Controller
 
             fclose($berkas);
         }, $namaBerkas, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    /**
+     * Memvalidasi pilihan jenis dan periode laporan periodik.
+     *
+     * @return array<string, mixed>
+     */
+    private function validasiPeriodik(Request $request): array
+    {
+        $data = $request->validate([
+            'jenis' => ['required', 'string', 'in:'.implode(',', array_keys(LaporanPeriodikService::JENIS))],
+            'tahun' => ['required', 'integer', 'between:2000,2100'],
+            'bulan' => ['nullable', 'required_if:jenis,bulanan', 'integer', 'between:1,12'],
+            'evaluasi' => ['nullable', 'string', 'max:2000'],
+            'kendala' => ['nullable', 'string', 'max:2000'],
+            'catatan' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $data['jenis'] = $this->periodik->normalisasiJenis((string) $data['jenis']);
+        $data['tahun'] = (int) $data['tahun'];
+        $data['bulan'] = filled($data['bulan'] ?? null) ? (int) $data['bulan'] : null;
+
+        return $data;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function susunPeriodik(array $data): array
+    {
+        return $this->periodik->susun(
+            (string) $data['jenis'],
+            (int) $data['tahun'],
+            (int) ($data['bulan'] ?? 1),
+            [
+                'evaluasi' => (string) ($data['evaluasi'] ?? ''),
+                'kendala' => (string) ($data['kendala'] ?? ''),
+            ],
+        );
+    }
+
+    /**
+     * Laporan periodik wajib memiliki potret isi yang tersimpan.
+     */
+    private function pastikanPeriodik(LaporanMahad $laporan): void
+    {
+        abort_unless($laporan->periodik(), 404);
+        abort_unless(is_array($laporan->konten) && $laporan->konten !== [], 404);
+    }
+
+    /**
+     * Pembaruan isi hanya boleh dilakukan pembuat laporan atau admin/pengelola.
+     */
+    private function pastikanPemilikPeriodik(Request $request, LaporanMahad $laporan): void
+    {
+        $user = $request->user();
+        $role = strtolower((string) $user?->role);
+
+        if (in_array($role, ['pengelola', 'admin'], true)) {
+            return;
+        }
+
+        abort_unless((int) $laporan->dibuat_oleh === (int) $user?->getKey(), 403);
+    }
+
+    /**
+     * Tahun dan bulan laporan, termasuk untuk baris lama tanpa kolom periode.
+     *
+     * @return array{tahun: int, bulan: int}
+     */
+    private function periodeLaporan(LaporanMahad $laporan): array
+    {
+        if ($laporan->tahun !== null) {
+            return [
+                'tahun' => (int) $laporan->tahun,
+                'bulan' => (int) ($laporan->bulan ?? 1),
+            ];
+        }
+
+        $cocok = [];
+
+        if (preg_match('/^(\d{4})(?:-(\d{2}))?/', (string) $laporan->periode, $cocok) === 1) {
+            return [
+                'tahun' => (int) $cocok[1],
+                'bulan' => isset($cocok[2]) ? (int) $cocok[2] : 1,
+            ];
+        }
+
+        return ['tahun' => (int) now()->year, 'bulan' => (int) now()->month];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function metaDokumen(LaporanMahad $laporan): array
+    {
+        return [
+            'Nama laporan' => $laporan->judul,
+            'Periode laporan' => $laporan->labelPeriode(),
+            'Status' => $laporan->labelStatus(),
+            'Pembuat' => $laporan->identitasPembuat(),
+            'Versi' => 'Versi '.(int) $laporan->versi,
+        ];
+    }
+
+    private function namaBerkas(LaporanMahad $laporan, string $ekstensi): string
+    {
+        $periode = preg_replace('/[^0-9a-zA-Z\-]/', '-', (string) $laporan->periode) ?: 'periode';
+
+        return 'laporan-'.$laporan->jenis.'-'.$periode.'-v'.(int) $laporan->versi.'.'.$ekstensi;
     }
 
     /**

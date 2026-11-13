@@ -18,6 +18,7 @@ use App\Models\SuratPerizinan;
 use App\Models\Tugas;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 
@@ -38,6 +39,8 @@ class DashboardRingkasanService
     private const STATUS_PENDAFTARAN_MENUNGGU = ['menunggu', 'pending', 'baru'];
 
     private const STATUS_AKUN_MENUNGGU = ['menunggu aktivasi', 'menunggu', 'pending'];
+
+    public function __construct(private readonly PembelajaranGuruService $pembelajaran) {}
 
     /**
      * Ringkasan operasional harian Musyrifah.
@@ -228,16 +231,22 @@ class DashboardRingkasanService
         $aktif = $daftarTugas->where('status', Tugas::STATUS_DIPUBLIKASIKAN);
         $idAktif = $aktif->pluck('id');
 
+        // Jumlah pengumpulan yang belum dinilai per tugas aktif milik Guru.
         $belumDinilai = $idAktif->isEmpty()
-            ? 0
+            ? collect()
             : PengumpulanTugas::query()
+                ->selectRaw('tugas_id, COUNT(*) as jumlah')
                 ->whereIn('tugas_id', $idAktif)
                 ->whereNull('nilai')
-                ->count();
+                ->groupBy('tugas_id')
+                ->pluck('jumlah', 'tugas_id');
+
+        $progres = $this->progresPenugasan($jadwal);
 
         return [
             'jadwal' => $jadwal->sortBy('jam_mulai')->take(6)->values(),
             'jadwalHariIni' => $jadwalHariIni->take(5),
+            'jadwalBerikutnya' => $this->jadwalBerikutnya($jadwal),
             'jumlahJadwal' => $jadwal->count(),
             'jumlahKelompok' => $penugasan->pluck('kelompok')->filter()->unique()->count(),
             'jumlahMapel' => $penugasan->pluck('mata_pelajaran_id')->filter()->unique()->count(),
@@ -247,11 +256,24 @@ class DashboardRingkasanService
                 ->filter()
                 ->unique()
                 ->values(),
+            'progresPenugasan' => $progres,
+            'pertemuanSelesai' => (int) $progres->sum('selesai'),
+            'targetPertemuan' => $progres->count() * PembelajaranGuruService::TARGET_PERTEMUAN,
             'tugasAktif' => $aktif->count(),
             'tugasDraft' => $daftarTugas->where('status', Tugas::STATUS_DRAFT)->count(),
             'tugasDaftar' => $daftarTugas->take(5)->values(),
             'jumlahPengumpulan' => (int) $daftarTugas->sum('pengumpulan_count'),
-            'belumDinilai' => $belumDinilai,
+            'belumDinilai' => (int) $belumDinilai->sum(),
+            'perluDiperiksa' => $aktif
+                ->filter(fn (Tugas $tugas) => (int) ($belumDinilai[$tugas->getKey()] ?? 0) > 0)
+                ->map(fn (Tugas $tugas) => [
+                    'tugas' => $tugas,
+                    'jumlah' => (int) $belumDinilai[$tugas->getKey()],
+                ])
+                ->sortByDesc('jumlah')
+                ->take(5)
+                ->values(),
+            'absensi' => $this->rekapAbsensiGuru($jadwal),
             'absensiHariIni' => $jadwalHariIni->count(),
             'absensiBelumDiisi' => max(0, $jadwalHariIni->count() - $sudahDiabsen->count()),
             'pengumuman' => $this->pengumumanTerbaru(3),
@@ -261,7 +283,181 @@ class DashboardRingkasanService
     }
 
     /**
-     * Ringkasan teknis Admin Sistem: akun, aktivitas, log, dan konfigurasi.
+     * Progres 16 pertemuan untuk setiap penugasan unik
+     * (mata pelajaran + kelompok + periode).
+     *
+     * @param  Collection<int, JadwalPembelajaran>  $jadwal
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function progresPenugasan(Collection $jadwal): Collection
+    {
+        return $jadwal
+            ->unique(fn (JadwalPembelajaran $item) => implode('|', [
+                $item->mata_pelajaran_id,
+                $item->kelompok,
+                $this->pembelajaran->periode($item),
+            ]))
+            ->map(function (JadwalPembelajaran $item) {
+                $progres = $this->pembelajaran->progres($item);
+
+                return [
+                    'jadwal' => $item,
+                    'mapel' => $item->namaMataPelajaran(),
+                    'kelompok' => $item->kelompok ?: '-',
+                    'periode' => $this->pembelajaran->periode($item),
+                    'selesai' => $progres['selesai'],
+                    'berlangsung' => $progres['berlangsung'],
+                    'berikutnya' => $progres['berikutnya'],
+                    'persentase' => $progres['persentase'],
+                    'target' => PembelajaranGuruService::TARGET_PERTEMUAN,
+                ];
+            })
+            ->sortBy(fn (array $baris) => $baris['mapel'].'|'.$baris['kelompok'].'|'.$baris['periode'])
+            ->values();
+    }
+
+    /**
+     * Jadwal mengajar terdekat dari seluruh penugasan Guru.
+     *
+     * @param  Collection<int, JadwalPembelajaran>  $jadwal
+     */
+    private function jadwalBerikutnya(Collection $jadwal): ?array
+    {
+        if ($jadwal->isEmpty()) {
+            return null;
+        }
+
+        $sekarang = now(self::ZONA_WAKTU);
+
+        $terdekat = $jadwal
+            ->map(function (JadwalPembelajaran $item) use ($sekarang) {
+                [$jam, $menit] = array_pad(
+                    explode(':', substr((string) $item->jam_mulai, 0, 5)),
+                    2,
+                    '0'
+                );
+
+                $selisih = (
+                    $item->nomorHari() - $sekarang->dayOfWeekIso + 7
+                ) % 7;
+
+                $waktu = $sekarang->copy()
+                    ->startOfDay()
+                    ->addDays($selisih)
+                    ->setTime((int) $jam, (int) $menit);
+
+                if ($waktu->lessThan($sekarang)) {
+                    $waktu->addWeek();
+                }
+
+                return [
+                    'jadwal' => $item,
+                    'waktu' => $waktu,
+                    'kapan' => $waktu->isToday()
+                        ? 'Hari ini'
+                        : ($waktu->isTomorrow()
+                            ? 'Besok'
+                            : $waktu->locale('id')->translatedFormat('l')),
+                ];
+            })
+            ->sortBy(fn (array $item) => $item['waktu']->getTimestamp())
+            ->first();
+
+        if ($terdekat === null) {
+            return null;
+        }
+
+        /** @var JadwalPembelajaran $jadwalBerikut */
+        $jadwalBerikut = $terdekat['jadwal'];
+
+        return [
+            'jadwal' => $jadwalBerikut,
+            'kapan' => $terdekat['kapan'],
+            'tanggal' => $terdekat['waktu']->locale('id')->translatedFormat('d F Y'),
+            'jam' => $jadwalBerikut->jamTeks(),
+            'mapel' => $jadwalBerikut->namaMataPelajaran(),
+            'kelompok' => $jadwalBerikut->kelompok ?: '-',
+            'ruangan' => $jadwalBerikut->ruangan ?: 'Ruang Kelas',
+        ];
+    }
+
+    /**
+     * Rekap absensi dari seluruh jadwal milik Guru.
+     *
+     * @param  Collection<int, JadwalPembelajaran>  $jadwal
+     * @return array{hadir: int, izin: int, sakit: int, alpa: int, total: int, persentaseHadir: float}
+     */
+    private function rekapAbsensiGuru(Collection $jadwal): array
+    {
+        $idJadwal = $jadwal->pluck('id')->filter()->all();
+
+        $pasangan = $jadwal
+            ->filter(fn (JadwalPembelajaran $item) => filled($item->mata_pelajaran_id) && filled($item->kelompok)
+            )
+            ->map(fn (JadwalPembelajaran $item) => [
+                'mata_pelajaran_id' => (int) $item->mata_pelajaran_id,
+                'kelompok' => (string) $item->kelompok,
+            ])
+            ->unique(fn (array $item) => $item['mata_pelajaran_id'].'|'.$item['kelompok']
+            )
+            ->values();
+
+        $filterPasangan = function (Builder $query) use ($pasangan): void {
+            foreach ($pasangan as $item) {
+                $query->orWhere(fn (Builder $sub) => $sub
+                    ->where('mata_pelajaran_id', $item['mata_pelajaran_id'])
+                    ->where('kelompok', $item['kelompok'])
+                );
+            }
+        };
+
+        $hitungan = collect();
+
+        if ($idJadwal !== [] || $pasangan->isNotEmpty()) {
+            $hitungan = AbsensiPembelajaran::query()
+                ->where(function (Builder $query) use (
+                    $idJadwal,
+                    $pasangan,
+                    $filterPasangan
+                ) {
+                    if ($idJadwal === []) {
+                        $filterPasangan($query);
+
+                        return;
+                    }
+
+                    $query->whereIn('jadwal_id', $idJadwal);
+
+                    if ($pasangan->isNotEmpty()) {
+                        $query->orWhere(fn (Builder $lama) => $lama
+                            ->whereNull('jadwal_id')
+                            ->where(fn (Builder $sub) => $filterPasangan($sub))
+                        );
+                    }
+                })
+                ->selectRaw('status, COUNT(*) as jumlah')
+                ->groupBy('status')
+                ->pluck('jumlah', 'status');
+        }
+
+        $hadir = (int) ($hitungan['hadir'] ?? 0);
+        $total = (int) $hitungan->sum();
+
+        return [
+            'hadir' => $hadir,
+            'izin' => (int) ($hitungan['izin'] ?? 0),
+            'sakit' => (int) ($hitungan['sakit'] ?? 0),
+            'alpa' => (int) ($hitungan['alpa'] ?? 0),
+            'total' => $total,
+            'persentaseHadir' => $total > 0
+                ? round(($hadir / $total) * 100, 1)
+                : 0.0,
+        ];
+    }
+
+    /**
+     * Ringkasan teknis Admin Sistem:
+     * akun, aktivitas login, log, dan konfigurasi.
      *
      * @return array<string, mixed>
      */

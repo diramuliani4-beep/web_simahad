@@ -498,6 +498,38 @@
         }
 
         /* ================= RESPONSIF ================= */
+        .navbar-kiri {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .navbar-menu {
+            display: none;
+            place-items: center;
+            width: 38px;
+            height: 38px;
+            flex-shrink: 0;
+            padding: 0;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #ffffff;
+            color: var(--maroon);
+            cursor: pointer;
+        }
+
+        .navbar-menu svg {
+            width: 19px;
+            height: 19px;
+        }
+
+        @media (max-width: 991px) {
+            .navbar-menu {
+                display: grid;
+            }
+        }
+
         @media (max-width: 720px) {
             .navbar {
                 padding: 0 18px;
@@ -544,12 +576,28 @@
     </style>
 </head>
 
-<body>
+<body class="sb-mandiri">
+    {{-- Sidebar bersama seluruh role SIMAHAD. --}}
+    <x-panel.sidebar ragam="mandiri" />
+
     <header class="navbar">
-        <a href="{{ route('dashboard') }}" class="brand">
-            <img src="{{ asset('images/logo_uin.png') }}" alt="Logo SIMAHAD">
-            <span>SIMAHAD</span>
-        </a>
+        <div class="navbar-kiri">
+            <button type="button"
+                class="navbar-menu"
+                data-sb-buka
+                aria-label="Buka menu navigasi"
+                aria-controls="sidebar"
+                aria-expanded="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+                    <path d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+
+            <a href="{{ route('dashboard') }}" class="brand">
+                <img src="{{ asset('images/logo_uin.png') }}" alt="Logo SIMAHAD">
+                <span>SIMAHAD</span>
+            </a>
+        </div>
 
         <div class="navbar-kanan">
             <a href="{{ route('dashboard') }}" class="navbar-tautan">Dashboard</a>

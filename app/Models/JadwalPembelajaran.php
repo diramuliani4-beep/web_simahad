@@ -28,6 +28,7 @@ class JadwalPembelajaran extends Model
         'mata_pelajaran_id',
         'nama_mata_pelajaran',
         'kelompok',
+        'guru_id',
         'guru_pengampu',
         'periode',
         'hari',
@@ -39,6 +40,12 @@ class JadwalPembelajaran extends Model
     public function mataPelajaran(): BelongsTo
     {
         return $this->belongsTo(MataPelajaran::class, 'mata_pelajaran_id');
+    }
+
+    /** Akun Guru yang ditetapkan Musyrifah sebagai pengampu. */
+    public function guru(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'guru_id');
     }
 
     public function absensis(): HasMany
@@ -71,6 +78,13 @@ class JadwalPembelajaran extends Model
             ?: ($this->mataPelajaran?->nama ?? 'Mata Pelajaran');
     }
 
+    /** Nama pengampu yang ditampilkan pada jadwal dan monitoring. */
+    public function namaGuruPengampu(): string
+    {
+        return $this->guru_pengampu
+            ?: ($this->guru?->name ?? "Pengajar Ma'had");
+    }
+
     /**
      * Nama-nama pengajar yang mewakili akun Guru (nama akun dan nama pegawai).
      *
@@ -88,20 +102,29 @@ class JadwalPembelajaran extends Model
     /**
      * Seluruh jadwal yang menjadi tanggung jawab Guru.
      *
+     * Penugasan baru tertaut langsung melalui guru_id. Jadwal lama yang belum
+     * memiliki guru_id tetap terbaca melalui pencocokan nama pengampu agar data
+     * yang sudah ada tidak perlu diubah.
+     *
      * @return Collection<int, static>
      */
     public static function jadwalUntuk(User $guru): Collection
     {
         $namaPengajar = static::namaPengajarUntuk($guru);
 
-        if ($namaPengajar->isEmpty()) {
-            return collect();
-        }
-
         return static::query()
-            ->where(function (Builder $query) use ($namaPengajar) {
-                foreach ($namaPengajar as $nama) {
-                    $query->orWhereRaw('LOWER(guru_pengampu) = ?', [$nama]);
+            ->where(function (Builder $query) use ($guru, $namaPengajar) {
+                $query->where('guru_id', $guru->getKey());
+
+                if ($namaPengajar->isNotEmpty()) {
+                    $query->orWhere(function (Builder $lama) use ($namaPengajar) {
+                        $lama->whereNull('guru_id')
+                            ->where(function (Builder $nama) use ($namaPengajar) {
+                                foreach ($namaPengajar as $teks) {
+                                    $nama->orWhereRaw('LOWER(guru_pengampu) = ?', [$teks]);
+                                }
+                            });
+                    });
                 }
             })
             ->with('mataPelajaran')

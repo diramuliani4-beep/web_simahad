@@ -39,6 +39,7 @@ class Tugas extends Model
         'mata_pelajaran_id',
         'nama_mata_pelajaran',
         'kelompok',
+        'pertemuan_id',
         'judul',
         'deskripsi',
         'lampiran_path',
@@ -67,6 +68,12 @@ class Tugas extends Model
     public function mataPelajaran(): BelongsTo
     {
         return $this->belongsTo(MataPelajaran::class, 'mata_pelajaran_id');
+    }
+
+    /** Pertemuan tempat tugas ini diberikan. */
+    public function pertemuan(): BelongsTo
+    {
+        return $this->belongsTo(PertemuanPembelajaran::class, 'pertemuan_id');
     }
 
     /** Seluruh pengumpulan mahasiswa untuk tugas ini. */

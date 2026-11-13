@@ -1195,7 +1195,7 @@
                         <div class="sd-card-head">
                             <div class="sd-card-title">
                                 <span class="sd-card-mark"><x-panel.ikon nama="pengguna" /></span>
-                                <div><h3>Komposisi Pengguna</h3><p>Distribusi akun per peran</p></div>
+                                <div><h3>Jumlah Pengguna per Role</h3><p>Distribusi akun per peran</p></div>
                             </div>
                             <span class="sd-chip">{{ number_format($totalAkun, 0, ',', '.') }} akun</span>
                         </div>
@@ -1247,7 +1247,7 @@
                         <div class="sd-card-head">
                             <div class="sd-card-title">
                                 <span class="sd-card-mark"><x-panel.ikon nama="sistem" /></span>
-                                <div><h3>Status Sistem</h3><p>Konfigurasi yang sedang digunakan</p></div>
+                                <div><h3>Status Konfigurasi</h3><p>Konfigurasi yang sedang digunakan</p></div>
                             </div>
                             <a class="sd-card-link" href="{{ route('admin.pengaturan-sistem') }}">Ubah</a>
                         </div>

@@ -27,7 +27,6 @@
             --text-muted: #6b7280;
             --line: #ecedf2;
             --bg-page: #f7f5f4;
-            --sidebar-width: 268px;
             --header-height: 68px;
         }
 
@@ -119,220 +118,6 @@
             flex: 1;
             min-height: calc(100vh - var(--header-height));
             width: 100%;
-        }
-
-        /* ================= SIDEBAR ================= */
-        .sidebar {
-            width: var(--sidebar-width);
-            min-width: var(--sidebar-width);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            border-right: 1px solid var(--line);
-            overflow: hidden;
-            background-color: #ffffff;
-        }
-
-        .sidebar-content {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            justify-content: space-between;
-            padding: 16px 13px 18px;
-        }
-
-        .sidebar-role {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 12px;
-            margin-bottom: 8px;
-            border-radius: 12px;
-            background: var(--maroon-tint);
-            border: 1px solid #f0dde1;
-        }
-
-        .sidebar-role-ikon {
-            display: grid;
-            place-items: center;
-            width: 32px;
-            height: 32px;
-            flex-shrink: 0;
-            border-radius: 10px;
-            background: var(--primary-maroon);
-            color: #c9a96a;
-        }
-
-        .sidebar-role-ikon svg {
-            display: block;
-            width: 17px;
-            height: 17px;
-        }
-
-        .sidebar-role-teks {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.2;
-            min-width: 0;
-        }
-
-        .sidebar-role-label {
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: #9b7d84;
-        }
-
-        .sidebar-role-nama {
-            font-size: 13.5px;
-            font-weight: 700;
-            color: var(--primary-maroon);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .sidebar-nav {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            flex-grow: 1;
-        }
-
-        .nav-pill {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            width: 100%;
-            min-height: 42px;
-            padding: 10px 13px;
-            background-color: transparent;
-            border: 0;
-            border-radius: 12px;
-            text-decoration: none;
-            color: #463b3d;
-            font-size: 13.6px;
-            font-weight: 600;
-            line-height: 1.25;
-            transition: background 0.16s ease, color 0.16s ease;
-            cursor: pointer;
-        }
-
-        .nav-pill:hover {
-            background-color: var(--maroon-tint);
-            color: var(--primary-maroon);
-        }
-
-        .nav-pill:hover .nav-icon svg {
-            stroke: var(--primary-maroon);
-        }
-
-        .nav-pill.active {
-            background-color: var(--maroon-tint);
-            color: var(--primary-maroon);
-            font-weight: 700;
-        }
-
-        .nav-pill.active::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 4px;
-            height: 22px;
-            border-radius: 0 4px 4px 0;
-            background: #c9a96a;
-        }
-
-        .nav-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 19px;
-            height: 19px;
-            flex-shrink: 0;
-        }
-
-        .nav-icon svg {
-            display: block;
-            width: 19px;
-            height: 19px;
-            stroke: #8b7b7f;
-            transition: stroke 0.16s ease;
-        }
-
-        .nav-pill.active .nav-icon svg {
-            stroke: #c9a96a;
-        }
-
-        .nav-label {
-            flex-grow: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .nav-badge-count {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 20px;
-            height: 20px;
-            padding: 0 6px;
-            border-radius: 999px;
-            background: var(--primary-maroon);
-            color: #fff;
-            font-size: 0.68rem;
-            font-weight: 800;
-        }
-
-        .sidebar-nav-bottom {
-            margin-top: 18px;
-            padding-top: 12px;
-            border-top: 1px solid var(--line);
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .btn-keluar-pill {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            width: 100%;
-            min-height: 42px;
-            padding: 10px 13px;
-            background-color: transparent;
-            border: 0;
-            border-radius: 12px;
-            color: #9a3b45;
-            font-family: inherit;
-            font-size: 13.6px;
-            font-weight: 600;
-            line-height: 1.25;
-            transition: background 0.16s ease, color 0.16s ease;
-            cursor: pointer;
-            text-align: left;
-            text-decoration: none;
-        }
-
-        .btn-keluar-pill svg {
-            stroke: #8b7b7f;
-        }
-
-        .btn-keluar-pill:hover {
-            background-color: #fdeef0;
-            color: #8a1224;
-        }
-
-        .btn-keluar-pill:hover svg {
-            stroke: #8a1224;
         }
 
         /* ================= MAIN CONTENT ================= */
@@ -1321,36 +1106,9 @@
             color: #6b7280;
         }
 
-        /* ================= MODAL & BACKDROP ================= */
-        .sidebar-backdrop {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(33, 10, 14, 0.42);
-            z-index: 45;
-        }
-
         /* ================= RESPONSIVE ================= */
-        @media (max-width: 992px) {
+        @media (max-width: 991px) {
             .mobile-toggle-btn {
-                display: block;
-            }
-
-            .sidebar {
-                position: fixed;
-                top: var(--header-height);
-                bottom: 0;
-                left: -300px;
-                z-index: 46;
-                transition: left 0.3s ease;
-                box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
-            }
-
-            .sidebar.active {
-                left: 0;
-            }
-
-            .sidebar-backdrop.active {
                 display: block;
             }
 
@@ -1438,7 +1196,7 @@
     <!-- ================= TOP NAVBAR ================= -->
     <header class="top-navbar">
         <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <button type="button" class="mobile-toggle-btn" id="mobileMenuBtn" aria-label="Buka Menu">
+            <button type="button" class="mobile-toggle-btn" id="menuToggle" aria-label="Buka atau tutup menu" aria-controls="sidebar" aria-expanded="false">
                 <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
                 </svg>
@@ -1459,155 +1217,9 @@
         </div>
     </header>
 
-    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-
     <div class="dashboard-body">
-        <!-- ================= SIDEBAR ================= -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-content">
-                <div>
-                    <div class="sidebar-role">
-                        <span class="sidebar-role-ikon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M22 10 12 5 2 10l10 5 10-5z"></path>
-                                <path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"></path>
-                            </svg>
-                        </span>
-                        <span class="sidebar-role-teks">
-                            <span class="sidebar-role-label">Mahasiswa</span>
-                            <span class="sidebar-role-nama">{{ $user->name }}</span>
-                        </span>
-                    </div>
-
-                    <nav class="sidebar-nav">
-                    <a href="{{ route('dashboard') }}" class="nav-pill active">
-                        <span class="nav-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
-                                <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
-                                <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
-                                <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
-                            </svg>
-                        </span>
-                        <span class="nav-label">Dashboard</span>
-                    </a>
-
-                    <a href="{{ route('pendaftaran.pribadi') }}" class="nav-pill">
-                        <span class="nav-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                            </svg>
-                        </span>
-                        <span class="nav-label">Pendaftaran</span>
-                    </a>
-
-                    <a href="{{ route('pembelajaran.mhs') }}" class="nav-pill">
-                        <span class="nav-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                            </svg>
-                        </span>
-                        <span class="nav-label">Pembelajaran</span>
-                    </a>
-
-                    <a href="{{ route('tugas.mhs.index') }}" class="nav-pill">
-                        <span class="nav-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="4" y="3" width="16" height="18" rx="2"></rect>
-                                <path d="M8 8h8M8 12h8M8 16h5"></path>
-                            </svg>
-                        </span>
-                        <span class="nav-label">Tugas</span>
-                        @if ($jumlahTugasBelum > 0)
-                            <span class="nav-badge-count">{{ $jumlahTugasBelum }}</span>
-                        @endif
-                    </a>
-
-                    <a href="{{ route('kamar') }}" class="nav-pill">
-                        <span class="nav-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M2 4v16"></path>
-                                <path d="M2 8h18a2 2 0 0 1 2 2v10"></path>
-                                <path d="M2 17h20"></path>
-                                <path d="M6 8v9"></path>
-                            </svg>
-                        </span>
-                        <span class="nav-label">Informasi Kamar</span>
-                    </a>
-
-                    <a href="{{ route('pembayaran') }}" class="nav-pill">
-                        <span class="nav-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"></path>
-                                <path d="M16 3H4a2 2 0 0 0-2 2v2"></path>
-                                <circle cx="16" cy="14" r="1.5" fill="#4f5767"></circle>
-                            </svg>
-                        </span>
-                        <span class="nav-label">Pembayaran</span>
-                    </a>
-
-                    <a href="{{ route('absensi.mhs') }}" class="nav-pill">
-                        <span class="nav-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="8" y="2" width="8" height="4" rx="1"></rect>
-                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                                <path d="m9 14 2 2 4-4"></path>
-                            </svg>
-                        </span>
-                        <span class="nav-label">Absensi</span>
-                    </a>
-
-                    <a href="{{ route('surat.perizinan.mhs') }}" class="nav-pill">
-                        <span class="nav-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                            </svg>
-                        </span>
-                        <span class="nav-label">Surat dan Perizinan</span>
-                    </a>
-
-                    <a href="{{ route('pengumuman.mhs') }}" class="nav-pill">
-                        <span class="nav-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="m3 11 18-5v12L3 14v-3z"></path>
-                                <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path>
-                            </svg>
-                        </span>
-                        <span class="nav-label">Pengumuman</span>
-                    </a>
-                </nav>
-                </div>
-
-                <div class="sidebar-nav-bottom">
-                    <a href="{{ route('profil.mhs') }}" class="nav-pill">
-                        <span class="nav-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="3"></circle>
-                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                            </svg>
-                        </span>
-                        <span class="nav-label">Pengaturan Akun</span>
-                    </a>
-
-                    <a href="{{ route('logout.confirm') }}" class="btn-keluar-pill">
-                        <span class="nav-icon">
-                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M10 17l5-5-5-5"/>
-                                <path d="M15 12H3"/>
-                                <path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/>
-                            </svg>
-                        </span>
-                        <span class="nav-label">Keluar</span>
-                    </a>
-                </div>
-            </div>
-        </aside>
-
+        {{-- Sidebar bersama: identitas, menu aktif, dan laci mobile dikelola komponen panel.sidebar. --}}
+        <x-panel.sidebar ragam="alir" atas="68px" />
         <!-- ================= MAIN CONTENT ================= -->
         <main class="main-content">
             <div class="dashboard-topline">
@@ -1641,7 +1253,9 @@
                 $kelasStatusAkun = in_array(strtolower((string) $user->status), ['aktif'], true) ? 'ok' : 'warning';
                 $programStudi = $pendaftaran?->program_studi ?: 'Mahasiswa Ma\'had';
                 $angkatan = $pendaftaran?->tahun_angkatan ?: '-';
-                $persentaseKehadiran = rtrim(rtrim(number_format((float) $absensi['persentase'], 1, ',', '.'), '0'), ',');
+                // Persentase memakai pemisah desimal titik, sama seperti halaman
+                // pembelajaran dan absensi mahasiswa lainnya.
+                $persentaseKehadiran = $absensi['persentase'];
                 $lebarKehadiran = min(100, (float) $absensi['persentase']);
             @endphp
 
@@ -1736,14 +1350,15 @@
 
                         @if (! $pembayaran['dibuka'])
                             <div class="tagihan-center-wrap">
-                                <div class="tagihan-empty-title">Periode Belum Dibuka</div>
+                                <div class="tagihan-empty-title">Periode Pembayaran</div>
                                 <div class="tagihan-empty-desc">
-                                    @if ($pengaturanBayar)
-                                        Periode {{ $pengaturanBayar->periode }} ({{ $pengaturanBayar->nama_tahap }}) akan dibuka pada {{ $pengaturanBayar->periodeDibukaTeks() }}.
-                                    @else
-                                        Belum ada periode pembayaran yang dibuka oleh Ma'had.
-                                    @endif
+                                    Belum ada periode pembayaran aktif. Silakan menunggu Musyrifah membuka periode pembayaran.
                                 </div>
+                                @if ($pengaturanBayar)
+                                    <div class="tagihan-empty-desc">
+                                        Periode {{ $pengaturanBayar->periode }} ({{ $pengaturanBayar->nama_tahap }}) akan dibuka pada {{ $pengaturanBayar->periodeDibukaTeks() }}.
+                                    </div>
+                                @endif
                             </div>
                         @else
                             <div class="tagihan-body">
@@ -1760,7 +1375,7 @@
                                 @if (filled($pembayaran['va_nomor']))
                                     <div class="va-inline">
                                         <div>
-                                            <div class="va-label">Virtual Account {{ $pengaturanBayar->va_bank ?: 'BSI' }}</div>
+                                            <div class="va-label">Rekening {{ $pengaturanBayar->va_bank ?: 'BSI' }}</div>
                                             <div class="va-number">{{ $pembayaran['va_nomor'] }}</div>
                                         </div>
                                         <button type="button" class="btn-copy-mini" data-copy-va="{{ $pembayaran['va_nomor'] }}">
@@ -1768,29 +1383,29 @@
                                                 <rect x="9" y="9" width="13" height="13" rx="2"></rect>
                                                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                                             </svg>
-                                            Salin VA
+                                            Salin No. Rek
                                         </button>
                                     </div>
                                 @endif
 
                                 @if ($pembayaran['status'] === 'lunas')
-                                    <a href="{{ route('pembayaran.detail') }}" class="reminder-alert success">
+                                    <a href="{{ route('pembayaran') }}" class="reminder-alert success">
                                         Tagihan sudah dikonfirmasi Lunas oleh Rektorat. Pengingat dihentikan.
                                     </a>
                                 @elseif ($pembayaran['status'] === 'terlambat')
-                                    <a href="{{ route('pembayaran.detail') }}" class="reminder-alert danger">
+                                    <a href="{{ route('pembayaran') }}" class="reminder-alert danger">
                                         Tagihan melewati jatuh tempo {{ $pembayaran['jatuh_tempo'] }}. Klik untuk detail pembayaran.
                                     </a>
                                 @elseif ($pembayaran['status'] === 'menunggu')
-                                    <a href="{{ route('pembayaran.detail') }}" class="reminder-alert info">
+                                    <a href="{{ route('pembayaran') }}" class="reminder-alert info">
                                         Menunggu konfirmasi Rektorat. Status Lunas mengikuti rekap pembayaran resmi.
                                     </a>
                                 @elseif ($pembayaran['pengingat'])
-                                    <a href="{{ route('pembayaran.detail') }}" class="reminder-alert danger">
+                                    <a href="{{ route('pembayaran') }}" class="reminder-alert danger">
                                         Pengingat: jatuh tempo tinggal {{ $pembayaran['sisa_hari'] }} hari ({{ $pembayaran['jatuh_tempo'] }}).
                                     </a>
                                 @else
-                                    <a href="{{ route('pembayaran.detail') }}" class="reminder-alert info">
+                                    <a href="{{ route('pembayaran') }}" class="reminder-alert info">
                                         Tagihan belum dibayar. Bayar sebelum {{ $pembayaran['jatuh_tempo'] }}.
                                     </a>
                                 @endif
@@ -1799,7 +1414,7 @@
                     </div>
 
                     <div class="card-detail-footer">
-                        <a href="{{ route('pembayaran.detail') }}" class="link-card-detail">Detail pembayaran &rarr;</a>
+                        <a href="{{ route('pembayaran') }}" class="link-card-detail">Detail pembayaran &rarr;</a>
                     </div>
                 </div>
 
@@ -1841,7 +1456,7 @@
                     </div>
 
                     <div class="card-detail-footer">
-                        <a href="{{ route('absensi.mhs') }}" class="link-card-detail">Detail absensi &rarr;</a>
+                        <a href="{{ route('pembelajaran.mhs') }}" class="link-card-detail">Rincian kehadiran per mata pelajaran &rarr;</a>
                     </div>
                 </div>
             </div>
@@ -2133,7 +1748,7 @@
             bar.style.width = bar.dataset.lebar + '%';
         });
 
-        // Tombol salin nomor Virtual Account BSI.
+        // Tombol salin nomor rekening BSI resmi.
         document.querySelectorAll('[data-copy-va]').forEach(function (tombol) {
             tombol.addEventListener('click', async function () {
                 const nomor = tombol.dataset.copyVa || '';
@@ -2170,22 +1785,7 @@
             });
         });
 
-        // Sidebar mobile.
-        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarBackdrop = document.getElementById('sidebarBackdrop');
-
-        if (mobileMenuBtn && sidebar && sidebarBackdrop) {
-            mobileMenuBtn.addEventListener('click', function () {
-                sidebar.classList.toggle('active');
-                sidebarBackdrop.classList.toggle('active');
-            });
-
-            sidebarBackdrop.addEventListener('click', function () {
-                sidebar.classList.remove('active');
-                sidebarBackdrop.classList.remove('active');
-            });
-        }
+        // Buka/tutup laci sidebar ditangani komponen panel.sidebar.
     </script>
 </body>
 </html>

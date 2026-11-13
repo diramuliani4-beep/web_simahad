@@ -215,12 +215,12 @@ class MahasiswaDashboardTest extends TestCase
         $this->actingAs($mahasiswa)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('Periode Belum Dibuka')
+            ->assertSee('Belum ada periode pembayaran aktif. Silakan menunggu Musyrifah membuka periode pembayaran.')
             ->assertSee('akan dibuka pada')
-            ->assertDontSee('9900112233445566');
+            ->assertDontSee('7322022268');
     }
 
-    public function test_dashboard_menampilkan_tagihan_nomor_va_bersama_dan_pengingat(): void
+    public function test_dashboard_menampilkan_tagihan_nomor_rekening_bersama_dan_pengingat(): void
     {
         [$mahasiswa] = $this->mahasiswa();
 
@@ -231,8 +231,8 @@ class MahasiswaDashboardTest extends TestCase
             ->assertOk()
             ->assertSee('Rp 2.500.000')
             ->assertSee('Tahap 1')
-            ->assertSee('9900112233445566')
-            ->assertSee('Salin VA')
+            ->assertSee('7322022268')
+            ->assertSee('Salin No. Rek')
             ->assertSee('Pengingat: jatuh tempo tinggal 3 hari');
     }
 
@@ -278,19 +278,20 @@ class MahasiswaDashboardTest extends TestCase
             ->assertSee('Tagihan sudah dikonfirmasi Lunas oleh Rektorat. Pengingat dihentikan.');
     }
 
-    public function test_detail_pembayaran_menampilkan_nomor_va_bersama(): void
+    public function test_halaman_pembayaran_menampilkan_rekening_resmi_bsi_dan_tiga_angsuran(): void
     {
         [$mahasiswa] = $this->mahasiswa();
 
         PengaturanPembayaran::factory()->create();
 
         $this->actingAs($mahasiswa)
-            ->get(route('pembayaran.detail'))
+            ->get(route('pembayaran'))
             ->assertOk()
-            ->assertSee('Rp 2.500.000')
+            ->assertSee('Rp 5.000.000')
             ->assertSee('Tahap 1')
-            ->assertSee('9900112233445566')
-            ->assertSee('Salin Nomor VA');
+            ->assertSee('7322022268')
+            ->assertSee('RPL 010 BLU UIN P2B MAHAD UTK DR')
+            ->assertSee('Salin Nomor Rekening');
     }
 
     public function test_notifikasi_terbaru_dan_penanda_sudah_dibaca(): void

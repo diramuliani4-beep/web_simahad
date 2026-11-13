@@ -259,6 +259,16 @@
                     Cetak Laporan
                 </a>
 
+                @if (! empty($periodik))
+                    <a href="{{ route('pimpinan.laporan.pdf', $register) }}" class="lreg-btn lreg-btn-outline">
+                        Unduh PDF
+                    </a>
+
+                    <a href="{{ route('pimpinan.laporan.excel', $register) }}" class="lreg-btn lreg-btn-outline">
+                        Unduh Excel
+                    </a>
+                @endif
+
                 @if ($unduhUrl)
                     <a href="{{ $unduhUrl }}" class="lreg-btn lreg-btn-outline">Unduh CSV</a>
                 @endif
@@ -408,7 +418,20 @@
             </div>
         </div>
 
-        @if ($rekap)
+        @if (! empty($periodik))
+            <div class="lreg-kartu">
+                <h2>Dokumen Laporan Periodik</h2>
+                <p style="margin: 0 0 16px; color: #81777d; font-size: 12.5px; line-height: 1.6;">
+                    Dokumen berikut adalah potret data saat laporan dibuat. Isinya tidak berubah
+                    walaupun data operasional setelahnya diperbarui.
+                </p>
+
+                @include('partials.laporan-periodik', [
+                    'laporan' => $register->konten,
+                    'meta' => $metaCetak,
+                ])
+            </div>
+        @elseif ($rekap)
             @include('partials.laporan-mahad', [
                 'laporan' => $rekap,
                 'sembunyikanFilter' => true,

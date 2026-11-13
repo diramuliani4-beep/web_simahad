@@ -1,1479 +1,980 @@
+@extends('layouts.mahasiswa')
 
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Pembayaran - SIMAHAD</title>
+@section('title', 'Pembayaran')
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+@section('content')
 
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+<style>
+    .bayar-page {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: var(--ink);
+        min-width: 0;
+    }
 
-        :root {
-            --maroon: #79051d;
-            --maroon-dark: #5f0016;
-            --text: #171717;
-            --muted: #737373;
-            --page: #f8f7f6;
-            --soft-maroon: #f9ecef;
-            --line: #8a0b22;
+    .bayar-page *,
+    .bayar-page *::before,
+    .bayar-page *::after {
+        box-sizing: border-box;
+    }
+
+    .bayar-page .page-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .bayar-page .page-head h1 {
+        margin: 0;
+        font-size: 1.35rem;
+        font-weight: 800;
+        line-height: 1.25;
+    }
+
+    .bayar-page .page-head p {
+        margin: 4px 0 0;
+        max-width: 640px;
+        font-size: 0.82rem;
+        line-height: 1.6;
+        color: var(--muted);
+    }
+
+    .bayar-page .periode-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 13px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: #fff;
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: var(--maroon);
+        white-space: nowrap;
+    }
+
+    .bayar-page .info-note {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 16px;
+        padding: 12px 14px;
+        border: 1px solid #e8d8a8;
+        border-radius: 12px;
+        background: #fdf7e6;
+        font-size: 0.79rem;
+        line-height: 1.6;
+        color: #6d5410;
+    }
+
+    .bayar-page .info-note svg {
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    /* Ringkasan */
+    .bayar-page .ringkasan-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .bayar-page .stat-card {
+        min-width: 0;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 6px 18px rgba(59, 7, 15, .04);
+    }
+
+    .bayar-page .stat-card .stat-label {
+        display: block;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        color: var(--muted);
+    }
+
+    .bayar-page .stat-card .stat-nilai {
+        display: block;
+        margin-top: 5px;
+        font-size: 1.22rem;
+        font-weight: 800;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+
+    .bayar-page .stat-card .stat-sub {
+        display: block;
+        margin-top: 3px;
+        font-size: 0.72rem;
+        color: var(--muted);
+    }
+
+    .bayar-page .stat-card--utama {
+        border-color: #e3c9cf;
+        background: linear-gradient(135deg, #fff 0%, var(--maroon-tint) 100%);
+    }
+
+    .bayar-page .stat-card--utama .stat-nilai {
+        color: var(--maroon);
+    }
+
+    .bayar-page .progres {
+        height: 6px;
+        margin-top: 9px;
+        border-radius: 999px;
+        background: #f0e2e5;
+        overflow: hidden;
+    }
+
+    .bayar-page .progres span {
+        display: block;
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--maroon), var(--gold));
+    }
+
+    /* Rekening */
+    .bayar-page .rekening-card {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 18px;
+        padding: 16px 18px;
+        border: 1px solid #d9c8c1;
+        border-radius: 16px;
+        background: #fffdfc;
+    }
+
+    .bayar-page .rekening-info {
+        min-width: 0;
+        flex: 1 1 260px;
+    }
+
+    .bayar-page .rekening-bank {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        background: var(--maroon-tint);
+        color: var(--maroon);
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+    }
+
+    .bayar-page .rekening-nomor {
+        margin: 8px 0 2px;
+        font-size: 1.4rem;
+        font-weight: 800;
+        letter-spacing: .06em;
+        overflow-wrap: anywhere;
+    }
+
+    .bayar-page .rekening-nama {
+        font-size: 0.78rem;
+        line-height: 1.55;
+        color: var(--muted);
+        overflow-wrap: anywhere;
+    }
+
+    .bayar-page .btn-salin {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        min-height: 42px;
+        padding: 10px 18px;
+        border: none;
+        border-radius: 10px;
+        background: var(--maroon);
+        color: #fff;
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background .16s ease;
+    }
+
+    .bayar-page .btn-salin:hover {
+        background: var(--maroon-dark);
+    }
+
+    .bayar-page .btn-salin.is-copied {
+        background: #15803d;
+    }
+
+    /* Angsuran */
+    .bayar-page .bagian-judul {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin: 0 0 10px;
+    }
+
+    .bayar-page .bagian-judul h2 {
+        margin: 0;
+        font-size: 0.98rem;
+        font-weight: 800;
+    }
+
+    .bayar-page .bagian-judul span {
+        font-size: 0.74rem;
+        color: var(--muted);
+    }
+
+    .bayar-page .angsuran-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .bayar-page .angsuran-card {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        padding: 15px 16px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 6px 18px rgba(59, 7, 15, .04);
+    }
+
+    .bayar-page .angsuran-card.is-lunas {
+        border-color: #cfe6d5;
+        background: #fbfdfb;
+    }
+
+    .bayar-page .angsuran-card.is-terlambat {
+        border-color: #f2ccd2;
+    }
+
+    .bayar-page .angsuran-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .bayar-page .angsuran-tahap {
+        font-size: 0.82rem;
+        font-weight: 800;
+        color: var(--maroon);
+        letter-spacing: .03em;
+        text-transform: uppercase;
+    }
+
+    .bayar-page .angsuran-nominal {
+        margin: 6px 0 2px;
+        font-size: 1.3rem;
+        font-weight: 800;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+
+    .bayar-page .angsuran-meta {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 8px 10px;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px dashed var(--line);
+    }
+
+    .bayar-page .meta-label {
+        display: block;
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        color: #9b8a8e;
+    }
+
+    .bayar-page .meta-nilai {
+        display: block;
+        margin-top: 2px;
+        font-size: 0.79rem;
+        font-weight: 600;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+    }
+
+    .bayar-page .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .bayar-page .badge.lunas {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .bayar-page .badge.menunggu {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .bayar-page .badge.rektorat {
+        background: #ede9fe;
+        color: #5b21b6;
+    }
+
+    .bayar-page .badge.ditolak,
+    .bayar-page .badge.terlambat {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .bayar-page .badge.belum {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .bayar-page .badge.verifikasi-menunggu {
+        background: #e0f2fe;
+        color: #075985;
+    }
+
+    .bayar-page .badge.verifikasi-diterima {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .bayar-page .badge.verifikasi-ditolak {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .bayar-page .badge.verifikasi-kosong {
+        background: #f3f4f6;
+        color: #4b5563;
+    }
+
+    .bayar-page .catatan-verifikasi {
+        margin-top: 10px;
+        padding: 9px 11px;
+        border-left: 3px solid #f0a6b1;
+        border-radius: 6px;
+        background: #fdf2f4;
+        font-size: 0.76rem;
+        line-height: 1.55;
+        color: #8a1224;
+        overflow-wrap: anywhere;
+    }
+
+    .bayar-page .bukti-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 8px;
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: var(--maroon);
+        overflow-wrap: anywhere;
+    }
+
+    .bayar-page .bukti-link:hover {
+        text-decoration: underline;
+    }
+
+    .bayar-page .aksi-baris {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .bayar-page .btn-aksi {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 40px;
+        padding: 9px 14px;
+        border-radius: 9px;
+        border: 1px solid var(--maroon);
+        background: var(--maroon);
+        color: #fff;
+        font-family: inherit;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background .16s ease, color .16s ease;
+    }
+
+    .bayar-page .btn-aksi:hover {
+        background: var(--maroon-dark);
+    }
+
+    .bayar-page .btn-aksi--garis {
+        background: #fff;
+        color: var(--maroon);
+    }
+
+    .bayar-page .btn-aksi--garis:hover {
+        background: var(--maroon-tint);
+    }
+
+    .bayar-page .form-sembunyi {
+        display: none;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px dashed var(--line);
+    }
+
+    .bayar-page .form-sembunyi.terbuka {
+        display: block;
+    }
+
+    .bayar-page .form-field {
+        margin-bottom: 9px;
+    }
+
+    .bayar-page .form-field label {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 0.73rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+    }
+
+    .bayar-page .form-field input,
+    .bayar-page .form-field textarea {
+        width: 100%;
+        min-height: 40px;
+        padding: 9px 11px;
+        border: 1px solid #e0d5d0;
+        border-radius: 9px;
+        background: #fff;
+        font-family: inherit;
+        font-size: 0.82rem;
+        color: var(--ink);
+    }
+
+    .bayar-page .form-field textarea {
+        min-height: 74px;
+        resize: vertical;
+    }
+
+    .bayar-page .form-field input:focus,
+    .bayar-page .form-field textarea:focus {
+        outline: 2px solid rgba(107, 13, 27, .18);
+        border-color: var(--maroon);
+    }
+
+    .bayar-page .hint {
+        margin-top: 4px;
+        font-size: 0.7rem;
+        line-height: 1.5;
+        color: var(--muted);
+    }
+
+    /* Riwayat */
+    .bayar-page .riwayat-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    .bayar-page .panel {
+        min-width: 0;
+        padding: 15px 16px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #fff;
+    }
+
+    .bayar-page .panel h2 {
+        margin: 0 0 10px;
+        font-size: 0.92rem;
+        font-weight: 800;
+    }
+
+    .bayar-page .riwayat-item {
+        padding: 10px 0;
+        border-top: 1px dashed var(--line);
+    }
+
+    .bayar-page .riwayat-item:first-of-type {
+        border-top: none;
+        padding-top: 0;
+    }
+
+    .bayar-page .riwayat-atas {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+    }
+
+    .bayar-page .riwayat-nama {
+        font-size: 0.8rem;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+    }
+
+    .bayar-page .riwayat-sub {
+        margin-top: 3px;
+        font-size: 0.73rem;
+        line-height: 1.5;
+        color: var(--muted);
+        overflow-wrap: anywhere;
+    }
+
+    .bayar-page .kosong {
+        padding: 18px 4px;
+        text-align: center;
+        font-size: 0.78rem;
+        color: var(--muted);
+    }
+
+    .bayar-page .langkah {
+        margin: 0;
+        padding-left: 18px;
+        font-size: 0.79rem;
+        line-height: 1.75;
+        color: var(--text-secondary);
+    }
+
+    .bayar-page .mati {
+        padding: 34px 18px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: #fff;
+        text-align: center;
+    }
+
+    .bayar-page .mati h2 {
+        margin: 0 0 6px;
+        font-size: 1rem;
+        font-weight: 800;
+    }
+
+    .bayar-page .mati p {
+        margin: 0 auto;
+        max-width: 460px;
+        font-size: 0.82rem;
+        line-height: 1.65;
+        color: var(--muted);
+    }
+
+    @media (max-width: 992px) {
+        .bayar-page .riwayat-grid {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+
+    @media (max-width: 640px) {
+        .bayar-page .page-head h1 {
+            font-size: 1.15rem;
         }
 
-        body {
-            font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-            color: var(--text);
-            background: var(--page);
-            min-height: 100vh;
-            overflow-x: hidden;
+        .bayar-page .angsuran-grid,
+        .bayar-page .ringkasan-grid {
+            grid-template-columns: minmax(0, 1fr);
         }
 
-        button, input { font: inherit; }
+        .bayar-page .angsuran-meta {
+            grid-template-columns: minmax(0, 1fr);
+        }
 
-        .top-header {
-            height: 88px;
+        .bayar-page .rekening-nomor {
+            font-size: 1.2rem;
+        }
+
+        .bayar-page .btn-salin,
+        .bayar-page .btn-aksi {
             width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 30px 0 20px;
-            background: #fff;
-            border: 1px solid var(--line);
-            position: relative;
-            z-index: 20;
         }
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: var(--maroon);
-            font-size: 30px;
-            font-weight: 800;
-            letter-spacing: -.7px;
-        }
-
-        .brand img {
-            width: 64px;
-            height: 64px;
-            object-fit: contain;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 26px;
-        }
-
-        .notification-button {
-            width: 40px;
-            height: 40px;
-            border: 0;
-            border-radius: 50%;
-            background: var(--maroon);
-            color: white;
-            display: grid;
-            place-items: center;
-            cursor: pointer;
-        }
-
-        .profile-button {
-            width: 60px;
-            height: 60px;
-            border: 1.5px solid #333;
-            border-radius: 50%;
-            background: #fff;
-            color: #444;
-            display: grid;
-            place-items: center;
-        }
-
-        .app-content {
-            display: flex;
-            min-height: calc(100vh - 88px);
-        }
-
-        /* SIDEBAR */
-        .sidebar {
-            width: 300px;
-            flex: 0 0 300px;
-            min-height: calc(100vh - 88px);
-            padding: 22px 14px 24px;
-            position: relative;
-            overflow: hidden;
-            border-right: 1px solid var(--line);
-            display: flex;
-            flex-direction: column;
-            background: #dbeafe;
-        }
-
-        .sidebar-bg {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            background-image: url('{{ asset("images/mahad_al_jamiah.jpeg") }}');
-            background-position: center top;
-            background-size: cover;
-            background-repeat: no-repeat;
-        }
-
-        .sidebar-overlay {
-            position: absolute;
-            inset: 0;
-            z-index: 1;
-            background: linear-gradient(
-                180deg,
-                rgba(219,234,254,.45),
-                rgba(255,255,255,.72) 48%,
-                rgba(255,255,255,.88)
-            );
-        }
-
-        .sidebar-content {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            flex: 1;
-            flex-direction: column;
-        }
-
-        .sidebar-nav {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .nav-item {
-            min-height: 48px;
-            padding: 9px 12px;
-            display: flex;
-            align-items: center;
-            gap: 11px;
-            text-decoration: none;
-            color: #171717;
-            background: #fff;
-            border: 1px solid #222;
-            border-radius: 12px;
-            transition: background .18s ease, border-color .18s ease;
-        }
-
-        .nav-item:hover {
-            background: #fff4f5;
-            border-color: var(--maroon);
-        }
-
-        .nav-item.active {
-            background: #f9ecef;
-            border-color: var(--maroon);
-            color: var(--maroon);
-            font-weight: 700;
-        }
-
-        .nav-icon {
-            width: 24px;
-            height: 24px;
-            flex: 0 0 24px;
-            display: grid;
-            place-items: center;
-            color: #5c6677;
-        }
-
-        .nav-item.active .nav-icon {
-            color: var(--maroon);
-        }
-
-        .nav-text {
-            font-size: 14px;
-            font-weight: 500;
-            line-height: 1.35;
-        }
-
-        .nav-item.active .nav-text {
-            font-weight: 700;
-        }
-
-        .nav-arrow {
-            margin-left: auto;
-            color: var(--maroon);
-            font-size: 23px;
-            font-weight: 800;
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding-top: 24px;
-        }
-
-        .btn-keluar {
+        .bayar-page .periode-chip {
             width: 100%;
-            min-height: 48px;
-            display: flex;
-            align-items: center;
-            gap: 11px;
-            padding: 9px 12px;
-            background: #fff;
-            color: #171717;
-            border: 1px solid #222;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .btn-keluar:hover {
-            background: #fff4f5;
-            color: var(--maroon);
-            border-color: var(--maroon);
-        }
-
-        /* KONTEN PEMBAYARAN */
-        .main-content {
-            flex: 1;
-            min-width: 0;
-            padding: 29px 42px 34px;
-        }
-
-        .breadcrumb {
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--maroon);
-            margin-bottom: 12px;
-        }
-
-        .page-title {
-            font-size: 32px;
-            line-height: 1.25;
-            font-weight: 800;
-            margin-bottom: 3px;
-            color: #111;
-        }
-
-        .page-description {
-            font-size: 19px;
-            line-height: 1.5;
-            margin-bottom: 28px;
-        }
-
-        .payment-summary {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 20px;
-            margin-bottom: 28px;
-        }
-
-        .summary-card {
-            min-height: 98px;
-            border: 1px solid var(--line);
-            border-radius: 10px;
-            background: #fff;
-            padding: 13px 14px;
-        }
-
-        .summary-card:first-child {
-            background: #fff0f2;
-            color: var(--maroon);
-        }
-
-        .summary-label {
-            color: #737373;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-
-        .summary-card:first-child .summary-label {
-            color: var(--maroon);
-            font-weight: 600;
-        }
-
-        .summary-value {
-            font-size: 25px;
-            line-height: 1.3;
-            font-weight: 700;
-        }
-
-        .summary-icon {
-            display: inline-block;
-            margin-right: 6px;
-            font-weight: 800;
-        }
-
-        .section-title {
-            font-size: 19px;
-            font-weight: 600;
-            color: #414141;
-            margin: 25px 5px 16px;
-        }
-
-        .payment-card {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-            padding: 20px 16px;
-            margin-bottom: 16px;
-            background: #fff;
-            border-radius: 12px;
-        }
-
-        .card-left { min-width: 0; }
-
-        .bill-name {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .bill-description {
-            font-size: 15px;
-            color: #777;
-            margin-bottom: 12px;
-        }
-
-        .bill-row {
-            font-size: 15px;
-            color: #777;
-            margin-bottom: 8px;
-        }
-
-        .bill-row:last-child { margin-bottom: 0; }
-
-        .card-right {
-            flex: 0 0 auto;
-            text-align: right;
-        }
-
-        .amount {
-            font-size: 18px;
-            font-weight: 700;
-            color: #222;
-            margin-bottom: 12px;
-        }
-
-        .status-pill {
-            display: inline-flex;
-            align-items: center;
-            border-radius: 20px;
-            padding: 5px 10px;
-            background: #ffe6d9;
-            color: #e65b13;
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .status-pill.paid {
-            background: #dcfce7;
-            color: #15803d;
-        }
-
-        .btn-bayar {
-            display: inline-block;
-            margin-top: 12px;
-            padding: 10px 18px;
-            border: 0;
-            border-radius: 8px;
-            background: var(--maroon);
-            color: #fff;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .btn-bayar:hover { background: var(--maroon-dark); }
-
-        .history-card {
-            display: flex;
-            gap: 16px;
-            align-items: flex-start;
-            padding: 16px;
-            background: #fff;
-            border-radius: 12px;
-            margin-bottom: 16px;
-        }
-
-        .history-icon {
-            width: 50px;
-            height: 50px;
-            flex: 0 0 50px;
-            display: grid;
-            place-items: center;
-            border-radius: 10px;
-            background: #f9ecef;
-            color: var(--maroon);
-        }
-
-        .history-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .history-title {
-            font-size: 17px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .history-detail {
-            color: #777;
-            font-size: 14px;
-            margin-bottom: 7px;
-        }
-
-        .history-arrow {
-            font-size: 28px;
-            color: #777;
-        }
-
-        .history-note {
-            border-top: 1px solid #e5dedc;
-            padding-top: 22px;
-            margin-top: 24px;
-            color: #777;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .information-box {
-            background: #f8ecef;
-            color: #505050;
-            border-radius: 12px;
-            padding: 18px 16px;
-            line-height: 1.6;
-            margin-top: 14px;
-        }
-
-        .information-box h3 {
-            color: var(--maroon);
-            font-size: 18px;
-            margin-bottom: 7px;
-        }
-
-        .alert-status {
-            background: #ecfdf5;
-            border-left: 4px solid #10b981;
-            padding: 12px 16px;
-            border-radius: 8px;
-            color: #065f46;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-
-        .simulation-bar {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 12px;
-            padding-top: 16px;
-            border-top: 1px dashed #ddd;
-            margin-top: 16px;
-        }
-
-        .btn-reset-simulasi {
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            background: #fff;
-            padding: 8px 12px;
-            cursor: pointer;
-            color: #64748b;
-        }
-
-        /* MODAL PEMBAYARAN DAN INFORMASI */
-        .modal-backdrop {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 100;
-            background: rgba(0,0,0,.55);
-            align-items: center;
             justify-content: center;
-            padding: 16px;
         }
+    }
+</style>
 
-        .modal-backdrop.active { display: flex; }
+@php
+    $pengaturan = $ringkasan['pengaturan'];
+    $dibuka = (bool) $ringkasan['dibuka'];
+    $rekening = $ringkasan['rekening'];
+    $daftarAngsuran = $ringkasan['daftar_angsuran'];
+    $lunasRiwayat = collect($daftarAngsuran)->where('status', 'lunas');
+@endphp
 
-        .payment-modal-box {
-            width: 100%;
-            max-width: 580px;
-            max-height: 90vh;
-            overflow-y: auto;
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 20px 40px rgba(0,0,0,.25);
-        }
-
-        .modal-header {
-            padding: 18px 24px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .modal-header-title {
-            font-size: 20px;
-            font-weight: 800;
-            color: #111;
-        }
-
-        .modal-header-close {
-            border: 0;
-            background: transparent;
-            font-size: 28px;
-            color: #777;
-            cursor: pointer;
-        }
-
-        .modal-body-content { padding: 24px; }
-
-        .order-summary-box {
-            padding: 16px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            margin-bottom: 22px;
-        }
-
-        .order-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 16px;
-            font-size: 14px;
-            color: #475569;
-            margin-bottom: 12px;
-        }
-
-        .order-row:last-child {
-            border-top: 1px dashed #cbd5e1;
-            padding-top: 12px;
-            margin-bottom: 0;
-            font-weight: 700;
-            color: #111;
-        }
-
-        .order-total-amount {
-            color: var(--maroon);
-            font-size: 17px;
-        }
-
-        .methods-title {
-            font-size: 15px;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-
-        .payment-methods-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .method-choice {
-            border: 1.5px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 13px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            gap: 10px;
-        }
-
-        .method-choice.selected {
-            border-color: var(--maroon);
-            background: #fdf2f4;
-        }
-
-        .method-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .method-radio { accent-color: var(--maroon); }
-        .method-name { font-weight: 700; font-size: 14px; }
-
-        .method-sub {
-            font-size: 12px;
-            color: #64748b;
-            margin-top: 4px;
-        }
-
-        .method-badge {
-            color: var(--maroon);
-            background: #f9e7eb;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 5px 7px;
-            border-radius: 5px;
-        }
-
-        .va-display-box {
-            background: #faf5f7;
-            border: 1px solid #f2d2dc;
-            border-radius: 12px;
-            padding: 18px;
-            margin-bottom: 18px;
-            text-align: center;
-        }
-
-        .va-label {
-            font-size: 13px;
-            color: #64748b;
-            margin-bottom: 8px;
-        }
-
-        .va-number-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 8px;
-        }
-
-        .va-number {
-            font-size: 21px;
-            font-weight: 800;
-            letter-spacing: .04em;
-            color: var(--maroon);
-        }
-
-        .btn-copy {
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            background: #fff;
-            padding: 6px 10px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .btn-copy.copied {
-            background: #10b981;
-            color: #fff;
-        }
-
-        .va-account-name {
-            color: #64748b;
-            font-size: 12px;
-        }
-
-        .instructions-box {
-            background: #f8fafc;
-            border-radius: 10px;
-            padding: 14px 16px;
-            color: #475569;
-            font-size: 13px;
-            line-height: 1.65;
-        }
-
-        .instructions-box ol {
-            padding-left: 20px;
-            margin-top: 6px;
-        }
-
-        .modal-footer {
-            padding: 16px 24px 22px;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            border-top: 1px solid #eee;
-        }
-
-        .btn-modal-cancel,
-        .btn-modal-confirm {
-            border: 0;
-            border-radius: 8px;
-            padding: 11px 16px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .btn-modal-cancel {
-            background: #f1f5f9;
-            color: #475569;
-        }
-
-        .btn-modal-confirm {
-            background: var(--maroon);
-            color: #fff;
-        }
-
-        .mobile-nav-toggle { display: none; }
-        .sidebar-backdrop { display: none; }
-
-        /* RESPONSIVE */
-        @media (max-width: 1100px) {
-            .sidebar {
-                width: 260px;
-                flex-basis: 260px;
-            }
-
-            .main-content { padding: 25px 24px; }
-            .payment-summary { gap: 12px; }
-            .summary-value { font-size: 21px; }
-        }
-
-        @media (max-width: 800px) {
-            .top-header {
-                height: 74px;
-                padding: 0 14px;
-            }
-
-            .brand {
-                font-size: 22px;
-                gap: 8px;
-            }
-
-            .brand img {
-                width: 46px;
-                height: 46px;
-            }
-
-            .header-actions { gap: 12px; }
-
-            .profile-button {
-                width: 44px;
-                height: 44px;
-            }
-
-            .app-content { min-height: calc(100vh - 74px); }
-
-            .sidebar {
-                position: fixed;
-                top: 74px;
-                bottom: 0;
-                left: 0;
-                height: calc(100vh - 74px);
-                min-height: 0;
-                z-index: 40;
-                transform: translateX(-105%);
-                transition: transform .25s ease;
-                overflow-y: auto;
-                width: 280px;
-                flex-basis: 280px;
-            }
-
-            .sidebar.active { transform: translateX(0); }
-
-            .sidebar-backdrop.active {
-                display: block;
-                position: fixed;
-                inset: 74px 0 0;
-                z-index: 35;
-                background: rgba(0,0,0,.35);
-            }
-
-            .mobile-nav-toggle {
-                display: grid;
-                place-items: center;
-                position: fixed;
-                z-index: 50;
-                left: 12px;
-                bottom: 14px;
-                width: 46px;
-                height: 46px;
-                border: 0;
-                border-radius: 50%;
-                background: var(--maroon);
-                color: white;
-                box-shadow: 0 3px 12px #0003;
-                cursor: pointer;
-            }
-
-            .main-content {
-                padding: 24px 16px 80px;
-                width: 100%;
-            }
-
-            .breadcrumb { font-size: 16px; }
-            .page-title { font-size: 28px; }
-
-            .page-description {
-                font-size: 15px;
-                margin-bottom: 20px;
-            }
-
-            .payment-summary { grid-template-columns: 1fr; }
-
-            .payment-card {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .card-right { text-align: left; }
-        }
-
-        @media (max-width: 480px) {
-            .brand { font-size: 19px; }
-            .notification-button { width: 36px; height: 36px; }
-            .profile-button { width: 40px; height: 40px; }
-            .page-title { font-size: 25px; }
-
-            .history-card { gap: 10px; }
-            .history-icon {
-                width: 40px;
-                height: 40px;
-                flex-basis: 40px;
-            }
-
-            .modal-header,
-            .modal-body-content {
-                padding: 16px;
-            }
-
-            .modal-footer {
-                padding: 14px 16px 18px;
-                flex-wrap: wrap;
-            }
-
-            .va-number { font-size: 17px; }
-            .simulation-bar { flex-wrap: wrap; }
-        }
-    </style>
-</head>
-
-<body>
-    <header class="top-header">
-        <div class="brand">
-            <img src="{{ asset('images/logo_uin.png') }}" alt="Logo UIN Imam Bonjol">
-            <span>SIMAHAD</span>
+<div class="bayar-page">
+    <div class="page-head">
+        <div>
+            <h1>Pembayaran Mahasiswa</h1>
+            <p>Tagihan Ma'had dibayar maksimal tiga angsuran. Seluruh transfer dilakukan langsung ke rekening resmi kampus.</p>
         </div>
 
-        <div class="header-actions">
-            <button class="notification-button" type="button"
-                    aria-label="Notifikasi" title="Notifikasi">
-                <svg width="25" height="25" viewBox="0 0 24 24"
-                     fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
-                    <path d="M10 21h4"></path>
+        @if ($pengaturan)
+            <span class="periode-chip">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
                 </svg>
-            </button>
+                Periode {{ $pengaturan->periode }}
+            </span>
+        @endif
+    </div>
 
-            <x-mahasiswa.profile-dropdown />
-        </div>
-    </header>
-
-    <button type="button" class="mobile-nav-toggle" id="mobileMenuBtn"
-            aria-label="Buka menu" aria-controls="sidebar" aria-expanded="false">
-        <svg width="24" height="24" fill="none" stroke="currentColor"
-             stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M4 6h16M4 12h16M4 18h16"></path>
+    <div class="info-note">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
         </svg>
-    </button>
+        <span>
+            Transfer langsung ke rekening resmi kampus. SIMAHAD tidak menerima atau mengelola dana.
+            Status <strong>Lunas</strong> ditetapkan setelah penerimaan dana dikonfirmasi kampus/Rektorat, bukan otomatis setelah bukti diunggah.
+        </span>
+    </div>
 
-    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-
-    <div class="app-content">
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-bg"></div>
-            <div class="sidebar-overlay"></div>
-
-            <div class="sidebar-content">
-                <nav class="sidebar-nav" aria-label="Navigasi utama">
-
-                    <!-- Dashboard -->
-                    <a href="{{ route('dashboard') }}"
-                       class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}"
-                       @if(request()->routeIs('dashboard')) aria-current="page" @endif>
-                        <span class="nav-icon">
-                            <svg width="23" height="23" viewBox="0 0 24 24"
-                                 fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="3" width="7" height="7" rx="2"></rect>
-                                <rect x="14" y="3" width="7" height="7" rx="2"></rect>
-                                <rect x="3" y="14" width="7" height="7" rx="2"></rect>
-                                <rect x="14" y="14" width="7" height="7" rx="2"></rect>
-                            </svg>
-                        </span>
-                        <span class="nav-text">Dashboard</span>
-                    </a>
-
-                    <!-- Pendaftaran -->
-                    <a href="{{ route('pendaftaran.pribadi') }}"
-                       class="nav-item {{ request()->routeIs('pendaftaran.*') ? 'active' : '' }}"
-                       @if(request()->routeIs('pendaftaran.*')) aria-current="page" @endif>
-                        <span class="nav-icon">
-                            <svg width="23" height="23" viewBox="0 0 24 24"
-                                 fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="10" cy="7" r="4"></circle>
-                                <path d="M19 8v6M22 11h-6"></path>
-                            </svg>
-                        </span>
-                        <span class="nav-text">Pendaftaran</span>
-                    </a>
-
-                    <!-- Pembelajaran -->
-                    <a href="{{ route('pembelajaran.mhs') }}"
-                       class="nav-item {{ request()->routeIs('pembelajaran.*') ? 'active' : '' }}"
-                       @if(request()->routeIs('pembelajaran.*')) aria-current="page" @endif>
-                        <span class="nav-icon">
-                            <svg width="23" height="23" viewBox="0 0 24 24"
-                                 fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 7v14"></path>
-                                <path d="M3 5.5A2.5 2.5 0 0 1 5.5 3H12v18H5.5A2.5 2.5 0 0 1 3 18.5z"></path>
-                                <path d="M21 5.5A2.5 2.5 0 0 0 18.5 3H12v18h6.5a2.5 2.5 0 0 0 2.5-2.5z"></path>
-                            </svg>
-                        </span>
-                        <span class="nav-text">Pembelajaran</span>
-                    </a>
-
-                    <!-- Informasi Kamar -->
-                    <a href="{{ route('kamar') }}"
-                       class="nav-item {{ request()->routeIs('kamar') ? 'active' : '' }}"
-                       @if(request()->routeIs('kamar')) aria-current="page" @endif>
-                        <span class="nav-icon">
-                            <svg width="23" height="23" viewBox="0 0 24 24"
-                                 fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M3 18v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5"></path>
-                                <path d="M3 18v3M21 18v3M3 15h18"></path>
-                                <path d="M5 11V7a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v4"></path>
-                                <path d="M12 11V9a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v2"></path>
-                            </svg>
-                        </span>
-                        <span class="nav-text">Informasi Kamar</span>
-                    </a>
-
-                    <!-- Pembayaran -->
-                    <a href="{{ route('pembayaran') }}"
-                       class="nav-item {{ request()->routeIs('pembayaran') || request()->routeIs('pembayaran.*') ? 'active' : '' }}"
-                       @if(request()->routeIs('pembayaran') || request()->routeIs('pembayaran.*')) aria-current="page" @endif>
-                        <span class="nav-icon">
-                            <svg width="23" height="23" viewBox="0 0 24 24"
-                                 fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="4" y="3" width="16" height="18" rx="2"></rect>
-                                <path d="M8 7h8M8 11h5M8 15h5"></path>
-                            </svg>
-                        </span>
-                        <span class="nav-text">Pembayaran</span>
-                        <span class="nav-arrow">&rsaquo;</span>
-                    </a>
-
-                    <!-- Absensi -->
-                    <a href="{{ route('absensi.mhs') }}"
-                       class="nav-item {{ request()->routeIs('absensi.mhs') ? 'active' : '' }}"
-                       @if(request()->routeIs('absensi.mhs')) aria-current="page" @endif>
-                        <span class="nav-icon">
-                            <svg width="23" height="23" viewBox="0 0 24 24"
-                                 fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="4" y="5" width="16" height="16" rx="2"></rect>
-                                <path d="M8 3v4M16 3v4M8 13l2.5 2.5L16 10"></path>
-                            </svg>
-                        </span>
-                        <span class="nav-text">Absensi</span>
-                    </a>
-
-                    
-<!-- Surat dan Perizinan -->
-<a href="{{ route('surat.perizinan.mhs') }}"
-   class="nav-item {{ request()->routeIs('surat.perizinan.mhs*') ? 'active' : '' }}"
-   @if(request()->routeIs('surat.perizinan.mhs*')) aria-current="page" @endif>
-    <span class="nav-icon">
-        <svg width="23" height="23" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M6 3h9l4 4v14H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
-            <path d="M14 3v5h5M8 12h8M8 16h6"></path>
-        </svg>
-    </span>
-    <span class="nav-text">Surat dan Perizinan</span>
-</a>
-
-
-                    <!-- Pengumuman -->
-                    <a href="{{ route('pengumuman.mhs') }}"
-                       class="nav-item {{ request()->routeIs('pengumuman.mhs') ? 'active' : '' }}"
-                       @if(request()->routeIs('pengumuman.mhs')) aria-current="page" @endif>
-                        <span class="nav-icon">
-                            <svg width="23" height="23" viewBox="0 0 24 24"
-                                 fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M3 11v2a2 2 0 0 0 2 2h2l11 4V5L7 9H5a2 2 0 0 0-2 2z"></path>
-                                <path d="M7 15l2 5h4l-2-6"></path>
-                                <path d="M21 9l2-2M21 15l2 2"></path>
-                            </svg>
-                        </span>
-                        <span class="nav-text">Pengumuman</span>
-                    </a>
-
-                    <!-- Pengaturan Akun: modal informasi sementara -->
-                    <a href="#"
-                       class="nav-item"
-                       onclick="openInfoModal('Pengaturan Akun', 'Halaman pengaturan akun belum tersedia. Silakan gunakan fitur profil yang tersedia.'); return false;">
-                        <span class="nav-icon">
-                            <svg width="23" height="23" viewBox="0 0 24 24"
-                                 fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="3"></circle>
-                                <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 3.1-.2-.1a1.7 1.7 0 0 0-1.8-.1 1.7 1.7 0 0 0-1 1.5v.2h-3.6v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.1l-.2.1-1.8-3.1.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H5v-3.6h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-3.1.2.1a1.7 1.7 0 0 0 1.8.1 1.7 1.7 0 0 0 1-1.5v-.2h3.6v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.1l.2-.1 1.8 3.1-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1z"></path>
-                            </svg>
-                        </span>
-                        <span class="nav-text">Pengaturan Akun</span>
-                    </a>
-                </nav>
-
-                <div class="sidebar-footer">
-<a href="{{ route('logout.confirm') }}" class="btn-keluar"
-   style="text-decoration: none;">
-    <span class="nav-icon">
-        <svg width="23" height="23" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M10 17l5-5-5-5M15 12H3"></path>
-            <path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"></path>
-        </svg>
-    </span>
-    <span>Keluar</span>
-</a>
-                </div>
-            </div>
-        </aside>
-
-        <main class="main-content">
-            <div class="breadcrumb">Dashboard / Pembayaran</div>
-            <h1 class="page-title">Pembayaran</h1>
-            <p class="page-description">
-                Pantau informasi biaya dan status pembayaran Ma’had kamu.
-            </p>
-
-            @if (session('status'))
-                <div class="alert-status">{{ session('status') }}</div>
-            @endif
-
-            <section class="payment-summary" aria-label="Ringkasan pembayaran">
-                <div class="summary-card">
-                    <div class="summary-label">Total Biaya Ma’had per Tahun</div>
-                    <div class="summary-value">Rp5.000.000</div>
-                </div>
-
-                <div class="summary-card">
-                    <div class="summary-label">
-                        <span class="summary-icon" style="color:#258653;">✓</span>
-                        Total Terkonfirmasi
-                    </div>
-                    <div class="summary-value">Rp—</div>
-                </div>
-
-                <div class="summary-card">
-                    <div class="summary-label">
-                        <span class="summary-icon" style="color:#c88718;">◷</span>
-                        Belum Terkonfirmasi
-                    </div>
-                    <div class="summary-value">Rp—</div>
-                </div>
-            </section>
-
-            <h2 class="section-title">Tagihan saat ini</h2>
-
-            <section class="payment-card">
-                <div class="card-left">
-                    <div class="bill-name">
-                        {{ $tagihan['nama'] ?? 'Pembayaran Asrama' }}
-                    </div>
-
-                    <div class="bill-description">Pembayaran Asrama Ma’had</div>
-
-                    <div class="bill-row">
-                        Periode : {{ $tagihan['periode'] ?? 'Januari 2027' }}
-                    </div>
-
-                    <div class="bill-row">
-                        RP: {{ $tagihan['nominal'] ?? '2.500.00,00' }}
-                    </div>
-
-                    @if (($status ?? '') !== 'lunas')
-                        <button type="button" class="btn-bayar"
-                                onclick="openPaymentModal()">
-                            Bayar Sekarang
-                        </button>
-                    @else
-                        <div style="font-size:14px; color:#15803d; font-weight:700; margin-top:12px; display:inline-flex; align-items:center; gap:6px;">
-                            <span style="font-size:16px;">✓</span> Sudah Dibayar ({{ $tagihan['metode'] ?? 'Virtual Account BSI' }})
-                        </div>
-                    @endif
-                </div>
-
-                <div class="card-right">
-                    <div class="amount">
-                        Rp{{ $tagihan['nominal'] ?? '2.500.00,00' }}
-                    </div>
-
-                    <span class="status-pill {{ ($status ?? '') === 'lunas' ? 'paid' : '' }}">
-                        {{ ($status ?? '') === 'lunas' ? 'Lunas' : 'Belum lunas' }}
-                    </span>
-                </div>
-            </section>
-
-            <h2 class="section-title">Riwayat Pembayaran</h2>
-
-            <section class="history-card">
-                <div class="history-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24"
-                         fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="5" y="3" width="14" height="18" rx="2"></rect>
-                        <path d="M9 8h6M9 12h6M9 16h3"></path>
-                    </svg>
-                </div>
-
-                <div class="history-content">
-                    <div class="history-title">Pembayaran Asrama Mahasiswa</div>
-
-                    <div class="history-detail">
-                        Nominal: Rp{{ $tagihan['nominal'] ?? '2.500.00,00' }}
-                    </div>
-
-                    <div class="history-detail">
-                        Bukti transfer:
-                        {{ ($status ?? '') === 'lunas' ? 'Sudah dikonfirmasi' : 'Menunggu konfirmasi' }}
-                    </div>
-
-                    <span class="status-pill {{ ($status ?? '') === 'lunas' ? 'paid' : '' }}">
-                        {{ ($status ?? '') === 'lunas' ? 'Terkonfirmasi' : 'Menunggu Konfirmasi' }}
-                    </span>
-
-                    @if (!empty($riwayat))
-                        @foreach ($riwayat as $item)
-                            <div class="history-note">
-                                <strong>Periode : {{ $item['periode'] ?? 'Riwayat pembayaran' }}</strong><br>
-                                Nominal: {{ $item['nominal'] ?? '—' }}<br>
-                                Status: {{ $item['status'] ?? '—' }}
-                            </div>
-                        @endforeach
-                    @endif
-
-                    <div class="history-note">
-                        Riwayat dan status pembayaran diperbarui berdasarkan data
-                        yang tersedia dari pihak kampus.
-                    </div>
-                </div>
-
-                <div class="history-arrow">&rsaquo;</div>
-            </section>
-
-            @if (($status ?? '') === 'lunas')
-                <div class="simulation-bar">
-                    <span style="font-size:13px;color:#64748b;">
-                        Mode Simulasi Aktif:
-                    </span>
-
-                    <form action="{{ route('pembayaran.reset') }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn-reset-simulasi">
-                            ↺ Reset ke "Belum lunas"
-                        </button>
-                    </form>
-                </div>
-            @endif
-
-            <section class="information-box">
-                <h3>ⓘ &nbsp;Informasi</h3>
+    @if (! $dibuka)
+        <div class="mati">
+            <h2>Periode Pembayaran</h2>
+            <p>Belum ada periode pembayaran aktif. Silakan menunggu Musyrifah membuka periode pembayaran.</p>
+            @if ($pengaturan)
                 <p>
-                    SIMAHAD hanya menampilkan informasi pembayaran. Transaksi
-                    dan konfirmasi pembayaran ditangani oleh pihak kampus/rektorat.
+                    Periode <strong>{{ $pengaturan->periode }}</strong> akan dibuka pada
+                    <strong>{{ $pengaturan->periodeDibukaTeks() }}</strong>. Tagihan dan rekening transfer tampil setelah periode dibuka.
                 </p>
-            </section>
-        </main>
-    </div>
-
-    <!-- MODAL PEMBAYARAN -->
-    <div class="modal-backdrop" id="paymentModal"
-         onclick="closePaymentModalOnBackdrop(event)">
-        <div class="payment-modal-box" role="dialog" aria-modal="true"
-             aria-labelledby="paymentModalTitle"
-             onclick="event.stopPropagation()">
-
-            <div class="modal-header">
-                <div class="modal-header-title" id="paymentModalTitle">
-                    Pembayaran Ma’had
-                </div>
-
-                <button type="button" class="modal-header-close"
-                        onclick="closePaymentModal()" aria-label="Tutup">
-                    &times;
-                </button>
-            </div>
-
-            <div class="modal-body-content">
-                <div class="order-summary-box">
-                    <div class="order-row">
-                        <span>Jenis Tagihan</span>
-                        <strong>Pembayaran Awal Pendaftaran</strong>
-                    </div>
-
-                    <div class="order-row">
-                        <span>Periode Tagihan</span>
-                        <strong>{{ $tagihan['periode'] ?? '—' }}</strong>
-                    </div>
-
-                    <div class="order-row">
-                        <span>Nama Mahasiswa</span>
-                        <strong>{{ Auth::user()->name }}</strong>
-                    </div>
-
-                    <div class="order-row">
-                        <span>Total Pembayaran</span>
-                        <span class="order-total-amount">
-                            Rp{{ $tagihan['nominal'] ?? '1.000.000' }}
-                        </span>
-                    </div>
-                </div>
-
-                <div class="methods-title">Pilih Metode Pembayaran</div>
-
-                <div class="payment-methods-grid">
-                    <label class="method-choice selected"
-                           onclick="selectPaymentMethod(this, '900 2317 0201 3401', 'Bank Syariah Indonesia (BSI)')">
-                        <div class="method-left">
-                            <input type="radio" name="payment_method_radio"
-                                   class="method-radio" value="BSI" checked>
-                            <div>
-                                <div class="method-name">BSI Virtual Account</div>
-                                <div class="method-sub">Bank Syariah Indonesia</div>
-                            </div>
-                        </div>
-                        <span class="method-badge">Virtual Account</span>
-                    </label>
-
-                    <label class="method-choice"
-                           onclick="selectPaymentMethod(this, '88708 2317020134', 'Bank Mandiri')">
-                        <div class="method-left">
-                            <input type="radio" name="payment_method_radio"
-                                   class="method-radio" value="Mandiri">
-                            <div>
-                                <div class="method-name">Mandiri Virtual Account</div>
-                                <div class="method-sub">Bank Mandiri</div>
-                            </div>
-                        </div>
-                    </label>
-
-                    <label class="method-choice"
-                           onclick="selectPaymentMethod(this, '12890 2317020134', 'Bank BRI')">
-                        <div class="method-left">
-                            <input type="radio" name="payment_method_radio"
-                                   class="method-radio" value="BRI">
-                            <div>
-                                <div class="method-name">BRIVA</div>
-                                <div class="method-sub">Bank Rakyat Indonesia</div>
-                            </div>
-                        </div>
-                    </label>
-                </div>
-
-                <div class="va-display-box">
-                    <div class="va-label" id="vaBankLabel">
-                        Nomor Virtual Account Bank Syariah Indonesia (BSI):
-                    </div>
-
-                    <div class="va-number-row">
-                        <span class="va-number" id="vaNumberText">
-                            900 2317 0201 3401
-                        </span>
-
-                        <button type="button" class="btn-copy" id="btnCopyVA"
-                                onclick="copyVirtualAccount()">
-                            <span id="copyBtnText">Salin</span>
-                        </button>
-                    </div>
-
-                    <div class="va-account-name">
-                        Atas Nama:
-                        <strong>MAHAD UIN IB - {{ strtoupper(Auth::user()->name) }}</strong>
-                    </div>
-                </div>
-
-                <div class="instructions-box">
-                    <strong>Petunjuk Pembayaran:</strong>
-                    <ol>
-                        <li>Buka aplikasi mobile banking sesuai metode yang dipilih.</li>
-                        <li>Pilih menu pembayaran atau Virtual Account.</li>
-                        <li>Masukkan nomor Virtual Account yang ditampilkan.</li>
-                        <li>Periksa rincian pembayaran sebelum melanjutkan.</li>
-                        <li>Simpan bukti transaksi untuk keperluan konfirmasi.</li>
-                    </ol>
-
-                    <p style="margin-top:8px;">
-                        Nomor Virtual Account di atas merupakan contoh tampilan/demo.
-                        Pastikan nomor resmi diperoleh dari pihak kampus sebelum
-                        melakukan transaksi.
-                    </p>
-                </div>
-            </div>
-
-            <form action="{{ route('pembayaran.bayar') }}" method="POST"
-                  id="confirmPaymentForm">
-                @csrf
-
-                <input type="hidden" name="metode" id="selectedMetodeInput"
-                       value="Virtual Account Bank Syariah Indonesia (BSI)">
-
-                <div class="modal-footer">
-                    <button type="button" class="btn-modal-cancel"
-                            onclick="closePaymentModal()">
-                        Tutup
-                    </button>
-
-                    <button type="submit" class="btn-modal-confirm">
-                        Konfirmasi Sudah Bayar
-                    </button>
-                </div>
-            </form>
+            @endif
         </div>
-    </div>
-
-    <!-- MODAL INFORMASI MENU YANG BELUM MEMILIKI HALAMAN -->
-    <div class="modal-backdrop" id="infoModal"
-         onclick="closeInfoModalOnBackdrop(event)">
-        <div class="payment-modal-box" role="dialog" aria-modal="true"
-             aria-labelledby="infoModalTitle"
-             onclick="event.stopPropagation()">
-
-            <div class="modal-header">
-                <h2 class="modal-header-title" id="infoModalTitle">Informasi</h2>
-
-                <button type="button" class="modal-header-close"
-                        onclick="closeInfoModal()" aria-label="Tutup">
-                    &times;
-                </button>
+    @else
+        <div class="ringkasan-grid">
+            <div class="stat-card stat-card--utama">
+                <span class="stat-label">Total Tagihan</span>
+                <span class="stat-nilai">{{ $ringkasan['total_rupiah'] }}</span>
+                <span class="stat-sub">{{ $daftarAngsuran->count() }} angsuran &middot; kategori {{ ucfirst($ringkasan['kategori']) }}</span>
             </div>
 
-            <div class="modal-body-content" id="infoModalBody">
-                Informasi menu.
+            <div class="stat-card">
+                <span class="stat-label">Sudah Dibayar</span>
+                <span class="stat-nilai">{{ $ringkasan['dibayar_rupiah'] }}</span>
+                <span class="stat-sub">{{ $ringkasan['progres'] }}% dari total tagihan</span>
+                <div class="progres"><span style="width: {{ $ringkasan['progres'] }}%"></span></div>
             </div>
 
-            <div class="modal-footer">
-                <button type="button" class="btn-modal-confirm"
-                        onclick="closeInfoModal()">
-                    Tutup
-                </button>
+            <div class="stat-card">
+                <span class="stat-label">Sisa Tagihan</span>
+                <span class="stat-nilai">{{ $ringkasan['sisa_rupiah'] }}</span>
+                <span class="stat-sub">
+                    @if ($ringkasan['menunggu'] > 0)
+                        {{ $ringkasan['menunggu_rupiah'] }} menunggu pemeriksaan/konfirmasi
+                    @else
+                        Belum termasuk tagihan yang menunggu konfirmasi
+                    @endif
+                </span>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-label">Status Keseluruhan</span>
+                <span class="stat-nilai" style="font-size:1rem;">
+                    {{ $ringkasan['lunas'] ? 'Lunas' : 'Belum Lunas' }}
+                </span>
+                <span class="stat-sub">
+                    @if ($ringkasan['jatuh_tempo_terdekat'])
+                        Jatuh tempo terdekat: {{ $ringkasan['jatuh_tempo_terdekat']['jatuh_tempo'] }}
+                    @else
+                        Semua angsuran sudah dikonfirmasi
+                    @endif
+                </span>
             </div>
         </div>
-    </div>
 
-    <script>
-        /* MODAL PEMBAYARAN */
-        function openPaymentModal() {
-            document.getElementById('paymentModal').classList.add('active');
-        }
+        <div class="rekening-card">
+            <div class="rekening-info">
+                <span class="rekening-bank">{{ $rekening['bank'] }} &middot; Rekening Resmi</span>
+                <div class="rekening-nomor" id="nomorRekening">{{ $rekening['nomor'] }}</div>
+                <div class="rekening-nama">Atas nama: <strong>{{ $rekening['nama'] }}</strong></div>
+            </div>
 
-        function closePaymentModal() {
-            document.getElementById('paymentModal').classList.remove('active');
-        }
+            <button type="button" class="btn-salin" id="btnSalinRekening" data-nomor="{{ $rekening['nomor'] }}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span id="labelSalinRekening">Salin Nomor Rekening</span>
+            </button>
+        </div>
 
-        function closePaymentModalOnBackdrop(e) {
-            if (e.target.id === 'paymentModal') {
-                closePaymentModal();
-            }
-        }
+        <div class="bagian-judul">
+            <h2>Rincian Angsuran</h2>
+            <span>Maksimal 3 angsuran per periode</span>
+        </div>
 
-        /* PILIH METODE PEMBAYARAN */
-        function selectPaymentMethod(element, vaNumber, bankName) {
-            document.querySelectorAll('.method-choice').forEach(function (choice) {
-                choice.classList.remove('selected');
-            });
+        <div class="angsuran-grid">
+            @foreach ($daftarAngsuran as $angsuran)
+                @php
+                    $kelasKartu = $angsuran['status'] === 'lunas' ? 'is-lunas' : ($angsuran['terlambat'] ? 'is-terlambat' : '');
+                @endphp
 
-            element.classList.add('selected');
+                <article class="angsuran-card {{ $kelasKartu }}">
+                    <div class="angsuran-head">
+                        <span class="angsuran-tahap">{{ $angsuran['label'] }}</span>
+                        <span class="badge {{ $angsuran['kelas_status'] }}">{{ $angsuran['status_label'] }}</span>
+                    </div>
 
-            const radio = element.querySelector('input[type="radio"]');
+                    <div class="angsuran-nominal">{{ $angsuran['nominal_rupiah'] }}</div>
 
-            if (radio) {
-                radio.checked = true;
-            }
+                    <div class="angsuran-meta">
+                        <div>
+                            <span class="meta-label">Jatuh Tempo</span>
+                            <span class="meta-nilai">{{ $angsuran['jatuh_tempo'] }}</span>
+                        </div>
+                        <div>
+                            <span class="meta-label">Sisa Hari</span>
+                            <span class="meta-nilai">
+                                @if ($angsuran['sisa_hari'] === null)
+                                    -
+                                @elseif ($angsuran['sisa_hari'] < 0)
+                                    Lewat {{ abs($angsuran['sisa_hari']) }} hari
+                                @elseif ($angsuran['sisa_hari'] === 0)
+                                    Jatuh tempo hari ini
+                                @else
+                                    {{ $angsuran['sisa_hari'] }} hari lagi
+                                @endif
+                            </span>
+                        </div>
+                        <div>
+                            <span class="meta-label">Pemeriksaan Bukti</span>
+                            <span class="meta-nilai">
+                                <span class="badge verifikasi-{{ $angsuran['kelas_verifikasi'] }}">{{ $angsuran['verifikasi_label'] }}</span>
+                            </span>
+                        </div>
+                        <div>
+                            <span class="meta-label">Konfirmasi Dana</span>
+                            <span class="meta-nilai">{{ $angsuran['tanggal_konfirmasi'] ?? '-' }}</span>
+                        </div>
+                    </div>
 
-            document.getElementById('vaBankLabel').textContent =
-                'Nomor Virtual Account ' + bankName + ':';
+                    @if (filled($angsuran['catatan_verifikasi']))
+                        <div class="catatan-verifikasi">Catatan Musyrifah: {{ $angsuran['catatan_verifikasi'] }}</div>
+                    @endif
 
-            document.getElementById('vaNumberText').textContent = vaNumber;
+                    @if ($angsuran['bukti_url'])
+                        <a class="bukti-link" href="{{ $angsuran['bukti_url'] }}" target="_blank" rel="noopener">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                            </svg>
+                            Lihat bukti transfer{{ $angsuran['tanggal_upload'] ? ' ('.$angsuran['tanggal_upload'].')' : '' }}
+                        </a>
+                    @endif
 
-            document.getElementById('selectedMetodeInput').value =
-                'Virtual Account ' + bankName;
-        }
+                    @if ($angsuran['pengajuan_menunggu'])
+                        <div class="catatan-verifikasi" style="border-left-color:#93c5fd;background:#eff6ff;color:#1d4ed8;">
+                            Pengajuan keterlambatan sedang menunggu pemeriksaan Musyrifah.
+                        </div>
+                    @endif
 
-        /* SALIN NOMOR VIRTUAL ACCOUNT */
-        function copyVirtualAccount() {
-            const value = document.getElementById('vaNumberText')
-                .textContent.replace(/\s+/g, '');
+                    @if ($angsuran['dapat_unggah'] || $angsuran['dapat_ajukan'])
+                        <div class="aksi-baris">
+                            @if ($angsuran['dapat_unggah'])
+                                <button type="button" class="btn-aksi" data-toggle-form="form-bukti-{{ $angsuran['id'] }}">
+                                    Unggah Bukti
+                                </button>
+                            @endif
 
-            const button = document.getElementById('btnCopyVA');
-            const label = document.getElementById('copyBtnText');
+                            @if ($angsuran['dapat_ajukan'] && ! $angsuran['pengajuan_menunggu'])
+                                <button type="button" class="btn-aksi btn-aksi--garis" data-toggle-form="form-tunda-{{ $angsuran['id'] }}">
+                                    Ajukan Keterlambatan
+                                </button>
+                            @endif
+                        </div>
 
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(value)
-                    .then(function () {
-                        button.classList.add('copied');
-                        label.textContent = 'Tersalin!';
+                        @if ($angsuran['dapat_unggah'])
+                            <form class="form-sembunyi"
+                                id="form-bukti-{{ $angsuran['id'] }}"
+                                action="{{ route('pembayaran.bukti', $angsuran['id']) }}"
+                                method="POST"
+                                enctype="multipart/form-data">
+                                @csrf
+                                <div class="form-field">
+                                    <label for="bukti-{{ $angsuran['id'] }}">Bukti transfer {{ $angsuran['label'] }}</label>
+                                    <input type="file" id="bukti-{{ $angsuran['id'] }}" name="bukti" accept=".pdf,.jpg,.jpeg,.png" required>
+                                    <div class="hint">PDF/JPG/PNG maksimal 5 MB. Pastikan nominal {{ $angsuran['nominal_rupiah'] }} dan tujuan rekening terlihat jelas.</div>
+                                </div>
+                                <button type="submit" class="btn-aksi">Kirim Bukti</button>
+                            </form>
+                        @endif
 
-                        setTimeout(function () {
-                            button.classList.remove('copied');
-                            label.textContent = 'Salin';
-                        }, 1800);
-                    })
-                    .catch(function () {
-                        window.prompt('Salin nomor Virtual Account:', value);
-                    });
-            } else {
-                window.prompt('Salin nomor Virtual Account:', value);
-            }
-        }
+                        @if ($angsuran['dapat_ajukan'] && ! $angsuran['pengajuan_menunggu'])
+                            <form class="form-sembunyi"
+                                id="form-tunda-{{ $angsuran['id'] }}"
+                                action="{{ route('pembayaran.keterlambatan', $angsuran['id']) }}"
+                                method="POST">
+                                @csrf
+                                <div class="form-field">
+                                    <label for="alasan-{{ $angsuran['id'] }}">Alasan keterlambatan</label>
+                                    <textarea id="alasan-{{ $angsuran['id'] }}" name="alasan" minlength="10" maxlength="1000" required placeholder="Contoh: dana kiriman orang tua baru masuk awal bulan depan."></textarea>
+                                </div>
+                                <div class="form-field">
+                                    <label for="rencana-{{ $angsuran['id'] }}">Tanggal rencana pembayaran</label>
+                                    <input type="date" id="rencana-{{ $angsuran['id'] }}" name="tanggal_rencana_bayar" min="{{ now()->addDay()->toDateString() }}" max="{{ now()->addMonths(6)->toDateString() }}" required>
+                                    <div class="hint">Surat pengajuan PDF dibuat otomatis dan diperiksa Musyrifah. Persetujuan hanya memperbarui jadwal, status tetap belum Lunas.</div>
+                                </div>
+                                <button type="submit" class="btn-aksi">Kirim Pengajuan</button>
+                            </form>
+                        @endif
+                    @endif
+                </article>
+            @endforeach
+        </div>
 
-        /* MODAL INFORMASI */
-        function openInfoModal(title, content) {
-            document.getElementById('infoModalTitle').textContent = title;
+        <div class="riwayat-grid">
+            <div class="panel">
+                <h2>Riwayat Pembayaran</h2>
 
-            // Gunakan textContent agar teks tidak diperlakukan sebagai HTML.
-            document.getElementById('infoModalBody').textContent = content;
+                @forelse ($lunasRiwayat as $riwayat)
+                    <div class="riwayat-item">
+                        <div class="riwayat-atas">
+                            <span class="riwayat-nama">{{ $riwayat['label'] }} &middot; {{ $riwayat['nominal_rupiah'] }}</span>
+                            <span class="badge lunas">Lunas</span>
+                        </div>
+                        <div class="riwayat-sub">
+                            Dikonfirmasi Rektorat: {{ $riwayat['tanggal_konfirmasi'] ?? $riwayat['tanggal_bayar'] ?? '-' }}
+                        </div>
+                    </div>
+                @empty
+                    <div class="kosong">Belum ada angsuran yang dikonfirmasi Lunas.</div>
+                @endforelse
 
-            document.getElementById('infoModal').classList.add('active');
-        }
+                <div class="riwayat-sub" style="margin-top:12px;">
+                    Tagihan yang sudah diunggah buktinya tetap berstatus menunggu sampai dana dikonfirmasi Rektorat.
+                </div>
+            </div>
 
-        function closeInfoModal() {
-            document.getElementById('infoModal').classList.remove('active');
-        }
+            <div class="panel">
+                <h2>Riwayat Pengajuan Keterlambatan</h2>
 
-        function closeInfoModalOnBackdrop(e) {
-            if (e.target.id === 'infoModal') {
-                closeInfoModal();
-            }
-        }
+                @forelse ($ringkasan['pengajuan'] as $pengajuan)
+                    <div class="riwayat-item">
+                        <div class="riwayat-atas">
+                            <span class="riwayat-nama">{{ $pengajuan->nomor_surat }}</span>
+                            <span class="badge {{ $pengajuan->kelasStatus() === 'disetujui' ? 'lunas' : ($pengajuan->kelasStatus() === 'ditolak' ? 'ditolak' : 'menunggu') }}">
+                                {{ $pengajuan->statusLabel() }}
+                            </span>
+                        </div>
+                        <div class="riwayat-sub">
+                            {{ $pengajuan->pembayaran?->labelTahap() ?? 'Tagihan' }} &middot;
+                            rencana bayar {{ $pengajuan->tanggalRencanaTeks() }}
+                        </div>
+                        @if (filled($pengajuan->catatan_musyrifah))
+                            <div class="riwayat-sub">Catatan Musyrifah: {{ $pengajuan->catatan_musyrifah }}</div>
+                        @endif
+                        <a class="bukti-link" href="{{ route('pembayaran.keterlambatan.surat', $pengajuan->id) }}" target="_blank" rel="noopener">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                            Lihat Surat PDF
+                        </a>
+                    </div>
+                @empty
+                    <div class="kosong">Belum ada pengajuan keterlambatan.</div>
+                @endforelse
+            </div>
+        </div>
 
-        /* SIDEBAR RESPONSIF */
-        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+        <div class="panel" style="margin-top:12px;">
+            <h2>Cara Pembayaran</h2>
+            <ol class="langkah">
+                <li>Salin nomor rekening {{ $rekening['bank'] }} resmi kampus di atas.</li>
+                <li>Transfer sesuai nominal angsuran melalui ATM, mobile banking, atau teller {{ $rekening['bank'] }}.</li>
+                <li>Simpan bukti transfer, lalu unggah pada angsuran yang dibayar.</li>
+                <li>Tunggu pemeriksaan bukti oleh Musyrifah dan konfirmasi penerimaan dana oleh Rektorat.</li>
+            </ol>
+        </div>
+    @endif
+</div>
 
-        function closeMobileSidebar() {
-            if (!sidebar || !sidebarBackdrop || !mobileMenuBtn) return;
+@push('scripts')
+<script>
+    (function () {
+        const tombolSalin = document.getElementById('btnSalinRekening');
 
-            sidebar.classList.remove('active');
-            sidebarBackdrop.classList.remove('active');
-            mobileMenuBtn.setAttribute('aria-expanded', 'false');
-        }
+        if (tombolSalin) {
+            const label = document.getElementById('labelSalinRekening');
 
-        if (mobileMenuBtn && sidebar && sidebarBackdrop) {
-            mobileMenuBtn.addEventListener('click', function () {
-                const isOpen = sidebar.classList.toggle('active');
+            tombolSalin.addEventListener('click', async function () {
+                const nomor = tombolSalin.dataset.nomor || '';
 
-                sidebarBackdrop.classList.toggle('active', isOpen);
-                mobileMenuBtn.setAttribute('aria-expanded', String(isOpen));
-            });
+                if (!nomor) {
+                    return;
+                }
 
-            sidebarBackdrop.addEventListener('click', closeMobileSidebar);
+                try {
+                    if (navigator.clipboard && window.isSecureContext) {
+                        await navigator.clipboard.writeText(nomor);
+                    } else {
+                        const area = document.createElement('textarea');
+                        area.value = nomor;
+                        area.setAttribute('readonly', 'readonly');
+                        area.style.position = 'fixed';
+                        area.style.opacity = '0';
+                        document.body.appendChild(area);
+                        area.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(area);
+                    }
 
-            // Tutup sidebar setelah memilih tautan navigasi di perangkat mobile.
-            sidebar.querySelectorAll('a.nav-item').forEach(function (link) {
-                link.addEventListener('click', function () {
-                    closeMobileSidebar();
-                });
-            });
+                    tombolSalin.classList.add('is-copied');
+                    label.textContent = 'Nomor Tersalin';
 
-            // Tutup sidebar menggunakan tombol Escape.
-            document.addEventListener('keydown', function (event) {
-                if (event.key === 'Escape') {
-                    closeMobileSidebar();
-                    closePaymentModal();
-                    closeInfoModal();
+                    window.setTimeout(function () {
+                        tombolSalin.classList.remove('is-copied');
+                        label.textContent = 'Salin Nomor Rekening';
+                    }, 2000);
+                } catch (error) {
+                    label.textContent = 'Gagal menyalin, salin manual';
                 }
             });
         }
-    </script>
-</body>
-</html>
+
+        document.querySelectorAll('[data-toggle-form]').forEach(function (tombol) {
+            tombol.addEventListener('click', function () {
+                const form = document.getElementById(tombol.dataset.toggleForm);
+
+                if (!form) {
+                    return;
+                }
+
+                const terbuka = form.classList.toggle('terbuka');
+                tombol.setAttribute('aria-expanded', terbuka ? 'true' : 'false');
+
+                if (terbuka) {
+                    const fokus = form.querySelector('input, textarea');
+                    if (fokus) {
+                        fokus.focus({ preventScroll: true });
+                    }
+                }
+            });
+        });
+    })();
+</script>
+@endpush
+
+@endsection

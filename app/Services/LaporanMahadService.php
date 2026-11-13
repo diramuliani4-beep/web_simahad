@@ -161,10 +161,15 @@ class LaporanMahadService
     }
 
     /**
-     * Label periode berbahasa Indonesia, misalnya "November 2026".
+     * Label periode berbahasa Indonesia, misalnya "November 2026" atau
+     * "Tahun 2026" untuk laporan tahunan.
      */
     public function labelPeriode(string $periode): string
     {
+        if (preg_match('/^(\d{4})$/', $periode) === 1) {
+            return 'Tahun '.$periode;
+        }
+
         $tanggal = CarbonImmutable::createFromFormat('Y-m-d', $periode.'-01');
 
         return self::NAMA_BULAN[(int) $tanggal->month].' '.$tanggal->year;

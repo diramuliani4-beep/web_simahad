@@ -14,466 +14,581 @@
 @endphp
 
 <style>
-    .detail-pengumuman {
-        padding: 26px 30px;
-        color: #171717;
-        font-family: inherit;
+    .dp {
+        width: 100%;
+        max-width: 960px;
+        margin: 0 auto;
+        color: #322a2d;
+        font-size: 13px;
     }
 
-    .detail-header {
-        margin: 0 0 34px 12px;
+    .dp--baca {
+        max-width: 900px;
     }
 
-    .detail-header h1 {
-        font-size: 32px;
-        font-weight: 700;
-        margin: 0 0 8px;
+    .dp *,
+    .dp *::before,
+    .dp *::after {
+        box-sizing: border-box;
     }
 
-    .detail-header p {
-        font-size: 20px;
-        margin: 0 0 0 30px;
-        color: #6f6668;
+    .dp [hidden] {
+        display: none !important;
     }
 
-    .detail-alert {
-        margin: 0 0 22px;
-        padding: 14px 20px;
-        border-radius: 14px;
-        border: 1px solid #C9A96A;
-        background: #fdf6e8;
-        color: #6B0D1B;
-        font-size: 17px;
-        font-weight: 600;
-    }
-
-    .detail-alert.info {
-        border-color: #d8c3c7;
-        background: #f5e9ec;
-        color: #424242;
-        font-weight: 500;
-    }
-
-    .ringkasan-pengumuman {
-        display: flex;
-        flex-wrap: wrap;
+    /* ---------------- Tombol ---------------- */
+    .dp-btn {
+        display: inline-flex;
         align-items: center;
-        gap: 12px;
-        margin-bottom: 20px;
-    }
-
-    .pengumuman-tag {
-        display: inline-block;
-        padding: 5px 14px;
-        border-radius: 20px;
-        font-size: 14px;
-        font-weight: 700;
-        background: #fff;
-        border: 1px solid #C9A96A;
-        color: #6B0D1B;
-    }
-
-    .pengumuman-status {
-        display: inline-block;
-        padding: 5px 14px;
-        border-radius: 20px;
-        font-size: 14px;
-        font-weight: 700;
-    }
-
-    .pengumuman-status.terbit {
-        background: #e7f5ec;
-        color: #1f7a4a;
-    }
-
-    .pengumuman-status.draft {
-        background: #fdefd6;
-        color: #96610a;
-    }
-
-    .meta-pengumuman {
-        color: #6f6668;
-        font-size: 15px;
-    }
-
-    .judul-pengumuman {
-        font-size: 26px;
-        font-weight: 700;
-        line-height: 1.35;
-        margin: 0 0 18px;
-        color: #171717;
-    }
-
-    .isi-pengumuman {
-        background: #f5e7ea;
-        border-radius: 20px;
-        padding: 24px 26px;
-        font-size: 18px;
-        line-height: 1.75;
-        color: #2f2b2c;
-        overflow-wrap: anywhere;
-    }
-
-    .gambar-pengumuman {
-        display: block;
-        width: 100%;
-        max-width: 520px;
-        border-radius: 18px;
-        border: 1px solid #d8c3c7;
-        margin-bottom: 22px;
-    }
-
-    .berkas-pengumuman {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 12px;
-        margin-top: 22px;
-        font-size: 16px;
-        color: #424242;
-    }
-
-    .btn-berkas {
-        padding: 10px 20px;
-        border-radius: 10px;
-        border: 1px solid #6B0D1B;
-        background: #fff;
-        color: #6B0D1B;
-        font-size: 15px;
-        font-weight: 700;
-        text-decoration: none;
-    }
-
-    .btn-berkas:hover {
-        background: #6B0D1B;
-        color: #fff;
-    }
-
-    .form-pengumuman {
-        width: 100%;
-    }
-
-    .form-group {
-        margin-bottom: 22px;
-    }
-
-    .form-group label {
-        display: block;
-        margin: 0 0 6px 12px;
-        font-size: 20px;
-        color: #424242;
-    }
-
-    .form-control-pengumuman {
-        width: 100%;
-        min-height: 66px;
-        padding: 17px 20px;
-        background: #f5e7ea;
+        justify-content: center;
+        gap: 6px;
+        min-height: 32px;
+        padding: 6px 13px;
         border: 1px solid transparent;
-        border-radius: 20px;
-        outline: none;
-        color: #333;
-        font: inherit;
-        font-size: 20px;
-        box-sizing: border-box;
-    }
-
-    .form-control-pengumuman:focus {
-        border-color: #6B0D1B;
-    }
-
-    .form-control-pengumuman::placeholder {
-        color: #81797b;
-    }
-
-    select.form-control-pengumuman {
-        appearance: auto;
-        cursor: pointer;
-    }
-
-    textarea.form-control-pengumuman {
-        min-height: 210px;
-        resize: vertical;
-        line-height: 1.6;
-    }
-
-    .bantuan-form {
-        display: block;
-        margin: 6px 0 0 14px;
-        font-size: 14px;
-        color: #81797b;
-    }
-
-    .pesan-galat {
-        display: block;
-        margin: 6px 0 0 14px;
-        font-size: 15px;
-        color: #a3162b;
-        font-weight: 600;
-    }
-
-    .lampiran-label {
-        margin-bottom: 7px !important;
-    }
-
-    .upload-area {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 70%;
-        min-height: 132px;
-        padding: 20px;
-        box-sizing: border-box;
-        background: #f5e7ea;
-        border-radius: 20px;
-        text-align: center;
-        cursor: pointer;
-        transition: background 0.2s;
-    }
-
-    .upload-area:hover {
-        background: #f0dce1;
-    }
-
-    .upload-area strong {
-        display: block;
-        font-size: 16px;
-        margin-bottom: 8px;
-    }
-
-    .upload-area span {
-        color: #81797b;
-        font-size: 15px;
-        font-weight: 600;
-    }
-
-    .upload-area input {
-        display: none;
-    }
-
-    .nama-file {
-        display: block;
-        margin-top: 8px;
-        font-size: 14px;
-        overflow-wrap: anywhere;
-    }
-
-    .berkas-tersimpan {
-        margin-top: 10px;
-        font-size: 15px;
-        color: #424242;
-    }
-
-    .berkas-tersimpan a {
+        border-radius: 9px;
+        background: #fff;
         color: #6B0D1B;
-        font-weight: 700;
-    }
-
-    .cek-hapus {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        margin-top: 8px;
-        font-size: 14px;
-        color: #a3162b;
+        font-family: inherit;
+        font-size: 12.5px;
         font-weight: 600;
-    }
-
-    .form-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 18px;
-        margin-top: 27px;
-    }
-
-    .btn-form {
-        min-width: 187px;
-        min-height: 47px;
-        padding: 0 22px;
-        border: none;
-        border-radius: 25px;
-        font-size: 16px;
-        font-weight: 700;
-        cursor: pointer;
+        line-height: 1.1;
         text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background .16s, border-color .16s, color .16s;
     }
 
-    .btn-batal {
-        background: #cecece;
-        color: #111;
-    }
-
-    .btn-simpan {
+    .dp-btn--utama {
+        border-color: #6B0D1B;
         background: #6B0D1B;
         color: #fff;
     }
 
-    .btn-batal:hover {
-        background: #bdbdbd;
+    .dp-btn--utama:hover {
+        border-color: #52070f;
+        background: #52070f;
     }
 
-    .btn-simpan:hover {
-        background: #4d0813;
+    .dp-btn--garis {
+        border-color: #e6d7dc;
+        background: #fff;
+        color: #6B0D1B;
     }
 
-    .btn-hapus-pengumuman {
+    .dp-btn--garis:hover {
+        border-color: #C9A96A;
+        background: #F8EDEF;
+    }
+
+    .dp-btn--bahaya {
+        border-color: #f0d3d8;
+        background: #fff;
+        color: #a3162b;
+    }
+
+    .dp-btn--bahaya:hover {
+        border-color: #a3162b;
         background: #a3162b;
         color: #fff;
     }
 
-    .btn-hapus-pengumuman:hover {
-        background: #7d1020;
+    .dp-btn:focus-visible {
+        outline: 3px solid rgba(201, 169, 106, .45);
+        outline-offset: 1px;
     }
 
-    .aksi-detail {
+    /* ---------------- Kepala ---------------- */
+    .dp-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-bottom: 8px;
+        color: #6B0D1B;
+        font-size: 11.5px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .dp-back:hover {
+        text-decoration: underline;
+    }
+
+    .dp-head {
         display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
         flex-wrap: wrap;
-        gap: 12px;
-        margin-top: 30px;
+        gap: 8px 12px;
+        margin-bottom: 12px;
     }
 
-    .aksi-detail form {
+    .dp-head h1 {
+        margin: 0;
+        color: #211a1c;
+        font-size: 21px;
+        font-weight: 700;
+        line-height: 1.25;
+        letter-spacing: -.2px;
+    }
+
+    .dp-head p {
+        margin: 4px 0 0;
+        color: #8b7e84;
+        font-size: 12.5px;
+        line-height: 1.5;
+    }
+
+    .dp-head-aksi {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 7px;
+    }
+
+    /* ---------------- Notifikasi ---------------- */
+    .dp-alert {
+        margin-bottom: 12px;
+        padding: 9px 12px;
+        border: 1px solid #e9d9b8;
+        border-left: 3px solid #C9A96A;
+        border-radius: 9px;
+        background: #fdf6e8;
+        color: #6B0D1B;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+
+    .dp-alert--info {
+        border-color: #e6dde0;
+        border-left-color: #C9A96A;
+        background: #fdfbf8;
+        color: #6f636a;
+        font-weight: 500;
+    }
+
+    /* ---------------- Kartu ---------------- */
+    .dp-kartu {
+        margin-bottom: 12px;
+        padding: 12px 14px 14px;
+        border: 1px solid #efe5e7;
+        border-radius: 13px;
+        background: #fff;
+        box-shadow: 0 2px 10px rgba(59, 7, 15, .035);
+    }
+
+    .dp-sec-title {
+        position: relative;
+        margin: 0 0 10px;
+        padding-left: 9px;
+        color: #6B0D1B;
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.3;
+    }
+
+    .dp-sec-title::before {
+        content: "";
+        position: absolute;
+        top: 2px;
+        bottom: 2px;
+        left: 0;
+        width: 3px;
+        border-radius: 2px;
+        background: #C9A96A;
+    }
+
+    /* ---------------- Ringkasan detail ---------------- */
+    .dp-meta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px 10px;
+        margin-bottom: 12px;
+        color: #8b7e84;
+        font-size: 11.5px;
+        line-height: 1.5;
+    }
+
+    .dp-tag {
+        display: inline-block;
+        padding: 2px 9px;
+        border: 1px solid #e6d7b8;
+        border-radius: 999px;
+        background: #fff;
+        color: #6B0D1B;
+        font-size: 10.5px;
+        font-weight: 700;
+    }
+
+    .dp-status {
+        display: inline-block;
+        padding: 2px 9px;
+        border-radius: 999px;
+        font-size: 10.5px;
+        font-weight: 700;
+    }
+
+    .dp-status.terbit {
+        background: #e7f5ec;
+        color: #1f7a4a;
+    }
+
+    .dp-status.draft {
+        background: #fdefd6;
+        color: #96610a;
+    }
+
+    .dp-judul {
+        margin: 0 0 10px;
+        color: #211a1c;
+        font-size: 19px;
+        font-weight: 700;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+    }
+
+    .dp-gambar {
+        display: block;
+        width: 100%;
+        max-width: 460px;
+        max-height: 320px;
+        margin-bottom: 12px;
+        border: 1px solid #efe0e4;
+        border-radius: 10px;
+        object-fit: cover;
+    }
+
+    .dp-isi {
+        padding: 13px 15px;
+        border: 1px solid #f0e7e9;
+        border-left: 3px solid #C9A96A;
+        border-radius: 9px;
+        background: #fdfbf8;
+        color: #2f2b2c;
+        font-size: 13.5px;
+        line-height: 1.75;
+        overflow-wrap: anywhere;
+    }
+
+    .dp-berkas {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px 10px;
+        margin-top: 12px;
+        padding: 9px 11px;
+        border: 1px solid #efe5e7;
+        border-radius: 9px;
+        background: #fff;
+        color: #6f636a;
+        font-size: 11.5px;
+        overflow-wrap: anywhere;
+    }
+
+    /* ---------------- Formulir ---------------- */
+    .dp-form {
+        width: 100%;
+    }
+
+    .dp-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .dp-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+        margin-bottom: 10px;
+    }
+
+    .dp-grid .dp-field {
+        margin-bottom: 0;
+    }
+
+    .dp-field--full {
+        grid-column: 1 / -1;
+    }
+
+    .dp-field label {
+        color: #7d7075;
+        font-size: 11.5px;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+    .dp-input {
+        width: 100%;
+        height: 38px;
+        padding: 0 10px;
+        border: 1px solid #e6dde0;
+        border-radius: 8px;
+        background: #fff;
+        color: #3f353a;
+        font-family: inherit;
+        font-size: 13px;
+        outline: none;
+        transition: border-color .16s, box-shadow .16s;
+    }
+
+    .dp-input:focus {
+        border-color: #C9A96A;
+        box-shadow: 0 0 0 3px rgba(201, 169, 106, .16);
+    }
+
+    .dp-input::placeholder {
+        color: #a79ba0;
+    }
+
+    select.dp-input {
+        cursor: pointer;
+    }
+
+    textarea.dp-input {
+        height: auto;
+        min-height: 160px;
+        padding: 9px 10px;
+        line-height: 1.6;
+        resize: vertical;
+    }
+
+    .dp-help {
+        color: #8b7e84;
+        font-size: 11px;
+        line-height: 1.5;
+    }
+
+    .dp-error {
+        color: #a3162b;
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+
+    /* ---------------- Unggah berkas ---------------- */
+    .dp-upload {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 84px;
+        padding: 12px;
+        border: 1px dashed #e2d2d7;
+        border-radius: 9px;
+        background: #fdfbfb;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color .16s, background .16s;
+    }
+
+    .dp-upload:hover {
+        border-color: #C9A96A;
+        background: #fffaf3;
+    }
+
+    .dp-upload input {
+        display: none;
+    }
+
+    .dp-upload strong {
+        display: block;
+        margin-bottom: 2px;
+        color: #4d4045;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .dp-upload span {
+        display: block;
+        color: #8b7e84;
+        font-size: 11px;
+        line-height: 1.45;
+    }
+
+    .dp-upload .dp-nama-file {
+        margin-top: 4px;
+        color: #6B0D1B;
+        font-size: 10.5px;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+
+    .dp-tersimpan {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 4px 8px;
+        margin-top: 7px;
+        color: #6f636a;
+        font-size: 11px;
+        overflow-wrap: anywhere;
+    }
+
+    .dp-tersimpan a {
+        color: #6B0D1B;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .dp-tersimpan a:hover {
+        text-decoration: underline;
+    }
+
+    .dp-hapus {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 5px;
+        color: #a3162b;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .dp-aksi {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding-top: 11px;
+        border-top: 1px dashed #f0e7e9;
+    }
+
+    .dp-aksi form {
+        display: inline-flex;
         margin: 0;
     }
 
-    @media (max-width: 768px) {
-        .detail-pengumuman {
-            padding: 20px 14px;
+    @media (max-width: 760px) {
+        .dp-head h1 {
+            font-size: 19px;
         }
 
-        .detail-header {
-            margin: 0 0 26px;
+        .dp-grid {
+            grid-template-columns: minmax(0, 1fr);
         }
 
-        .detail-header h1 {
-            font-size: 27px;
+        .dp-kartu {
+            padding: 11px;
         }
 
-        .detail-header p {
-            font-size: 16px;
-            margin-left: 0;
-        }
-
-        .form-group label {
+        .dp-judul {
             font-size: 17px;
         }
 
-        .form-control-pengumuman {
-            font-size: 16px;
-        }
-
-        .upload-area {
-            width: 100%;
-        }
-
-        .btn-form {
-            width: 100%;
+        .dp-aksi .dp-btn {
+            flex: 1;
         }
     }
 </style>
 
-<div class="detail-pengumuman">
+<div class="dp{{ $modeLihat ? ' dp--baca' : '' }}">
 
     @if (session('success'))
-        <div class="detail-alert" role="status">{{ session('success') }}</div>
+        <div class="dp-alert" role="status">{{ session('success') }}</div>
     @endif
 
     @if ($modeLihat)
-        <div class="detail-header">
-            <h1>Detail Pengumuman</h1>
-            <p>Informasi lengkap pengumuman yang dikelola Musyrifah</p>
+        <a href="{{ route('musyrifah.pengumuman') }}" class="dp-back">&lsaquo; Kembali ke daftar pengumuman</a>
+
+        <div class="dp-head">
+            <div>
+                <h1>Detail Pengumuman</h1>
+                <p>Informasi lengkap pengumuman yang dikelola Musyrifah</p>
+            </div>
+
+            <div class="dp-head-aksi">
+                <a href="{{ route('musyrifah.pengumuman.edit', $pengumuman) }}" class="dp-btn dp-btn--utama">
+                    Edit Pengumuman
+                </a>
+            </div>
         </div>
 
-        <div class="ringkasan-pengumuman">
-            <span class="pengumuman-tag">{{ $pengumuman->kategori }}</span>
-            <span class="pengumuman-status {{ $pengumuman->kelasStatus() }}">
+        <div class="dp-meta">
+            <span class="dp-tag">{{ $pengumuman->kategori }}</span>
+            <span class="dp-status {{ $pengumuman->kelasStatus() }}">
                 {{ $pengumuman->labelStatus() }}
             </span>
-            <span class="meta-pengumuman">Publikasi: {{ $pengumuman->tanggalTeks() }}</span>
-            <span class="meta-pengumuman">Penulis: {{ $pengumuman->penulisTeks() }}</span>
+            <span>Publikasi: {{ $pengumuman->tanggalTeks() }}</span>
+            <span>Penulis: {{ $pengumuman->penulisTeks() }}</span>
             @if ($pengumuman->dipublikasikan_pada)
-                <span class="meta-pengumuman">
+                <span>
                     Terbit pada: {{ $pengumuman->dipublikasikan_pada->locale('id')->translatedFormat('d F Y H:i') }}
                 </span>
             @endif
         </div>
 
         @if ($pengumuman->isDraft())
-            <div class="detail-alert info">
+            <div class="dp-alert dp-alert--info">
                 Pengumuman ini masih berstatus draft sehingga belum tampil pada halaman Pengumuman mahasiswa.
             </div>
         @endif
 
-        <h2 class="judul-pengumuman">{{ $pengumuman->judul }}</h2>
+        <div class="dp-kartu">
+            <h2 class="dp-judul">{{ $pengumuman->judul }}</h2>
 
-        @if ($pengumuman->punyaGambar())
-            <img
-                src="{{ route('musyrifah.pengumuman.berkas', [$pengumuman, 'gambar']) }}"
-                alt="Gambar pengumuman {{ $pengumuman->judul }}"
-                class="gambar-pengumuman"
-            >
-        @endif
-
-        <div class="isi-pengumuman">{!! nl2br(e($pengumuman->isi)) !!}</div>
-
-        @if ($pengumuman->punyaDokumen())
-            <div class="berkas-pengumuman">
-                <span>Dokumen pendukung: {{ $pengumuman->namaBerkas('dokumen') }}</span>
-                <a
-                    href="{{ route('musyrifah.pengumuman.berkas', [$pengumuman, 'dokumen']) }}"
-                    class="btn-berkas"
+            @if ($pengumuman->punyaGambar())
+                <img
+                    src="{{ route('musyrifah.pengumuman.berkas', [$pengumuman, 'gambar']) }}"
+                    alt="Gambar pengumuman {{ $pengumuman->judul }}"
+                    class="dp-gambar"
                 >
-                    Unduh Dokumen
-                </a>
+            @endif
+
+            <div class="dp-isi">{!! nl2br(e($pengumuman->isi)) !!}</div>
+
+            @if ($pengumuman->punyaDokumen())
+                <div class="dp-berkas">
+                    <span>Dokumen pendukung: {{ $pengumuman->namaBerkas('dokumen') }}</span>
+                    <a
+                        href="{{ route('musyrifah.pengumuman.berkas', [$pengumuman, 'dokumen']) }}"
+                        class="dp-btn dp-btn--garis"
+                    >
+                        Unduh Dokumen
+                    </a>
+                </div>
+            @endif
+
+            <div class="dp-aksi" style="margin-top: 12px;">
+                <form method="POST" action="{{ route('musyrifah.pengumuman.status', $pengumuman) }}">
+                    @csrf
+                    <input
+                        type="hidden"
+                        name="status"
+                        value="{{ $pengumuman->isDipublikasikan() ? \App\Models\Pengumuman::STATUS_DRAFT : \App\Models\Pengumuman::STATUS_DIPUBLIKASIKAN }}"
+                    >
+                    <button type="submit" class="dp-btn dp-btn--garis">
+                        {{ $pengumuman->isDipublikasikan() ? 'Jadikan Draft' : 'Publikasikan' }}
+                    </button>
+                </form>
+
+                <form
+                    method="POST"
+                    action="{{ route('musyrifah.pengumuman.destroy', $pengumuman) }}"
+                    onsubmit="return confirm('Hapus pengumuman ini? Data yang dihapus tidak dapat dikembalikan.');"
+                >
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="dp-btn dp-btn--bahaya">Hapus</button>
+                </form>
             </div>
-        @endif
-
-        <div class="aksi-detail">
-            <a href="{{ route('musyrifah.pengumuman.edit', $pengumuman) }}" class="btn-form btn-simpan">
-                Edit Pengumuman
-            </a>
-
-            <form method="POST" action="{{ route('musyrifah.pengumuman.status', $pengumuman) }}">
-                @csrf
-                <input
-                    type="hidden"
-                    name="status"
-                    value="{{ $pengumuman->isDipublikasikan() ? \App\Models\Pengumuman::STATUS_DRAFT : \App\Models\Pengumuman::STATUS_DIPUBLIKASIKAN }}"
-                >
-                <button type="submit" class="btn-form btn-batal">
-                    {{ $pengumuman->isDipublikasikan() ? 'Jadikan Draft' : 'Publikasikan' }}
-                </button>
-            </form>
-
-            <form
-                method="POST"
-                action="{{ route('musyrifah.pengumuman.destroy', $pengumuman) }}"
-                onsubmit="return confirm('Hapus pengumuman ini? Data yang dihapus tidak dapat dikembalikan.');"
-            >
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn-form btn-hapus-pengumuman">Hapus</button>
-            </form>
-
-            <a href="{{ route('musyrifah.pengumuman') }}" class="btn-form btn-batal">
-                Kembali
-            </a>
         </div>
     @else
-        <div class="detail-header">
-            <h1>{{ $modeEdit ? 'Edit Pengumuman' : '+ Pengumuman' }}</h1>
-            <p>
-                {{ $modeEdit
-                    ? 'Perbarui Informasi Pengumuman Untuk Mahasantri'
-                    : 'Buat Pengumuman Baru Untuk Mahasantri' }}
-            </p>
+        <div class="dp-head">
+            <div>
+                <h1>{{ $modeEdit ? 'Edit Pengumuman' : '+ Pengumuman' }}</h1>
+                <p>
+                    {{ $modeEdit
+                        ? 'Perbarui Informasi Pengumuman Untuk Mahasantri'
+                        : 'Buat Pengumuman Baru Untuk Mahasantri' }}
+                </p>
+            </div>
         </div>
 
         <form
-            class="form-pengumuman"
+            class="dp-form"
             id="formPengumuman"
             method="POST"
             enctype="multipart/form-data"
@@ -486,198 +601,207 @@
                 @method('PUT')
             @endif
 
-            <div class="form-group">
-                <label for="judul">Judul Pengumuman</label>
-                <input
-                    type="text"
-                    id="judul"
-                    name="judul"
-                    class="form-control-pengumuman"
-                    placeholder="Masukan Judul Pengumuman"
-                    value="{{ old('judul', $pengumuman?->judul) }}"
-                    maxlength="150"
-                    required
-                >
-                @error('judul')
-                    <span class="pesan-galat">{{ $message }}</span>
-                @enderror
-            </div>
+            <div class="dp-kartu">
+                <h2 class="dp-sec-title">Informasi Pengumuman</h2>
 
-            <div class="form-group">
-                <label for="kategori">Kategori</label>
-                <select id="kategori" name="kategori" class="form-control-pengumuman" required>
-                    <option value="" disabled @selected($kategoriTerpilih === '')>
-                        Pilih Kategori Pengumuman
-                    </option>
-                    @foreach ($kategoriTersedia as $kategori)
-                        <option value="{{ $kategori }}" @selected($kategoriTerpilih === $kategori)>
-                            {{ $kategori }}
-                        </option>
-                    @endforeach
-                    <option value="lainnya" @selected($kategoriTerpilih === 'lainnya')>
-                        Kategori Lainnya
-                    </option>
-                </select>
-                @error('kategori')
-                    <span class="pesan-galat">{{ $message }}</span>
-                @enderror
-            </div>
-
-            <div class="form-group" id="grupKategoriBaru" hidden>
-                <label for="kategori_baru">Nama Kategori Baru</label>
-                <input
-                    type="text"
-                    id="kategori_baru"
-                    name="kategori_baru"
-                    class="form-control-pengumuman"
-                    placeholder="Contoh: Beasiswa"
-                    value="{{ old('kategori_baru') }}"
-                    maxlength="60"
-                >
-                <span class="bantuan-form">
-                    Kategori baru akan tersimpan dan tersedia pada filter berikutnya.
-                </span>
-                @error('kategori_baru')
-                    <span class="pesan-galat">{{ $message }}</span>
-                @enderror
-            </div>
-
-            <div class="form-group">
-                <label for="isi">Isi Pengumuman</label>
-                <textarea
-                    id="isi"
-                    name="isi"
-                    class="form-control-pengumuman"
-                    placeholder="Tuliskan Isi pengumuman Secara Lengkap"
-                    required
-                >{{ old('isi', $pengumuman?->isi) }}</textarea>
-                @error('isi')
-                    <span class="pesan-galat">{{ $message }}</span>
-                @enderror
-            </div>
-
-            <div class="form-group">
-                <label for="gambar" class="lampiran-label">Gambar Pengumuman (Opsional)</label>
-
-                <label for="gambar" class="upload-area">
-                    <div>
-                        <strong>Unggah Gambar</strong>
-                        <span>JPG, JPEG, PNG, WEBP (maks. 5 MB)</span>
-                        <span class="nama-file" id="namaGambar">
-                            {{ $pengumuman?->namaBerkas('gambar') ?? '' }}
-                        </span>
-                    </div>
-
+                <div class="dp-field">
+                    <label for="judul">Judul Pengumuman</label>
                     <input
-                        type="file"
-                        id="gambar"
-                        name="gambar"
-                        accept=".jpg,.jpeg,.png,.webp"
+                        type="text"
+                        id="judul"
+                        name="judul"
+                        class="dp-input"
+                        placeholder="Masukan Judul Pengumuman"
+                        value="{{ old('judul', $pengumuman?->judul) }}"
+                        maxlength="150"
+                        required
                     >
-                </label>
+                    @error('judul')
+                        <span class="dp-error">{{ $message }}</span>
+                    @enderror
+                </div>
 
-                @if ($pengumuman?->punyaGambar())
-                    <div class="berkas-tersimpan">
-                        Gambar tersimpan:
-                        <a
-                            href="{{ route('musyrifah.pengumuman.berkas', [$pengumuman, 'gambar']) }}"
-                            target="_blank"
-                            rel="noopener"
-                        >{{ $pengumuman->namaBerkas('gambar') }}</a>
+                <div class="dp-grid">
+                    <div class="dp-field">
+                        <label for="kategori">Kategori</label>
+                        <select id="kategori" name="kategori" class="dp-input" required>
+                            <option value="" disabled @selected($kategoriTerpilih === '')>
+                                Pilih Kategori Pengumuman
+                            </option>
+                            @foreach ($kategoriTersedia as $kategori)
+                                <option value="{{ $kategori }}" @selected($kategoriTerpilih === $kategori)>
+                                    {{ $kategori }}
+                                </option>
+                            @endforeach
+                            <option value="lainnya" @selected($kategoriTerpilih === 'lainnya')>
+                                Kategori Lainnya
+                            </option>
+                        </select>
+                        @error('kategori')
+                            <span class="dp-error">{{ $message }}</span>
+                        @enderror
+                    </div>
 
-                        <label class="cek-hapus" for="hapus_gambar">
-                            <input type="checkbox" id="hapus_gambar" name="hapus_gambar" value="1">
-                            Hapus gambar ini
+                    <div class="dp-field" id="grupKategoriBaru" hidden>
+                        <label for="kategori_baru">Nama Kategori Baru</label>
+                        <input
+                            type="text"
+                            id="kategori_baru"
+                            name="kategori_baru"
+                            class="dp-input"
+                            placeholder="Contoh: Beasiswa"
+                            value="{{ old('kategori_baru') }}"
+                            maxlength="60"
+                        >
+                        <span class="dp-help">Kategori baru akan tersimpan dan tersedia pada filter berikutnya.</span>
+                        @error('kategori_baru')
+                            <span class="dp-error">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="dp-field" style="margin-top: 10px;">
+                    <label for="isi">Isi Pengumuman</label>
+                    <textarea
+                        id="isi"
+                        name="isi"
+                        class="dp-input"
+                        placeholder="Tuliskan Isi pengumuman Secara Lengkap"
+                        required
+                    >{{ old('isi', $pengumuman?->isi) }}</textarea>
+                    @error('isi')
+                        <span class="dp-error">{{ $message }}</span>
+                    @enderror
+                </div>
+            </div>
+
+            <div class="dp-kartu">
+                <h2 class="dp-sec-title">Lampiran</h2>
+
+                <div class="dp-grid">
+                    <div class="dp-field">
+                        <label for="gambar">Gambar Pengumuman (Opsional)</label>
+
+                        <label for="gambar" class="dp-upload">
+                            <div>
+                                <strong>Unggah Gambar</strong>
+                                <span>JPG, JPEG, PNG, WEBP (maks. 5 MB)</span>
+                                <span class="dp-nama-file" id="namaGambar">
+                                    {{ $pengumuman?->namaBerkas('gambar') ?? '' }}
+                                </span>
+                            </div>
+
+                            <input
+                                type="file"
+                                id="gambar"
+                                name="gambar"
+                                accept=".jpg,.jpeg,.png,.webp"
+                            >
                         </label>
+
+                        @if ($pengumuman?->punyaGambar())
+                            <div class="dp-tersimpan">
+                                <span>Gambar tersimpan:</span>
+                                <a
+                                    href="{{ route('musyrifah.pengumuman.berkas', [$pengumuman, 'gambar']) }}"
+                                    target="_blank"
+                                    rel="noopener"
+                                >{{ $pengumuman->namaBerkas('gambar') }}</a>
+
+                                <label class="dp-hapus" for="hapus_gambar">
+                                    <input type="checkbox" id="hapus_gambar" name="hapus_gambar" value="1">
+                                    Hapus gambar ini
+                                </label>
+                            </div>
+                        @endif
+
+                        @error('gambar')
+                            <span class="dp-error">{{ $message }}</span>
+                        @enderror
                     </div>
-                @endif
 
-                @error('gambar')
-                    <span class="pesan-galat">{{ $message }}</span>
-                @enderror
-            </div>
+                    <div class="dp-field">
+                        <label for="dokumen">Dokumen Pendukung (Opsional)</label>
 
-            <div class="form-group">
-                <label for="dokumen" class="lampiran-label">Dokumen Pendukung (Opsional)</label>
+                        <label for="dokumen" class="dp-upload">
+                            <div>
+                                <strong>Unggah Dokumen</strong>
+                                <span>PDF, JPG, PNG (maks. 5 MB)</span>
+                                <span class="dp-nama-file" id="namaDokumen">
+                                    {{ $pengumuman?->namaBerkas('dokumen') ?? '' }}
+                                </span>
+                            </div>
 
-                <label for="dokumen" class="upload-area">
-                    <div>
-                        <strong>Unggah Dokumen</strong>
-                        <span>PDF, JPG, PNG (maks. 5 MB)</span>
-                        <span class="nama-file" id="namaDokumen">
-                            {{ $pengumuman?->namaBerkas('dokumen') ?? '' }}
-                        </span>
-                    </div>
-
-                    <input
-                        type="file"
-                        id="dokumen"
-                        name="dokumen"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                    >
-                </label>
-
-                @if ($pengumuman?->punyaDokumen())
-                    <div class="berkas-tersimpan">
-                        Dokumen tersimpan:
-                        <a
-                            href="{{ route('musyrifah.pengumuman.berkas', [$pengumuman, 'dokumen']) }}"
-                            target="_blank"
-                            rel="noopener"
-                        >{{ $pengumuman->namaBerkas('dokumen') }}</a>
-
-                        <label class="cek-hapus" for="hapus_dokumen">
-                            <input type="checkbox" id="hapus_dokumen" name="hapus_dokumen" value="1">
-                            Hapus dokumen ini
+                            <input
+                                type="file"
+                                id="dokumen"
+                                name="dokumen"
+                                accept=".pdf,.jpg,.jpeg,.png"
+                            >
                         </label>
+
+                        @if ($pengumuman?->punyaDokumen())
+                            <div class="dp-tersimpan">
+                                <span>Dokumen tersimpan:</span>
+                                <a
+                                    href="{{ route('musyrifah.pengumuman.berkas', [$pengumuman, 'dokumen']) }}"
+                                    target="_blank"
+                                    rel="noopener"
+                                >{{ $pengumuman->namaBerkas('dokumen') }}</a>
+
+                                <label class="dp-hapus" for="hapus_dokumen">
+                                    <input type="checkbox" id="hapus_dokumen" name="hapus_dokumen" value="1">
+                                    Hapus dokumen ini
+                                </label>
+                            </div>
+                        @endif
+
+                        @error('dokumen')
+                            <span class="dp-error">{{ $message }}</span>
+                        @enderror
                     </div>
-                @endif
-
-                @error('dokumen')
-                    <span class="pesan-galat">{{ $message }}</span>
-                @enderror
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="tanggal_publikasi">Tanggal Publikasi</label>
-                <input
-                    type="date"
-                    id="tanggal_publikasi"
-                    name="tanggal_publikasi"
-                    class="form-control-pengumuman"
-                    value="{{ $tanggalTerpilih }}"
-                    required
-                >
-                @error('tanggal_publikasi')
-                    <span class="pesan-galat">{{ $message }}</span>
-                @enderror
-            </div>
+            <div class="dp-kartu">
+                <h2 class="dp-sec-title">Publikasi</h2>
 
-            <div class="form-group">
-                <label for="status">Status Pengumuman</label>
-                <select id="status" name="status" class="form-control-pengumuman" required>
-                    @foreach ($statusTersedia as $nilai => $label)
-                        <option value="{{ $nilai }}" @selected($statusTerpilih === $nilai)>
-                            {{ $label }}
-                        </option>
-                    @endforeach
-                </select>
-                <span class="bantuan-form">
-                    Pengumuman berstatus Draft hanya terlihat oleh Musyrifah.
-                </span>
-                @error('status')
-                    <span class="pesan-galat">{{ $message }}</span>
-                @enderror
-            </div>
+                <div class="dp-grid">
+                    <div class="dp-field">
+                        <label for="tanggal_publikasi">Tanggal Publikasi</label>
+                        <input
+                            type="date"
+                            id="tanggal_publikasi"
+                            name="tanggal_publikasi"
+                            class="dp-input"
+                            value="{{ $tanggalTerpilih }}"
+                            required
+                        >
+                        @error('tanggal_publikasi')
+                            <span class="dp-error">{{ $message }}</span>
+                        @enderror
+                    </div>
 
-            <div class="form-actions">
-                <a href="{{ route('musyrifah.pengumuman') }}" class="btn-form btn-batal">
-                    Batal
-                </a>
+                    <div class="dp-field">
+                        <label for="status">Status Pengumuman</label>
+                        <select id="status" name="status" class="dp-input" required>
+                            @foreach ($statusTersedia as $nilai => $label)
+                                <option value="{{ $nilai }}" @selected($statusTerpilih === $nilai)>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <span class="dp-help">Pengumuman berstatus Draft hanya terlihat oleh Musyrifah.</span>
+                        @error('status')
+                            <span class="dp-error">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
 
-                <button type="submit" class="btn-form btn-simpan">
-                    Simpan
-                </button>
+                <div class="dp-aksi" style="margin-top: 12px;">
+                    <a href="{{ route('musyrifah.pengumuman') }}" class="dp-btn dp-btn--garis">Batal</a>
+                    <button type="submit" class="dp-btn dp-btn--utama">Simpan</button>
+                </div>
             </div>
         </form>
     @endif

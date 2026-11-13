@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\PengaturanSistem;
+use App\Support\KonfigurasiEmail;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -27,9 +28,14 @@ class TerapkanPengaturanSistem
                 'session.lifetime' => $pengaturan->durasi_sesi,
             ]);
 
+            // Pengaturan email dari halaman Admin menimpa konfigurasi .env/Mailpit
+            // hanya ketika Admin memilih mode SMTP kustom.
+            KonfigurasiEmail::terapkan($pengaturan);
+
             View::share([
                 'namaSistem' => $pengaturan->nama_sistem,
                 'namaInstitusi' => $pengaturan->nama_institusi,
+                'logoAplikasi' => $pengaturan->urlLogo(),
             ]);
         }
 

@@ -87,6 +87,33 @@
             overflow: hidden;
         }
 
+        .topbar-kiri {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .menu-toggle-btn {
+            display: none;
+            place-items: center;
+            width: 38px;
+            height: 38px;
+            flex-shrink: 0;
+            margin-right: 10px;
+            padding: 0;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #fff;
+            color: var(--maroon);
+            cursor: pointer;
+        }
+
+        .menu-toggle-btn svg {
+            width: 19px;
+            height: 19px;
+        }
+
         .sidebar {
             position: fixed;
             top: 89px;
@@ -182,9 +209,14 @@
         }
 
         .main {
-            margin-left: 300px;
+            margin-left: var(--sb-w, 280px);
+            transition: margin-left .22s ease;
             padding-top: 89px;
             min-height: 100vh;
+        }
+
+        body.sb-sempit .main {
+            margin-left: var(--sb-w-sempit, 84px);
         }
 
         .page-heading {
@@ -431,14 +463,6 @@
         }
 
         @media (max-width: 1100px) {
-            .sidebar {
-                width: 260px;
-            }
-
-            .main {
-                margin-left: 260px;
-            }
-
             .page-heading,
             .content {
                 padding-left: 25px;
@@ -447,6 +471,18 @@
 
             .summary-grid {
                 gap: 12px;
+            }
+        }
+
+        /* Di bawah 992px sidebar bersama menjadi laci dan konten memakai lebar penuh. */
+        @media (max-width: 991px) {
+            .main,
+            body.sb-sempit .main {
+                margin-left: 0;
+            }
+
+            .menu-toggle-btn {
+                display: grid;
             }
         }
 
@@ -473,23 +509,6 @@
                 width: 43px;
                 height: 43px;
                 font-size: 32px;
-            }
-
-            .sidebar {
-                position: relative;
-                top: 72px;
-                width: 100%;
-                height: auto;
-                bottom: auto;
-            }
-
-            .nav-list {
-                padding: 12px;
-                gap: 8px;
-            }
-
-            .nav-link {
-                min-height: 43px;
             }
 
             .main {
@@ -539,13 +558,26 @@
 
 <body>
     <header class="topbar">
-        <div class="brand">
-            <img
-                src="{{ asset('images/logo_uin.png') }}"
-                alt="Logo SIMAHAD"
-                onerror="this.style.display='none'"
-            >
-            <span>SIMAHAD</span>
+        <div class="topbar-kiri">
+            <button type="button"
+                class="menu-toggle-btn"
+                data-sb-buka
+                aria-label="Buka menu navigasi"
+                aria-controls="sidebar"
+                aria-expanded="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+                    <path d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+
+            <div class="brand">
+                <img
+                    src="{{ asset('images/logo_uin.png') }}"
+                    alt="Logo SIMAHAD"
+                    onerror="this.style.display='none'"
+                >
+                <span>SIMAHAD</span>
+            </div>
         </div>
 
         <div class="top-actions">
@@ -554,102 +586,8 @@
         </div>
     </header>
 
-    <aside class="sidebar">
-        <div class="sidebar-bg"></div>
-
-        <nav class="nav-list" aria-label="Menu utama">
-
-            <a
-                class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
-                href="{{ route('dashboard') }}"
-            >
-                <i class="fa-solid fa-border-all"></i>
-                <span>Dashboard</span>
-            </a>
-
-            <a
-                class="nav-link {{ request()->routeIs('pendaftaran.*') ? 'active' : '' }}"
-                href="{{ route('pendaftaran.pribadi') }}"
-            >
-                <i class="fa-solid fa-user-pen"></i>
-                <span>Pendaftaran</span>
-            </a>
-
-            <a
-                class="nav-link {{ request()->routeIs('pembelajaran.mhs') ? 'active' : '' }}"
-                href="{{ route('pembelajaran.mhs') }}"
-            >
-                <i class="fa-solid fa-book-open"></i>
-                <span>Pembelajaran</span>
-            </a>
-
-            <a
-                class="nav-link {{ request()->routeIs('kamar') ? 'active' : '' }}"
-                href="{{ route('kamar') }}"
-            >
-                <i class="fa-solid fa-bed"></i>
-                <span>Informasi Kamar</span>
-            </a>
-
-            <a
-                class="nav-link {{ request()->routeIs('pembayaran') ? 'active' : '' }}"
-                href="{{ route('pembayaran') }}"
-            >
-                <i class="fa-solid fa-wallet"></i>
-                <span>Pembayaran</span>
-            </a>
-
-            <a
-                class="nav-link {{ request()->routeIs('absensi.mhs') ? 'active' : '' }}"
-                href="{{ route('absensi.mhs') }}"
-                @if(request()->routeIs('absensi.mhs')) aria-current="page" @endif
-            >
-                <i class="fa-regular fa-clipboard"></i>
-                <span>Absensi</span>
-                @if(request()->routeIs('absensi.mhs'))
-                    <i class="fa-solid fa-angle-right nav-arrow"></i>
-                @endif
-            </a>
-
-            <a
-                class="nav-link {{ request()->routeIs('pengumuman.mhs') ? 'active' : '' }}"
-                href="{{ route('pengumuman.mhs') }}"
-            >
-                <i class="fa-solid fa-bullhorn"></i>
-                <span>Pengumuman</span>
-            </a>
-
-            {{-- Aktifkan tautan ini jika route surat dan perizinan sudah tersedia. --}}
-            
-<a
-    class="nav-link {{ request()->routeIs('surat.perizinan.mhs*') ? 'active' : '' }}"
-    href="{{ route('surat.perizinan.mhs') }}"
->
-    <i class="fa-regular fa-file-lines"></i>
-    <span>Surat dan Perizinan</span>
-</a>
-
-
-            {{-- Aktifkan tautan ini jika route pengaturan akun sudah tersedia. --}}
-            <a
-                class="nav-link"
-                href="#"
-                title="Halaman Pengaturan Akun belum memiliki route"
-                onclick="event.preventDefault(); alert('Halaman Pengaturan Akun belum tersedia.');"
-            >
-                <i class="fa-solid fa-gear"></i>
-                <span>Pengaturan Akun</span>
-            </a>
-
-            
-<a href="{{ route('logout.confirm') }}" class="nav-link logout">
-    <i class="fa-solid fa-arrow-right-from-bracket"></i>
-    <span>Keluar</span>
-</a>
-
-
-        </nav>
-    </aside>
+    {{-- Sidebar bersama seluruh role SIMAHAD. --}}
+    <x-panel.sidebar ragam="tetap" atas="89px" />
 
     <main class="main">
         <section class="page-heading">

@@ -9,6 +9,16 @@ class PengaturanPembayaran extends Model
 {
     use HasFactory;
 
+    /**
+     * Rekening resmi Ma'had. Seluruh mahasiswa mentransfer langsung ke
+     * rekening kampus ini; SIMAHAD tidak menerima atau mengelola dana.
+     */
+    public const REKENING_BANK = 'BSI';
+
+    public const REKENING_NOMOR_RESMI = '7322022268';
+
+    public const REKENING_NAMA_RESMI = 'RPL 010 BLU UIN P2B MAHAD UTK DR';
+
     protected $table = 'pengaturan_pembayarans';
 
     protected $fillable = [
@@ -83,6 +93,21 @@ class PengaturanPembayaran extends Model
     public function nominalRupiah(): string
     {
         return 'Rp '.number_format((float) $this->nominal, 0, ',', '.');
+    }
+
+    public function rekeningBank(): string
+    {
+        return self::REKENING_BANK;
+    }
+
+    public function rekeningNomor(): string
+    {
+        return self::REKENING_NOMOR_RESMI;
+    }
+
+    public function rekeningNama(): string
+    {
+        return self::REKENING_NAMA_RESMI;
     }
 
     public function jatuhTempoTeks(): string

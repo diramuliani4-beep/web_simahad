@@ -267,6 +267,38 @@
             font-size: .95rem;
         }
 
+        .navbar-kiri {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            min-width: 0;
+        }
+
+        .navbar-menu {
+            display: none;
+            place-items: center;
+            width: 38px;
+            height: 38px;
+            flex-shrink: 0;
+            padding: 0;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #fff;
+            color: var(--primary-maroon);
+            cursor: pointer;
+        }
+
+        .navbar-menu svg {
+            width: 19px;
+            height: 19px;
+        }
+
+        @media (max-width: 991px) {
+            .navbar-menu {
+                display: grid;
+            }
+        }
+
         @media (max-width: 768px) {
             .top-navbar {
                 padding: 0 1rem;
@@ -287,18 +319,33 @@
     </style>
 </head>
 
-<body>
+<body class="sb-mandiri">
+    {{-- Sidebar bersama seluruh role SIMAHAD. --}}
+    <x-panel.sidebar ragam="mandiri" />
 
     <header class="top-navbar">
-        <a href="{{ route('pengumuman.mhs') }}" class="navbar-brand-wrap">
-            <img
-                src="{{ asset('images/logo_uin.png') }}"
-                alt="Logo SIMAHAD"
-                class="brand-logo-img"
-                onerror="this.style.display='none'"
-            >
-            <span class="brand-title">SIMAHAD</span>
-        </a>
+        <div class="navbar-kiri">
+            <button type="button"
+                class="navbar-menu"
+                data-sb-buka
+                aria-label="Buka menu navigasi"
+                aria-controls="sidebar"
+                aria-expanded="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+                    <path d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+
+            <a href="{{ route('pengumuman.mhs') }}" class="navbar-brand-wrap">
+                <img
+                    src="{{ asset('images/logo_uin.png') }}"
+                    alt="Logo SIMAHAD"
+                    class="brand-logo-img"
+                    onerror="this.style.display='none'"
+                >
+                <span class="brand-title">SIMAHAD</span>
+            </a>
+        </div>
 
         <div class="navbar-actions">
             <a href="{{ route('pengumuman.mhs') }}" class="tombol">Kembali</a>

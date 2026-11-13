@@ -668,7 +668,9 @@
 
 </head>
 
-<body>
+<body class="sb-mandiri">
+    {{-- Sidebar bersama seluruh role SIMAHAD. --}}
+    <x-panel.sidebar ragam="mandiri" tombol-buka />
 
     <div class="page-overlay"></div>
 

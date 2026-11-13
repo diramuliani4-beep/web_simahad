@@ -799,7 +799,12 @@
                                     <span class="badge-pill badge-blue">{{ $j->kelompok }}</span>
                                 </td>
                                 <td style="text-align: left; padding-left: 14px;">
-                                    {{ $j->guru_pengampu }}
+                                    <div style="font-weight: 600; color: #1e293b;">{{ $j->namaGuruPengampu() }}</div>
+                                    @if ($j->guru_id)
+                                        <div style="font-size: 11px; color: #15803d; margin-top: 2px;">Akun Guru tertaut</div>
+                                    @else
+                                        <div style="font-size: 11px; color: #b45309; margin-top: 2px;">Belum tertaut akun Guru</div>
+                                    @endif
                                 </td>
                                 <td style="font-size: 13px;">
                                     {{ $j->periode }}
@@ -812,7 +817,7 @@
                                 <td>
                                     <div style="display: flex; gap: 6px; justify-content: center;">
                                         <button type="button" class="btn-table-edit" 
-                                                onclick="openModalEditJadwal({{ $j->id }}, '{{ addslashes($j->nama_mata_pelajaran) }}', '{{ addslashes($j->kelompok) }}', '{{ addslashes($j->guru_pengampu) }}', '{{ addslashes($j->periode) }}', '{{ addslashes($j->hari) }}', '{{ addslashes($j->jam_mulai) }}', '{{ addslashes($j->jam_selesai) }}', '{{ addslashes($j->ruangan) }}')">
+                                                onclick="openModalEditJadwal({{ $j->id }}, '{{ addslashes($j->nama_mata_pelajaran) }}', '{{ addslashes($j->kelompok) }}', {{ (int) $j->guru_id }}, '{{ addslashes($j->guru_pengampu) }}', '{{ addslashes($j->periode) }}', '{{ addslashes($j->hari) }}', '{{ addslashes($j->jam_mulai) }}', '{{ addslashes($j->jam_selesai) }}', '{{ addslashes($j->ruangan) }}')">
                                             Ubah
                                         </button>
                                         <form action="{{ route('musyrifah.manajemen_pembelajaran.jadwal.destroy', $j->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus jadwal ini?')">
@@ -876,6 +881,7 @@
                             <th>Periode</th>
                             <th>Progres Pertemuan (16 TM)</th>
                             <th>Kehadiran Rata-rata</th>
+                            <th>Materi, Tugas &amp; Nilai</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -906,15 +912,21 @@
                                 <td>
                                     <span class="badge-pill badge-green">{{ $pm['persentase'] }}%</span>
                                 </td>
+                                <td style="font-size: 12px; color: #475569;">
+                                    {{ $pm['jumlah_materi'] }} materi &middot; {{ $pm['jumlah_tugas'] }} tugas
+                                    <div style="font-size: 11px; color: #800d22; margin-top: 2px;">
+                                        Nilai rata-rata: {{ $pm['nilai_rata_rata'] !== null ? $pm['nilai_rata_rata'] : '-' }}
+                                    </div>
+                                </td>
                                 <td>
-                                    <button type="button" class="btn-table-detail" onclick="openModalDetailPemantauan({{ $pm['id'] }}, '{{ addslashes($pm['nama']) }}')">
+                                    <button type="button" class="btn-table-detail" onclick="openModalDetailPemantauan({{ $pm['id'] }}, '{{ addslashes($pm['nama']) }}', '{{ addslashes($pm['kelompok']) }}', '{{ addslashes($pm['periode']) }}')">
                                         Lihat Detail 16 TM
                                     </button>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" style="padding: 25px;">Belum ada data pemantauan.</td>
+                                <td colspan="9" style="padding: 25px;">Belum ada data pemantauan.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -1118,11 +1130,24 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Guru Pengampu</label>
-                    <select name="guru_pengampu" id="inputJadwalGuru" class="form-control" required>
-                        @foreach($daftarPengajar as $peng)
-                            <option value="{{ $peng->nama_pengajar }}">{{ $peng->nama_pengajar }} ({{ $peng->program }})</option>
-                        @endforeach
-                    </select>
+                    @if ($daftarGuru->isNotEmpty())
+                        <select name="guru_id" id="inputJadwalGuru" class="form-control" required>
+                            <option value="">— Pilih akun Guru —</option>
+                            @foreach ($daftarGuru as $akunGuru)
+                                <option value="{{ $akunGuru->id }}">
+                                    {{ $akunGuru->name }}@if (filled($akunGuru->pegawai?->nama_pegawai) && $akunGuru->pegawai->nama_pegawai !== $akunGuru->name) — {{ $akunGuru->pegawai->nama_pegawai }}@endif
+                                </option>
+                            @endforeach
+                        </select>
+                        <small style="display: block; margin-top: 5px; font-size: 11px; color: #64748b; line-height: 1.5;">
+                            Pilih akun Guru penerima penugasan. Jadwal langsung tampil pada menu Pembelajaran akun tersebut.
+                        </small>
+                    @else
+                        <input type="text" name="guru_pengampu" id="inputJadwalGuruTeks" class="form-control" placeholder="Nama guru pengampu" required>
+                        <small style="display: block; margin-top: 5px; font-size: 11px; color: #b45309; line-height: 1.5;">
+                            Belum ada akun Guru. Tambahkan akun Guru lebih dulu agar penugasan dapat dibuka Guru.
+                        </small>
+                    @endif
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
                     <div class="form-group">
@@ -1361,6 +1386,8 @@
         document.getElementById('modalJadwalTitle').textContent = 'Atur Jadwal Pembelajaran Baru';
         document.getElementById('formJadwal').action = "{{ route('musyrifah.manajemen_pembelajaran.jadwal.store') }}";
         document.getElementById('methodJadwalSpoof').innerHTML = '';
+        const pilihGuru = document.getElementById('inputJadwalGuru');
+        if (pilihGuru) { pilihGuru.value = ''; }
         document.getElementById('inputJadwalJamMulai').value = '08:00';
         document.getElementById('inputJadwalJamSelesai').value = '09:30';
         document.getElementById('inputJadwalRuangan').value = 'Ruang Kelas';
@@ -1368,13 +1395,23 @@
         openModal('modalJadwal');
     }
 
-    function openModalEditJadwal(id, mapel, kelompok, guru, periode, hari, jamMulai, jamSelesai, ruangan) {
+    function openModalEditJadwal(id, mapel, kelompok, guruId, guruNama, periode, hari, jamMulai, jamSelesai, ruangan) {
         document.getElementById('modalJadwalTitle').textContent = 'Ubah Jadwal Pembelajaran';
         document.getElementById('formJadwal').action = "{{ url('/musyrifah/manajemen-pembelajaran/jadwal') }}/" + id;
         document.getElementById('methodJadwalSpoof').innerHTML = '@method("PUT")';
         document.getElementById('inputJadwalMapel').value = mapel;
         document.getElementById('inputJadwalKelompok').value = kelompok;
-        document.getElementById('inputJadwalGuru').value = guru;
+
+        const pilihGuru = document.getElementById('inputJadwalGuru');
+        if (pilihGuru) {
+            pilihGuru.value = guruId ? String(guruId) : '';
+        }
+
+        const teksGuru = document.getElementById('inputJadwalGuruTeks');
+        if (teksGuru) {
+            teksGuru.value = guruNama || '';
+        }
+
         document.getElementById('inputJadwalPeriode').value = periode;
         document.getElementById('inputJadwalHari').value = hari;
         document.getElementById('inputJadwalJamMulai').value = jamMulai;
@@ -1418,13 +1455,20 @@
     }
 
     // 6. DETAIL PEMANTAUAN 16 PERTEMUAN (AJAX)
-    async function openModalDetailPemantauan(mapelId, mapelNama) {
+    async function openModalDetailPemantauan(mapelId, mapelNama, kelompok, periode) {
         document.getElementById('detailMapelTitle').textContent = mapelNama;
+        document.getElementById('detailMapelSub').textContent =
+            [kelompok, periode].filter(Boolean).join(' · ') + ' · Target: 16 Pertemuan Tatap Muka';
         document.getElementById('gridPertemuanDetail').innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: #64748b;">Memuat data 16 pertemuan...</div>';
         openModal('modalDetailPemantauan');
 
         try {
-            const res = await fetch("{{ url('/musyrifah/manajemen-pembelajaran/detail-pemantauan') }}/" + mapelId, {
+            const params = new URLSearchParams();
+            if (kelompok) { params.set('kelompok', kelompok); }
+            if (periode) { params.set('periode', periode); }
+
+            const res = await fetch("{{ url('/musyrifah/manajemen-pembelajaran/detail-pemantauan') }}/" + mapelId
+                + (params.toString() ? '?' + params.toString() : ''), {
                 headers: { 'Accept': 'application/json' }
             });
             const data = await res.json();
@@ -1432,8 +1476,11 @@
             if (data.success && data.pertemuan) {
                 let html = '';
                 data.pertemuan.forEach(function (p) {
-                    const isDone = p.status_pertemuan === 'Terlaksana';
-                    const badgeClass = isDone ? 'badge-green' : 'badge-yellow';
+                    const badgeClass = p.status_pertemuan === 'Terlaksana'
+                        ? 'badge-green'
+                        : (p.status_pertemuan === 'Berlangsung' ? 'badge-blue' : 'badge-yellow');
+                    const materiTeks = p.materi ? 'Materi tersedia' : 'Materi belum';
+                    const nilaiTeks = p.nilai_rata_rata !== null ? p.nilai_rata_rata : '-';
                     html += `
                         <div class="pertemuan-card-item">
                             <div class="pertemuan-card-num">Pertemuan ${p.pertemuan_ke}</div>
@@ -1443,6 +1490,10 @@
                             </span>
                             <div style="font-size: 11px; margin-top: 6px; color: #475569;">
                                 <strong>${p.hadir}</strong> Hadir · <strong>${p.izin + p.sakit}</strong> Izin
+                                · <strong>${p.alpa}</strong> Alpa
+                            </div>
+                            <div style="font-size: 11px; margin-top: 3px; color: #64748b;">
+                                ${materiTeks} · ${p.jumlah_tugas} tugas · Nilai ${nilaiTeks}
                             </div>
                         </div>
                     `;

@@ -402,6 +402,31 @@
             color: #a01c2c;
         }
 
+        .sp-menu-toggle {
+            display: none;
+            place-items: center;
+            width: 38px;
+            height: 38px;
+            flex-shrink: 0;
+            padding: 0;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #fff;
+            color: var(--maroon);
+            cursor: pointer;
+        }
+
+        .sp-menu-toggle svg {
+            width: 19px;
+            height: 19px;
+        }
+
+        @media (max-width: 991px) {
+            .sp-menu-toggle {
+                display: grid;
+            }
+        }
+
         @media (max-width: 760px) {
             .sp-topbar {
                 padding: 12px 16px;
@@ -432,9 +457,23 @@
 
     @stack('styles')
 </head>
-<body>
+<body class="sb-mandiri">
+    {{-- Sidebar bersama seluruh role SIMAHAD. --}}
+    <x-panel.sidebar ragam="mandiri" />
+
     <header class="sp-topbar">
         <div class="sp-topbar__brand">
+            <button type="button"
+                class="sp-menu-toggle"
+                data-sb-buka
+                aria-label="Buka menu navigasi"
+                aria-controls="sidebar"
+                aria-expanded="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+                    <path d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+
             <img src="{{ asset('images/logo_uin.png') }}" alt="Logo SIMAHAD" onerror="this.style.display='none'">
             <span>SIMAHAD</span>
         </div>

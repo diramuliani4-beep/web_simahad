@@ -27,10 +27,15 @@ class LaporanMahad extends Model
 
     public const SUMBER_MUSYRIFAH = 'musyrifah';
 
+    /** Jenis laporan periodik yang isinya disimpan sebagai potret tetap. */
+    public const JENIS_PERIODIK = ['bulanan', 'tahunan'];
+
     protected $fillable = [
         'jenis',
         'judul',
         'periode',
+        'tahun',
+        'bulan',
         'lantai',
         'unit',
         'sumber',
@@ -43,6 +48,7 @@ class LaporanMahad extends Model
         'diterbitkan_oleh',
         'diarsipkan_pada',
         'catatan',
+        'konten',
     ];
 
     /**
@@ -52,10 +58,19 @@ class LaporanMahad extends Model
     {
         return [
             'lantai' => 'integer',
+            'tahun' => 'integer',
+            'bulan' => 'integer',
             'versi' => 'integer',
             'diterbitkan_pada' => 'datetime',
             'diarsipkan_pada' => 'datetime',
+            'konten' => 'array',
         ];
+    }
+
+    /** Laporan periodik menyimpan isi laporan pada kolom konten. */
+    public function periodik(): bool
+    {
+        return in_array($this->jenis, self::JENIS_PERIODIK, true);
     }
 
     /**

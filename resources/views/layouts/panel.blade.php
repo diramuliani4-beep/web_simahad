@@ -43,7 +43,7 @@
             --border: #eadfda;
             --background: #f7f5f4;
             --header-height: 68px;
-            --sidebar-width: 268px;
+            --sidebar-width: 280px;
             --radius-lg: 18px;
             --radius-md: 12px;
             --shadow-soft: 0 12px 30px rgba(59, 7, 15, .07);
@@ -177,265 +177,17 @@
             gap: 10px;
         }
 
-        /* ---------------- Sidebar ---------------- */
-        .sidebar {
-            position: fixed;
-            top: var(--header-height);
-            left: 0;
-            bottom: 0;
-            width: var(--sidebar-width);
-            z-index: 900;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding: 16px 13px 18px;
-            overflow-y: auto;
-            background: #fff;
-            border-right: 1px solid var(--line);
-            transition: transform .26s ease;
-        }
-
-        .sidebar-role {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 12px;
-            margin-bottom: 6px;
-            border-radius: var(--radius-md);
-            background: var(--maroon-tint);
-            border: 1px solid #f0dde1;
-        }
-
-        .sidebar-role-ikon {
-            display: grid;
-            place-items: center;
-            width: 32px;
-            height: 32px;
-            flex-shrink: 0;
-            border-radius: 10px;
-            background: var(--maroon);
-            color: var(--gold);
-        }
-
-        .sidebar-role-ikon svg {
-            width: 17px;
-            height: 17px;
-        }
-
-        .sidebar-role-teks {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.2;
-            min-width: 0;
-        }
-
-        .sidebar-role-label {
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: .1em;
-            text-transform: uppercase;
-            color: #9b7d84;
-        }
-
-        .sidebar-role-nama {
-            font-size: 13.5px;
-            font-weight: 700;
-            color: var(--maroon);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .sidebar-nav {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            flex: 1;
-        }
-
-        .menu-link {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            width: 100%;
-            min-height: 42px;
-            padding: 10px 13px;
-            border-radius: var(--radius-md);
-            color: #463b3d;
-            font-size: 13.6px;
-            font-weight: 600;
-            line-height: 1.25;
-            transition: background .16s ease, color .16s ease;
-        }
-
-        .menu-link .ikon-menu {
-            width: 19px;
-            height: 19px;
-            flex-shrink: 0;
-            color: #8b7b7f;
-            transition: color .16s ease;
-        }
-
-        .menu-link:hover {
-            background: var(--maroon-tint);
-            color: var(--maroon);
-        }
-
-        .menu-link:hover .ikon-menu {
-            color: var(--maroon);
-        }
-
-        .menu-link.active {
-            background: var(--maroon-tint);
-            color: var(--maroon);
-            font-weight: 700;
-        }
-
-        .menu-link.active .ikon-menu {
-            color: var(--gold);
-        }
-
-        .menu-link.active::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 4px;
-            height: 22px;
-            border-radius: 0 4px 4px 0;
-            background: var(--gold);
-        }
-
-        .menu-link--keluar {
-            color: #9a3b45;
-        }
-
-        .menu-link--keluar:hover {
-            background: #fdeef0;
-            color: #8a1224;
-        }
-
-        /* Menu induk dengan submenu (expand/collapse klik) */
-        .menu-grup {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .menu-grup-toggle {
-            border: 0;
-            background: transparent;
-            font-family: inherit;
-            text-align: left;
-            cursor: pointer;
-        }
-
-        .menu-grup-toggle .menu-chevron {
-            width: 15px;
-            height: 15px;
-            margin-left: auto;
-            flex-shrink: 0;
-            color: #9b8a8e;
-            transition: transform .22s ease, color .16s ease;
-        }
-
-        .menu-grup.is-active > .menu-grup-toggle {
-            background: var(--maroon-tint);
-            color: var(--maroon);
-            font-weight: 700;
-        }
-
-        .menu-grup.is-active > .menu-grup-toggle .ikon-menu {
-            color: var(--gold);
-        }
-
-        .menu-grup.is-active > .menu-grup-toggle::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 4px;
-            height: 22px;
-            border-radius: 0 4px 4px 0;
-            background: var(--gold);
-        }
-
-        .menu-grup.is-open > .menu-grup-toggle .menu-chevron {
-            transform: rotate(180deg);
-            color: var(--maroon);
-        }
-
-        .menu-sub {
-            display: none;
-            flex-direction: column;
-            gap: 2px;
-            margin: 2px 0 6px 14px;
-            padding-left: 10px;
-            border-left: 1px solid #f0dde1;
-        }
-
-        .menu-grup.is-open .menu-sub {
-            display: flex;
-        }
-
-        .menu-sub-link {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 11px;
-            border-radius: 10px;
-            color: #5c5154;
-            font-size: 12.8px;
-            font-weight: 600;
-            line-height: 1.25;
-            transition: background .16s ease, color .16s ease;
-        }
-
-        .menu-sub-link .ikon-menu {
-            width: 16px;
-            height: 16px;
-            flex-shrink: 0;
-            color: #9b8a8e;
-        }
-
-        .menu-sub-link:hover {
-            background: var(--maroon-tint);
-            color: var(--maroon);
-        }
-
-        .menu-sub-link:hover .ikon-menu,
-        .menu-sub-link.active .ikon-menu {
-            color: var(--maroon);
-        }
-
-        .menu-sub-link.active {
-            background: var(--maroon-tint);
-            color: var(--maroon);
-            font-weight: 700;
-        }
-
-        .sidebar-bottom {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            padding-top: 10px;
-            margin-top: 6px;
-            border-top: 1px dashed #eedfe2;
-        }
-
-        .sidebar-backdrop {
-            display: none;
-        }
-
         /* ---------------- Content ---------------- */
+        /* Sidebar bersama dirender oleh komponen panel.sidebar. */
         .main-content {
             margin-left: var(--sidebar-width);
             min-height: 100vh;
             padding: calc(var(--header-height) + 26px) 30px 40px;
-            transition: margin-left .26s ease;
+            transition: margin-left .22s ease;
+        }
+
+        body.sb-sempit .main-content {
+            margin-left: var(--sb-w-sempit, 84px);
         }
 
         .flash {
@@ -508,35 +260,10 @@
                 height: 34px;
             }
 
-            .sidebar {
-                width: min(var(--sidebar-width), 84vw);
-                transform: translateX(-104%);
-                box-shadow: 0 20px 50px rgba(40, 5, 11, .25);
-            }
-
-            body.sidebar-open .sidebar {
-                transform: translateX(0);
-            }
-
-            .main-content {
+            .main-content,
+            body.sb-sempit .main-content {
                 margin-left: 0;
                 padding: calc(var(--header-height) + 18px) 15px 30px;
-            }
-
-            .sidebar-backdrop {
-                position: fixed;
-                inset: var(--header-height) 0 0 0;
-                z-index: 850;
-                background: rgba(33, 10, 14, .42);
-                opacity: 0;
-                pointer-events: none;
-                transition: opacity .2s ease;
-            }
-
-            body.sidebar-open .sidebar-backdrop {
-                display: block;
-                opacity: 1;
-                pointer-events: auto;
             }
         }
 
@@ -573,7 +300,7 @@
             </button>
 
             <a href="{{ $berandaPanel }}" class="brand-link">
-                <img src="{{ asset('images/logo_uin.png') }}" alt="Logo SIMAHAD" class="brand-logo" onerror="this.style.display='none'">
+                <img src="{{ $logoAplikasi ?? asset('images/logo_uin.png') }}" alt="Logo {{ $namaSistem ?? 'SIMAHAD' }}" class="brand-logo" onerror="this.src='{{ asset('images/logo_uin.png') }}'">
 
                 <span class="brand-teks">
                     <span class="brand-title">{{ $namaSistem ?? 'SIMAHAD' }}</span>
@@ -590,77 +317,7 @@
         </div>
     </header>
 
-    <aside class="sidebar" id="sidebar" aria-label="Menu utama">
-        <div class="sidebar-role">
-            <span class="sidebar-role-ikon">
-                <x-panel.ikon nama="pengguna" />
-            </span>
-
-            <span class="sidebar-role-teks">
-                <span class="sidebar-role-label">{{ $labelPeranPanel }}</span>
-                <span class="sidebar-role-nama">{{ $penggunaPanel?->name ?? 'Pengguna' }}</span>
-            </span>
-        </div>
-
-        <nav class="sidebar-nav">
-            @foreach ($menuUtamaPanel as $menu)
-                @if (! empty($menu['anak']))
-                    @php
-                        $grupAktif = request()->routeIs(...$menu['aktif']);
-                    @endphp
-
-                    <div class="menu-grup {{ $grupAktif ? 'is-active is-open' : '' }}" data-menu-grup>
-                        <button type="button"
-                            class="menu-link menu-grup-toggle"
-                            data-menu-toggle
-                            aria-expanded="{{ $grupAktif ? 'true' : 'false' }}">
-                            <x-panel.ikon :nama="$menu['ikon']" />
-                            <span>{{ $menu['label'] }}</span>
-                            <svg class="menu-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="m6 9 6 6 6-6" />
-                            </svg>
-                        </button>
-
-                        <div class="menu-sub">
-                            @foreach ($menu['anak'] as $anak)
-                                <a href="{{ route($anak['route']) }}"
-                                    class="menu-sub-link {{ request()->routeIs(...$anak['aktif']) ? 'active' : '' }}"
-                                    @if (request()->routeIs(...$anak['aktif'])) aria-current="page" @endif>
-                                    <x-panel.ikon :nama="$anak['ikon']" />
-                                    <span>{{ $anak['label'] }}</span>
-                                </a>
-                            @endforeach
-                        </div>
-                    </div>
-                @else
-                    <a href="{{ route($menu['route']) }}"
-                        class="menu-link {{ request()->routeIs(...$menu['aktif']) ? 'active' : '' }}"
-                        @if (request()->routeIs(...$menu['aktif'])) aria-current="page" @endif>
-                        <x-panel.ikon :nama="$menu['ikon']" />
-                        <span>{{ $menu['label'] }}</span>
-                    </a>
-                @endif
-            @endforeach
-        </nav>
-
-        <div class="sidebar-bottom">
-            @foreach ($menuBawahPanel as $menu)
-                <a href="{{ route($menu['route']) }}"
-                    class="menu-link {{ request()->routeIs(...$menu['aktif']) ? 'active' : '' }}"
-                    @if (request()->routeIs(...$menu['aktif'])) aria-current="page" @endif>
-                    <x-panel.ikon :nama="$menu['ikon']" />
-                    <span>{{ $menu['label'] }}</span>
-                </a>
-            @endforeach
-
-            <a href="{{ route('logout.confirm') }}" class="menu-link menu-link--keluar">
-                <x-panel.ikon nama="keluar" />
-                <span>Keluar</span>
-            </a>
-        </div>
-    </aside>
-
-    <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
+    <x-panel.sidebar ragam="panel" />
 
     <main class="main-content" id="konten-utama">
         @if (session('success'))
@@ -694,32 +351,7 @@
                 });
             });
 
-            const menuToggle = document.getElementById('menuToggle');
-            const backdrop = document.getElementById('sidebarBackdrop');
-
-            if (!menuToggle) {
-                return;
-            }
-
-            function tutupSidebar() {
-                document.body.classList.remove('sidebar-open');
-                menuToggle.setAttribute('aria-expanded', 'false');
-            }
-
-            menuToggle.addEventListener('click', function () {
-                const terbuka = document.body.classList.toggle('sidebar-open');
-                menuToggle.setAttribute('aria-expanded', terbuka ? 'true' : 'false');
-            });
-
-            if (backdrop) {
-                backdrop.addEventListener('click', tutupSidebar);
-            }
-
-            document.addEventListener('keydown', function (event) {
-                if (event.key === 'Escape') {
-                    tutupSidebar();
-                }
-            });
+            // Buka/tutup laci sidebar ditangani komponen panel.sidebar agar sama di semua halaman.
         });
     </script>
 

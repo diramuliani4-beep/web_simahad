@@ -652,7 +652,7 @@
             </div>
             <div class="sd-hero-board" role="group" aria-label="Ringkasan hari ini">
                 <div class="sd-hero-stat">
-                    <span>Mahasiswa</span>
+                    <span>Total Mahasiswa</span>
                     <strong>{{ number_format($ringkasan['totalMahasiswa'], 0, ',', '.') }}</strong>
                 </div>
                 <div class="sd-hero-stat">
@@ -687,6 +687,40 @@
             </div>
         </section>
 
+        <article class="sd-card">
+            <div class="sd-card-head">
+                <div class="sd-card-title">
+                    <span class="sd-mark"><x-panel.ikon nama="pendaftaran" /></span>
+                    <div>
+                        <h3>Pendaftaran Menunggu Verifikasi</h3>
+                        <p>Berkas calon mahasiswa yang menunggu validasi</p>
+                    </div>
+                </div>
+                <a class="sd-card-link" href="{{ route('musyrifah.pendaftaran') }}">Verifikasi</a>
+            </div>
+            <div class="sd-card-body">
+                @forelse ($pendaftaran['terbaru'] as $calon)
+                    <div class="sd-row">
+                        <span class="sd-row-copy">
+                            <span class="sd-row-title">{{ $calon->nama_lengkap ?: 'Calon mahasiswa' }}</span>
+                            <span class="sd-row-sub">
+                                {{ $calon->nim ?: 'NIM belum diisi' }}
+                                · {{ $calon->program_studi ?: 'Program studi belum diisi' }}
+                                · {{ ucfirst($calon->kategori ?: 'umum') }}
+                            </span>
+                        </span>
+                        <span class="sd-row-date">{{ $calon->created_at?->locale('id')->translatedFormat('d M Y') ?? '-' }}</span>
+                    </div>
+                @empty
+                    <div class="sd-empty">
+                        <span class="sd-empty-icon"><x-panel.ikon nama="pendaftaran" /></span>
+                        <strong>Tidak ada pendaftaran yang menunggu verifikasi.</strong>
+                        <small>Pendaftaran baru akan tampil di sini untuk segera divalidasi.</small>
+                    </div>
+                @endforelse
+            </div>
+        </article>
+
         <div class="sd-duo">
             <article class="sd-card">
                 <div class="sd-card-head">
@@ -711,7 +745,7 @@
                     @empty
                         <div class="sd-empty">
                             <span class="sd-empty-icon"><x-panel.ikon nama="jadwal" /></span>
-                            <strong>Tidak ada jadwal hari ini</strong>
+                            <strong>Tidak ada jadwal pembelajaran hari ini.</strong>
                             <small>Jadwal pembelajaran akan muncul sesuai hari yang berjalan.</small>
                         </div>
                     @endforelse
@@ -755,7 +789,7 @@
                     <div class="sd-card-title">
                         <span class="sd-mark"><x-panel.ikon nama="kamar" /></span>
                         <div>
-                            <h3>Keterisian Kamar</h3>
+                            <h3>Kapasitas &amp; Keterisian Kamar</h3>
                             <p>{{ $kamar['jumlah'] }} kamar terdaftar</p>
                         </div>
                     </div>
@@ -831,7 +865,7 @@
                     @else
                         <div class="sd-empty">
                             <span class="sd-empty-icon"><x-panel.ikon nama="pembayaran" /></span>
-                            <strong>Belum ada periode aktif</strong>
+                            <strong>Belum ada periode pembayaran yang aktif.</strong>
                             <small>Aktifkan periode pada menu Pembayaran agar tagihan muncul.</small>
                         </div>
                     @endif

@@ -1,9 +1,12 @@
 <?php
 
+use App\Models\PengaturanSistem;
+use App\Services\PembayaranAngsuranService;
 use App\Support\KonfigurasiEmail;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -14,6 +17,13 @@ Artisan::command('email:uji {tujuan : Alamat email penerima uji coba}', function
         $this->error('Alamat email tujuan tidak valid: '.$tujuan);
 
         return 1;
+    }
+
+    // Pengaturan email dari halaman Admin dipakai juga oleh perintah konsol.
+    try {
+        KonfigurasiEmail::terapkan(PengaturanSistem::aktif());
+    } catch (Throwable) {
+        // Tabel pengaturan belum tersedia: pakai konfigurasi .env.
     }
 
     $masalah = KonfigurasiEmail::masalah();
@@ -45,3 +55,14 @@ Artisan::command('email:uji {tujuan : Alamat email penerima uji coba}', function
 
     return 0;
 })->purpose('Mengirim email uji untuk memverifikasi konfigurasi SMTP (Mailpit lokal)');
+
+Artisan::command('pembayaran:pengingat', function (PembayaranAngsuranService $layanan) {
+    $hasil = $layanan->kirimPengingatJatuhTempo();
+
+    $this->info('Pengingat pembayaran dikirim untuk '.$hasil['dikirim'].' dari '.$hasil['diperiksa'].' tagihan yang diperiksa.');
+
+    return 0;
+})->purpose('Mengirim pengingat pembayaran sebelum jatuh tempo');
+
+// Pengingat dijalankan setiap pagi agar mahasiswa punya waktu membayar.
+Schedule::command('pembayaran:pengingat')->dailyAt('07:30');

@@ -19,10 +19,20 @@ class PengaturanSistem extends Model
     protected $fillable = [
         'nama_sistem',
         'nama_institusi',
+        'logo_path',
         'notifikasi_pengumuman',
         'notifikasi_pembelajaran',
         'notifikasi_pembayaran',
         'durasi_sesi',
+        'mail_mode',
+        'mail_host',
+        'mail_port',
+        'mail_scheme',
+        'mail_username',
+        'mail_password',
+        'mail_from_address',
+        'mail_from_name',
+        'backup_retensi',
     ];
 
     protected function casts(): array
@@ -32,6 +42,10 @@ class PengaturanSistem extends Model
             'notifikasi_pembelajaran' => 'boolean',
             'notifikasi_pembayaran' => 'boolean',
             'durasi_sesi' => 'integer',
+            'mail_port' => 'integer',
+            // Kata sandi SMTP disimpan terenkripsi dengan APP_KEY aplikasi.
+            'mail_password' => 'encrypted',
+            'backup_retensi' => 'integer',
         ];
     }
 
@@ -90,5 +104,32 @@ class PengaturanSistem extends Model
             Notifikasi::TIPE_PEMBAYARAN => $this->notifikasi_pembayaran,
             default => $this->notifikasi_pembelajaran,
         };
+    }
+
+    /**
+     * Alamat logo aplikasi: berkas unggahan Admin bila ada, jika tidak logo bawaan.
+     */
+    public function urlLogo(): string
+    {
+        return filled($this->logo_path)
+            ? asset('storage/'.$this->logo_path)
+            : asset('images/logo_uin.png');
+    }
+
+    /**
+     * True bila pengiriman email memakai server SMTP yang diatur dari halaman
+     * pengaturan, bukan konfigurasi .env/Mailpit bawaan.
+     */
+    public function memakaiSmtpKustom(): bool
+    {
+        return strtolower((string) $this->mail_mode) === 'smtp' && filled($this->mail_host);
+    }
+
+    /** Jumlah berkas backup yang disimpan sebelum berkas tertua dihapus. */
+    public function retensiBackup(): int
+    {
+        $nilai = (int) ($this->backup_retensi ?? 0);
+
+        return $nilai > 0 ? $nilai : 5;
     }
 }

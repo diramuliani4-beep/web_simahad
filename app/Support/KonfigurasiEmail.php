@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Models\PengaturanSistem;
+
 /**
  * Pemeriksaan kesiapan konfigurasi pengiriman email SIMAHAD.
  *
@@ -13,6 +15,36 @@ namespace App\Support;
  */
 class KonfigurasiEmail
 {
+    /**
+     * Menerapkan pengaturan email yang disimpan Admin ke konfigurasi runtime.
+     *
+     * Bila Admin memilih mode lokal, konfigurasi .env/Mailpit dibiarkan apa
+     * adanya sehingga pengujian lokal tetap berjalan tanpa kredensial.
+     */
+    public static function terapkan(?PengaturanSistem $pengaturan = null): void
+    {
+        if (! $pengaturan?->memakaiSmtpKustom()) {
+            return;
+        }
+
+        config([
+            'mail.default' => 'smtp',
+            'mail.mailers.smtp.transport' => 'smtp',
+            'mail.mailers.smtp.host' => (string) $pengaturan->mail_host,
+            'mail.mailers.smtp.port' => (int) ($pengaturan->mail_port ?: 587),
+            'mail.mailers.smtp.scheme' => $pengaturan->mail_scheme ?: null,
+            'mail.mailers.smtp.username' => $pengaturan->mail_username ?: null,
+            'mail.mailers.smtp.password' => $pengaturan->mail_password ?: null,
+        ]);
+
+        if (filled($pengaturan->mail_from_address)) {
+            config([
+                'mail.from.address' => (string) $pengaturan->mail_from_address,
+                'mail.from.name' => $pengaturan->mail_from_name ?: config('mail.from.name'),
+            ]);
+        }
+    }
+
     /** Nama mailer aktif pada config/mail.php (misalnya "smtp" atau "log"). */
     public static function mailer(): string
     {

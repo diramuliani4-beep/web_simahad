@@ -8,6 +8,9 @@ use App\Models\KelompokBelajar;
 use App\Models\KelompokPengajar;
 use App\Models\MataPelajaran;
 use App\Models\Notifikasi;
+use App\Models\PengumpulanTugas;
+use App\Models\PertemuanPembelajaran;
+use App\Models\Tugas;
 use App\Models\User;
 use App\Services\AuditTrailService;
 use Carbon\Carbon;
@@ -17,6 +20,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class MusyrifahManajemenPembelajaranController extends Controller
@@ -36,9 +41,12 @@ class MusyrifahManajemenPembelajaranController extends Controller
         $jumlahPengajar = KelompokPengajar::count();
         $targetPertemuan = 16;
 
-        // Pertemuan terlaksana rata-rata/tertinggi
-        $maxPertemuan = AbsensiPembelajaran::max('pertemuan_ke') ?? 16;
-        $jumlahPertemuanTerlaksana = min(16, (int) $maxPertemuan);
+        // Pertemuan terlaksana tertinggi dari data Guru, atau data absensi lama.
+        $maxPertemuan = (int) PertemuanPembelajaran::query()->selesai()->max('pertemuan_ke');
+        if ($maxPertemuan === 0) {
+            $maxPertemuan = (int) AbsensiPembelajaran::max('pertemuan_ke');
+        }
+        $jumlahPertemuanTerlaksana = min(16, $maxPertemuan);
 
         // 2. Data Menu 1: Mata Pelajaran (5 Mata Pelajaran Utama)
         $daftarMataPelajaran = MataPelajaran::withCount('jadwals')->get();
@@ -57,6 +65,13 @@ class MusyrifahManajemenPembelajaranController extends Controller
             WHEN 'Sabtu' THEN 6 
             ELSE 7 END")
             ->orderBy('jam_mulai')
+            ->get();
+
+        // Akun Guru yang dapat dipilih sebagai pengampu jadwal.
+        $daftarGuru = User::query()
+            ->whereRaw('LOWER(role) = ?', ['guru'])
+            ->with('pegawai')
+            ->orderBy('name')
             ->get();
 
         // 5. Data Menu 4: Pemantauan Pembelajaran (Filter Periode & Kelompok)
@@ -80,6 +95,7 @@ class MusyrifahManajemenPembelajaranController extends Controller
             'daftarKelompok',
             'daftarPengajar',
             'daftarJadwal',
+            'daftarGuru',
             'daftarPemantauan',
             'listPeriode',
             'listKelompokFilter',
@@ -205,30 +221,20 @@ class MusyrifahManajemenPembelajaranController extends Controller
     {
         $this->pastikanPengelola($request);
 
-        $validated = $request->validate([
-            'nama_mata_pelajaran' => ['required', 'string', 'max:255'],
-            'kelompok' => ['required', 'string', 'max:100'],
-            'guru_pengampu' => ['required', 'string', 'max:255'],
-            'periode' => ['nullable', 'string', 'max:100'],
-            'hari' => ['required', 'string', 'max:50'],
-            'jam_mulai' => ['required', 'string', 'max:10'],
-            'jam_selesai' => ['required', 'string', 'max:10'],
-            'ruangan' => ['nullable', 'string', 'max:100'],
-        ]);
+        $validated = $request->validate($this->aturanJadwal());
 
         $mapel = MataPelajaran::where('nama', $validated['nama_mata_pelajaran'])->first();
 
-        $jadwal = JadwalPembelajaran::create([
+        $jadwal = JadwalPembelajaran::create(array_merge($this->penugasanGuru($validated), [
             'mata_pelajaran_id' => $mapel?->id,
             'nama_mata_pelajaran' => $validated['nama_mata_pelajaran'],
             'kelompok' => $validated['kelompok'],
-            'guru_pengampu' => $validated['guru_pengampu'],
             'periode' => $validated['periode'] ?: 'Semester Ganjil 2026/2027',
             'hari' => $validated['hari'],
             'jam_mulai' => $validated['jam_mulai'],
             'jam_selesai' => $validated['jam_selesai'],
             'ruangan' => $validated['ruangan'] ?: 'Ruang Kelas',
-        ]);
+        ]));
 
         $this->kirimNotifikasiJadwal($jadwal, 'jadwal-baru', 'Jadwal pembelajaran baru');
 
@@ -258,22 +264,13 @@ class MusyrifahManajemenPembelajaranController extends Controller
     {
         $this->pastikanPengelola($request);
 
-        $validated = $request->validate([
-            'nama_mata_pelajaran' => ['required', 'string', 'max:255'],
-            'kelompok' => ['required', 'string', 'max:100'],
-            'guru_pengampu' => ['required', 'string', 'max:255'],
-            'periode' => ['nullable', 'string', 'max:100'],
-            'hari' => ['required', 'string', 'max:50'],
-            'jam_mulai' => ['required', 'string', 'max:10'],
-            'jam_selesai' => ['required', 'string', 'max:10'],
-            'ruangan' => ['nullable', 'string', 'max:100'],
-        ]);
+        $validated = $request->validate($this->aturanJadwal());
 
         $jadwal = JadwalPembelajaran::findOrFail($id);
         $mapel = MataPelajaran::where('nama', $validated['nama_mata_pelajaran'])->first();
         $sebelum = $jadwal->getAttributes();
 
-        $jadwal->update(array_merge($validated, [
+        $jadwal->update(array_merge($validated, $this->penugasanGuru($validated), [
             'mata_pelajaran_id' => $mapel?->id ?? $jadwal->mata_pelajaran_id,
         ]));
 
@@ -335,6 +332,61 @@ class MusyrifahManajemenPembelajaranController extends Controller
     }
 
     /**
+     * Aturan validasi jadwal beserta akun Guru pengampu.
+     *
+     * @return array<string, mixed>
+     */
+    private function aturanJadwal(): array
+    {
+        return [
+            'nama_mata_pelajaran' => ['required', 'string', 'max:255'],
+            'kelompok' => ['required', 'string', 'max:100'],
+            'guru_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where(
+                fn ($query) => $query->whereRaw('LOWER(role) = ?', ['guru'])
+            )],
+            'guru_pengampu' => ['nullable', 'string', 'max:255'],
+            'periode' => ['nullable', 'string', 'max:100'],
+            'hari' => ['required', 'string', 'max:50'],
+            'jam_mulai' => ['required', 'string', 'max:10'],
+            'jam_selesai' => ['required', 'string', 'max:10'],
+            'ruangan' => ['nullable', 'string', 'max:100'],
+        ];
+    }
+
+    /**
+     * Menyelaraskan penugasan jadwal dengan akun Guru yang dipilih Musyrifah.
+     *
+     * Penugasan baru menyimpan guru_id sekaligus nama akun pada guru_pengampu,
+     * sehingga langsung terbaca pada menu Pembelajaran akun Guru tersebut.
+     *
+     * @param  array<string, mixed>  $validated
+     * @return array{guru_id: int|null, guru_pengampu: string}
+     */
+    private function penugasanGuru(array $validated): array
+    {
+        if (filled($validated['guru_id'] ?? null)) {
+            $guru = User::find($validated['guru_id']);
+
+            if ($guru) {
+                return [
+                    'guru_id' => (int) $guru->getKey(),
+                    'guru_pengampu' => (string) $guru->name,
+                ];
+            }
+        }
+
+        $namaPengampu = trim((string) ($validated['guru_pengampu'] ?? ''));
+
+        if ($namaPengampu === '') {
+            throw ValidationException::withMessages([
+                'guru_id' => 'Pilih akun Guru pengampu agar penugasan tampil pada menu Pembelajaran Guru tersebut.',
+            ]);
+        }
+
+        return ['guru_id' => null, 'guru_pengampu' => $namaPengampu];
+    }
+
+    /**
      * Memberi tahu mahasiswa satu kelompok bahwa jadwalnya berubah.
      * Kunci unik memakai isi jadwal agar perubahan yang sama tidak
      * menghasilkan notifikasi ganda.
@@ -380,15 +432,34 @@ class MusyrifahManajemenPembelajaranController extends Controller
     /**
      * Detail Pemantauan: Menampilkan rincian status 16 pertemuan untuk mata pelajaran tertentu.
      */
-    public function detailPemantauan(int $id): JsonResponse
+    public function detailPemantauan(Request $request, int $id): JsonResponse
     {
         $mapel = MataPelajaran::findOrFail($id);
 
-        // Ambil rekap absensi per pertemuan 1 s/d 16
+        // Guru mengerjakan pertemuan per mata pelajaran, kelompok, dan periode,
+        // sehingga detail dapat dipersempit melalui parameter opsional berikut.
+        $kelompok = trim((string) $request->query('kelompok', ''));
+        $periode = trim((string) $request->query('periode', ''));
+
+        // Ambil rekap absensi per pertemuan 1 s/d 16.
         $pertemuanList = [];
         for ($p = 1; $p <= 16; $p++) {
+            $pertemuan = PertemuanPembelajaran::query()
+                ->where('mata_pelajaran_id', $mapel->id)
+                ->where('pertemuan_ke', $p)
+                ->when($kelompok !== '', fn ($query) => $query->where('kelompok', $kelompok))
+                ->when($periode !== '', fn ($query) => $query->where('periode', $periode))
+                ->orderBy('id')
+                ->first();
+
             $absensiQuery = AbsensiPembelajaran::where('mata_pelajaran_id', $mapel->id)
-                ->where('pertemuan_ke', $p);
+                ->where('pertemuan_ke', $p)
+                ->when($kelompok !== '', fn ($query) => $query->where('kelompok', $kelompok))
+                ->when(
+                    $pertemuan,
+                    fn ($query) => $query->where('pertemuan_id', $pertemuan->id),
+                    fn ($query) => $query->whereNull('pertemuan_id'),
+                );
 
             $total = (clone $absensiQuery)->count();
             $hadir = (clone $absensiQuery)->where('status', 'hadir')->count();
@@ -396,15 +467,35 @@ class MusyrifahManajemenPembelajaranController extends Controller
             $sakit = (clone $absensiQuery)->where('status', 'sakit')->count();
             $alpa = (clone $absensiQuery)->where('status', 'alpa')->count();
 
-            $tanggal = (clone $absensiQuery)->value('tanggal');
-            $tanggalFormatted = $tanggal ? Carbon::parse($tanggal)->format('d M Y') : 'Minggu ke-'.$p;
+            $tanggal = $pertemuan?->tanggal?->format('d M Y')
+                ?? (($tanggalLegacy = (clone $absensiQuery)->value('tanggal'))
+                    ? Carbon::parse($tanggalLegacy)->format('d M Y')
+                    : 'Minggu ke-'.$p);
 
-            $statusPertemuan = $total > 0 ? 'Terlaksana' : ($p <= 12 ? 'Terlaksana' : 'Terjadwal');
-            $persentase = $total > 0 ? round(($hadir / $total) * 100, 1) : 100;
+            $statusPertemuan = match (true) {
+                (bool) $pertemuan?->sudahSelesai() => 'Terlaksana',
+                (bool) $pertemuan?->berlangsung() => 'Berlangsung',
+                $total > 0 => 'Terlaksana',
+                default => 'Terjadwal',
+            };
+
+            $persentase = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
+
+            $idTugas = $pertemuan
+                ? Tugas::where('pertemuan_id', $pertemuan->id)->pluck('id')
+                : Tugas::query()
+                    ->whereNull('pertemuan_id')
+                    ->where('mata_pelajaran_id', $mapel->id)
+                    ->when($kelompok !== '', fn ($query) => $query->where('kelompok', $kelompok))
+                    ->pluck('id');
+
+            $nilaiRata = $idTugas->isEmpty()
+                ? null
+                : PengumpulanTugas::whereIn('tugas_id', $idTugas)->whereNotNull('nilai')->avg('nilai');
 
             $pertemuanList[] = [
                 'pertemuan_ke' => $p,
-                'tanggal' => $tanggalFormatted,
+                'tanggal' => $tanggal,
                 'status_pertemuan' => $statusPertemuan,
                 'hadir' => $hadir,
                 'izin' => $izin,
@@ -412,6 +503,10 @@ class MusyrifahManajemenPembelajaranController extends Controller
                 'alpa' => $alpa,
                 'total_mahasiswa' => $total,
                 'persentase_kehadiran' => $persentase.'%',
+                'materi' => (bool) $pertemuan?->punyaMateri(),
+                'materi_ringkas' => $pertemuan?->materi ? mb_substr((string) $pertemuan->materi, 0, 90) : null,
+                'jumlah_tugas' => $idTugas->count(),
+                'nilai_rata_rata' => $nilaiRata !== null ? round((float) $nilaiRata, 1) : null,
             ];
         }
 
@@ -423,6 +518,8 @@ class MusyrifahManajemenPembelajaranController extends Controller
                 'kode' => $mapel->kode,
                 'kategori' => $mapel->kategori,
                 'target_pertemuan' => 16,
+                'kelompok' => $kelompok !== '' ? $kelompok : null,
+                'periode' => $periode !== '' ? $periode : null,
             ],
             'pertemuan' => $pertemuanList,
         ]);
@@ -507,34 +604,97 @@ class MusyrifahManajemenPembelajaranController extends Controller
      */
     protected function ambilDataPemantauan(): array
     {
-        $mapels = MataPelajaran::all();
+        $jadwalList = JadwalPembelajaran::query()
+            ->with('mataPelajaran')
+            ->orderBy('mata_pelajaran_id')
+            ->orderBy('kelompok')
+            ->orderBy('id')
+            ->get();
 
-        return $mapels->map(function ($m, $idx) {
-            $totalSesi = AbsensiPembelajaran::where('mata_pelajaran_id', $m->id)->count();
-            $totalHadir = AbsensiPembelajaran::where('mata_pelajaran_id', $m->id)->where('status', 'hadir')->count();
+        if ($jadwalList->isEmpty()) {
+            return MataPelajaran::all()->map(fn (MataPelajaran $mapel) => [
+                'id' => $mapel->id,
+                'nama' => $mapel->nama,
+                'kode' => $mapel->kode,
+                'kategori' => $mapel->kategori,
+                'kelompok' => '-',
+                'pengajar' => "Pengajar Ma'had",
+                'periode' => 'Semester Ganjil 2026/2027',
+                'pertemuan_terlaksana' => 0,
+                'target_pertemuan' => 16,
+                'persentase' => 0.0,
+                'jumlah_materi' => 0,
+                'jumlah_tugas' => 0,
+                'nilai_rata_rata' => null,
+            ])->toArray();
+        }
 
-            $maxPertemuan = AbsensiPembelajaran::where('mata_pelajaran_id', $m->id)->max('pertemuan_ke') ?? 16;
-            $persentase = $totalSesi > 0 ? min(100, round(($totalHadir / $totalSesi) * 100, 1)) : 85.0;
+        // Satu baris pemantauan untuk setiap penugasan (mapel + kelompok + periode).
+        return $jadwalList->map(function (JadwalPembelajaran $jadwal) {
+            $mapel = $jadwal->mataPelajaran;
+            $periode = trim((string) $jadwal->periode) ?: 'Semester Ganjil 2026/2027';
 
-            // Kelompok pengampu
-            $jadwal = JadwalPembelajaran::where('mata_pelajaran_id', $m->id)->first();
-            $kelompokNama = $jadwal?->kelompok ?? 'Kelompok '.(($idx % 6) + 1);
-            $pengajar = $jadwal?->guru_pengampu ?? 'Pengajar Ma\'had';
-            $periode = $jadwal?->periode ?? 'Semester Ganjil 2026/2027';
+            $pertemuan = PertemuanPembelajaran::query()
+                ->where('mata_pelajaran_id', $jadwal->mata_pelajaran_id)
+                ->where('kelompok', $jadwal->kelompok)
+                ->where('periode', $periode)
+                ->get();
+
+            $idPertemuan = $pertemuan->pluck('id');
+
+            // Progres diambil dari pertemuan yang diselesaikan Guru, lalu
+            // memakai data absensi lama bila pertemuan belum pernah dijalankan.
+            if ($idPertemuan->isEmpty()) {
+                $pertemuanTerlaksana = min(16, (int) AbsensiPembelajaran::query()
+                    ->where('mata_pelajaran_id', $jadwal->mata_pelajaran_id)
+                    ->where('kelompok', $jadwal->kelompok)
+                    ->max('pertemuan_ke'));
+            } else {
+                $pertemuanTerlaksana = $pertemuan->filter(fn (PertemuanPembelajaran $item) => $item->sudahSelesai())->count();
+            }
+
+            $absensi = AbsensiPembelajaran::query()
+                ->where('mata_pelajaran_id', $jadwal->mata_pelajaran_id)
+                ->where('kelompok', $jadwal->kelompok)
+                ->where(function ($query) use ($idPertemuan) {
+                    $query->whereIn('pertemuan_id', $idPertemuan)->orWhereNull('pertemuan_id');
+                });
+
+            $totalAbsensi = (clone $absensi)->count();
+            $totalHadir = (clone $absensi)->where('status', 'hadir')->count();
+            $persentase = $totalAbsensi > 0 ? min(100, round(($totalHadir / $totalAbsensi) * 100, 1)) : 0.0;
+
+            $idTugas = Tugas::query()
+                ->where(function ($query) use ($idPertemuan, $jadwal) {
+                    $query->whereIn('pertemuan_id', $idPertemuan)
+                        ->orWhere(function ($lama) use ($jadwal) {
+                            $lama->whereNull('pertemuan_id')
+                                ->where('mata_pelajaran_id', $jadwal->mata_pelajaran_id)
+                                ->where('kelompok', $jadwal->kelompok);
+                        });
+                })
+                ->pluck('id');
+
+            $nilaiRata = $idTugas->isEmpty()
+                ? null
+                : PengumpulanTugas::whereIn('tugas_id', $idTugas)->whereNotNull('nilai')->avg('nilai');
 
             return [
-                'id' => $m->id,
-                'nama' => $m->nama,
-                'kode' => $m->kode,
-                'kategori' => $m->kategori,
-                'kelompok' => $kelompokNama,
-                'pengajar' => $pengajar,
+                'id' => $mapel?->id ?? (int) $jadwal->mata_pelajaran_id,
+                'nama' => $mapel?->nama ?? $jadwal->namaMataPelajaran(),
+                'kode' => $mapel?->kode ?? '-',
+                'kategori' => $mapel?->kategori ?? '-',
+                'kelompok' => $jadwal->kelompok ?: '-',
+                'pengajar' => $jadwal->guru_pengampu ?: "Pengajar Ma'had",
                 'periode' => $periode,
-                'pertemuan_terlaksana' => min(16, (int) $maxPertemuan),
+                'pertemuan_terlaksana' => $pertemuanTerlaksana,
                 'target_pertemuan' => 16,
                 'persentase' => $persentase,
+                'jumlah_materi' => $pertemuan->filter(fn (PertemuanPembelajaran $item) => $item->punyaMateri())->count(),
+                'jumlah_tugas' => $idTugas->count(),
+                'nilai_rata_rata' => $nilaiRata !== null ? round((float) $nilaiRata, 1) : null,
             ];
-        })->toArray();
+        })->values()->toArray();
     }
 
     /**

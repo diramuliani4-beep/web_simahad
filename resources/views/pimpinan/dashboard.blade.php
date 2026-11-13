@@ -937,7 +937,7 @@
                     <div class="sd-card-title">
                         <span class="sd-mark"><x-panel.ikon nama="kamar" /></span>
                         <div>
-                            <h3>Keterisian per Lantai</h3>
+                            <h3>Laporan Gabungan per Lantai</h3>
                             <p>{{ $kamar['jumlah'] }} kamar terdaftar</p>
                         </div>
                     </div>
