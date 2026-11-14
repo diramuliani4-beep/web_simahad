@@ -167,7 +167,7 @@ class MusyrifahLaporanController extends Controller
             'keyword' => $keyword,
             'opsiPeriode' => $this->laporanMahad->opsiPeriode(),
             'filterAction' => route('musyrifah.laporan.detail', ['jenis' => $jenis]),
-            'backUrl' => route('musyrifah.laporan', ['periode' => $periode, 'jenis' => $jenis]),
+            'backUrl' => route('musyrifah.laporan', ['periode' => $periode,]),
             'unduhUrl' => route('musyrifah.laporan.unduh', [
                 'jenis' => $jenis,
                 'periode' => $periode,

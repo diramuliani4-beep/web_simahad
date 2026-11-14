@@ -531,7 +531,7 @@
         <div class="lap-head-aksi">
             <a href="#riwayat-periodik" class="lap-btn lap-btn--garis">Riwayat periodik</a>
             <a href="{{ route('musyrifah.laporan.buat') }}" class="lap-btn lap-btn--utama">
-                + Buat Laporan
+                + Buat Laporan Periodik
             </a>
         </div>
     </div>
