@@ -624,16 +624,16 @@
                 <form action="{{ route('login.post') }}" method="POST" id="loginForm" class="auth-form" autocomplete="on">
                     @csrf
 
-                    <!-- Field: Email atau Username -->
+                    <!-- Field: Email atau NIM -->
                     <div class="form-row">
-                        <label for="login" class="field-label">Email atau Username</label>
+                        <label for="login" class="field-label">Email atau NIM</label>
                         <div class="field-input-wrapper">
                             <input 
                                 type="text" 
                                 id="login" 
                                 name="login" 
                                 class="field-input" 
-                                placeholder="Masukkan email atau username"
+                                placeholder="Masukkan email atau NIM"
                                 value="{{ old('login') }}" 
                                 required 
                                 autofocus 
@@ -719,7 +719,7 @@
             <p class="modal-desc">
                 Login Google belum aktif karena kredensial OAuth (Client ID &amp; Client Secret) belum diisi pada file <strong>.env</strong>.
                 Admin Ma'had dapat melengkapinya beserta Redirect URI <strong>/auth/google/callback</strong> di Google Cloud Console.
-                Sementara itu, silakan masuk menggunakan <strong>Email atau Username</strong> dan kata sandi Anda.
+                Sementara itu, silakan masuk menggunakan <strong>Email atau NIM</strong> dan kata sandi Anda.
             </p>
             <button type="button" class="btn-modal-close" onclick="closeGoogleModal()">Mengerti</button>
         </div>

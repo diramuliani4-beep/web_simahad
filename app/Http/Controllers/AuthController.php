@@ -62,6 +62,7 @@ class AuthController extends Controller
                 ->onlyInput('login');
         }
 
+        /** @var User $user */
         $user = Auth::user();
 
         // Akun staf yang belum diaktifkan lewat tautan email
@@ -70,7 +71,7 @@ class AuthController extends Controller
 
             return redirect()
                 ->route('login')
-                ->with('error', 'Akun Anda belum diaktifkan. Buka tautan aktivasi yang dikirim ke email '.$user->email.'. Bila tautan sudah kedaluwarsa, minta Admin Sistem mengirim ulang tautan aktivasi.');
+                ->with('error', 'Akun Anda belum diaktifkan. Buka tautan aktivasi yang dikirim ke email ' . $user->email . '. Bila tautan sudah kedaluwarsa, minta Admin Sistem mengirim ulang tautan aktivasi.');
         }
 
         // Akun belum diverifikasi admin
@@ -146,6 +147,7 @@ class AuthController extends Controller
         }
 
         try {
+            /** @var \Laravel\Socialite\Two\User $googleUser */
             $googleUser = Socialite::driver('google')->user();
         } catch (\Throwable $e) {
             report($e);
@@ -178,7 +180,7 @@ class AuthController extends Controller
         if (! $user) {
             return redirect()
                 ->route('login')
-                ->with('error', 'Email '.$email.' belum terdaftar di SIMAHAD. Silakan daftar terlebih dahulu, lalu tunggu verifikasi admin.')
+                ->with('error', 'Email ' . $email . ' belum terdaftar di SIMAHAD. Silakan daftar terlebih dahulu, lalu tunggu verifikasi admin.')
                 ->withInput(['login' => $email]);
         }
 
@@ -187,7 +189,7 @@ class AuthController extends Controller
         if (in_array(strtolower((string) $user->status), ['menunggu aktivasi', 'menunggu'], true)) {
             return redirect()
                 ->route('login')
-                ->with('error', 'Akun Anda belum diaktifkan. Buka tautan aktivasi yang dikirim ke email '.$user->email.' terlebih dahulu.');
+                ->with('error', 'Akun Anda belum diaktifkan. Buka tautan aktivasi yang dikirim ke email ' . $user->email . ' terlebih dahulu.');
         }
 
         // Akun belum diverifikasi admin
@@ -370,8 +372,8 @@ class AuthController extends Controller
         return redirect()->route('login')
             ->with(
                 'status',
-                'Kata sandi untuk akun '.$user->name.
-                ' berhasil diperbarui! Silakan masuk dengan kata sandi baru Anda.'
+                'Kata sandi untuk akun ' . $user->name .
+                    ' berhasil diperbarui! Silakan masuk dengan kata sandi baru Anda.'
             );
     }
 
@@ -500,7 +502,7 @@ class AuthController extends Controller
             ->with('fotos')
             ->withCount([
                 'users',
-                'pengajuanKamars as pengajuan_menunggu_count' => fn ($query) => $query
+                'pengajuanKamars as pengajuan_menunggu_count' => fn($query) => $query
                     ->where('status', PengajuanKamar::STATUS_MENUNGGU)
                     ->where('user_id', '!=', $user->id),
             ])
@@ -528,7 +530,7 @@ class AuthController extends Controller
                     'foto_url' => $kamar->urlFotoUtama(),
                     // Galeri foto kamar; foto lama (kamars.foto) tetap tampil sebagai cadangan.
                     'fotos' => $kamar->fotos->isNotEmpty()
-                        ? $kamar->fotos->map(fn ($foto) => [
+                        ? $kamar->fotos->map(fn($foto) => [
                             'id' => $foto->id,
                             'url' => $foto->url,
                         ])->values()->all()
