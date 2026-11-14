@@ -553,6 +553,10 @@
         .mp-summary-grid { grid-template-columns: 1fr; }
         .mp-title { font-size: 24px; }
     }
+    .mp-dokumentasi { min-width: 140px; font-size: 12px; text-align: left; }
+    .mp-dokumentasi summary { color: #6b0d1b; cursor: pointer; font-weight: 600; }
+    .mp-dokumentasi a, .mp-dokumentasi-link { display: block; margin-top: 8px; color: #6b0d1b; font-size: 12px; text-decoration: underline; }
+    .mp-dokumentasi-empty { display: block; margin-top: 6px; color: #4f5767; font-size: 12px; }
 </style>
 
 <div class="musyrifah-pembelajaran">
@@ -905,6 +909,7 @@
                             <th>Progres Pertemuan (16 TM)</th>
                             <th>Kehadiran Rata-rata</th>
                             <th>Materi, Tugas &amp; Nilai</th>
+                            <th>Dokumentasi</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -942,6 +947,20 @@
                                     </div>
                                 </td>
                                 <td>
+                                    @if ($pm['jumlah_dokumentasi'] > 0)
+                                        <details class="mp-dokumentasi">
+                                            <summary>{{ $pm['jumlah_dokumentasi'] }} foto</summary>
+                                            @foreach ($pm['dokumentasi_pertemuan'] as $dokPertemuan)
+                                                <a href="{{ route('pembelajaran.dokumentasi', $dokPertemuan['id']) }}">
+                                                    Pertemuan {{ $dokPertemuan['nomor'] }} · {{ $dokPertemuan['jumlah'] }} foto
+                                                </a>
+                                            @endforeach
+                                        </details>
+                                    @else
+                                        <span class="mp-dokumentasi-empty">Belum ada</span>
+                                    @endif
+                                </td>
+                                <td>
                                     <button type="button" class="btn-table-detail" onclick="openModalDetailPemantauan({{ $pm['id'] }}, '{{ addslashes($pm['nama']) }}', '{{ addslashes($pm['kelompok']) }}', '{{ addslashes($pm['periode']) }}')">
                                         Lihat Detail 16 TM
                                     </button>
@@ -949,7 +968,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" style="padding: 25px;">Belum ada data pemantauan.</td>
+                                <td colspan="10" style="padding: 25px;">Belum ada data pemantauan.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -1590,7 +1609,19 @@
                         </div>
                     `;
                 });
-                document.getElementById('gridPertemuanDetail').innerHTML = html;
+                const grid = document.getElementById('gridPertemuanDetail');
+                grid.innerHTML = html;
+                data.pertemuan.forEach(function (p, index) {
+                    const dokumentasi = document.createElement(p.dokumentasi_url ? 'a' : 'span');
+                    dokumentasi.className = p.dokumentasi_url ? 'mp-dokumentasi-link' : 'mp-dokumentasi-empty';
+                    dokumentasi.textContent = p.dokumentasi_url
+                        ? 'Lihat dokumentasi · ' + p.jumlah_dokumentasi + ' foto'
+                        : 'Dokumentasi belum tersedia';
+                    if (p.dokumentasi_url) {
+                        dokumentasi.href = p.dokumentasi_url;
+                    }
+                    grid.children[index].appendChild(dokumentasi);
+                });
             }
         } catch (e) {
             console.error('Error fetching detail pemantauan:', e);

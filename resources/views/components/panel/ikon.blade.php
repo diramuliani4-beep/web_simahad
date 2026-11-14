@@ -94,6 +94,11 @@
             <path d="M4 20V6M10 20V10M16 20V4M22 20H2" />
             @break
 
+        @case('dokumentasi')
+            <path d="M4 8h2.5l1.8-2.2A1.5 1.5 0 0 1 9.5 5h5a1.5 1.5 0 0 1 1.2.6L17.5 8H20a1.5 1.5 0 0 1 1.5 1.5V19A1.5 1.5 0 0 1 20 20.5H4A1.5 1.5 0 0 1 2.5 19V9.5A1.5 1.5 0 0 1 4 8z" />
+            <circle cx="12" cy="13.5" r="3.4" />
+            @break
+
         @case('monitoring')
             <path d="M22 12h-4l-3 8-4-16-3 8H2" />
             @break

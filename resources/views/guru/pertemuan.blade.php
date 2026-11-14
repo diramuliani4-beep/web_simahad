@@ -66,6 +66,10 @@
     .pt-tugas-aksi { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; margin-top: 8px; }
 
     .pt-materi { font-size: 12.5px; line-height: 1.7; color: #4f4749; white-space: pre-line; }
+    #dokumentasi { scroll-margin-top: 88px; }
+    #dokumentasi .pt-card-top p, .pt-dokumentasi-form small { color: #4f5767; font-size: 12px; line-height: 1.7; }
+    .pt-dokumentasi-form { margin-top: 20px; padding-top: 20px; border-top: 1px solid #ecedf2; }
+    .pt-dokumentasi-form label { font-size: 12px; }
     .pt-kosong { padding: 16px; border: 1px dashed #e3cfd4; border-radius: 10px; background: #fdfafa; text-align: center; color: #8a8284; font-size: 12px; line-height: 1.7; }
 
     .pt-riwayat { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
@@ -374,12 +378,38 @@
         </div>
     </div>
 
+    <section class="pt-card" id="dokumentasi" aria-label="Dokumentasi pertemuan">
+        <div class="pt-card-top">
+            <div>
+                <h2>Dokumentasi</h2>
+                <p>Foto kegiatan pertemuan ini dapat dilihat Musyrifah dan Pimpinan.</p>
+            </div>
+            <span class="pt-tag">{{ $dokumentasi->count() }} foto</span>
+        </div>
+        <div class="pt-card-body">
+            @include('partials.dokumentasi-pertemuan', ['bolehKelola' => true])
+            <form method="POST" action="{{ route('guru.pembelajaran.dokumentasi.store', $pertemuan) }}" enctype="multipart/form-data" class="pt-dokumentasi-form">
+                @csrf
+                <div class="pt-field">
+                    <label for="foto_dokumentasi">Foto Dokumentasi</label>
+                    <input type="file" id="foto_dokumentasi" name="foto_dokumentasi" class="pt-input" accept=".jpg,.jpeg,.png" required aria-describedby="foto_dokumentasi_hint">
+                    <small id="foto_dokumentasi_hint">JPG, JPEG, atau PNG. Maksimal 5 MB per foto. Anda dapat menambahkan foto berikutnya setelah menyimpan.</small>
+                </div>
+                <div class="pt-field">
+                    <label for="keterangan_dokumentasi">Keterangan (opsional)</label>
+                    <textarea id="keterangan_dokumentasi" name="keterangan_dokumentasi" class="pt-textarea" maxlength="2000" placeholder="Jelaskan kegiatan dalam foto ini.">{{ old('keterangan_dokumentasi') }}</textarea>
+                </div>
+                <button type="submit" class="pt-btn">Simpan Dokumentasi</button>
+            </form>
+        </div>
+    </section>
+
     {{-- RIWAYAT --}}
     <section class="pt-card" aria-label="Riwayat pertemuan">
         <div class="pt-card-top">
             <div>
                 <h2>Riwayat Pertemuan</h2>
-                <p>Catatan mulai pertemuan, absensi, koreksi, materi, tugas, dan penyelesaian.</p>
+                <p>Catatan mulai pertemuan, absensi, koreksi, materi, tugas, dokumentasi, dan penyelesaian.</p>
             </div>
             <span class="pt-tag">{{ $riwayat->count() }} catatan terakhir</span>
         </div>

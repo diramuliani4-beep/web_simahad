@@ -639,6 +639,21 @@ Route::middleware('auth')->group(function () {
         'unduhMateri',
     ])->whereNumber('pertemuan')->name('guru.pembelajaran.materi.unduh');
 
+    Route::post('/guru/pembelajaran/pertemuan/{pertemuan}/dokumentasi', [
+        GuruPembelajaranController::class,
+        'unggahDokumentasi',
+    ])->whereNumber('pertemuan')->name('guru.pembelajaran.dokumentasi.store');
+
+    Route::delete('/guru/pembelajaran/pertemuan/{pertemuan}/dokumentasi/{dokumentasi}', [
+        GuruPembelajaranController::class,
+        'hapusDokumentasi',
+    ])->whereNumber(['pertemuan', 'dokumentasi'])->name('guru.pembelajaran.dokumentasi.destroy');
+
+    Route::get('/pembelajaran/pertemuan/{pertemuan}/dokumentasi', [
+        GuruKegiatanDokumentasiController::class,
+        'pertemuan',
+    ])->whereNumber('pertemuan')->name('pembelajaran.dokumentasi');
+
     Route::post('/guru/pembelajaran/pertemuan/{pertemuan}/tugas', [
         GuruPembelajaranController::class,
         'simpanTugas',
@@ -669,6 +684,28 @@ Route::middleware('auth')->group(function () {
         GuruKegiatanDokumentasiController::class,
         'index',
     ])->name('guru.kegiatan-dokumentasi');
+
+    Route::post('/guru/kegiatan-dokumentasi', [
+        GuruKegiatanDokumentasiController::class,
+        'store',
+    ])->name('guru.kegiatan-dokumentasi.store');
+
+    Route::put('/guru/kegiatan-dokumentasi/{dokumentasi}', [
+        GuruKegiatanDokumentasiController::class,
+        'update',
+    ])->whereNumber('dokumentasi')->name('guru.kegiatan-dokumentasi.update');
+
+    Route::delete('/guru/kegiatan-dokumentasi/{dokumentasi}', [
+        GuruKegiatanDokumentasiController::class,
+        'destroy',
+    ])->whereNumber('dokumentasi')->name('guru.kegiatan-dokumentasi.destroy');
+
+    // Foto dokumentasi disajikan terpusat agar Guru (pemilik), Musyrifah,
+    // Pimpinan, dan Admin dapat melihatnya lewat halaman masing-masing.
+    Route::get('/dokumentasi-kegiatan/{dokumentasi}/foto', [
+        GuruKegiatanDokumentasiController::class,
+        'foto',
+    ])->whereNumber('dokumentasi')->name('dokumentasi.foto');
 
     // Pengaturan akun Guru
     Route::get('/guru/pengaturan-akun', [

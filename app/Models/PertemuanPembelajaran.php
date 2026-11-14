@@ -84,6 +84,11 @@ class PertemuanPembelajaran extends Model
         return $this->hasMany(Tugas::class, 'pertemuan_id');
     }
 
+    public function dokumentasi(): HasMany
+    {
+        return $this->hasMany(DokumentasiKegiatan::class, 'pertemuan_id');
+    }
+
     public function scopeSelesai(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_SELESAI);

@@ -8,6 +8,7 @@ use App\Models\Kamar;
 use App\Models\Pembayaran;
 use App\Models\Pendaftaran;
 use App\Models\PengumpulanTugas;
+use App\Models\PertemuanPembelajaran;
 use App\Models\SuratPerizinan;
 use App\Models\Tugas;
 use App\Models\User;
@@ -497,9 +498,21 @@ class LaporanMahadService
                 ->get()
                 ->groupBy('tugas_id');
 
-        $baris = $jadwal->map(function (Collection $daftarJadwal, string $kelompok) use ($absensi, $tugas, $pengumpulan): array {
+        $dokumentasiPertemuan = PertemuanPembelajaran::query()
+            ->with('mataPelajaran')
+            ->withCount('dokumentasi')
+            ->whereHas('dokumentasi')
+            ->where('tanggal', '>=', $mulai->toDateString())
+            ->where('tanggal', '<', $mulai->addMonth()->toDateString())
+            ->orderBy('tanggal')
+            ->orderBy('id')
+            ->get()
+            ->groupBy(fn (PertemuanPembelajaran $item): string => (string) $item->kelompok);
+
+        $baris = $jadwal->map(function (Collection $daftarJadwal, string $kelompok) use ($absensi, $tugas, $pengumpulan, $dokumentasiPertemuan): array {
             $daftarAbsensi = $absensi->get($kelompok, collect());
             $daftarTugas = $tugas->get($kelompok, collect());
+            $daftarDokumentasi = $dokumentasiPertemuan->get($kelompok, collect());
             $jumlahHadir = $daftarAbsensi->filter(
                 fn (AbsensiPembelajaran $item): bool => strtolower((string) $item->status) === 'hadir'
             )->count();
@@ -524,6 +537,21 @@ class LaporanMahadService
                 'pengumpulan' => $daftarTugas
                     ->sum(fn (Tugas $item): int => $pengumpulan->get($item->id, collect())->count()),
                 'rata_nilai' => $nilai->isEmpty() ? '-' : (string) round((float) $nilai->avg(), 1),
+                'jumlah_dokumentasi' => (int) $daftarDokumentasi->sum('dokumentasi_count'),
+                'dokumentasi_pertemuan' => $daftarDokumentasi
+                    ->map(fn (PertemuanPembelajaran $item): array => [
+                        'pertemuan_id' => $item->id,
+                        'label' => sprintf(
+                            '%s · %s · Pertemuan %d · %s',
+                            $item->periode ?: '-',
+                            $item->mataPelajaran?->nama ?? 'Mata Pelajaran',
+                            $item->pertemuan_ke,
+                            $item->tanggalTeks(),
+                        ),
+                        'jumlah_dokumentasi' => (int) $item->dokumentasi_count,
+                    ])
+                    ->values()
+                    ->all(),
             ];
         })->values();
 
@@ -549,6 +577,7 @@ class LaporanMahadService
                 ['key' => 'tugas', 'label' => 'Tugas', 'align' => 'center'],
                 ['key' => 'pengumpulan', 'label' => 'Pengumpulan', 'align' => 'center'],
                 ['key' => 'rata_nilai', 'label' => 'Rata-rata Nilai', 'align' => 'center'],
+                ['key' => 'jumlah_dokumentasi', 'label' => 'Dokumentasi', 'align' => 'center'],
             ],
             'baris' => $baris->all(),
             'total' => $baris->count(),

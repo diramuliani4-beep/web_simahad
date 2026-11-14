@@ -106,7 +106,7 @@ class PembelajaranGuruService
     public function progres(JadwalPembelajaran $jadwal): array
     {
         $tersimpan = PertemuanPembelajaran::query()
-            ->withCount('tugas')
+            ->withCount(['tugas', 'dokumentasi'])
             ->where('mata_pelajaran_id', $jadwal->mata_pelajaran_id)
             ->where('kelompok', $jadwal->kelompok)
             ->where('periode', $this->periode($jadwal))
@@ -143,6 +143,7 @@ class PembelajaranGuruService
                 'materi' => $pertemuan?->materi,
                 'punya_materi' => (bool) $pertemuan?->punyaMateri(),
                 'jumlah_tugas' => (int) ($pertemuan?->tugas_count ?? 0),
+                'jumlah_dokumentasi' => (int) ($pertemuan?->dokumentasi_count ?? 0),
             ];
         }
 
@@ -152,6 +153,7 @@ class PembelajaranGuruService
             'berlangsung' => $berlangsung,
             'berikutnya' => $berlangsung ?? $berikutnya,
             'persentase' => round(($selesai / self::TARGET_PERTEMUAN) * 100, 1),
+            'jumlah_dokumentasi' => (int) $tersimpan->sum('dokumentasi_count'),
         ];
     }
 

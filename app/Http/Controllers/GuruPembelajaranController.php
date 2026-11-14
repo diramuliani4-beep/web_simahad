@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AbsensiPembelajaran;
 use App\Models\ActivityLog;
+use App\Models\DokumentasiKegiatan;
 use App\Models\JadwalPembelajaran;
 use App\Models\Notifikasi;
 use App\Models\PertemuanPembelajaran;
@@ -12,6 +13,7 @@ use App\Services\AuditTrailService;
 use App\Services\PembelajaranGuruService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -68,6 +70,8 @@ class GuruPembelajaranController extends Controller
                 'berlangsung' => $progresItem['berlangsung'],
                 'berikutnya' => $progresItem['berikutnya'],
                 'persentase' => $progresItem['persentase'],
+                'jumlah_dokumentasi' => $progresItem['jumlah_dokumentasi'],
+                'pertemuan_dokumentasi' => collect($progresItem['daftar'])->whereNotNull('pertemuan')->all(),
                 'aktif' => $jadwal instanceof JadwalPembelajaran && $jadwal->id === $item->id,
             ];
         });
@@ -184,6 +188,7 @@ class GuruPembelajaranController extends Controller
             'mahasiswa' => $mahasiswa,
             'absensi' => $absensi,
             'tugas' => $tugas,
+            'dokumentasi' => $pertemuan->dokumentasi()->with('guru')->latest('id')->get(),
             'ringkasanAbsensi' => $pertemuan->ringkasanAbsensi(),
             'statusAbsensi' => PertemuanPembelajaran::STATUS_ABSENSI,
             'riwayat' => $riwayat,
@@ -330,6 +335,86 @@ class GuruPembelajaranController extends Controller
         abort_unless($pertemuan->punyaBerkasMateri(), 404);
 
         return response()->file(Storage::disk('local')->path($pertemuan->materi_path));
+    }
+
+    public function unggahDokumentasi(Request $request, PertemuanPembelajaran $pertemuan): RedirectResponse
+    {
+        $guru = $this->layanan->guru($request);
+        $this->layanan->pastikanMilikGuru($guru, $pertemuan);
+
+        $data = $request->validate([
+            'foto_dokumentasi' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
+            'keterangan_dokumentasi' => ['nullable', 'string', 'max:2000'],
+        ], [
+            'foto_dokumentasi.required' => 'Pilih foto dokumentasi terlebih dahulu.',
+            'foto_dokumentasi.image' => 'Dokumentasi harus berupa foto JPG, JPEG, atau PNG.',
+            'foto_dokumentasi.mimes' => 'Dokumentasi harus berupa foto JPG, JPEG, atau PNG.',
+            'foto_dokumentasi.max' => 'Ukuran foto dokumentasi maksimal 5 MB.',
+            'keterangan_dokumentasi.max' => 'Keterangan dokumentasi maksimal 2000 karakter.',
+        ]);
+
+        $foto = $request->file('foto_dokumentasi');
+        $path = $foto->store('dokumentasi/foto', 'local');
+        abort_unless($path, 500, 'Foto belum berhasil disimpan. Silakan coba kembali.');
+
+        try {
+            DB::transaction(function () use ($pertemuan, $guru, $data, $foto, $path): void {
+                $dokumentasi = $pertemuan->dokumentasi()->create([
+                    'guru_id' => $guru->id,
+                    'judul' => 'Dokumentasi Pertemuan '.$pertemuan->pertemuan_ke,
+                    'kelompok' => $pertemuan->kelompok,
+                    'tanggal' => $pertemuan->tanggal,
+                    'keterangan' => $data['keterangan_dokumentasi'] ?? null,
+                    'foto_path' => $path,
+                    'foto_nama' => $foto->getClientOriginalName(),
+                ]);
+
+                $this->audit->catat(
+                    'pembelajaran',
+                    'dokumentasi_pertemuan_diunggah',
+                    $pertemuan->label(),
+                    (int) $pertemuan->id,
+                    'Guru menambahkan dokumentasi pertemuan '.$pertemuan->pertemuan_ke.'.',
+                    $guru,
+                    [],
+                    $dokumentasi->only(['id', 'pertemuan_id', 'foto_nama', 'keterangan']),
+                );
+            });
+        } catch (\Throwable $exception) {
+            Storage::disk('local')->delete($path);
+            throw $exception;
+        }
+
+        return redirect()->to(route('guru.pembelajaran.pertemuan', $pertemuan).'#dokumentasi')
+            ->with('success', 'Dokumentasi tersimpan dan dapat dilihat Musyrifah serta Pimpinan.');
+    }
+
+    public function hapusDokumentasi(Request $request, PertemuanPembelajaran $pertemuan, DokumentasiKegiatan $dokumentasi): RedirectResponse
+    {
+        $guru = $this->layanan->guru($request);
+        $this->layanan->pastikanMilikGuru($guru, $pertemuan);
+        abort_unless((int) $dokumentasi->pertemuan_id === (int) $pertemuan->id, 404);
+        abort_unless((int) $dokumentasi->guru_id === (int) $guru->id, 403);
+
+        $path = $dokumentasi->foto_path;
+        DB::transaction(function () use ($pertemuan, $dokumentasi, $guru): void {
+            $sebelum = $dokumentasi->only(['id', 'pertemuan_id', 'foto_nama', 'keterangan']);
+            $dokumentasi->delete();
+            $this->audit->catat(
+                'pembelajaran',
+                'dokumentasi_pertemuan_dihapus',
+                $pertemuan->label(),
+                (int) $pertemuan->id,
+                'Guru menghapus dokumentasi pertemuan '.$pertemuan->pertemuan_ke.'.',
+                $guru,
+                $sebelum,
+                [],
+            );
+        });
+        $this->hapusBerkas($path);
+
+        return redirect()->to(route('guru.pembelajaran.pertemuan', $pertemuan).'#dokumentasi')
+            ->with('success', 'Foto dokumentasi berhasil dihapus.');
     }
 
     /** Menambahkan tugas pada pertemuan yang sedang dibuka. */

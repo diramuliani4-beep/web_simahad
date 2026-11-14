@@ -33,6 +33,7 @@ class MusyrifahManajemenPembelajaranController extends Controller
      */
     public function index(Request $request): View
     {
+        $this->pastikanPengelola($request);
         $this->pastikanAdaData();
 
         // 1. Data Ringkasan Atas
@@ -563,6 +564,7 @@ class MusyrifahManajemenPembelajaranController extends Controller
      */
     public function detailPemantauan(Request $request, int $id): JsonResponse
     {
+        $this->pastikanPengelola($request);
         $mapel = MataPelajaran::findOrFail($id);
 
         // Guru mengerjakan pertemuan per mata pelajaran, kelompok, dan periode,
@@ -574,6 +576,7 @@ class MusyrifahManajemenPembelajaranController extends Controller
         $pertemuanList = [];
         for ($p = 1; $p <= 16; $p++) {
             $pertemuan = PertemuanPembelajaran::query()
+                ->withCount('dokumentasi')
                 ->where('mata_pelajaran_id', $mapel->id)
                 ->where('pertemuan_ke', $p)
                 ->when($kelompok !== '', fn ($query) => $query->where('kelompok', $kelompok))
@@ -634,6 +637,9 @@ class MusyrifahManajemenPembelajaranController extends Controller
                 'persentase_kehadiran' => $persentase.'%',
                 'materi' => (bool) $pertemuan?->punyaMateri(),
                 'materi_ringkas' => $pertemuan?->materi ? mb_substr((string) $pertemuan->materi, 0, 90) : null,
+                'jumlah_dokumentasi' => (int) ($pertemuan?->dokumentasi_count ?? 0),
+                'dokumentasi_url' => $pertemuan && $pertemuan->dokumentasi_count > 0
+                    ? route('pembelajaran.dokumentasi', $pertemuan) : null,
                 'jumlah_tugas' => $idTugas->count(),
                 'nilai_rata_rata' => $nilaiRata !== null ? round((float) $nilaiRata, 1) : null,
             ];
@@ -753,6 +759,8 @@ class MusyrifahManajemenPembelajaranController extends Controller
                 'target_pertemuan' => 16,
                 'persentase' => 0.0,
                 'jumlah_materi' => 0,
+                'jumlah_dokumentasi' => 0,
+                'dokumentasi_pertemuan' => [],
                 'jumlah_tugas' => 0,
                 'nilai_rata_rata' => null,
             ])->toArray();
@@ -764,6 +772,7 @@ class MusyrifahManajemenPembelajaranController extends Controller
             $periode = trim((string) $jadwal->periode) ?: 'Semester Ganjil 2026/2027';
 
             $pertemuan = PertemuanPembelajaran::query()
+                ->withCount('dokumentasi')
                 ->where('mata_pelajaran_id', $jadwal->mata_pelajaran_id)
                 ->where('kelompok', $jadwal->kelompok)
                 ->where('periode', $periode)
@@ -820,6 +829,12 @@ class MusyrifahManajemenPembelajaranController extends Controller
                 'target_pertemuan' => 16,
                 'persentase' => $persentase,
                 'jumlah_materi' => $pertemuan->filter(fn (PertemuanPembelajaran $item) => $item->punyaMateri())->count(),
+                'jumlah_dokumentasi' => (int) $pertemuan->sum('dokumentasi_count'),
+                'dokumentasi_pertemuan' => $pertemuan->where('dokumentasi_count', '>', 0)->map(fn (PertemuanPembelajaran $item): array => [
+                    'id' => $item->id,
+                    'nomor' => $item->pertemuan_ke,
+                    'jumlah' => (int) $item->dokumentasi_count,
+                ])->values()->all(),
                 'jumlah_tugas' => $idTugas->count(),
                 'nilai_rata_rata' => $nilaiRata !== null ? round((float) $nilaiRata, 1) : null,
             ];

@@ -64,6 +64,11 @@
     .pl-table td { padding: 10px 11px; border-bottom: 1px solid #f4eceb; color: #4f4749; vertical-align: top; line-height: 1.6; }
     .pl-table tr:last-child td { border-bottom: 0; }
     .pl-table .aktif { background: #fdf6f7; }
+    .pl-dokumentasi { min-width: 145px; }
+    .pl-dokumentasi summary { color: #6b0d1b; font-weight: 600; cursor: pointer; }
+    .pl-dokumentasi a { display: block; margin-top: 8px; color: #6b0d1b; text-decoration: underline; }
+    .pl-dokumentasi-empty, .pl-tile-dokumentasi { font-size: 12px; color: #4f5767; }
+    .pl-tile-dokumentasi { margin: 2px 0 6px; color: #6b0d1b; }
 
     .pl-empty { padding: 30px 18px; border: 1px dashed #e3cfd4; border-radius: 10px; background: #fdfafa; text-align: center; color: #8a8284; font-size: 12px; line-height: 1.7; }
     .pl-empty strong { display: block; margin-bottom: 4px; color: #4a4244; font-size: 13px; }
@@ -91,7 +96,7 @@
         <h1>Pembelajaran</h1>
         <p>
             Pilih mata pelajaran yang Anda ampu, jalankan pertemuan 1&ndash;{{ $targetPertemuan }},
-            isi absensi, unggah materi dan tugas, lalu selesaikan pertemuan.
+            isi absensi, unggah materi, tugas, dan dokumentasi, lalu selesaikan pertemuan.
         </p>
     </header>
 
@@ -230,6 +235,7 @@
                                     &middot; Tugas: {{ $butir['jumlah_tugas'] }}
                                 </span>
                                 @if ($butir['pertemuan'])
+                                    <a class="pl-tile-dokumentasi" href="{{ route('guru.pembelajaran.pertemuan', $butir['pertemuan']) }}#dokumentasi">Dokumentasi: {{ $butir['jumlah_dokumentasi'] }} foto</a>
                                     <a class="pl-btn ghost small" href="{{ route('guru.pembelajaran.pertemuan', $butir['pertemuan']) }}">
                                         Buka Pertemuan
                                     </a>
@@ -256,6 +262,7 @@
                                 <th>Periode</th>
                                 <th>Jadwal</th>
                                 <th>Progres</th>
+                                <th>Dokumentasi</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
@@ -267,6 +274,20 @@
                                     <td>{{ $baris['periode'] }}</td>
                                     <td>{{ $baris['jadwal']->hari }}, {{ $baris['jadwal']->jamTeks() }}</td>
                                     <td>{{ $baris['selesai'] }}/{{ $targetPertemuan }} pertemuan</td>
+                                    <td>
+                                        @if ($baris['pertemuan_dokumentasi'])
+                                            <details class="pl-dokumentasi">
+                                                <summary>{{ $baris['jumlah_dokumentasi'] }} foto · Kelola</summary>
+                                                @foreach ($baris['pertemuan_dokumentasi'] as $dokPertemuan)
+                                                    <a href="{{ route('guru.pembelajaran.pertemuan', $dokPertemuan['pertemuan']) }}#dokumentasi">
+                                                        Pertemuan {{ $dokPertemuan['nomor'] }} · {{ $dokPertemuan['jumlah_dokumentasi'] }} foto
+                                                    </a>
+                                                @endforeach
+                                            </details>
+                                        @else
+                                            <span class="pl-dokumentasi-empty">Mulai pertemuan dahulu</span>
+                                        @endif
+                                    </td>
                                     <td>
                                         <a class="pl-btn ghost small" href="{{ route('guru.pembelajaran', [
                                             'mata_pelajaran' => $baris['jadwal']->mata_pelajaran_id,

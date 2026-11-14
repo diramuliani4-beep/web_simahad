@@ -779,7 +779,7 @@
         }
     </style>
 
-    <main id="simahad-pimpinan-dashboard">
+    <div id="simahad-pimpinan-dashboard">
         <div class="sd-topline">
             <span class="sd-date">
                 <x-panel.ikon nama="jadwal" />
@@ -1005,5 +1005,5 @@
         </div>
 
         
-    </main>
+    </div>
 @endsection
