@@ -1,429 +1,93 @@
+@extends('layouts.mahasiswa')
 
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Surat & Perizinan - SIMAHAD</title>
+@section('title', 'Surat & Perizinan - SIMAHAD')
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
-    <style>
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        :root {
-            --primary-maroon: #6e001b;
-            --primary-maroon-hover: #580015;
-            --maroon-tint: #faedf0;
-            --maroon-border: #7c1a2e;
-            --text-dark: #111827;
-            --text-secondary: #4b5563;
-            --text-muted: #6b7280;
-            --sidebar-width: 280px;
-            --header-height: 66px;
-        }
-
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #fff;
-            color: var(--text-dark);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        button, input, select, textarea {
-            font: inherit;
-        }
-
-        /* ================= NAVBAR ================= */
-        .top-navbar {
-            height: var(--header-height);
-            background: #fff;
-            border-bottom: 1.5px solid var(--maroon-border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-        }
-
-        .navbar-brand-wrap {
-            display: flex;
-            align-items: center;
-            gap: .85rem;
-        }
-
-        .brand-logo-img {
-            height: 44px;
-            width: auto;
-            object-fit: contain;
-        }
-
-        .brand-title {
-            font-size: 1.65rem;
-            font-weight: 800;
-            color: var(--primary-maroon);
-            letter-spacing: -.01em;
-        }
-
-        .navbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 1.15rem;
-        }
-
-        .btn-circle-action {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: none;
-            cursor: pointer;
-            transition: transform .15s ease;
-        }
-
-        .btn-circle-action:hover {
-            transform: scale(1.05);
-        }
-
-        .btn-bell-badge {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: var(--primary-maroon);
-            color: #fff;
-            position: relative;
-        }
-
-        .btn-bell-badge svg {
-            width: 20px;
-            height: 20px;
-            stroke: #fff;
-        }
-
-        .notification-dot {
-            position: absolute;
-            top: 5px;
-            right: 6px;
-            width: 7px;
-            height: 7px;
-            background: #e6b94f;
-            border-radius: 50%;
-            border: 1px solid #fff;
-        }
-
-        .btn-profile-badge {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 2px solid #262626;
-            background: #fff;
-            color: #262626;
-        }
-
-        .btn-profile-badge svg {
-            width: 26px;
-            height: 26px;
-        }
-
-        .mobile-toggle-btn {
-            display: none;
-            background: transparent;
-            border: none;
-            color: var(--primary-maroon);
-            cursor: pointer;
-            padding: .4rem;
-        }
-
-        /* ================= BODY & SIDEBAR ================= */
-        .dashboard-body {
-            display: flex;
-            min-height: calc(100vh - var(--header-height));
-            width: 100%;
-        }
-
-        .sidebar {
-            width: var(--sidebar-width);
-            min-width: var(--sidebar-width);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            border-right: 1.5px solid var(--maroon-border);
-            overflow: hidden;
-            background: #f1f5f9;
-        }
-
-        .sidebar-bg {
-            position: absolute;
-            inset: 0;
-            z-index: 1;
-            background-image: url('{{ asset("images/mahad_al_jamiah.jpeg") }}');
-            background-size: cover;
-            background-position: center top;
-            background-repeat: no-repeat;
-        }
-
-        .sidebar-overlay {
-            position: absolute;
-            inset: 0;
-            z-index: 2;
-            background: linear-gradient(
-                180deg,
-                rgba(219,234,254,.45) 0%,
-                rgba(241,245,249,.55) 30%,
-                rgba(255,255,255,.85) 65%,
-                rgba(255,255,255,.95) 100%
-            );
-        }
-
-        .sidebar-watermark {
-            position: absolute;
-            top: 55%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 3;
-            pointer-events: none;
-            text-align: center;
-            opacity: .28;
-            width: 100%;
-            padding: 0 10px;
-        }
-
-        .watermark-emblem {
-            margin: 0 auto 4px;
-            display: block;
-        }
-
-        .watermark-text-2 {
-            font-size: 1.05rem;
-            font-weight: 800;
-            color: #334155;
-            line-height: 1.2;
-        }
-
-        .sidebar-content {
-            position: relative;
-            z-index: 4;
-            display: flex;
-            flex-direction: column;
-            min-height: calc(100vh - var(--header-height));
-            width: 100%;
-            justify-content: space-between;
-            padding: 1.25rem 1.15rem 1.5rem;
-        }
-
-        .sidebar-nav {
-            display: flex;
-            flex-direction: column;
-            gap: .75rem;
-            flex-grow: 1;
-        }
-
-        .nav-pill {
-            display: flex;
-            align-items: center;
-            gap: .85rem;
-            min-height: 46px;
-            padding: 0 1rem;
-            background: #fff;
-            border: 1.5px solid var(--maroon-border);
-            border-radius: 12px;
-            color: #1a1a1a;
-            font-size: .92rem;
-            font-weight: 700;
-            transition: all .2s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,.03);
-            cursor: pointer;
-            width: 100%;
-        }
-
-        .nav-pill:hover {
-            transform: translateX(3px);
-            background: #fff8f9;
-        }
-
-        .nav-pill.active {
-            background: var(--maroon-tint);
-            border-color: var(--primary-maroon);
-            color: var(--primary-maroon);
-        }
-
-        .nav-pill.active .nav-icon svg {
-            stroke: var(--primary-maroon);
-        }
-
-        .nav-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 22px;
-            height: 22px;
-            flex-shrink: 0;
-        }
-
-        .nav-icon svg {
-            display: block;
-            stroke: #262626;
-        }
-
-        .nav-label {
-            flex-grow: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .nav-chevron {
-            font-size: 1.15rem;
-            font-weight: 800;
-            color: var(--primary-maroon);
-            line-height: 1;
-            margin-left: auto;
-        }
-
-        .sidebar-nav-bottom {
-            margin-top: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: .75rem;
-        }
-
-        .btn-keluar-pill {
-            display: flex;
-            align-items: center;
-            gap: .85rem;
-            min-height: 46px;
-            padding: 0 1rem;
-            background: #fff;
-            border: 1.5px solid var(--maroon-border);
-            border-radius: 12px;
-            color: #1a1a1a;
-            font-size: .92rem;
-            font-weight: 700;
-            transition: all .2s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,.03);
-            cursor: pointer;
-            width: 100%;
-            text-align: left;
-        }
-
-        .btn-keluar-pill:hover {
-            background: #fff1f2;
-            color: #be123c;
-            transform: translateX(3px);
-        }
-
-        .btn-keluar-pill:hover svg {
-            stroke: #be123c;
-        }
-
-        .sidebar-backdrop {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,.4);
-            z-index: 45;
-        }
-
-        /* ================= MAIN CONTENT ================= */
-        .main-content {
-            flex: 1;
-            min-width: 0;
-            padding: 2rem 2.75rem 3rem;
-            display: flex;
-            flex-direction: column;
-            background: #fff;
-        }
-
-        .page-header {
+@push('styles')
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+.surat-perizinan-page {
+    --primary-maroon: #6e001b;
+    --primary-maroon-hover: #580015;
+    --maroon-tint: #faedf0;
+    --maroon-border: #7c1a2e;
+    --text-dark: #111827;
+    --text-secondary: #4b5563;
+    --text-muted: #6b7280;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: transparent;
+    color: var(--text-dark);
+    min-width: 0;
+    width: 100%;
+}
+.surat-perizinan-page, .surat-perizinan-page *, .surat-perizinan-page *::before, .surat-perizinan-page *::after { box-sizing: border-box; }
+.surat-perizinan-page a { color: inherit; text-decoration: none; }
+.surat-perizinan-page button, .surat-perizinan-page input, .surat-perizinan-page select, .surat-perizinan-page textarea { font: inherit; }
+.surat-perizinan-page .surat-content { min-width:0; padding:0; display:flex; flex-direction:column; background:transparent; }
+.surat-perizinan-page .page-header {
             margin-bottom: 1.5rem;
         }
-
-        .breadcrumb {
+.surat-perizinan-page .breadcrumb {
             color: var(--primary-maroon);
             font-size: .9rem;
             font-weight: 600;
             margin-bottom: .55rem;
         }
-
-        .page-header h1 {
+.surat-perizinan-page .page-header h1 {
             font-size: 1.85rem;
             font-weight: 800;
             color: #111827;
             margin-bottom: .4rem;
         }
-
-        .page-header p {
+.surat-perizinan-page .page-header p {
             font-size: .95rem;
             color: var(--text-secondary);
             line-height: 1.6;
         }
-
-        .section-title {
+.surat-perizinan-page .section-title {
             font-size: 1rem;
             font-weight: 800;
             color: #111827;
             margin-bottom: .85rem;
         }
-
-        .summary-grid {
+.surat-perizinan-page .summary-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
-
-        .summary-card {
+.surat-perizinan-page .summary-card {
             background: #fff;
             border: 1.5px solid var(--maroon-border);
             border-radius: 14px;
             min-height: 115px;
             padding: 1rem 1.15rem;
         }
-
-        .summary-icon {
+.surat-perizinan-page .summary-icon {
             font-size: 1.2rem;
             margin-bottom: .35rem;
         }
-
-        .waiting { color: #c9912d; }
-        .approved { color: #40956c; }
-        .rejected { color: #d65f5f; }
-
-        .summary-number {
+.surat-perizinan-page .waiting { color: #c9912d; }
+.surat-perizinan-page .approved { color: #40956c; }
+.surat-perizinan-page .rejected { color: #d65f5f; }
+.surat-perizinan-page .summary-number {
             font-size: 1.5rem;
             font-weight: 800;
         }
-
-        .summary-label {
+.surat-perizinan-page .summary-label {
             color: var(--text-muted);
             font-size: .8rem;
             margin-top: .2rem;
         }
-
-        .request-grid {
+.surat-perizinan-page .request-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 1rem;
             margin-bottom: 1.6rem;
         }
-
-        .request-card {
+.surat-perizinan-page .request-card {
             border: 1.5px solid var(--maroon-border);
             border-radius: 14px;
             background: #fff;
@@ -431,13 +95,11 @@
             padding: 1.1rem 1.25rem;
             transition: .2s;
         }
-
-        .request-card:hover {
+.surat-perizinan-page .request-card:hover {
             box-shadow: 0 4px 14px rgba(110,0,27,.06);
             transform: translateY(-2px);
         }
-
-        .request-icon {
+.surat-perizinan-page .request-icon {
             width: 46px;
             height: 46px;
             background: #fdf2f4;
@@ -449,21 +111,18 @@
             font-size: 1.2rem;
             margin-bottom: .8rem;
         }
-
-        .request-card h3 {
+.surat-perizinan-page .request-card h3 {
             font-size: .95rem;
             font-weight: 800;
             margin-bottom: .45rem;
         }
-
-        .request-card p {
+.surat-perizinan-page .request-card p {
             font-size: .82rem;
             line-height: 1.6;
             color: var(--text-muted);
             margin-bottom: .65rem;
         }
-
-        .request-link {
+.surat-perizinan-page .request-link {
             border: none;
             background: none;
             color: var(--primary-maroon);
@@ -471,19 +130,16 @@
             font-weight: 800;
             cursor: pointer;
         }
-
-        .request-link:hover {
+.surat-perizinan-page .request-link:hover {
             text-decoration: underline;
         }
-
-        .history-card {
+.surat-perizinan-page .history-card {
             background: #fff;
             border: 1.5px solid var(--maroon-border);
             border-radius: 14px;
             overflow: hidden;
         }
-
-        .history-item {
+.surat-perizinan-page .history-item {
             display: flex;
             align-items: center;
             gap: 1rem;
@@ -492,16 +148,13 @@
             cursor: pointer;
             transition: background .2s;
         }
-
-        .history-item:last-child {
+.surat-perizinan-page .history-item:last-child {
             border-bottom: none;
         }
-
-        .history-item:hover {
+.surat-perizinan-page .history-item:hover {
             background: #fff9fa;
         }
-
-        .history-icon {
+.surat-perizinan-page .history-icon {
             width: 46px;
             height: 46px;
             flex-shrink: 0;
@@ -513,63 +166,52 @@
             border-radius: 10px;
             font-size: 1.15rem;
         }
-
-        .history-info {
+.surat-perizinan-page .history-info {
             flex: 1;
             min-width: 0;
         }
-
-        .history-info h3 {
+.surat-perizinan-page .history-info h3 {
             font-size: .9rem;
             font-weight: 800;
             margin-bottom: .3rem;
         }
-
-        .history-date {
+.surat-perizinan-page .history-date {
             font-size: .78rem;
             color: var(--text-muted);
         }
-
-        .status {
+.surat-perizinan-page .status {
             font-size: .78rem;
             font-weight: 700;
             margin-top: .25rem;
         }
-
-        .status.pending { color: #c9912d; }
-        .status.accepted { color: #40956c; }
-        .status.denied { color: #d65f5f; }
-
-        .history-arrow {
+.surat-perizinan-page .status.pending { color: #c9912d; }
+.surat-perizinan-page .status.accepted { color: #40956c; }
+.surat-perizinan-page .status.denied { color: #d65f5f; }
+.surat-perizinan-page .history-arrow {
             color: #888;
             font-size: .9rem;
         }
-
-        .empty-history {
+.surat-perizinan-page .empty-history {
             padding: 2rem;
             text-align: center;
             color: #888;
             font-size: .85rem;
         }
-
-        /* ================= FORM MODALS ================= */
-        .modal {
+.surat-perizinan-page .modal {
             display: none;
             position: fixed;
             inset: 0;
-            z-index: 100;
+            z-index: 1400;
             background: rgba(0,0,0,.45);
             backdrop-filter: blur(2px);
             padding: 20px;
             align-items: center;
             justify-content: center;
         }
-
-        .modal.show {
+.surat-perizinan-page .modal.show {
             display: flex;
         }
-
-        .modal-box {
+.surat-perizinan-page .modal-box {
             width: 100%;
             max-width: 520px;
             max-height: 90vh;
@@ -580,43 +222,35 @@
             border: 1.5px solid var(--maroon-border);
             box-shadow: 0 20px 25px -5px rgba(0,0,0,.15);
         }
-
-        .modal-header {
+.surat-perizinan-page .modal-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 10px;
             margin-bottom: 1.2rem;
         }
-
-        .modal-header h2 {
+.surat-perizinan-page .modal-header h2 {
             color: var(--primary-maroon);
             font-size: 1.25rem;
             font-weight: 800;
         }
-
-        .close-modal {
+.surat-perizinan-page .close-modal {
             background: none;
             border: none;
             font-size: 1.6rem;
             cursor: pointer;
             color: #777;
         }
-
-        .form-group {
+.surat-perizinan-page .form-group {
             margin-bottom: 1rem;
         }
-
-        .form-group label {
+.surat-perizinan-page .form-group label {
             display: block;
             font-size: .85rem;
             font-weight: 700;
             margin-bottom: .45rem;
         }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
+.surat-perizinan-page .form-group input, .surat-perizinan-page .form-group select, .surat-perizinan-page .form-group textarea {
             width: 100%;
             padding: .7rem .75rem;
             border: 1px solid #cbd5e1;
@@ -625,26 +259,20 @@
             outline: none;
             background: #fff;
         }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
+.surat-perizinan-page .form-group input:focus, .surat-perizinan-page .form-group select:focus, .surat-perizinan-page .form-group textarea:focus {
             border-color: var(--primary-maroon);
             box-shadow: 0 0 0 3px rgba(110,0,27,.08);
         }
-
-        .form-group textarea {
+.surat-perizinan-page .form-group textarea {
             resize: vertical;
             min-height: 90px;
         }
-
-        .form-note {
+.surat-perizinan-page .form-note {
             font-size: .75rem;
             color: #888;
             margin-top: .35rem;
         }
-
-        .btn-submit {
+.surat-perizinan-page .btn-submit {
             width: 100%;
             padding: .8rem;
             background: var(--primary-maroon);
@@ -655,12 +283,10 @@
             font-weight: 800;
             cursor: pointer;
         }
-
-        .btn-submit:hover {
+.surat-perizinan-page .btn-submit:hover {
             background: var(--primary-maroon-hover);
         }
-
-        .detail-row {
+.surat-perizinan-page .detail-row {
             display: flex;
             justify-content: space-between;
             gap: 20px;
@@ -668,58 +294,48 @@
             border-bottom: 1px solid #eee;
             font-size: .85rem;
         }
-
-        .detail-row span:first-child {
+.surat-perizinan-page .detail-row span:first-child {
             color: #777;
             flex-shrink: 0;
         }
-
-        .detail-row span:last-child {
+.surat-perizinan-page .detail-row span:last-child {
             text-align: right;
             font-weight: 600;
             overflow-wrap: anywhere;
         }
-
-        .alert {
+.surat-perizinan-page .alert {
             display: none;
             margin-bottom: 1rem;
             border-radius: 9px;
             padding: .75rem;
             font-size: .82rem;
         }
-
-        .alert.show { display: block; }
-
-        .alert.success {
+.surat-perizinan-page .alert.show { display: block; }
+.surat-perizinan-page .alert.success {
             color: #246b46;
             background: #e9f7ef;
             border: 1px solid #b7e3c8;
         }
-
-        .alert.error {
+.surat-perizinan-page .alert.error {
             color: #a21c2e;
             background: #fff0f0;
             border: 1px solid #f2c0c0;
         }
-
-        /* ================= INFO MODAL ================= */
-        .info-modal-overlay {
+.surat-perizinan-page .info-modal-overlay {
             display: none;
             position: fixed;
             inset: 0;
             background: rgba(0,0,0,.45);
             backdrop-filter: blur(2px);
-            z-index: 110;
+            z-index: 1410;
             align-items: center;
             justify-content: center;
             padding: 1.5rem;
         }
-
-        .info-modal-overlay.active {
+.surat-perizinan-page .info-modal-overlay.active {
             display: flex;
         }
-
-        .info-modal-box {
+.surat-perizinan-page .info-modal-box {
             background: #fff;
             border-radius: 16px;
             max-width: 480px;
@@ -729,23 +345,20 @@
             position: relative;
             border: 1.5px solid var(--maroon-border);
         }
-
-        .info-modal-title {
+.surat-perizinan-page .info-modal-title {
             font-size: 1.2rem;
             font-weight: 800;
             color: var(--primary-maroon);
             margin-bottom: .75rem;
         }
-
-        .info-modal-body {
+.surat-perizinan-page .info-modal-body {
             font-size: .9rem;
             color: #374151;
             line-height: 1.7;
             margin-bottom: 1.25rem;
             overflow-wrap: anywhere;
         }
-
-        .btn-info-close {
+.surat-perizinan-page .btn-info-close {
             position: absolute;
             top: 1rem;
             right: 1rem;
@@ -755,8 +368,7 @@
             cursor: pointer;
             color: #94a3b8;
         }
-
-        .btn-info-action {
+.surat-perizinan-page .btn-info-action {
             width: 100%;
             background: var(--primary-maroon);
             color: #fff;
@@ -767,185 +379,68 @@
             font-size: .9rem;
             cursor: pointer;
         }
-
-        .btn-info-action:hover {
+.surat-perizinan-page .btn-info-action:hover {
             background: var(--primary-maroon-hover);
         }
-
-        /* ================= RESPONSIVE ================= */
-        @media (max-width: 1100px) {
-            .main-content {
-                padding: 1.7rem 1.5rem 2.5rem;
-            }
-
-            .summary-grid {
+@media (max-width: 1100px) {
+.surat-perizinan-page .surat-content { min-width:0; padding:0; display:flex; flex-direction:column; background:transparent; }
+.surat-perizinan-page .summary-grid {
                 gap: .75rem;
             }
-
-            .request-grid {
+.surat-perizinan-page .request-grid {
                 gap: .75rem;
             }
-        }
-
-        @media (max-width: 992px) {
-            .mobile-toggle-btn {
-                display: block;
-            }
-
-            .sidebar {
-                position: fixed;
-                top: var(--header-height);
-                bottom: 0;
-                left: calc(-1 * var(--sidebar-width) - 10px);
-                z-index: 46;
-                transition: left .3s ease;
-                box-shadow: 4px 0 15px rgba(0,0,0,.1);
-                overflow-y: auto;
-            }
-
-            .sidebar.active {
-                left: 0;
-            }
-
-            .sidebar-content {
-                min-height: calc(100vh - var(--header-height));
-            }
-
-            .sidebar-backdrop.active {
-                display: block;
-            }
-
-            .main-content {
-                padding: 1.5rem 1.25rem 2.5rem;
-            }
-        }
-
-        @media (max-width: 650px) {
-            .top-navbar {
-                padding: 0 1rem;
-            }
-
-            .brand-title {
-                font-size: 1.25rem;
-            }
-
-            .brand-logo-img {
-                height: 38px;
-                max-width: 42px;
-            }
-
-            .navbar-actions {
-                gap: .6rem;
-            }
-
-            .btn-profile-badge {
-                width: 36px;
-                height: 36px;
-            }
-
-            .page-header h1 {
+}
+@media (max-width: 992px) {
+.surat-perizinan-page .surat-content { min-width:0; padding:0; display:flex; flex-direction:column; background:transparent; }
+}
+@media (max-width: 650px) {
+.surat-perizinan-page .page-header h1 {
                 font-size: 1.5rem;
             }
-
-            .summary-grid {
+.surat-perizinan-page .summary-grid {
                 grid-template-columns: 1fr;
             }
-
-            .summary-card {
+.surat-perizinan-page .summary-card {
                 min-height: 95px;
             }
-
-            .request-grid {
+.surat-perizinan-page .request-grid {
                 grid-template-columns: 1fr;
             }
-
-            .history-item {
+.surat-perizinan-page .history-item {
                 padding: .85rem;
                 gap: .7rem;
             }
-
-            .history-icon {
+.surat-perizinan-page .history-icon {
                 width: 40px;
                 height: 40px;
             }
-
-            .detail-row {
+.surat-perizinan-page .detail-row {
                 gap: 10px;
                 font-size: .8rem;
             }
-        }
-    </style>
-</head>
-
-<body>
-
-<!-- ================= TOP NAVBAR ================= -->
-<header class="top-navbar">
-    <div style="display:flex;align-items:center;gap:.75rem;">
-        <button type="button" class="mobile-toggle-btn" id="mobileMenuBtn" aria-label="Buka Menu">
-            <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
-            </svg>
-        </button>
-
-        <a href="{{ route('dashboard') }}" class="navbar-brand-wrap">
-            <img src="{{ asset('images/logo_uin.png') }}" alt="Logo SIMAHAD" class="brand-logo-img">
-            <span class="brand-title">SIMAHAD</span>
-        </a>
-    </div>
-
-    <div class="navbar-actions">
-        <button type="button" class="btn-circle-action btn-bell-badge"
-                title="Pemberitahuan"
-                onclick="openInfoModal('Pemberitahuan', 'Tidak ada pemberitahuan baru saat ini.')">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-            </svg>
-            <span class="notification-dot"></span>
-        </button>
-
-        <x-mahasiswa.profile-dropdown />
-    </div>
-</header>
-
-<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-
-<div class="dashboard-body">
-
-    {{-- Sidebar bersama seluruh role SIMAHAD. --}}
-    <x-panel.sidebar ragam="alir" atas="66px" />
-
-
-
-    <!-- ================= MAIN CONTENT ================= -->
-    <main class="main-content">
-        <style>
-            .sp-alert {
+}
+.surat-perizinan-page .sp-alert {
                 margin: 0 20px 18px;
                 padding: 12px 16px;
                 border-radius: 10px;
                 font-size: 14px;
                 line-height: 1.55;
             }
-
-            .sp-alert ul {
+.surat-perizinan-page .sp-alert ul {
                 margin: 6px 0 0 18px;
             }
-
-            .sp-alert--sukses {
+.surat-perizinan-page .sp-alert--sukses {
                 background: #eaf6ee;
                 border: 1px solid #2f7d4f;
                 color: #1c5334;
             }
-
-            .sp-alert--gagal {
+.surat-perizinan-page .sp-alert--gagal {
                 background: #fdeff1;
                 border: 1px solid #800d22;
                 color: #800d22;
             }
-
-            .sp-kuota {
+.surat-perizinan-page .sp-kuota {
                 display: flex;
                 flex-wrap: wrap;
                 align-items: center;
@@ -959,8 +454,7 @@
                 color: #fff;
                 box-shadow: 0 4px 10px rgba(107, 13, 27, 0.25);
             }
-
-            .sp-kuota__judul {
+.surat-perizinan-page .sp-kuota__judul {
                 display: inline-flex;
                 align-items: center;
                 gap: 9px;
@@ -968,79 +462,65 @@
                 font-weight: 700;
                 color: #F3E3BF;
             }
-
-            .sp-kuota__info p {
+.surat-perizinan-page .sp-kuota__info p {
                 margin: 5px 0 0;
                 font-size: 13.5px;
                 color: #f6e7ea;
             }
-
-            .sp-kuota__angka {
+.surat-perizinan-page .sp-kuota__angka {
                 display: flex;
                 flex-direction: column;
                 align-items: flex-end;
                 gap: 2px;
             }
-
-            .sp-kuota__angka span {
+.surat-perizinan-page .sp-kuota__angka span {
                 font-size: 24px;
                 font-weight: 800;
                 color: #C9A96A;
             }
-
-            .sp-kuota__angka small {
+.surat-perizinan-page .sp-kuota__angka small {
                 font-size: 12.5px;
                 color: #f6e7ea;
             }
-
-            .sp-table-wrap {
+.surat-perizinan-page .sp-table-wrap {
                 margin: 0 20px 26px;
                 overflow-x: auto;
                 border: 1px solid #d9c2c8;
                 border-radius: 14px;
                 background: #fff;
             }
-
-            .sp-table {
+.surat-perizinan-page .sp-table {
                 width: 100%;
                 min-width: 860px;
                 border-collapse: collapse;
             }
-
-            .sp-table thead {
+.surat-perizinan-page .sp-table thead {
                 background: #6B0D1B;
                 color: #fff;
             }
-
-            .sp-table th,
-            .sp-table td {
+.surat-perizinan-page .sp-table th, .surat-perizinan-page .sp-table td {
                 padding: 11px 13px;
                 font-size: 13.5px;
                 text-align: left;
                 border-bottom: 1px solid #eddde1;
                 vertical-align: middle;
             }
-
-            .sp-table th {
+.surat-perizinan-page .sp-table th {
                 font-weight: 700;
                 white-space: nowrap;
             }
-
-            .sp-table tbody tr:hover {
+.surat-perizinan-page .sp-table tbody tr:hover {
                 background: #fdf6f7;
             }
-
-            .sp-table tbody tr:last-child td {
+.surat-perizinan-page .sp-table tbody tr:last-child td {
                 border-bottom: none;
             }
-
-            .sp-empty {
+.surat-perizinan-page .sp-empty {
                 text-align: center !important;
                 color: #6b7280;
                 padding: 22px 12px !important;
             }
-
-            .sp-badge {
+.surat-perizinan-page .sp-badge {
                 display: inline-block;
                 padding: 4px 11px;
                 border-radius: 999px;
@@ -1048,26 +528,22 @@
                 font-weight: 700;
                 white-space: nowrap;
             }
-
-            .sp-badge--menunggu { background: #fdf1d8; color: #8a5a00; border: 1px solid #e0b658; }
-            .sp-badge--disetujui { background: #e7f6ec; color: #1e6b3a; border: 1px solid #7fbf95; }
-            .sp-badge--ditolak { background: #fdeaea; color: #a01c2c; border: 1px solid #e2969f; }
-            .sp-badge--perbaikan { background: #fdf1d8; color: #8a4b00; border: 1px solid #e0a558; }
-            .sp-badge--selesai { background: #e8eefb; color: #22457f; border: 1px solid #93a9d6; }
-            .sp-badge--dibatalkan { background: #eef0f3; color: #4b5563; border: 1px solid #b9c0ca; }
-
-            .sp-aksi {
+.surat-perizinan-page .sp-badge--menunggu { background: #fdf1d8; color: #8a5a00; border: 1px solid #e0b658; }
+.surat-perizinan-page .sp-badge--disetujui { background: #e7f6ec; color: #1e6b3a; border: 1px solid #7fbf95; }
+.surat-perizinan-page .sp-badge--ditolak { background: #fdeaea; color: #a01c2c; border: 1px solid #e2969f; }
+.surat-perizinan-page .sp-badge--perbaikan { background: #fdf1d8; color: #8a4b00; border: 1px solid #e0a558; }
+.surat-perizinan-page .sp-badge--selesai { background: #e8eefb; color: #22457f; border: 1px solid #93a9d6; }
+.surat-perizinan-page .sp-badge--dibatalkan { background: #eef0f3; color: #4b5563; border: 1px solid #b9c0ca; }
+.surat-perizinan-page .sp-aksi {
                 display: flex;
                 flex-wrap: wrap;
                 gap: 6px;
                 align-items: center;
             }
-
-            .sp-aksi form {
+.surat-perizinan-page .sp-aksi form {
                 display: inline;
             }
-
-            .sp-link {
+.surat-perizinan-page .sp-link {
                 border: 1px solid #6B0D1B;
                 background: #fff;
                 color: #6B0D1B;
@@ -1078,89 +554,77 @@
                 cursor: pointer;
                 white-space: nowrap;
             }
-
-            .sp-link:hover {
+.surat-perizinan-page .sp-link:hover {
                 background: #6B0D1B;
                 color: #fff;
             }
-
-            .sp-link--emas {
+.surat-perizinan-page .sp-link--emas {
                 border-color: #C9A96A;
                 background: #C9A96A;
                 color: #4a1720;
             }
-
-            .sp-link--danger {
+.surat-perizinan-page .sp-link--danger {
                 border-color: #a01c2c;
                 color: #a01c2c;
             }
-
-            .sp-link--danger:hover {
+.surat-perizinan-page .sp-link--danger:hover {
                 background: #a01c2c;
                 color: #fff;
             }
-
-            .sp-detail-group {
+.surat-perizinan-page .sp-detail-group {
                 margin-bottom: 18px;
                 padding-bottom: 14px;
                 border-bottom: 1px dashed #e3cdd3;
             }
-
-            .sp-detail-group:last-child {
+.surat-perizinan-page .sp-detail-group:last-child {
                 border-bottom: none;
                 margin-bottom: 0;
             }
-
-            .sp-detail-group h4 {
+.surat-perizinan-page .sp-detail-group h4 {
                 margin: 0 0 10px;
                 font-size: 14px;
                 color: #6B0D1B;
                 text-transform: uppercase;
                 letter-spacing: .04em;
             }
-
-            .sp-detail-row {
+.surat-perizinan-page .sp-detail-row {
                 display: flex;
                 justify-content: space-between;
                 gap: 18px;
                 padding: 5px 0;
                 font-size: 14px;
             }
-
-            .sp-detail-row span:first-child {
+.surat-perizinan-page .sp-detail-row span:first-child {
                 color: #6b7280;
                 flex-shrink: 0;
             }
-
-            .sp-detail-row span:last-child {
+.surat-perizinan-page .sp-detail-row span:last-child {
                 text-align: right;
                 color: #111827;
                 font-weight: 600;
                 word-break: break-word;
             }
-
-            @media (max-width: 768px) {
-                .sp-kuota,
-                .sp-table-wrap,
-                .sp-alert {
+@media (max-width: 768px) {
+.surat-perizinan-page .sp-kuota, .surat-perizinan-page .sp-table-wrap, .surat-perizinan-page .sp-alert {
                     margin-left: 6px;
                     margin-right: 6px;
                 }
-
-                .sp-kuota__angka {
+.surat-perizinan-page .sp-kuota__angka {
                     align-items: flex-start;
                 }
-            }
-        </style>
+}
+</style>
+@endpush
 
-        @if (session('success'))
+@section('content')
+<div class="surat-perizinan-page">
+    <div class="surat-content">
+@if (session('success'))
             <div class="sp-alert sp-alert--sukses">{{ session('success') }}</div>
         @endif
-
         @if (session('error'))
             <div class="sp-alert sp-alert--gagal">{{ session('error') }}</div>
         @endif
-
         @if ($errors->any())
             <div class="sp-alert sp-alert--gagal">
                 <strong>Periksa kembali data pengajuan:</strong>
@@ -1171,36 +635,30 @@
                 </ul>
             </div>
         @endif
-
         <section class="page-header">
             <div class="breadcrumb">Dashboard / Surat &amp; Perizinan</div>
             <h1>Surat &amp; Perizinan</h1>
             <p>Ajukan surat dan perizinan serta pantau status pengajuanmu.</p>
         </section>
-
         <section>
             <h2 class="section-title">Ringkasan Pengajuan</h2>
-
             <div class="summary-grid">
                 <div class="summary-card">
                     <div class="summary-icon waiting"><i class="fa-regular fa-clock"></i></div>
                     <div class="summary-number" id="countPending">{{ $jumlahMenunggu }}</div>
                     <div class="summary-label">Menunggu</div>
                 </div>
-
                 <div class="summary-card">
                     <div class="summary-icon approved"><i class="fa-regular fa-circle-check"></i></div>
                     <div class="summary-number" id="countApproved">{{ $jumlahDisetujui }}</div>
                     <div class="summary-label">Disetujui</div>
                 </div>
-
                 <div class="summary-card">
                     <div class="summary-icon rejected"><i class="fa-regular fa-circle-xmark"></i></div>
                     <div class="summary-number" id="countRejected">{{ $jumlahDitolak }}</div>
                     <div class="summary-label">Ditolak</div>
                 </div>
             </div>
-
             <div class="sp-kuota">
                 <div class="sp-kuota__info">
                     <span class="sp-kuota__judul">
@@ -1214,9 +672,7 @@
                     <small>Sisa {{ $kuotaPulang['sisa'] }} slot bulan ini</small>
                 </div>
             </div>
-
             <h2 class="section-title">Buat Pengajuan</h2>
-
             <div class="request-grid">
                 <div class="request-card">
                     <div class="request-icon"><i class="fa-solid fa-building-columns"></i></div>
@@ -1226,7 +682,6 @@
                         Buat Pengajuan &rarr;
                     </a>
                 </div>
-
                 <div class="request-card">
                     <div class="request-icon"><i class="fa-solid fa-calendar-check"></i></div>
                     <h3>Izin Kegiatan Kampus</h3>
@@ -1235,7 +690,6 @@
                         Buat Pengajuan &rarr;
                     </a>
                 </div>
-
                 <div class="request-card">
                     <div class="request-icon"><i class="fa-solid fa-file-signature"></i></div>
                     <h3>Surat Pulang Semester</h3>
@@ -1244,7 +698,6 @@
                         Buka Surat Semester &rarr;
                     </a>
                 </div>
-
                 <div class="request-card">
                     <div class="request-icon"><i class="fa-solid fa-house"></i></div>
                     <h3>Izin Pulang</h3>
@@ -1253,8 +706,6 @@
                         Buat Pengajuan &rarr;
                     </a>
                 </div>
-
-
                 <div class="request-card">
                     <div class="request-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
                     <h3>Riwayat Pengajuan</h3>
@@ -1264,9 +715,7 @@
                     </button>
                 </div>
             </div>
-
             <h2 class="section-title">Riwayat Pengajuan</h2>
-
             <div class="sp-table-wrap">
                 <table class="sp-table">
                     <thead>
@@ -1319,7 +768,6 @@
                                         >
                                             Detail
                                         </button>
-
                                         @if (in_array($pengajuan->status, ['menunggu', 'perlu_perbaikan'], true))
                                             <form
                                                 method="POST"
@@ -1344,9 +792,7 @@
                 </table>
             </div>
         </section>
-    </main>
-</div>
-
+    </div>
 <!-- ================= MODAL PENGAJUAN ================= -->
 <div class="modal" id="formModal">
     <div class="modal-box">
@@ -1354,9 +800,7 @@
             <h2 id="formTitle">Buat Pengajuan</h2>
             <button type="button" class="close-modal" onclick="closeModal('formModal')">&times;</button>
         </div>
-
         <div id="formAlert" class="alert"></div>
-
         <form id="permissionForm" onsubmit="submitForm(event)">
             <div class="form-group">
                 <label for="jenis">Jenis Pengajuan</label>
@@ -1367,33 +811,27 @@
                     <option value="Izin Pulang">Izin Pulang</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label for="tanggalMulai">Tanggal Mulai / Keberangkatan</label>
                 <input type="date" id="tanggalMulai" name="tanggalMulai" required>
             </div>
-
             <div class="form-group" id="tanggalKembaliGroup">
                 <label for="tanggalKembali">Tanggal Kembali</label>
                 <input type="date" id="tanggalKembali" name="tanggalKembali">
             </div>
-
             <div class="form-group">
                 <label for="keperluan">Keperluan / Alasan</label>
                 <textarea id="keperluan" name="keperluan" placeholder="Jelaskan keperluan pengajuan..." required></textarea>
             </div>
-
             <div class="form-group">
                 <label for="lampiran">Lampiran (opsional)</label>
                 <input type="file" id="lampiran" name="lampiran" accept=".pdf,.jpg,.jpeg,.png">
                 <div class="form-note">Format yang diperbolehkan: PDF, JPG, JPEG, PNG. Maksimal 5 MB.</div>
             </div>
-
             <button type="submit" class="btn-submit">Kirim Pengajuan</button>
         </form>
     </div>
 </div>
-
 <!-- ================= MODAL DETAIL ================= -->
 <div class="modal" id="detailModal">
     <div class="modal-box">
@@ -1404,7 +842,6 @@
         <div id="detailContent"></div>
     </div>
 </div>
-
 <!-- ================= MODAL INFORMASI ================= -->
 <div class="info-modal-overlay" id="infoModal" onclick="closeInfoModalOnBackdrop(event)">
     <div class="info-modal-box">
@@ -1414,7 +851,6 @@
         <button type="button" class="btn-info-action" onclick="closeInfoModal()">Tutup</button>
     </div>
 </div>
-
 <script type="text/plain" data-nonaktif="skrip-contoh-lama">
     {{-- Skrip contoh lama dinonaktifkan agar tidak menimpa data dari database. --}}
     // Contoh data tampilan. Belum terhubung ke database.
@@ -1444,7 +880,6 @@
             status: 'Ditolak'
         }
     ];
-
     function openForm(jenis) {
         document.getElementById('permissionForm').reset();
         document.getElementById('formTitle').textContent = jenis;
@@ -1453,16 +888,13 @@
         updateFormFields();
         document.getElementById('formModal').classList.add('show');
     }
-
     function closeModal(id) {
         document.getElementById(id).classList.remove('show');
     }
-
     function updateFormFields() {
         const jenis = document.getElementById('jenis').value;
         const kembaliGroup = document.getElementById('tanggalKembaliGroup');
         const kembaliInput = document.getElementById('tanggalKembali');
-
         if (jenis === 'Izin Pulang') {
             kembaliGroup.style.display = 'block';
             kembaliInput.required = true;
@@ -1472,38 +904,31 @@
             kembaliInput.value = '';
         }
     }
-
     function submitForm(event) {
         event.preventDefault();
-
         const jenis = document.getElementById('jenis').value;
         const mulai = document.getElementById('tanggalMulai').value;
         const kembali = document.getElementById('tanggalKembali').value;
         const keperluan = document.getElementById('keperluan').value.trim();
         const lampiran = document.getElementById('lampiran').files[0];
-
         if (!jenis || !mulai || !keperluan) {
             showFormAlert('Mohon lengkapi data pengajuan.', 'error');
             return;
         }
-
         if (jenis === 'Izin Pulang' && kembali && kembali < mulai) {
             showFormAlert('Tanggal kembali tidak boleh sebelum tanggal keberangkatan.', 'error');
             return;
         }
-
         if (lampiran && lampiran.size > 5 * 1024 * 1024) {
             showFormAlert('Ukuran lampiran maksimal 5 MB.', 'error');
             return;
         }
-
         const date = new Date(mulai + 'T00:00:00');
         const formattedDate = date.toLocaleDateString('id-ID', {
             day: 'numeric',
             month: 'long',
             year: 'numeric'
         });
-
         submissions.unshift({
             jenis: jenis,
             tanggal: formattedDate,
@@ -1512,48 +937,37 @@
             keperluan: keperluan,
             status: 'Menunggu Persetujuan'
         });
-
         renderHistory();
         updateSummary();
         closeModal('formModal');
-
         alert('Pengajuan ditambahkan pada tampilan ini. Data belum disimpan ke database.');
     }
-
     function showFormAlert(message, type) {
         const alertBox = document.getElementById('formAlert');
         alertBox.textContent = message;
         alertBox.className = 'alert show ' + type;
     }
-
     function updateSummary() {
         const pending = submissions.filter(item => item.status === 'Menunggu Persetujuan').length;
         const approved = submissions.filter(item => item.status === 'Disetujui').length;
         const rejected = submissions.filter(item => item.status === 'Ditolak').length;
-
         document.getElementById('countPending').textContent = pending;
         document.getElementById('countApproved').textContent = approved;
         document.getElementById('countRejected').textContent = rejected;
     }
-
     function renderHistory() {
         const list = document.getElementById('historyList');
-
         if (submissions.length === 0) {
             list.innerHTML = '<div class="empty-history">Belum ada pengajuan.</div>';
             return;
         }
-
         list.innerHTML = submissions.map((item, index) => {
             let statusClass = 'pending';
-
             if (item.status === 'Disetujui') statusClass = 'accepted';
             if (item.status === 'Ditolak') statusClass = 'denied';
-
             let icon = 'fa-file-lines';
             if (item.jenis === 'Izin Pulang') icon = 'fa-house';
             if (item.jenis === 'Izin Kegiatan') icon = 'fa-calendar-check';
-
             return `
                 <div class="history-item" onclick="showDetail(${index})">
                     <div class="history-icon">
@@ -1569,11 +983,9 @@
             `;
         }).join('');
     }
-
     function showDetail(index) {
         const item = submissions[index];
         if (!item) return;
-
         document.getElementById('detailContent').innerHTML = `
             <div class="detail-row">
                 <span>Jenis Pengajuan</span>
@@ -1600,33 +1012,27 @@
                 <span>${escapeHTML(item.status)}</span>
             </div>
         `;
-
         document.getElementById('detailModal').classList.add('show');
     }
-
     function showHistory() {
         document.getElementById('historyList').scrollIntoView({
             behavior: 'smooth',
             block: 'start'
         });
     }
-
     function openInfoModal(title, content) {
         document.getElementById('infoModalTitle').textContent = title;
         document.getElementById('infoModalBody').innerHTML = content;
         document.getElementById('infoModal').classList.add('active');
     }
-
     function closeInfoModal() {
         document.getElementById('infoModal').classList.remove('active');
     }
-
     function closeInfoModalOnBackdrop(event) {
         if (event.target === document.getElementById('infoModal')) {
             closeInfoModal();
         }
     }
-
     function escapeHTML(value) {
         return String(value ?? '').replace(/[&<>"']/g, function(char) {
             const entities = {
@@ -1639,7 +1045,6 @@
             return entities[char];
         });
     }
-
     // Tutup modal jika pengguna menekan area di luar kotak modal.
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', function(event) {
@@ -1648,7 +1053,6 @@
             }
         });
     });
-
     // Tutup modal dengan tombol Escape.
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
@@ -1658,23 +1062,19 @@
             closeInfoModal();
         }
     });
-
     // Menu sidebar pada layar kecil.
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
     const sidebar = document.getElementById('sidebar');
     const sidebarBackdrop = document.getElementById('sidebarBackdrop');
-
     if (mobileMenuBtn) {
         mobileMenuBtn.addEventListener('click', function() {
             sidebar.classList.toggle('active');
             sidebarBackdrop.classList.toggle('active');
         });
-
         sidebarBackdrop.addEventListener('click', function() {
             sidebar.classList.remove('active');
             sidebarBackdrop.classList.remove('active');
         });
-
         sidebar.querySelectorAll('a.nav-pill').forEach(link => {
             link.addEventListener('click', function() {
                 sidebar.classList.remove('active');
@@ -1682,59 +1082,50 @@
             });
         });
     }
-
     // Tampilkan contoh riwayat dan hitung ringkasan saat halaman dibuka.
     updateFormFields();
     renderHistory();
     updateSummary();
 </script>
+</div>
+@endsection
 
+@push('scripts')
 <script>
-    function closeModal(id) {
+function closeModal(id) {
         const modal = document.getElementById(id);
-
         if (modal) {
             modal.classList.remove('show');
         }
     }
-
     function showHistory() {
         const tabel = document.querySelector('.sp-table-wrap');
-
         if (tabel) {
             tabel.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }
-
     function bukaDetail(tombol) {
         let data = {};
-
         try {
             data = JSON.parse(tombol.dataset.detail || '{}');
         } catch (error) {
             return;
         }
-
         const baris = (label, nilai) => `
             <div class="sp-detail-row">
                 <span>${label}</span>
                 <span>${escapeHTML(nilai ?? '-')}</span>
             </div>`;
-
         const berkas = [];
-
         if (data.dokumen) {
             berkas.push(`<a class="sp-link" href="${data.dokumen}" target="_blank" rel="noopener">Surat Pendukung</a>`);
         }
-
         if (data.tertanda) {
             berkas.push(`<a class="sp-link" href="${data.tertanda}" target="_blank" rel="noopener">Surat Bertanda Tangan</a>`);
         }
-
         if (data.cetak) {
             berkas.push(`<a class="sp-link sp-link--emas" href="${data.cetak}" target="_blank" rel="noopener">Cetak Surat Semester</a>`);
         }
-
         const isi = `
             <div class="sp-detail-group">
                 <h4>Informasi Pengajuan</h4>
@@ -1761,11 +1152,9 @@
             </div>
             ${berkas.length > 0 ? `<div class="sp-detail-group"><h4>Berkas</h4><div class="sp-aksi">${berkas.join(' ')}</div></div>` : ''}
         `;
-
         document.getElementById('detailContent').innerHTML = isi;
         document.getElementById('detailModal').classList.add('show');
     }
-
     function escapeHTML(value) {
         return String(value ?? '').replace(/[&<>"']/g, function (char) {
             const entities = {
@@ -1775,11 +1164,9 @@
                 '"': '&quot;',
                 "'": '&#039;'
             };
-
             return entities[char];
         });
     }
-
     // Tutup modal saat area luar atau tombol Escape ditekan.
     document.querySelectorAll('.modal').forEach(function (modal) {
         modal.addEventListener('click', function (event) {
@@ -1788,7 +1175,6 @@
             }
         });
     });
-
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
             document.querySelectorAll('.modal.show').forEach(function (modal) {
@@ -1796,24 +1182,5 @@
             });
         }
     });
-
-    // Menu sidebar pada layar kecil.
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-    const sidebar = document.getElementById('sidebar');
-    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
-
-    if (mobileMenuBtn && sidebar && sidebarBackdrop) {
-        mobileMenuBtn.addEventListener('click', function () {
-            sidebar.classList.toggle('active');
-            sidebarBackdrop.classList.toggle('active');
-        });
-
-        sidebarBackdrop.addEventListener('click', function () {
-            sidebar.classList.remove('active');
-            sidebarBackdrop.classList.remove('active');
-        });
-    }
 </script>
-
-</body>
-</html>
+@endpush

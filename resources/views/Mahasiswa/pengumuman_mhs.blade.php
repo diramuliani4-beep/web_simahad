@@ -1,370 +1,62 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+@extends('layouts.mahasiswa')
 
-    <title>Pengumuman Mahasiswa | SIMAHAD</title>
+@section('title', 'Pengumuman Mahasiswa | SIMAHAD')
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <style>
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        :root {
-            --primary-maroon: #6e001b;
-            --primary-maroon-hover: #580015;
-            --maroon-tint: #faedf0;
-            --maroon-border: #7c1a2e;
-            --text-dark: #111827;
-            --text-secondary: #4b5563;
-            --text-muted: #6b7280;
-            --border: #e5ded9;
-            --sidebar-width: 280px;
-            --header-height: 66px;
-        }
-
-        html {
-            min-height: 100%;
-        }
-
-        body {
-            font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-            background: #fff;
-            color: var(--text-dark);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-        }
-
-        button, input {
-            font: inherit;
-        }
-
-        /* ================= HEADER ================= */
-
-        .top-navbar {
-            height: var(--header-height);
-            min-height: var(--header-height);
-            background: #fff;
+@push('styles')
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+.pengumuman-page {
+    --primary-maroon: #6e001b;
+    --primary-maroon-hover: #580015;
+    --maroon-tint: #faedf0;
+    --maroon-border: #7c1a2e;
+    --text-dark: #111827;
+    --text-secondary: #4b5563;
+    --text-muted: #6b7280;
+    --border: #e5ded9;
+    font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+    background: transparent;
+    color: var(--text-dark);
+    min-width: 0;
+    width: 100%;
+}
+.pengumuman-page, .pengumuman-page *, .pengumuman-page *::before, .pengumuman-page *::after { box-sizing: border-box; }
+.pengumuman-page a { color: inherit; text-decoration: none; }
+.pengumuman-page button, .pengumuman-page input { font: inherit; }
+.pengumuman-page .page-heading {
+            padding: 0 0 1rem;
             border-bottom: 1.5px solid var(--maroon-border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-        }
-
-        .navbar-brand-wrap {
-            display: flex;
-            align-items: center;
-            gap: .85rem;
-            text-decoration: none;
-        }
-
-        .brand-logo-img {
-            height: 44px;
-            width: auto;
-            object-fit: contain;
-        }
-
-        .brand-title {
-            font-size: 1.65rem;
-            font-weight: 800;
-            color: var(--primary-maroon);
-            letter-spacing: -.01em;
-        }
-
-        .navbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 1.15rem;
-        }
-
-        .btn-circle-action {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: none;
             background: transparent;
-            cursor: pointer;
-            text-decoration: none;
-            transition: transform .15s ease;
         }
-
-        .btn-circle-action:hover {
-            transform: scale(1.05);
-        }
-
-        .btn-bell-badge {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: var(--primary-maroon);
-            color: #fff;
-        }
-
-        .btn-bell-badge svg {
-            width: 21px;
-            height: 21px;
-            stroke: #fff;
-        }
-
-        .btn-profile-badge {
-            width: 44px;
-            height: 44px;
-            border: 2px solid #262626;
-            border-radius: 50%;
-            color: #262626;
-            background: #fff;
-        }
-
-        .btn-profile-badge svg {
-            width: 28px;
-            height: 28px;
-        }
-
-        .mobile-toggle-btn {
-            display: none;
-            background: transparent;
-            border: none;
-            color: var(--primary-maroon);
-            cursor: pointer;
-            padding: .4rem;
-        }
-
-        /* ================= LAYOUT ================= */
-
-        .dashboard-body {
-            display: flex;
-            flex: 1;
-            min-height: calc(100vh - var(--header-height));
-            width: 100%;
-        }
-
-        /* ================= SIDEBAR ================= */
-
-        .sidebar {
-            width: var(--sidebar-width);
-            min-width: var(--sidebar-width);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            border-right: 1.5px solid var(--maroon-border);
-            overflow: hidden;
-            background: #f1f5f9;
-        }
-
-        .sidebar-bg {
-            position: absolute;
-            inset: 0;
-            z-index: 1;
-            background-image: url('{{ asset("images/mahad_al_jamiah.jpeg") }}');
-            background-size: cover;
-            background-position: center top;
-            background-repeat: no-repeat;
-        }
-
-        .sidebar-overlay {
-            position: absolute;
-            inset: 0;
-            z-index: 2;
-            background: linear-gradient(
-                180deg,
-                rgba(219, 234, 254, .43) 0%,
-                rgba(241, 245, 249, .55) 35%,
-                rgba(255, 255, 255, .80) 70%,
-                rgba(255, 255, 255, .93) 100%
-            );
-        }
-
-        .sidebar-watermark {
-            position: absolute;
-            top: 55%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 3;
-            pointer-events: none;
-            text-align: center;
-            opacity: .28;
-            width: 100%;
-            padding: 0 10px;
-        }
-
-        .watermark-emblem {
-            display: block;
-            margin: 0 auto 4px;
-        }
-
-        .watermark-text-2 {
-            font-size: 1.05rem;
-            font-weight: 800;
-            color: #334155;
-            line-height: 1.2;
-        }
-
-        .sidebar-content {
-            position: relative;
-            z-index: 4;
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            min-height: calc(100vh - var(--header-height));
-            justify-content: space-between;
-            padding: 1.25rem 1.15rem 1.5rem;
-        }
-
-        .sidebar-nav,
-        .sidebar-nav-bottom {
-            display: flex;
-            flex-direction: column;
-            gap: .75rem;
-        }
-
-        .sidebar-nav {
-            flex-grow: 1;
-        }
-
-        .sidebar-nav-bottom {
-            margin-top: 1.5rem;
-        }
-
-        .nav-pill,
-        .btn-keluar-pill {
-            display: flex;
-            align-items: center;
-            gap: .85rem;
-            min-height: 46px;
-            padding: 0 1rem;
-            background: #fff;
-            border: 1.5px solid var(--maroon-border);
-            border-radius: 12px;
-            text-decoration: none;
-            color: #1a1a1a;
-            font-size: .92rem;
-            font-weight: 700;
-            transition: all .2s ease;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, .03);
-            cursor: pointer;
-            width: 100%;
-        }
-
-        .nav-pill:hover,
-        .btn-keluar-pill:hover {
-            transform: translateX(3px);
-            background: #fff8f9;
-        }
-
-        .nav-pill.active {
-            background: var(--maroon-tint);
-            border-color: var(--primary-maroon);
-            color: var(--primary-maroon);
-        }
-
-        .nav-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 22px;
-            height: 22px;
-            flex-shrink: 0;
-        }
-
-        .nav-icon svg {
-            display: block;
-            width: 21px;
-            height: 21px;
-            stroke: #667085;
-        }
-
-        .nav-pill.active .nav-icon svg {
-            stroke: var(--primary-maroon);
-        }
-
-        .nav-label {
-            flex-grow: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .nav-chevron {
-            margin-left: auto;
-            color: var(--primary-maroon);
-            font-size: 1.15rem;
-            font-weight: 800;
-            line-height: 1;
-        }
-
-        .btn-keluar-pill {
-            text-align: left;
-            font-family: inherit;
-        }
-
-        .btn-keluar-pill:hover {
-            color: var(--primary-maroon);
-        }
-
-        /* ================= KONTEN PENGUMUMAN ================= */
-
-        .main-content {
-            flex: 1;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-            background: #fff;
-        }
-
-        .page-heading {
-            padding: 1.9rem 2.75rem 1rem;
-            border-bottom: 1.5px solid var(--maroon-border);
-            background: #fff;
-        }
-
-        .breadcrumb {
+.pengumuman-page .breadcrumb {
             color: var(--primary-maroon);
             font-size: 1.15rem;
             font-weight: 500;
             margin-bottom: .75rem;
         }
-
-        .page-heading h1 {
+.pengumuman-page .page-heading h1 {
             font-size: 2rem;
             font-weight: 800;
             line-height: 1.25;
             margin-bottom: .35rem;
             color: #111;
         }
-
-        .subtitle {
+.pengumuman-page .subtitle {
             font-size: 1.05rem;
             color: #333;
             line-height: 1.5;
         }
-
-        .content {
-            padding: 1.25rem 2.75rem 2.5rem;
+.pengumuman-page .content {
+            padding: 1.25rem 0 2.5rem;
         }
-
-        /* ================= PENCARIAN ================= */
-
-        .pencarian {
+.pengumuman-page .pencarian {
             display: flex;
             gap: .65rem;
             margin-bottom: 1rem;
         }
-
-        .pencarian input {
+.pengumuman-page .pencarian input {
             flex: 1;
             min-width: 0;
             padding: .8rem 1.1rem;
@@ -374,12 +66,10 @@
             color: var(--text-dark);
             outline: none;
         }
-
-        .pencarian input:focus {
+.pengumuman-page .pencarian input:focus {
             border-color: var(--primary-maroon);
         }
-
-        .pencarian button {
+.pengumuman-page .pencarian button {
             padding: .8rem 1.6rem;
             border: 1px solid var(--primary-maroon);
             border-radius: 30px;
@@ -389,22 +79,17 @@
             font-weight: 700;
             cursor: pointer;
         }
-
-        .pencarian button:hover {
+.pengumuman-page .pencarian button:hover {
             background: var(--primary-maroon-hover);
         }
-
-        /* ================= FILTER KATEGORI ================= */
-
-        .filters {
+.pengumuman-page .filters {
             display: flex;
             flex-wrap: wrap;
             gap: .65rem;
             padding-bottom: 1.25rem;
             border-bottom: 1px solid var(--border);
         }
-
-        .filter-btn {
+.pengumuman-page .filter-btn {
             border: 1px solid var(--border);
             background: #fff;
             color: #555;
@@ -416,33 +101,26 @@
             text-decoration: none;
             display: inline-block;
         }
-
-        .filter-btn:hover {
+.pengumuman-page .filter-btn:hover {
             border-color: var(--primary-maroon);
             color: var(--primary-maroon);
         }
-
-        .filter-btn.active {
+.pengumuman-page .filter-btn.active {
             background: var(--primary-maroon);
             color: #fff;
             border-color: var(--primary-maroon);
         }
-
-        /* ================= ITEM PENGUMUMAN ================= */
-
-        .announcement {
+.pengumuman-page .announcement {
             display: flex;
             align-items: flex-start;
             gap: 1rem;
             padding: 1.5rem 0;
             border-bottom: 1px solid var(--border);
         }
-
-        .announcement[hidden] {
+.pengumuman-page .announcement[hidden] {
             display: none !important;
         }
-
-        .announcement-icon {
+.pengumuman-page .announcement-icon {
             width: 92px;
             height: 76px;
             flex-shrink: 0;
@@ -453,25 +131,21 @@
             border-radius: 12px;
             overflow: hidden;
         }
-
-        .announcement-icon svg {
+.pengumuman-page .announcement-icon svg {
             width: 25px;
             height: 25px;
         }
-
-        .announcement-icon img {
+.pengumuman-page .announcement-icon img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
         }
-
-        .announcement-body {
+.pengumuman-page .announcement-body {
             flex: 1;
             min-width: 0;
         }
-
-        .tag {
+.pengumuman-page .tag {
             display: inline-block;
             padding: 4px 10px;
             border-radius: 20px;
@@ -479,54 +153,45 @@
             font-weight: 700;
             margin-bottom: .5rem;
         }
-
-        .tag-purple {
+.pengumuman-page .tag-purple {
             color: #8250c8;
             background: #eee1fa;
         }
-
-        .tag-orange {
+.pengumuman-page .tag-orange {
             color: #e66b1d;
             background: #ffeadb;
         }
-
-        .tag-blue {
+.pengumuman-page .tag-blue {
             color: #3185f6;
             background: #dcecff;
         }
-
-        .tag-green {
+.pengumuman-page .tag-green {
             color: #21865b;
             background: #dff5e8;
         }
-
-        .tag-pink {
+.pengumuman-page .tag-pink {
             color: #be185d;
             background: #fce7f3;
         }
-
-        .announcement h2 {
+.pengumuman-page .announcement h2 {
             font-size: 1.05rem;
             font-weight: 700;
             line-height: 1.45;
             margin: 0 0 .45rem;
             color: #171717;
         }
-
-        .description {
+.pengumuman-page .description {
             font-size: .95rem;
             line-height: 1.6;
             color: #77716d;
             margin: 0 0 .4rem;
         }
-
-        .date {
+.pengumuman-page .date {
             font-size: .85rem;
             color: #88817d;
             margin-bottom: .55rem;
         }
-
-        .read-more {
+.pengumuman-page .read-more {
             color: var(--primary-maroon);
             font-size: .95rem;
             font-weight: 700;
@@ -536,37 +201,30 @@
             cursor: pointer;
             padding: 0;
         }
-
-        .read-more:hover {
+.pengumuman-page .read-more:hover {
             text-decoration: underline;
         }
-
-        .empty {
+.pengumuman-page .empty {
             display: none;
             padding: 2rem 0;
             color: var(--text-muted);
             line-height: 1.6;
         }
-
-        /* ================= MODAL ================= */
-
-        .modal-overlay {
+.pengumuman-page .modal-overlay {
             display: none;
             position: fixed;
             inset: 0;
             background: rgba(0, 0, 0, .45);
             backdrop-filter: blur(2px);
-            z-index: 100;
+            z-index: 1400;
             align-items: center;
             justify-content: center;
             padding: 1.5rem;
         }
-
-        .modal-overlay.active {
+.pengumuman-page .modal-overlay.active {
             display: flex;
         }
-
-        .modal-box {
+.pengumuman-page .modal-box {
             background: #fff;
             border-radius: 16px;
             max-width: 520px;
@@ -578,23 +236,20 @@
             position: relative;
             border: 1.5px solid var(--maroon-border);
         }
-
-        .modal-title {
+.pengumuman-page .modal-title {
             font-size: 1.3rem;
             font-weight: 800;
             color: var(--primary-maroon);
             margin: 0 2rem .75rem 0;
         }
-
-        .modal-body {
+.pengumuman-page .modal-body {
             font-size: .95rem;
             color: #374151;
             line-height: 1.7;
             margin-bottom: 1.5rem;
             overflow-wrap: anywhere;
         }
-
-        .btn-modal-x {
+.pengumuman-page .btn-modal-x {
             position: absolute;
             top: 1rem;
             right: 1rem;
@@ -604,8 +259,7 @@
             cursor: pointer;
             color: #94a3b8;
         }
-
-        .btn-modal-action {
+.pengumuman-page .btn-modal-action {
             width: 100%;
             background: var(--primary-maroon);
             color: #fff;
@@ -615,215 +269,401 @@
             font-weight: 700;
             cursor: pointer;
         }
-
-        .btn-modal-action:hover {
+.pengumuman-page .btn-modal-action:hover {
             background: var(--primary-maroon-hover);
         }
-
-        /* ================= RESPONSIVE ================= */
-
-        .sidebar-backdrop {
-            display: none;
-        }
-
-        @media (max-width: 992px) {
-            .mobile-toggle-btn {
-                display: block;
+@media (max-width: 992px) {
+.pengumuman-page .page-heading {
+                padding: 0 0 1rem;
             }
-
-            .sidebar {
-                position: fixed;
-                top: var(--header-height);
-                bottom: 0;
-                left: calc(-1 * var(--sidebar-width) - 10px);
-                z-index: 46;
-                transition: left .3s ease;
-                overflow-y: auto;
-                box-shadow: 4px 0 15px rgba(0, 0, 0, .1);
+.pengumuman-page .content {
+                padding: 1.25rem 0 2.5rem;
             }
-
-            .sidebar.active {
-                left: 0;
+}
+@media (max-width: 600px) {
+.pengumuman-page .page-heading {
+                padding: 0 0 1rem;
             }
-
-            .sidebar-content {
-                min-height: calc(100vh - var(--header-height));
-            }
-
-            .sidebar-backdrop.active {
-                display: block;
-                position: fixed;
-                inset: var(--header-height) 0 0;
-                background: rgba(0, 0, 0, .4);
-                z-index: 45;
-            }
-
-            .main-content {
-                width: 100%;
-            }
-
-            .page-heading {
-                padding: 1.5rem 1.5rem 1rem;
-            }
-
-            .content {
-                padding: 1.25rem 1.5rem 2rem;
-            }
-        }
-
-        @media (max-width: 600px) {
-            .top-navbar {
-                padding: 0 1rem;
-            }
-
-            .brand-title {
-                font-size: 1.2rem;
-            }
-
-            .brand-logo-img {
-                height: 36px;
-            }
-
-            .navbar-actions {
-                gap: .65rem;
-            }
-
-            .btn-profile-badge {
-                width: 38px;
-                height: 38px;
-            }
-
-            .page-heading {
-                padding: 1.25rem 1rem 1rem;
-            }
-
-            .breadcrumb {
+.pengumuman-page .breadcrumb {
                 font-size: .95rem;
             }
-
-            .page-heading h1 {
+.pengumuman-page .page-heading h1 {
                 font-size: 1.65rem;
             }
-
-            .subtitle {
+.pengumuman-page .subtitle {
                 font-size: .9rem;
             }
-
-            .content {
-                padding: 1rem;
+.pengumuman-page .content {
+                padding: 1.25rem 0 2.5rem;
             }
-
-            .filters {
+.pengumuman-page .filters {
                 gap: .5rem;
             }
-
-            .filter-btn {
+.pengumuman-page .filter-btn {
                 padding: .6rem .8rem;
                 font-size: .85rem;
             }
-
-            .announcement {
+.pengumuman-page .announcement {
                 gap: .75rem;
                 padding: 1.15rem 0;
             }
-
-            .announcement-icon {
+.pengumuman-page .announcement-icon {
                 width: 45px;
                 height: 45px;
             }
-
-            .announcement-icon svg {
+.pengumuman-page .announcement-icon svg {
                 width: 21px;
                 height: 21px;
             }
-
-            .announcement h2 {
+.pengumuman-page .announcement h2 {
                 font-size: .95rem;
             }
-
-            .description {
+.pengumuman-page .description {
                 font-size: .85rem;
             }
-
-            .date,
-            .read-more {
+.pengumuman-page .date, .pengumuman-page .read-more {
                 font-size: .8rem;
             }
-
-            .modal-box {
+.pengumuman-page .modal-box {
                 padding: 1.4rem;
             }
-        }
-    </style>
-</head>
+}
 
-<body>
+/* ================================================================
+   PENYEMPURNAAN TAMPILAN PENGUMUMAN (HANYA CSS)
+   Seluruh selector dibatasi pada halaman Pengumuman.
+   ================================================================ */
+.pengumuman-page {
+    max-width: 1480px;
+    margin-inline: auto;
+    background: transparent;
+}
 
-    <!-- ================= HEADER ================= -->
+.pengumuman-page .page-heading {
+    padding: 2px 0 24px;
+    background: transparent;
+    border-bottom: 0;
+}
 
-    <header class="top-navbar">
-        <div style="display:flex;align-items:center;gap:.75rem;">
-            <button
-                type="button"
-                class="mobile-toggle-btn"
-                id="mobileMenuBtn"
-                aria-label="Buka menu"
-            >
-                <svg width="26" height="26" viewBox="0 0 24 24"
-                     fill="none" stroke="currentColor" stroke-width="2.2"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-            </button>
+.pengumuman-page .breadcrumb {
+    margin-bottom: 12px;
+    font-size: .83rem;
+    font-weight: 650;
+    line-height: 1.5;
+}
 
-            <a href="{{ route('dashboard') }}" class="navbar-brand-wrap">
-                <img
-                    src="{{ asset('images/logo_uin.png') }}"
-                    alt="Logo SIMAHAD"
-                    class="brand-logo-img"
-                    onerror="this.style.display='none'"
-                >
-                <span class="brand-title">SIMAHAD</span>
-            </a>
-        </div>
+.pengumuman-page .page-heading h1 {
+    margin-bottom: 10px;
+    color: #171b2d;
+    font-size: clamp(1.55rem, 1.2rem + 1.25vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -.035em;
+    line-height: 1.25;
+}
 
-        <div class="navbar-actions">
-            <button
-                type="button"
-                class="btn-circle-action btn-bell-badge"
-                title="Pemberitahuan"
-                aria-label="Pemberitahuan"
-                onclick="openInfoModal('Pemberitahuan', 'Belum ada pengumuman mendesak. Pantau selalu informasi kegiatan asrama di sini.')"
-            >
-                <svg viewBox="0 0 24 24" fill="none"
-                     stroke-width="2.2" stroke-linecap="round"
-                     stroke-linejoin="round">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                </svg>
-            </button>
+.pengumuman-page .subtitle {
+    color: #64748b;
+    font-size: .93rem;
+    line-height: 1.65;
+}
 
-            <x-mahasiswa.profile-dropdown />
-        </div>
-    </header>
+.pengumuman-page .content {
+    padding: 4px 0 48px;
+}
 
-    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+.pengumuman-page .pencarian {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    align-items: stretch;
+}
 
-    <!-- ================= LAYOUT ================= -->
+.pengumuman-page .pencarian input {
+    min-height: 48px;
+    padding: 12px 18px;
+    border: 1px solid #e8dade;
+    border-radius: 12px;
+    background: #fff;
+    color: #1f2937;
+    box-shadow: 0 2px 10px rgba(30, 24, 29, .025);
+    font-size: .89rem;
+    transition: border-color .18s ease, box-shadow .18s ease;
+}
 
-    <div class="dashboard-body">
+.pengumuman-page .pencarian input::placeholder {
+    color: #8b93a4;
+}
 
-        {{-- Sidebar bersama seluruh role SIMAHAD. --}}
-        <x-panel.sidebar ragam="alir" atas="66px" />
+.pengumuman-page .pencarian input:focus {
+    border-color: #9b4353;
+    box-shadow: 0 0 0 3px rgba(110, 0, 27, .09);
+}
 
-                    
+.pengumuman-page .pencarian button {
+    min-height: 48px;
+    min-width: 100px;
+    padding: 12px 22px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(110, 0, 27, .11);
+    font-size: .88rem;
+    transition: background .18s ease, transform .18s ease;
+}
 
+.pengumuman-page .pencarian button:hover {
+    transform: translateY(-1px);
+}
 
-        <!-- ================= KONTEN UTAMA ================= -->
+.pengumuman-page .filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 0;
+    margin-bottom: 22px;
+    border-bottom: 0;
+}
 
-        <main class="main-content">
+.pengumuman-page .filter-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 37px;
+    padding: 8px 14px;
+    border: 1px solid #e8dade;
+    border-radius: 10px;
+    background: #fff;
+    color: #596170;
+    font-size: .82rem;
+    font-weight: 600;
+    line-height: 1.3;
+    transition: background .18s ease, border-color .18s ease, color .18s ease;
+}
 
-            <section class="page-heading">
+.pengumuman-page .filter-btn.active {
+    background: #6e001b;
+    color: #fff;
+    border-color: #6e001b;
+    box-shadow: 0 3px 10px rgba(110, 0, 27, .10);
+}
+
+.pengumuman-page .filter-btn:focus-visible,
+.pengumuman-page .pencarian button:focus-visible,
+.pengumuman-page .read-more:focus-visible {
+    outline: 3px solid rgba(184, 144, 76, .55);
+    outline-offset: 3px;
+}
+
+.pengumuman-page #announcement-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    min-width: 0;
+}
+
+.pengumuman-page .announcement {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 19px;
+    min-width: 0;
+    padding: 21px 23px;
+    border: 1px solid #e8dfe1;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 4px 16px rgba(30, 30, 40, .035);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+.pengumuman-page .announcement:hover {
+    transform: translateY(-2px);
+    border-color: #d7b3be;
+    box-shadow: 0 8px 26px rgba(60, 28, 39, .08);
+}
+
+.pengumuman-page .announcement-icon {
+    width: 122px;
+    height: 110px;
+    flex: 0 0 122px;
+    border-radius: 12px;
+    background: #f8ecef;
+}
+
+.pengumuman-page .announcement-body {
+    min-width: 0;
+    padding: 1px 0;
+    overflow-wrap: anywhere;
+}
+
+.pengumuman-page .tag {
+    margin-bottom: 8px;
+    padding: 5px 10px;
+    border-radius: 7px;
+    font-size: .72rem;
+    letter-spacing: .01em;
+}
+
+.pengumuman-page .announcement h2 {
+    margin-bottom: 6px;
+    font-size: 1.03rem;
+    font-weight: 800;
+    line-height: 1.4;
+    color: #1c2332;
+}
+
+.pengumuman-page .description {
+    margin-bottom: 8px;
+    color: #657083;
+    font-size: .86rem;
+    line-height: 1.7;
+}
+
+.pengumuman-page .date {
+    margin-bottom: 10px;
+    color: #87909e;
+    font-size: .76rem;
+    line-height: 1.5;
+}
+
+.pengumuman-page .read-more {
+    display: inline-flex;
+    align-items: center;
+    color: #790c20;
+    font-size: .83rem;
+    font-weight: 750;
+    line-height: 1.5;
+}
+
+.pengumuman-page .empty {
+    padding: 34px 24px;
+    border: 1px dashed #d8bec5;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .82);
+    color: #637083;
+    text-align: center;
+    font-size: .86rem;
+}
+
+@media (max-width: 768px) {
+    .pengumuman-page .page-heading {
+        padding-bottom: 20px;
+    }
+
+    .pengumuman-page .filters {
+        gap: 8px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding: 0 1px 8px;
+        margin-bottom: 16px;
+        scroll-snap-type: x proximity;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .pengumuman-page .filter-btn {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        scroll-snap-align: start;
+    }
+
+    .pengumuman-page .announcement {
+        gap: 15px;
+        padding: 17px;
+    }
+
+    .pengumuman-page .announcement-icon {
+        width: 94px;
+        height: 94px;
+        flex-basis: 94px;
+    }
+}
+
+@media (max-width: 480px) {
+    .pengumuman-page .breadcrumb {
+        margin-bottom: 9px;
+        font-size: .78rem;
+    }
+
+    .pengumuman-page .page-heading h1 {
+        font-size: 1.55rem;
+    }
+
+    .pengumuman-page .subtitle {
+        font-size: .84rem;
+    }
+
+    .pengumuman-page .pencarian {
+        gap: 8px;
+    }
+
+    .pengumuman-page .pencarian input {
+        min-height: 44px;
+        padding: 10px 12px;
+        font-size: .8rem;
+    }
+
+    .pengumuman-page .pencarian button {
+        min-height: 44px;
+        min-width: 73px;
+        padding: 10px 12px;
+        font-size: .8rem;
+    }
+
+    .pengumuman-page .filter-btn {
+        padding: 7px 11px;
+        min-height: 35px;
+        font-size: .77rem;
+    }
+
+    .pengumuman-page .announcement {
+        gap: 12px;
+        padding: 13px;
+        border-radius: 13px;
+    }
+
+    .pengumuman-page .announcement-icon {
+        width: 76px;
+        height: 82px;
+        flex-basis: 76px;
+        border-radius: 10px;
+    }
+
+    .pengumuman-page .tag {
+        font-size: .68rem;
+        padding: 4px 8px;
+    }
+
+    .pengumuman-page .announcement h2 {
+        font-size: .92rem;
+    }
+
+    .pengumuman-page .description {
+        font-size: .78rem;
+    }
+
+    .pengumuman-page .date,
+    .pengumuman-page .read-more {
+        font-size: .74rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pengumuman-page .announcement,
+    .pengumuman-page .filter-btn,
+    .pengumuman-page .pencarian input,
+    .pengumuman-page .pencarian button {
+        transition: none;
+    }
+
+    .pengumuman-page .announcement:hover,
+    .pengumuman-page .pencarian button:hover {
+        transform: none;
+    }
+}
+</style>
+@endpush
+
+@section('content')
+<div class="pengumuman-page">
+<section class="page-heading">
                 <div class="breadcrumb">Dashboard / Pengumuman</div>
                 <h1>Pengumuman</h1>
                 <p class="subtitle">
@@ -920,10 +760,8 @@
                 </div>
 
             </section>
-        </main>
-    </div>
 
-    <!-- ================= MODAL INFORMASI ================= -->
+<!-- ================= MODAL INFORMASI ================= -->
 
     <div class="modal-overlay" id="infoModal" role="dialog"
          aria-modal="true" aria-labelledby="modalTitle"
@@ -944,35 +782,12 @@
             </button>
         </div>
     </div>
+</div>
+@endsection
 
-    <!-- ================= JAVASCRIPT ================= -->
-
-    <script>
-        // Buka dan tutup sidebar pada layar kecil
-        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarBackdrop = document.getElementById('sidebarBackdrop');
-
-        function toggleSidebar() {
-            sidebar.classList.toggle('active');
-            sidebarBackdrop.classList.toggle('active');
-        }
-
-        function closeSidebar() {
-            sidebar.classList.remove('active');
-            sidebarBackdrop.classList.remove('active');
-        }
-
-        mobileMenuBtn.addEventListener('click', toggleSidebar);
-        sidebarBackdrop.addEventListener('click', closeSidebar);
-
-        sidebar.querySelectorAll('a.nav-pill').forEach(link => {
-            link.addEventListener('click', () => {
-                if (window.innerWidth <= 992) closeSidebar();
-            });
-        });
-
-        // Modal informasi
+@push('scripts')
+<script>
+    // Modal informasi
         function openInfoModal(title, message) {
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalBody').innerHTML = message;
@@ -993,10 +808,7 @@
         document.addEventListener('keydown', event => {
             if (event.key === 'Escape') {
                 closeInfoModal();
-                closeSidebar();
             }
         });
-    </script>
-
-</body>
-</html>
+</script>
+@endpush

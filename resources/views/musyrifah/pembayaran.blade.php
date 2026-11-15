@@ -638,6 +638,300 @@
         overflow-wrap: anywhere;
     }
 
+    /*
+     * FIX TAMPILAN MODAL DETAIL PEMBAYARAN
+     * Modal berada di luar .mp, sehingga CSS .mp .field / .btn / .badge
+     * tidak diterapkan. Semua aturan di bawah khusus untuk .mp-modal.
+     * Tidak mengubah ID, route, atribut form, atau JavaScript pembayaran.
+     */
+    .mp-modal,
+    .mp-modal *,
+    .mp-modal *::before,
+    .mp-modal *::after {
+        box-sizing: border-box;
+    }
+
+    .mp-modal {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: var(--ink, #111827);
+    }
+
+    .mp-modal .kotak {
+        max-width: 680px;
+        box-shadow: 0 24px 70px rgba(30, 10, 16, .22);
+        scrollbar-width: thin;
+        scrollbar-color: #d5c4c8 transparent;
+    }
+
+    .mp-modal .tutup-baris {
+        margin-bottom: 14px;
+    }
+
+    .mp-modal h3 {
+        font-size: 1.08rem;
+        line-height: 1.45;
+        color: #1f2937;
+    }
+
+    .mp-modal .tutup:hover {
+        border-color: #e1bac4;
+        background: #faf1f3;
+        color: var(--maroon, #6e001b);
+    }
+
+    .mp-modal .info-grid {
+        gap: 12px 16px;
+        padding: 14px 16px;
+        border: 1px solid #f0e6e8;
+        background: #faf7f8;
+    }
+
+    .mp-modal .info-label {
+        margin-bottom: 3px;
+        line-height: 1.35;
+    }
+
+    .mp-modal .info-nilai {
+        font-size: .79rem;
+        line-height: 1.5;
+    }
+
+    .mp-modal .seksi {
+        margin-top: 16px;
+        padding-top: 15px;
+        border-top: 1px solid #ede1e4;
+    }
+
+    .mp-modal .seksi h4 {
+        margin-bottom: 11px;
+        font-size: .85rem;
+        color: #24212a;
+    }
+
+    /* Form nominal dan catatan sebelumnya tidak menerima styling .mp .field. */
+    .mp-modal .field label {
+        display: block;
+        margin-bottom: 6px;
+        color: #41434b;
+        font-size: .74rem;
+        font-weight: 700;
+        line-height: 1.4;
+    }
+
+    .mp-modal .field input,
+    .mp-modal .field textarea {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        min-height: 40px;
+        padding: 9px 12px;
+        border: 1px solid #dac8ce;
+        border-radius: 9px;
+        background: #fff;
+        color: #1f2937;
+        font: 500 .81rem/1.5 'Plus Jakarta Sans', sans-serif;
+        transition: border-color .16s ease, box-shadow .16s ease;
+    }
+
+    .mp-modal .field textarea {
+        min-height: 82px;
+        resize: vertical;
+    }
+
+    .mp-modal .field textarea::placeholder,
+    .mp-modal .field input::placeholder {
+        color: #96939a;
+        font-weight: 400;
+    }
+
+    .mp-modal .field input:focus,
+    .mp-modal .field textarea:focus {
+        outline: none;
+        border-color: var(--maroon, #6e001b);
+        box-shadow: 0 0 0 3px rgba(107, 13, 27, .11);
+    }
+
+    .mp-modal .hint {
+        margin-top: 9px;
+        color: #6b7280;
+        font-size: .72rem;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+    }
+
+    .mp-modal .sub {
+        display: block;
+        margin-top: 3px;
+        color: #6b7280;
+        font-size: .74rem;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    .mp-modal .tautan-bukti {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        color: var(--maroon, #6e001b);
+        font-size: .77rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .mp-modal .tautan-bukti:hover {
+        text-decoration: underline;
+    }
+
+    /* Tombol modal: ukuran seragam, 2 kolom di desktop. */
+    .mp-modal .aksi-grid {
+        gap: 9px;
+        margin-top: 14px;
+    }
+
+    .mp-modal .btn {
+        display: inline-flex;
+        width: 100%;
+        min-height: 40px;
+        align-items: center;
+        justify-content: center;
+        padding: 9px 12px;
+        border: 1px solid var(--maroon, #6e001b);
+        border-radius: 9px;
+        background: var(--maroon, #6e001b);
+        color: #fff;
+        font: 700 .76rem/1.4 'Plus Jakarta Sans', sans-serif;
+        text-align: center;
+        cursor: pointer;
+        transition: background .15s ease, border-color .15s ease;
+    }
+
+    .mp-modal .btn:hover:not(:disabled) {
+        background: var(--maroon-dark, #580015);
+    }
+
+    .mp-modal .btn--hijau {
+        background: #15803d;
+        border-color: #15803d;
+    }
+
+    .mp-modal .btn--hijau:hover:not(:disabled) {
+        background: #166534;
+        border-color: #166534;
+    }
+
+    .mp-modal .btn--merah {
+        background: #b91c1c;
+        border-color: #b91c1c;
+    }
+
+    .mp-modal .btn--merah:hover:not(:disabled) {
+        background: #991b1b;
+        border-color: #991b1b;
+    }
+
+    .mp-modal .btn--garis {
+        background: #fff;
+        color: var(--maroon, #6e001b);
+    }
+
+    .mp-modal .btn--garis:hover:not(:disabled) {
+        background: #fcf0f3;
+    }
+
+    .mp-modal .btn:disabled {
+        opacity: .44;
+        cursor: not-allowed;
+    }
+
+    /* Label status yang dibuat dari data JSON secara dinamis. */
+    .mp-modal .badge {
+        display: inline-flex;
+        align-items: center;
+        max-width: 100%;
+        padding: 4px 9px;
+        border-radius: 999px;
+        font-size: .68rem;
+        font-weight: 700;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+        background: #f3f4f6;
+        color: #4b5563;
+    }
+
+    .mp-modal .badge.lunas,
+    .mp-modal .badge.verifikasi-diterima {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .mp-modal .badge.menunggu,
+    .mp-modal .badge.verifikasi-menunggu {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .mp-modal .badge.rektorat {
+        background: #ede9fe;
+        color: #5b21b6;
+    }
+
+    .mp-modal .badge.ditolak,
+    .mp-modal .badge.terlambat,
+    .mp-modal .badge.verifikasi-ditolak {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .mp-modal .badge.belum {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    /* Pesan berhasil/gagal di dalam modal tidak lagi kehilangan styling. */
+    .mp-modal .pesan-json {
+        display: none;
+        margin: 0 0 12px;
+        padding: 10px 12px;
+        border-radius: 9px;
+        font-size: .76rem;
+        font-weight: 600;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+    }
+
+    .mp-modal .pesan-json.sukses {
+        display: block;
+        background: #eef7f0;
+        border: 1px solid #cfe6d5;
+        color: #22653a;
+    }
+
+    .mp-modal .pesan-json.gagal {
+        display: block;
+        background: #fdeef0;
+        border: 1px solid #f2ccd2;
+        color: #8a1224;
+    }
+
+    .mp-modal .riwayat-baris {
+        gap: 10px;
+        padding: 8px 0;
+        font-size: .77rem;
+    }
+
+    .mp-modal .aktivitas li {
+        font-size: .75rem;
+    }
+
+    @media (max-width: 640px) {
+        .mp-modal .kotak {
+            padding: 18px 16px 22px;
+        }
+        .mp-modal .info-grid {
+            padding: 12px 13px;
+        }
+    }
+
     .mp .pesan-json {
         margin-top: 8px;
         padding: 9px 11px;
@@ -772,7 +1066,7 @@
         <div>
             <h1>Pembayaran Mahasiswa</h1>
             <p>
-                Periksa bukti transfer, konfirmasi dana Rektorat, atur jadwal angsuran, dan tindak lanjuti pengajuan keterlambatan.
+                Periksa bukti transfer,  atur jadwal angsuran, dan tindak lanjuti pengajuan keterlambatan.
                 @if ($pengaturan && $pengaturan->sudahDibuka())
                     Periode aktif: <strong>{{ $pengaturan->periode }}</strong>.
                 @elseif ($pengaturan)
@@ -1386,9 +1680,9 @@
             }
         }
 
-        const urlVerifikasi = (id) => '{{ url('/musyrifah/pembayaran') }}/' + id + '/verifikasi';
-        const urlStatus = (id) => '{{ url('/musyrifah/pembayaran') }}/' + id + '/status';
-        const urlNominal = (id) => '{{ url('/musyrifah/pembayaran') }}/' + id + '/nominal';
+        const urlVerifikasi = (id) => "{{ url('/musyrifah/pembayaran') }}/" + id + "/verifikasi";
+        const urlStatus = (id) => "{{ url('/musyrifah/pembayaran') }}/" + id + "/status";
+        const urlNominal = (id) => "{{ url('/musyrifah/pembayaran') }}/" + id + "/nominal";
 
         document.getElementById('btnTerimaBukti').addEventListener('click', function () {
             if (!idAktif) {
@@ -1474,7 +1768,7 @@
                 }
 
                 try {
-                    const hasil = await kirim('{{ url('/musyrifah/pembayaran/keterlambatan') }}/' + id, {
+                    const hasil = await kirim("{{ url('/musyrifah/pembayaran/keterlambatan') }}/" + id, {
                         keputusan: keputusan,
                         catatan: catatan,
                     });

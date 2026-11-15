@@ -1,3 +1,8 @@
+@extends('layouts.mahasiswa')
+
+@section('title', 'Pendaftaran Mahasiswa - Data Akademik')
+
+@push('styles')
 <!DOCTYPE html>
 <html lang="id">
 <head>

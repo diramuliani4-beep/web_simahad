@@ -1,16 +1,13 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pembelajaran Mahasiswa | SIMAHAD</title>
+@extends('layouts.mahasiswa')
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+@section('title', 'Pembelajaran Mahasiswa | SIMAHAD')
 
-    <style>
-        :root {
+@push('styles')
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+        .pembelajaran-page{
             --maroon: #790c20;
             --maroon-dark: #5e0817;
             --maroon-light: #f8edef;
@@ -29,32 +26,32 @@
             --info-bg: #dbeafe;
         }
 
-        * {
+        .pembelajaran-page, .pembelajaran-page *{
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
-        body {
-            font-family: 'Poppins', sans-serif;
+        .pembelajaran-page{
+            font-family: "Poppins", sans-serif;
             color: var(--text);
             background: var(--page);
             font-size: 14px;
         }
 
-        a {
+        .pembelajaran-page a{
             color: inherit;
             text-decoration: none;
         }
 
-        button {
+        .pembelajaran-page button{
             font: inherit;
         }
 
         /* =========================
            HEADER
         ========================= */
-        .topbar {
+        .pembelajaran-page .topbar{
             height: 89px;
             background: #fff;
             border-bottom: 1px solid #edd5db;
@@ -68,32 +65,32 @@
             box-shadow: 0 2px 8px rgba(121, 12, 32, 0.05);
         }
 
-        .brand {
+        .pembelajaran-page .brand{
             display: flex;
             align-items: center;
             gap: 12px;
         }
 
-        .brand-logo {
+        .pembelajaran-page .brand-logo{
             width: 65px;
             height: 62px;
             color: var(--maroon);
         }
 
-        .brand-name {
+        .pembelajaran-page .brand-name{
             font-size: 30px;
             font-weight: 700;
             color: var(--maroon);
             letter-spacing: -.8px;
         }
 
-        .top-actions {
+        .pembelajaran-page .top-actions{
             display: flex;
             align-items: center;
             gap: 20px;
         }
 
-        .user-info-pill {
+        .pembelajaran-page .user-info-pill{
             display: flex;
             align-items: center;
             gap: 10px;
@@ -103,18 +100,18 @@
             border: 1px solid #f1d5dc;
         }
 
-        .user-name-text {
+        .pembelajaran-page .user-name-text{
             font-size: 13px;
             font-weight: 600;
             color: var(--maroon);
         }
 
-        .user-nim-text {
+        .pembelajaran-page .user-nim-text{
             font-size: 11px;
             color: #666;
         }
 
-        .notification {
+        .pembelajaran-page .notification{
             width: 36px;
             height: 36px;
             background: var(--maroon);
@@ -126,7 +123,7 @@
             cursor: pointer;
         }
 
-        .notification svg {
+        .pembelajaran-page .notification svg{
             width: 20px;
             height: 20px;
             stroke: white;
@@ -134,7 +131,7 @@
             stroke-width: 1.8;
         }
 
-        .profile {
+        .pembelajaran-page .profile{
             width: 48px;
             height: 48px;
             border: 1.5px solid #222;
@@ -145,7 +142,7 @@
             overflow: hidden;
         }
 
-        .profile svg {
+        .pembelajaran-page .profile svg{
             width: 44px;
             height: 44px;
         }
@@ -153,7 +150,7 @@
         /* =========================
            SIDEBAR
         ========================= */
-        .sidebar {
+        .pembelajaran-page .sidebar{
             position: fixed;
             top: 89px;
             bottom: 0;
@@ -175,14 +172,14 @@
             z-index: 50;
         }
 
-        .sidebar-menu {
+        .pembelajaran-page .sidebar-menu{
             padding: 22px 12px 18px;
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
 
-        .nav-pill {
+        .pembelajaran-page .nav-pill{
             min-height: 46px;
             display: flex;
             align-items: center;
@@ -198,19 +195,19 @@
             cursor: pointer;
         }
 
-        .nav-pill:hover {
+        .pembelajaran-page .nav-pill:hover{
             background: var(--maroon-light);
             color: var(--maroon);
         }
 
-        .nav-pill.active {
+        .pembelajaran-page .nav-pill.active{
             background: var(--maroon-light);
             color: var(--maroon);
             box-shadow: 0 3px 5px rgba(0,0,0,.12);
             font-weight: 700;
         }
 
-        .nav-icon {
+        .pembelajaran-page .nav-icon{
             width: 22px;
             height: 22px;
             flex-shrink: 0;
@@ -219,11 +216,11 @@
             color: #626d7e;
         }
 
-        .nav-pill.active .nav-icon {
+        .pembelajaran-page .nav-pill.active .nav-icon{
             color: var(--maroon);
         }
 
-        .nav-icon svg {
+        .pembelajaran-page .nav-icon svg{
             width: 20px;
             height: 20px;
             stroke: currentColor;
@@ -233,35 +230,35 @@
             stroke-linejoin: round;
         }
 
-        .nav-label {
+        .pembelajaran-page .nav-label{
             flex: 1;
         }
 
-        .nav-arrow {
+        .pembelajaran-page .nav-arrow{
             color: var(--maroon);
             font-size: 22px;
             line-height: 1;
             font-weight: 700;
         }
 
-        .sidebar-bottom {
+        .pembelajaran-page .sidebar-bottom{
             margin-top: auto;
             padding: 18px 12px 20px;
             border-top: 1px solid var(--border);
         }
 
-        .sidebar-bottom .nav-pill {
+        .pembelajaran-page .sidebar-bottom .nav-pill{
             margin-bottom: 10px;
         }
 
-        .sidebar-bottom .nav-pill:last-child {
+        .pembelajaran-page .sidebar-bottom .nav-pill:last-child{
             margin-bottom: 0;
         }
 
         /* =========================
            MAIN CONTENT
         ========================= */
-        .main {
+        .pembelajaran-page .main{
             margin-left: var(--sb-w, 280px);
             transition: margin-left .22s ease;
             padding: 108px 36px 40px;
@@ -269,11 +266,11 @@
             min-width: 0;
         }
 
-        body.sb-sempit .main {
+        .pembelajaran-page body.sb-sempit .main{
             margin-left: var(--sb-w-sempit, 84px);
         }
 
-        .page-header-row {
+        .pembelajaran-page .page-header-row{
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
@@ -282,21 +279,21 @@
             margin-bottom: 22px;
         }
 
-        .breadcrumb {
+        .pembelajaran-page .breadcrumb{
             font-size: 14px;
             font-weight: 600;
             color: var(--maroon);
             margin-bottom: 4px;
         }
 
-        .page-title {
+        .pembelajaran-page .page-title{
             font-size: 28px;
             font-weight: 700;
             line-height: 1.25;
             color: #0f172a;
         }
 
-        .page-description {
+        .pembelajaran-page .page-description{
             font-size: 14px;
             color: var(--muted);
             margin-top: 4px;
@@ -304,7 +301,7 @@
             line-height: 1.6;
         }
 
-        .sync-badge {
+        .pembelajaran-page .sync-badge{
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -317,7 +314,7 @@
             font-weight: 600;
         }
 
-        .sync-dot {
+        .pembelajaran-page .sync-dot{
             width: 8px;
             height: 8px;
             background: #10b981;
@@ -334,14 +331,14 @@
         /* =========================
            STATISTIK GRID
         ========================= */
-        .stats-grid {
+        .pembelajaran-page .stats-grid{
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 14px;
             margin-bottom: 24px;
         }
 
-        .stat-card {
+        .pembelajaran-page .stat-card{
             background: #fff;
             border-radius: 14px;
             padding: 16px 18px;
@@ -353,18 +350,18 @@
             justify-content: space-between;
         }
 
-        .stat-card:nth-child(2) { border-left-color: #2563eb; }
-        .stat-card:nth-child(3) { border-left-color: #10b981; }
-        .stat-card:nth-child(4) { border-left-color: #f59e0b; }
+        .pembelajaran-page .stat-card:nth-child(2){ border-left-color: #2563eb; }
+        .pembelajaran-page .stat-card:nth-child(3){ border-left-color: #10b981; }
+        .pembelajaran-page .stat-card:nth-child(4){ border-left-color: #f59e0b; }
 
-        .stat-icon {
+        .pembelajaran-page .stat-icon{
             width: 28px;
             height: 28px;
             color: var(--maroon);
             margin-bottom: 8px;
         }
 
-        .stat-icon svg {
+        .pembelajaran-page .stat-icon svg{
             width: 24px;
             height: 24px;
             stroke: currentColor;
@@ -374,21 +371,21 @@
             stroke-linejoin: round;
         }
 
-        .stat-number {
+        .pembelajaran-page .stat-number{
             font-size: 24px;
             line-height: 1.2;
             font-weight: 700;
             color: #0f172a;
         }
 
-        .stat-label {
+        .pembelajaran-page .stat-label{
             color: var(--muted);
             font-size: 13px;
             margin-top: 4px;
             font-weight: 500;
         }
 
-        .stat-subtext {
+        .pembelajaran-page .stat-subtext{
             font-size: 11px;
             color: #888;
             margin-top: 4px;
@@ -397,7 +394,7 @@
         /* =========================
            TABS NAVIGASI
         ========================= */
-        .tabs-header-wrap {
+        .pembelajaran-page .tabs-header-wrap{
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -408,13 +405,13 @@
             padding-bottom: 2px;
         }
 
-        .tabs-nav {
+        .pembelajaran-page .tabs-nav{
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
-        .tab-btn {
+        .pembelajaran-page .tab-btn{
             display: inline-flex;
             align-items: center;
             gap: 8px;
@@ -432,31 +429,31 @@
             border-radius: 8px 8px 0 0;
         }
 
-        .tab-btn:hover {
+        .pembelajaran-page .tab-btn:hover{
             color: var(--maroon);
             background: #fbf1f3;
         }
 
-        .tab-btn.active {
+        .pembelajaran-page .tab-btn.active{
             color: var(--maroon);
             border-bottom-color: var(--maroon);
             background: #fbf1f3;
         }
 
-        .kelompok-select-form {
+        .pembelajaran-page .kelompok-select-form{
             display: flex;
             align-items: center;
             gap: 8px;
             white-space: nowrap;
         }
 
-        .kelompok-select-label {
+        .pembelajaran-page .kelompok-select-label{
             font-size: 13px;
             font-weight: 600;
             color: #475569;
         }
 
-        .kelompok-select {
+        .pembelajaran-page .kelompok-select{
             padding: 6px 12px;
             border-radius: 8px;
             border: 1px solid #cbd5e1;
@@ -469,16 +466,16 @@
             cursor: pointer;
         }
 
-        .kelompok-select:focus {
+        .pembelajaran-page .kelompok-select:focus{
             border-color: var(--maroon);
         }
 
-        .tab-pane {
+        .pembelajaran-page .tab-pane{
             display: none;
             animation: fadeIn 0.2s ease;
         }
 
-        .tab-pane.active {
+        .pembelajaran-page .tab-pane.active{
             display: block;
         }
 
@@ -490,7 +487,7 @@
         /* =========================
            CARDS & CONTENT
         ========================= */
-        .card {
+        .pembelajaran-page .card{
             background: #fff;
             border: 1px solid #e2e8f0;
             border-radius: 16px;
@@ -499,7 +496,7 @@
             margin-bottom: 22px;
         }
 
-        .card-header {
+        .pembelajaran-page .card-header{
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -508,7 +505,7 @@
             margin-bottom: 18px;
         }
 
-        .card-title {
+        .pembelajaran-page .card-title{
             font-size: 18px;
             font-weight: 700;
             color: #0f172a;
@@ -517,7 +514,7 @@
             gap: 8px;
         }
 
-        .card-desc {
+        .pembelajaran-page .card-desc{
             font-size: 13px;
             color: var(--muted);
             margin-top: 2px;
@@ -526,13 +523,13 @@
         /* =========================
            GRID 5 MATA PELAJARAN
         ========================= */
-        .mapel-grid {
+        .pembelajaran-page .mapel-grid{
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
             gap: 18px;
         }
 
-        .mapel-card {
+        .pembelajaran-page .mapel-card{
             background: #fff;
             border: 1px solid #e2e8f0;
             border-radius: 14px;
@@ -546,13 +543,13 @@
             overflow: hidden;
         }
 
-        .mapel-card:hover {
+        .pembelajaran-page .mapel-card:hover{
             transform: translateY(-2px);
             box-shadow: 0 8px 16px rgba(121, 12, 32, 0.08);
             border-color: #edd5db;
         }
 
-        .mapel-card-top {
+        .pembelajaran-page .mapel-card-top{
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
@@ -560,7 +557,7 @@
             margin-bottom: 10px;
         }
 
-        .badge-pill {
+        .pembelajaran-page .badge-pill{
             display: inline-flex;
             align-items: center;
             gap: 4px;
@@ -572,13 +569,13 @@
             letter-spacing: 0.3px;
         }
 
-        .badge-maroon { background: var(--maroon-light); color: var(--maroon); border: 1px solid #f1d5dc; }
-        .badge-blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
-        .badge-green { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
-        .badge-amber { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
-        .badge-gray { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+        .pembelajaran-page .badge-maroon{ background: var(--maroon-light); color: var(--maroon); border: 1px solid #f1d5dc; }
+        .pembelajaran-page .badge-blue{ background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .pembelajaran-page .badge-green{ background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+        .pembelajaran-page .badge-amber{ background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+        .pembelajaran-page .badge-gray{ background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
 
-        .mapel-title {
+        .pembelajaran-page .mapel-title{
             font-size: 16px;
             font-weight: 700;
             color: #0f172a;
@@ -586,7 +583,7 @@
             margin-bottom: 6px;
         }
 
-        .mapel-meta-row {
+        .pembelajaran-page .mapel-meta-row{
             display: flex;
             align-items: center;
             gap: 12px;
@@ -596,20 +593,20 @@
             margin-bottom: 8px;
         }
 
-        .mapel-meta-item {
+        .pembelajaran-page .mapel-meta-item{
             display: inline-flex;
             align-items: center;
             gap: 5px;
         }
 
-        .mapel-desc {
+        .pembelajaran-page .mapel-desc{
             font-size: 12px;
             color: #64748b;
             line-height: 1.5;
             margin-bottom: 14px;
         }
 
-        .progress-block {
+        .pembelajaran-page .progress-block{
             background: #f8fafc;
             border-radius: 10px;
             padding: 12px;
@@ -617,7 +614,7 @@
             border: 1px solid #f1f5f9;
         }
 
-        .progress-header {
+        .pembelajaran-page .progress-header{
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -625,11 +622,11 @@
             margin-bottom: 6px;
         }
 
-        .progress-header strong {
+        .pembelajaran-page .progress-header strong{
             color: #1e293b;
         }
 
-        .progress-bar-wrap {
+        .pembelajaran-page .progress-bar-wrap{
             height: 8px;
             background: #e2e8f0;
             border-radius: 9999px;
@@ -637,18 +634,18 @@
             margin-bottom: 8px;
         }
 
-        .progress-bar-fill {
+        .pembelajaran-page .progress-bar-fill{
             height: 100%;
             background: linear-gradient(90deg, #790c20, #b91c1c);
             border-radius: 9999px;
             transition: width 0.3s ease;
         }
 
-        .progress-bar-fill.complete {
+        .pembelajaran-page .progress-bar-fill.complete{
             background: linear-gradient(90deg, #15803d, #10b981);
         }
 
-        .progress-pills {
+        .pembelajaran-page .progress-pills{
             display: flex;
             align-items: center;
             gap: 6px;
@@ -656,18 +653,18 @@
             flex-wrap: wrap;
         }
 
-        .pill-stat {
+        .pembelajaran-page .pill-stat{
             padding: 2px 8px;
             border-radius: 6px;
             font-weight: 600;
         }
 
-        .pill-stat.hadir { background: #dcfce7; color: #166534; }
-        .pill-stat.izin { background: #e0f2fe; color: #075985; }
-        .pill-stat.sakit { background: #fef3c7; color: #92400e; }
-        .pill-stat.alpa { background: #fee2e2; color: #991b1b; }
+        .pembelajaran-page .pill-stat.hadir{ background: #dcfce7; color: #166534; }
+        .pembelajaran-page .pill-stat.izin{ background: #e0f2fe; color: #075985; }
+        .pembelajaran-page .pill-stat.sakit{ background: #fef3c7; color: #92400e; }
+        .pembelajaran-page .pill-stat.alpa{ background: #fee2e2; color: #991b1b; }
 
-        .btn-view-detail {
+        .pembelajaran-page .btn-view-detail{
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -684,7 +681,7 @@
             transition: all 0.2s;
         }
 
-        .btn-view-detail:hover {
+        .pembelajaran-page .btn-view-detail:hover{
             background: var(--maroon);
             color: #fff;
             border-color: var(--maroon);
@@ -693,14 +690,14 @@
         /* =========================
            TABEL & JADWAL
         ========================= */
-        .table-responsive {
+        .pembelajaran-page .table-responsive{
             width: 100%;
             overflow-x: auto;
             border-radius: 12px;
             border: 1px solid #edd5db;
         }
 
-        .custom-table {
+        .pembelajaran-page .custom-table{
             width: 100%;
             min-width: 720px;
             border-collapse: separate;
@@ -708,7 +705,7 @@
             background: #fff;
         }
 
-        .custom-table thead th {
+        .pembelajaran-page .custom-table thead th{
             padding: 12px 14px;
             background: #790c20;
             color: #fff;
@@ -718,7 +715,7 @@
             white-space: nowrap;
         }
 
-        .custom-table tbody td {
+        .pembelajaran-page .custom-table tbody td{
             padding: 12px 14px;
             border-bottom: 1px solid #f1f5f9;
             text-align: center;
@@ -726,19 +723,19 @@
             color: #334155;
         }
 
-        .custom-table tbody tr:hover td {
+        .pembelajaran-page .custom-table tbody tr:hover td{
             background: #fdf8f9;
         }
 
         /* JADWAL TERDEKAT CARDS */
-        .schedule-grid {
+        .pembelajaran-page .schedule-grid{
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 14px;
             margin-bottom: 22px;
         }
 
-        .schedule-card-item {
+        .pembelajaran-page .schedule-card-item{
             background: #fff;
             border: 1px solid #edd5db;
             border-radius: 12px;
@@ -749,11 +746,11 @@
             transition: box-shadow 0.2s;
         }
 
-        .schedule-card-item:hover {
+        .pembelajaran-page .schedule-card-item:hover{
             box-shadow: 0 4px 12px rgba(121, 12, 32, 0.08);
         }
 
-        .schedule-time-box {
+        .pembelajaran-page .schedule-time-box{
             width: 82px;
             min-width: 82px;
             height: 78px;
@@ -767,19 +764,19 @@
             text-align: center;
         }
 
-        .schedule-day-label {
+        .pembelajaran-page .schedule-day-label{
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
         }
 
-        .schedule-date-num {
+        .pembelajaran-page .schedule-date-num{
             font-size: 18px;
             font-weight: 800;
             line-height: 1.1;
         }
 
-        .schedule-details h4 {
+        .pembelajaran-page .schedule-details h4{
             font-size: 14px;
             font-weight: 700;
             color: #0f172a;
@@ -787,7 +784,7 @@
             line-height: 1.35;
         }
 
-        .schedule-details p {
+        .pembelajaran-page .schedule-details p{
             font-size: 12px;
             color: var(--muted);
             line-height: 1.5;
@@ -796,7 +793,7 @@
         /* =========================
            KELULUSAN & SERTIFIKAT
         ========================= */
-        .graduation-banner {
+        .pembelajaran-page .graduation-banner{
             border-radius: 16px;
             padding: 24px;
             margin-bottom: 22px;
@@ -807,17 +804,17 @@
             gap: 18px;
         }
 
-        .graduation-banner.lulus {
+        .pembelajaran-page .graduation-banner.lulus{
             background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
             border: 2px solid #86efac;
         }
 
-        .graduation-banner.proses {
+        .pembelajaran-page .graduation-banner.proses{
             background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
             border: 2px solid #fde68a;
         }
 
-        .grad-icon-wrap {
+        .pembelajaran-page .grad-icon-wrap{
             width: 58px;
             height: 58px;
             border-radius: 50%;
@@ -827,39 +824,39 @@
             flex-shrink: 0;
         }
 
-        .graduation-banner.lulus .grad-icon-wrap {
+        .pembelajaran-page .graduation-banner.lulus .grad-icon-wrap{
             background: #15803d;
             color: #fff;
         }
 
-        .graduation-banner.proses .grad-icon-wrap {
+        .pembelajaran-page .graduation-banner.proses .grad-icon-wrap{
             background: #b45309;
             color: #fff;
         }
 
-        .grad-content {
+        .pembelajaran-page .grad-content{
             flex: 1;
             min-width: 260px;
         }
 
-        .grad-title {
+        .pembelajaran-page .grad-title{
             font-size: 19px;
             font-weight: 800;
             margin-bottom: 4px;
         }
 
-        .graduation-banner.lulus .grad-title { color: #14532d; }
-        .graduation-banner.proses .grad-title { color: #78350f; }
+        .pembelajaran-page .graduation-banner.lulus .grad-title{ color: #14532d; }
+        .pembelajaran-page .graduation-banner.proses .grad-title{ color: #78350f; }
 
-        .grad-desc {
+        .pembelajaran-page .grad-desc{
             font-size: 13px;
             line-height: 1.6;
         }
 
-        .graduation-banner.lulus .grad-desc { color: #166534; }
-        .graduation-banner.proses .grad-desc { color: #92400e; }
+        .pembelajaran-page .graduation-banner.lulus .grad-desc{ color: #166534; }
+        .pembelajaran-page .graduation-banner.proses .grad-desc{ color: #92400e; }
 
-        .btn-certificate {
+        .pembelajaran-page .btn-certificate{
             display: inline-flex;
             align-items: center;
             gap: 8px;
@@ -875,13 +872,13 @@
             transition: all 0.2s;
         }
 
-        .btn-certificate:hover {
+        .pembelajaran-page .btn-certificate:hover{
             background: #166534;
             transform: translateY(-2px);
             box-shadow: 0 6px 14px rgba(21, 128, 61, 0.35);
         }
 
-        .btn-certificate:disabled {
+        .pembelajaran-page .btn-certificate:disabled{
             background: #cbd5e1;
             color: #64748b;
             cursor: not-allowed;
@@ -892,7 +889,7 @@
         /* =========================
            KALENDER
         ========================= */
-        .calendar-card {
+        .pembelajaran-page .calendar-card{
             width: 100%;
             max-width: 680px;
             background: #fff;
@@ -901,20 +898,20 @@
             padding: 18px 20px;
         }
 
-        .calendar-heading {
+        .pembelajaran-page .calendar-heading{
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 14px;
         }
 
-        .calendar-heading h3 {
+        .pembelajaran-page .calendar-heading h3{
             font-size: 15px;
             font-weight: 700;
             color: #0f172a;
         }
 
-        .calendar-toolbar {
+        .pembelajaran-page .calendar-toolbar{
             display: grid;
             grid-template-columns: 32px 1fr 32px;
             align-items: center;
@@ -922,13 +919,13 @@
             margin-bottom: 12px;
         }
 
-        .calendar-toolbar strong {
+        .pembelajaran-page .calendar-toolbar strong{
             font-size: 14px;
             font-weight: 700;
             color: var(--maroon);
         }
 
-        .calendar-toolbar button {
+        .pembelajaran-page .calendar-toolbar button{
             background: #f8fafc;
             border: 1px solid #e2e8f0;
             border-radius: 6px;
@@ -940,17 +937,17 @@
             place-items: center;
         }
 
-        .calendar-toolbar button:hover {
+        .pembelajaran-page .calendar-toolbar button:hover{
             background: var(--maroon-light);
         }
 
-        .calendar-grid {
+        .pembelajaran-page .calendar-grid{
             display: grid;
             grid-template-columns: repeat(7, minmax(0, 1fr));
             gap: 6px;
         }
 
-        .day-name {
+        .pembelajaran-page .day-name{
             text-align: center;
             color: var(--muted);
             font-size: 11px;
@@ -958,7 +955,7 @@
             padding: 4px 0 8px;
         }
 
-        .calendar-day {
+        .pembelajaran-page .calendar-day{
             min-height: 42px;
             display: flex;
             flex-direction: column;
@@ -974,29 +971,29 @@
             transition: all 0.15s;
         }
 
-        .calendar-day:hover {
+        .pembelajaran-page .calendar-day:hover{
             background: #f8fafc;
             border-color: #cbd5e1;
         }
 
-        .calendar-day.muted {
+        .pembelajaran-page .calendar-day.muted{
             color: #cbd5e1;
             cursor: default;
         }
 
-        .calendar-day.today {
+        .pembelajaran-page .calendar-day.today{
             border: 2px solid var(--maroon);
             font-weight: 700;
         }
 
-        .calendar-day.has-event {
+        .pembelajaran-page .calendar-day.has-event{
             background: var(--maroon-light);
             border-color: #f1d5dc;
             color: var(--maroon);
             font-weight: 700;
         }
 
-        .calendar-day.has-event::after {
+        .pembelajaran-page .calendar-day.has-event::after{
             content: "";
             width: 5px;
             height: 5px;
@@ -1006,7 +1003,7 @@
             bottom: 4px;
         }
 
-        .calendar-legend {
+        .pembelajaran-page .calendar-legend{
             display: flex;
             align-items: center;
             gap: 8px;
@@ -1017,14 +1014,14 @@
             border-top: 1px solid #f1f5f9;
         }
 
-        .legend-dot {
+        .pembelajaran-page .legend-dot{
             width: 8px;
             height: 8px;
             background: var(--maroon);
             border-radius: 50%;
         }
 
-        .calendar-info-box {
+        .pembelajaran-page .calendar-info-box{
             margin-top: 14px;
             padding: 12px 14px;
             background: #fdf8f9;
@@ -1036,7 +1033,7 @@
         /* =========================
            MODALS
         ========================= */
-        .modal-overlay {
+        .pembelajaran-page .modal-overlay{
             display: none;
             position: fixed;
             inset: 0;
@@ -1050,12 +1047,12 @@
             transition: opacity 0.25s ease;
         }
 
-        .modal-overlay.active {
+        .pembelajaran-page .modal-overlay.active{
             display: flex;
             opacity: 1;
         }
 
-        .modal-card {
+        .pembelajaran-page .modal-card{
             background: #fff;
             border-radius: 18px;
             max-width: 740px;
@@ -1069,11 +1066,11 @@
             transition: transform 0.25s ease;
         }
 
-        .modal-overlay.active .modal-card {
+        .pembelajaran-page .modal-overlay.active .modal-card{
             transform: scale(1);
         }
 
-        .modal-top {
+        .pembelajaran-page .modal-top{
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -1084,13 +1081,13 @@
             border-top-right-radius: 18px;
         }
 
-        .modal-top-title {
+        .pembelajaran-page .modal-top-title{
             font-size: 18px;
             font-weight: 700;
             color: var(--maroon);
         }
 
-        .modal-close-btn {
+        .pembelajaran-page .modal-close-btn{
             background: none;
             border: none;
             font-size: 26px;
@@ -1099,11 +1096,11 @@
             line-height: 1;
         }
 
-        .modal-inner {
+        .pembelajaran-page .modal-inner{
             padding: 22px 24px;
         }
 
-        .modal-footer-btns {
+        .pembelajaran-page .modal-footer-btns{
             padding: 16px 24px;
             background: #f8fafc;
             border-top: 1px solid #e2e8f0;
@@ -1115,7 +1112,7 @@
             border-bottom-right-radius: 18px;
         }
 
-        .btn-modal-cancel {
+        .pembelajaran-page .btn-modal-cancel{
             padding: 9px 18px;
             background: #e2e8f0;
             color: #334155;
@@ -1125,7 +1122,7 @@
             cursor: pointer;
         }
 
-        .btn-modal-action {
+        .pembelajaran-page .btn-modal-action{
             padding: 9px 18px;
             background: var(--maroon);
             color: #fff;
@@ -1135,7 +1132,7 @@
             cursor: pointer;
         }
 
-        .pertemuan-grid {
+        .pembelajaran-page .pertemuan-grid{
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             gap: 10px;
@@ -1145,7 +1142,7 @@
             padding: 4px;
         }
 
-        .pertemuan-card-item {
+        .pembelajaran-page .pertemuan-card-item{
             background: #f8fafc;
             border: 1px solid #e2e8f0;
             border-radius: 10px;
@@ -1153,19 +1150,19 @@
             text-align: center;
         }
 
-        .pertemuan-card-num {
+        .pembelajaran-page .pertemuan-card-num{
             font-size: 13px;
             font-weight: 700;
             color: var(--maroon);
         }
 
-        .pertemuan-card-date {
+        .pembelajaran-page .pertemuan-card-date{
             font-size: 11px;
             color: #64748b;
             margin-top: 2px;
         }
 
-        .pertemuan-card-badge {
+        .pembelajaran-page .pertemuan-card-badge{
             display: inline-block;
             margin-top: 6px;
             font-size: 11px;
@@ -1175,14 +1172,14 @@
         }
 
         /* RINGKASAN KEHADIRAN PADA MODAL MATA PELAJARAN */
-        .abs-ringkasan {
+        .pembelajaran-page .abs-ringkasan{
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
             gap: 8px;
             margin-bottom: 12px;
         }
 
-        .abs-stat {
+        .pembelajaran-page .abs-stat{
             padding: 8px 10px;
             border: 1px solid #e6dde0;
             border-radius: 10px;
@@ -1190,7 +1187,7 @@
             text-align: center;
         }
 
-        .abs-stat-label {
+        .pembelajaran-page .abs-stat-label{
             display: block;
             color: #8b7e84;
             font-size: 10.5px;
@@ -1199,7 +1196,7 @@
             text-transform: uppercase;
         }
 
-        .abs-stat strong {
+        .pembelajaran-page .abs-stat strong{
             display: block;
             margin-top: 2px;
             color: var(--maroon);
@@ -1208,17 +1205,17 @@
             line-height: 1.2;
         }
 
-        .abs-stat.hadir strong { color: #15803d; }
-        .abs-stat.izin strong { color: #1d4ed8; }
-        .abs-stat.sakit strong { color: #b45309; }
-        .abs-stat.alpa strong { color: #b91c1c; }
+        .pembelajaran-page .abs-stat.hadir strong{ color: #15803d; }
+        .pembelajaran-page .abs-stat.izin strong{ color: #1d4ed8; }
+        .pembelajaran-page .abs-stat.sakit strong{ color: #b45309; }
+        .pembelajaran-page .abs-stat.alpa strong{ color: #b91c1c; }
 
-        .abs-stat--persen {
+        .pembelajaran-page .abs-stat--persen{
             border-color: #e6d7b8;
             background: #fffdf7;
         }
 
-        .abs-stat-note {
+        .pembelajaran-page .abs-stat-note{
             display: block;
             margin-top: 2px;
             color: #8b7e84;
@@ -1226,14 +1223,14 @@
             line-height: 1.35;
         }
 
-        .abs-periode {
+        .pembelajaran-page .abs-periode{
             margin-bottom: 12px;
             border: 1px solid #efe5e7;
             border-radius: 10px;
             overflow: hidden;
         }
 
-        .abs-periode-item {
+        .pembelajaran-page .abs-periode-item{
             display: flex;
             align-items: center;
             flex-wrap: wrap;
@@ -1243,11 +1240,11 @@
             font-size: 11.5px;
         }
 
-        .abs-periode-item:last-child {
+        .pembelajaran-page .abs-periode-item:last-child{
             border-bottom: none;
         }
 
-        .abs-periode-nama {
+        .pembelajaran-page .abs-periode-nama{
             flex: 1 1 140px;
             min-width: 0;
             color: #322a2d;
@@ -1255,12 +1252,12 @@
             overflow-wrap: anywhere;
         }
 
-        .abs-periode-detail {
+        .pembelajaran-page .abs-periode-detail{
             color: #8b7e84;
             font-size: 11px;
         }
 
-        .abs-periode-persen {
+        .pembelajaran-page .abs-periode-persen{
             padding: 2px 9px;
             border-radius: 999px;
             background: #fdf6e8;
@@ -1270,17 +1267,17 @@
         }
 
         @media (max-width: 560px) {
-            .abs-ringkasan {
+            .pembelajaran-page .abs-ringkasan{
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
-            .modal-inner {
+            .pembelajaran-page .modal-inner{
                 padding: 16px;
             }
         }
 
         /* SERTIFIKAT MODAL */
-        .certificate-wrapper {
+        .pembelajaran-page .certificate-wrapper{
             max-width: 680px;
             text-align: center;
             border: 8px double #800d22;
@@ -1313,24 +1310,22 @@
         /* =========================
            RESPONSIVE MOBILE
         ========================= */
-        .mobile-toggle,
-        .mobile-overlay {
+        .pembelajaran-page .mobile-toggle, .pembelajaran-page .mobile-overlay{
             display: none;
         }
 
         @media (max-width: 1100px) {
-            .main { padding: 100px 24px 30px; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .pembelajaran-page .main{ padding: 100px 24px 30px; }
+            .pembelajaran-page .stats-grid{ grid-template-columns: repeat(2, 1fr); }
         }
 
         /* Di bawah 992px sidebar bersama menjadi laci dan konten memakai lebar penuh. */
         @media (max-width: 991px) {
-            .main,
-            body.sb-sempit .main {
+            .pembelajaran-page .main, .pembelajaran-page body.sb-sempit .main{
                 margin-left: 0;
             }
 
-            .mobile-toggle {
+            .pembelajaran-page .mobile-toggle{
                 display: inline-flex;
                 align-items: center;
                 gap: 6px;
@@ -1344,7 +1339,7 @@
                 font-weight: 600;
             }
 
-            .mobile-overlay.open {
+            .pembelajaran-page .mobile-overlay.open{
                 display: block;
                 position: fixed;
                 inset: 0;
@@ -1354,68 +1349,34 @@
         }
 
         @media (max-width: 768px) {
-            .topbar { height: 72px; padding: 0 16px; }
-            .brand-name { font-size: 22px; }
-            .brand-logo { width: 44px; height: 42px; }
-            .user-info-pill { display: none; }
-            .main { padding: 86px 16px 30px; }
-            .page-title { font-size: 24px; }
-            .stats-grid { grid-template-columns: 1fr; }
-            .mapel-grid { grid-template-columns: 1fr; }
-            .graduation-banner { flex-direction: column; text-align: center; }
-            .grad-icon-wrap { margin: 0 auto; }
-            .tabs-header-wrap { flex-direction: column; align-items: flex-start; }
-            .kelompok-select-form { width: 100%; justify-content: space-between; }
+            .pembelajaran-page .topbar{ height: 72px; padding: 0 16px; }
+            .pembelajaran-page .brand-name{ font-size: 22px; }
+            .pembelajaran-page .brand-logo{ width: 44px; height: 42px; }
+            .pembelajaran-page .user-info-pill{ display: none; }
+            .pembelajaran-page .main{ padding: 86px 16px 30px; }
+            .pembelajaran-page .page-title{ font-size: 24px; }
+            .pembelajaran-page .stats-grid{ grid-template-columns: 1fr; }
+            .pembelajaran-page .mapel-grid{ grid-template-columns: 1fr; }
+            .pembelajaran-page .graduation-banner{ flex-direction: column; text-align: center; }
+            .pembelajaran-page .grad-icon-wrap{ margin: 0 auto; }
+            .pembelajaran-page .tabs-header-wrap{ flex-direction: column; align-items: flex-start; }
+            .pembelajaran-page .kelompok-select-form{ width: 100%; justify-content: space-between; }
         }
-    </style>
-</head>
 
-<body>
-    <!-- HEADER -->
-    <header class="topbar">
-        <a href="{{ route('dashboard') }}" class="brand" aria-label="SIMAHAD - Dashboard">
-            <svg class="brand-logo" viewBox="0 0 70 65" fill="none" aria-label="logo_uin.png">
-                <path d="M35 3L64 25L58 53L35 63L12 53L6 25L35 3Z" stroke="#B99124" stroke-width="5"/>
-                <path d="M35 13L54 28L50 47L35 56L20 47L16 28L35 13Z" stroke="#790C20" stroke-width="4"/>
-                <path d="M24 30H46V45H24Z" fill="#790C20"/>
-                <path d="M28 26L35 20L42 26V42L35 47L28 42V26Z" stroke="#fff" stroke-width="2"/>
-                <path d="M31 31H39M31 35H39M31 39H39" stroke="#fff" stroke-width="1.5"/>
-            </svg>
-            <span class="brand-name">SIMAHAD</span>
-        </a>
+    /* Isolasi halaman Pembelajaran, supaya tidak mengubah header/sidebar panel. */
+    .pembelajaran-page {
+        width: 100%;
+        min-width: 0;
+    }
+    .pembelajaran-page .modal-overlay {
+        z-index: 1200; /* Di atas topbar global (1000) dan sidebar (900). */
+    }
 
-        <div class="top-actions">
-            <div class="user-info-pill">
-                <div>
-                    <div class="user-name-text">{{ $user?->name ?? 'Mahasiswa' }}</div>
-                    <div class="user-nim-text">{{ !empty($user?->nim) ? 'NIM. ' . $user->nim : ($kelompokSaya ?? 'Santri Ma\'had') }}</div>
-                </div>
-            </div>
+</style>
+@endpush
 
-            <button class="notification" type="button" aria-label="Notifikasi">
-                <svg viewBox="0 0 24 24">
-                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
-                    <path d="M10 21h4"/>
-                </svg>
-            </button>
-
-            <x-mahasiswa.profile-dropdown />
-        </div>
-    </header>
-
-    <!-- OVERLAY MOBILE -->
-    <div class="mobile-overlay" id="mobileOverlay" onclick="toggleSidebar()"></div>
-
-    <!-- SIDEBAR -->
-    {{-- Sidebar bersama seluruh role SIMAHAD. --}}
-    <x-panel.sidebar ragam="tetap" atas="89px" />
-
-    <!-- KONTEN UTAMA -->
-    <main class="main">
-        <button class="mobile-toggle" type="button" onclick="toggleSidebar()" aria-controls="sidebar" aria-expanded="false" id="sidebarToggle">
-            ☰ Menu
-        </button>
-
+@section('content')
+<div class="pembelajaran-page">
         <div class="page-header-row">
             <div>
                 <div class="breadcrumb">Dashboard / Pembelajaran Mahasiswa</div>
@@ -1576,7 +1537,7 @@
                                 </div>
                             </div>
 
-                            <button type="button" class="btn-view-detail" onclick="openDetailPertemuan({{ $m['id'] }}, '{{ addslashes($m['nama']) }}', '{{ $m['kode'] }}')">
+                            <button type="button" class="btn-view-detail" data-mapel-id="{{ $m['id'] }}" data-mapel-nama="{{ $m['nama'] }}" data-mapel-kode="{{ $m['kode'] }}" onclick="openDetailPertemuan(this.dataset.mapelId, this.dataset.mapelNama, this.dataset.mapelKode)">
                                 Lihat Kehadiran &amp; Pertemuan
                             </button>
                         </div>
@@ -1857,7 +1818,6 @@
                 </div>
             </div>
         </section>
-    </main>
 
     <!-- ======================================================== -->
     <!-- MODAL 1: KEHADIRAN & RINCIAN PERTEMUAN MAHASISWA         -->
@@ -1972,22 +1932,11 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT -->
+</div>
+@endsection
+
+@push('scripts')
     <script>
-        // SIDEBAR TOGGLE
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('mobileOverlay');
-            const toggleButton = document.getElementById('sidebarToggle');
-
-            const isOpen = sidebar.classList.toggle('open');
-            overlay.classList.toggle('open', isOpen);
-
-            if (toggleButton) {
-                toggleButton.setAttribute('aria-expanded', String(isOpen));
-            }
-        }
-
         // TAB SWITCHER
         function switchTab(tabId, btn) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -2002,6 +1951,13 @@
             if (tabId === 'tab-kalender') {
                 renderCalendar();
             }
+        }
+
+        // Encode nilai dari database sebelum masuk ke konten HTML dinamis.
+        function escapeHTML(value) {
+            return String(value ?? '').replace(/[&<>"']/g, ch => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[ch]));
         }
 
         // MODAL HELPERS
@@ -2149,8 +2105,8 @@
                             const card = document.createElement('div');
                             card.className = 'pertemuan-card-item';
                             card.innerHTML = `
-                                <div class="pertemuan-card-num">Pertemuan ${p.pertemuan_ke}</div>
-                                <div class="pertemuan-card-date">${p.tanggal}</div>
+                                <div class="pertemuan-card-num">Pertemuan ${escapeHTML(p.pertemuan_ke)}</div>
+                                <div class="pertemuan-card-date">${escapeHTML(p.tanggal)}</div>
                                 <span class="pertemuan-card-badge" style="${badgeStyle}">
                                     ${statusText}
                                 </span>
@@ -2169,7 +2125,7 @@
         // ============================================
         // KALENDER DINAMIS
         // ============================================
-        const calendarEvents = @json($calendarEvents);
+        const calendarEvents = @json($calendarEvents ?? []);
 
         let shownDate = new Date();
         let shownYear = shownDate.getFullYear();
@@ -2256,7 +2212,7 @@
 
             let html = `<strong>Jadwal Pembelajaran pada ${formatted}:</strong><ul style="margin: 8px 0 0 18px; line-height: 1.6;">`;
             classes.forEach(c => {
-                html += `<li><strong>${c.nama}</strong> (${c.waktu}) — Guru: ${c.guru} | Ruang: ${c.ruangan}</li>`;
+                html += `<li><strong>${escapeHTML(c.nama)}</strong> (${escapeHTML(c.waktu)}) — Guru: ${escapeHTML(c.guru)} | Ruang: ${escapeHTML(c.ruangan)}</li>`;
             });
             html += `</ul>`;
             box.innerHTML = html;
@@ -2282,5 +2238,4 @@
 
         renderCalendar();
     </script>
-</body>
-</html>
+@endpush

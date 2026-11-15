@@ -22,6 +22,11 @@
 
     <title>@yield('title', 'SIMAHAD') - {{ $namaSistem ?? 'SIMAHAD' }}</title>
 
+    {{-- Logo UIN pada tab browser --}}
+<link rel="icon" type="image/png" href="{{ asset('images/logo_uin.png') }}">
+<link rel="shortcut icon" type="image/png" href="{{ asset('images/logo_uin.png') }}">
+
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
 
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

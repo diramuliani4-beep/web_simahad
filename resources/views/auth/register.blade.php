@@ -19,18 +19,18 @@
         }
 
         :root {
-            --brand-maroon: #781023;
-            --brand-maroon-hover: #600c1b;
-            --brand-maroon-dark: #460914;
-            --brand-gold: #F5A623;
+            --brand-maroon: #6B0D1B;
+            --brand-maroon-hover: #560A16;
+            --brand-maroon-dark: #3D0710;
+            --brand-gold: #C9A96A;
             --text-main: #1f2937;
             --text-muted: #6b7280;
             --bg-canvas: #f3f4f6;
-            --border-maroon: #781023;
+            --border-maroon: #6B0D1B;
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-canvas);
             color: var(--text-main);
             min-height: 100vh;
@@ -42,7 +42,7 @@
 
         .register-card {
             width: 100%;
-            max-width: 1080px;
+            max-width: 880px;
             background: #ffffff;
             border: 1.5px solid var(--border-maroon);
             border-radius: 12px;
@@ -55,33 +55,33 @@
         @media (min-width: 860px) {
             .register-card {
                 flex-direction: row;
-                min-height: 680px;
+                min-height: 500px;
             }
         }
 
         /* ================= LEFT COLUMN ================= */
         .hero-panel {
-            position: relative;
-            flex: 1.05;
-            background-color: #d1d5db;
-            background-image: url('{{ asset('images/mahad_al_jamiah.jpeg') }}');
-            background-size: cover;
-            background-position: center bottom;
-            background-repeat: no-repeat;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 2.25rem 2.25rem 2rem;
-            min-height: 480px;
-            overflow: hidden;
-            border-bottom: 1.5px solid var(--border-maroon);
-        }
+    position: relative;
+    flex: 1.05;
+    background-color: #d1d5db;
+    background-image: url('{{ asset('images/mahad_al_jamiah.jpeg') }}');
+    background-size: cover;
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1.6rem 1.6rem 1.5rem;
+    min-height: 380px;
+    overflow: hidden;
+    border-bottom: 1.5px solid var(--border-maroon);
+}
 
         @media (min-width: 860px) {
             .hero-panel {
                 border-bottom: none;
                 border-right: 1.5px solid var(--border-maroon);
-                min-height: 680px;
+                min-height: 500px;
             }
         }
 
@@ -107,21 +107,21 @@
         }
 
         .brand-logo-img {
-            width: 46px;
-            height: 46px;
+            width: 38px;
+            height: 38px;
             object-fit: contain;
             flex-shrink: 0;
         }
 
         .building-logo-img {
-            width: 26px;
-            height: 26px;
+            width: 22px;
+            height: 22px;
             object-fit: contain;
         }
 
         .center-logo-img {
-            width: 50px;
-            height: 50px;
+            width: 42px;
+            height: 42px;
             object-fit: contain;
         }
 
@@ -131,7 +131,7 @@
         }
 
         .hero-brand-title {
-            font-size: 1.45rem;
+            font-size: 1.12rem;
             font-weight: 800;
             letter-spacing: 0.04em;
             color: #111827;
@@ -139,7 +139,7 @@
         }
 
         .hero-brand-sub {
-            font-size: 0.76rem;
+            font-size: 0.68rem;
             font-weight: 600;
             color: #1f2937;
             line-height: 1.25;
@@ -147,7 +147,7 @@
         }
 
         .hero-brand-inst {
-            font-size: 0.74rem;
+            font-size: 0.64rem;
             font-weight: 500;
             color: #374151;
             line-height: 1.25;
@@ -156,33 +156,33 @@
         .hero-content-middle {
             position: relative;
             z-index: 2;
-            margin-top: 2.5rem;
+            margin-top: 1.6rem;
             margin-bottom: auto;
-            max-width: 440px;
+            max-width: 360px;
         }
 
         .hero-welcome {
-            font-family: 'Lora', Georgia, serif;
+            font-family: "Lora", Georgia, serif;
             font-style: italic;
             font-weight: 600;
-            font-size: 1.7rem;
+            font-size: 1.2rem;
             color: var(--brand-maroon);
             margin-bottom: 2px;
             text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
         }
 
         .hero-simahad {
-            font-size: 2.25rem;
+            font-size: 1.6rem;
             font-weight: 800;
             color: var(--brand-maroon-dark);
             line-height: 1.05;
-            margin-bottom: 0.65rem;
+            margin-bottom: 0.5rem;
             letter-spacing: -0.01em;
             text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
         }
 
         .hero-tagline {
-            font-size: 0.96rem;
+            font-size: 0.8rem;
             font-weight: 500;
             color: #111827;
             line-height: 1.45;
@@ -194,8 +194,8 @@
             z-index: 2;
             align-self: center;
             text-align: center;
-            margin-top: 1rem;
-            padding: 0.65rem 1.25rem;
+            margin-top: 0.6rem;
+            padding: 0.45rem 0.95rem;
             background: rgba(255, 255, 255, 0.6);
             backdrop-filter: blur(2px);
             border-radius: 8px;
@@ -205,11 +205,11 @@
 
         .building-sign-logo {
             display: inline-flex;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .building-sign-text {
-            font-size: 0.92rem;
+            font-size: 0.76rem;
             font-weight: 800;
             color: #27303f;
             letter-spacing: 0.08em;
@@ -218,7 +218,7 @@
         }
 
         .building-sign-sub {
-            font-size: 0.82rem;
+            font-size: 0.68rem;
             font-weight: 800;
             color: #334155;
             letter-spacing: 0.06em;
@@ -232,28 +232,28 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 1.75rem 2rem 2rem;
+            padding: 1.25rem 1.35rem 1.35rem;
         }
 
         @media (min-width: 600px) {
             .form-panel {
-                padding: 2rem 2.75rem 2rem;
+                padding: 1.4rem 1.9rem 1.6rem;
             }
         }
 
         .motto-bar {
             text-align: right;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             font-weight: 600;
             color: #374151;
             letter-spacing: 0.02em;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.6rem;
         }
 
         .inner-frame {
             border: 1.5px solid var(--border-maroon);
-            border-radius: 36px 36px 28px 28px;
-            padding: 2rem 2rem;
+            border-radius: 22px 22px 18px 18px;
+            padding: 1.35rem 1.3rem 1.25rem;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -262,17 +262,17 @@
 
         @media (min-width: 600px) {
             .inner-frame {
-                padding: 2.25rem 2.5rem 2rem;
+                padding: 1.5rem 1.6rem 1.4rem;
             }
         }
 
         .center-emblem {
-            margin-bottom: 0.65rem;
+            margin-bottom: 0.45rem;
         }
 
         .form-headline {
             color: var(--brand-maroon);
-            font-size: 1.18rem;
+            font-size: 1.02rem;
             font-weight: 700;
             text-align: center;
             margin-bottom: 0.25rem;
@@ -280,23 +280,23 @@
 
         .form-subheadline {
             color: #4b5563;
-            font-size: 0.82rem;
+            font-size: 0.75rem;
             line-height: 1.35;
             text-align: center;
-            max-width: 320px;
-            margin-bottom: 1.25rem;
+            max-width: 290px;
+            margin-bottom: 1rem;
         }
 
         .alert-box {
             width: 100%;
-            padding: 0.65rem 0.85rem;
+            padding: 0.5rem 0.7rem;
             border-radius: 8px;
-            font-size: 0.82rem;
-            margin-bottom: 1rem;
+            font-size: 0.75rem;
+            margin-bottom: 0.75rem;
             display: flex;
             align-items: center;
-            gap: 8px;
-            line-height: 1.3;
+            gap: 7px;
+            line-height: 1.35;
         }
 
         .alert-error {
@@ -316,20 +316,20 @@
 
         .field-label {
             display: block;
-            font-size: 0.8rem;
+            font-size: 0.76rem;
             font-weight: 600;
             color: #1f2937;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.3rem;
         }
 
         .field-input {
             width: 100%;
-            height: 38px;
+            height: 36px;
             border: 1.5px solid var(--border-maroon);
-            border-radius: 8px;
-            padding: 0 12px;
+            border-radius: 7px;
+            padding: 0 11px;
             font-family: inherit;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #111827;
             background-color: #ffffff;
             outline: none;
@@ -338,7 +338,7 @@
 
         .field-input::placeholder {
             color: #9ca3af;
-            font-size: 0.82rem;
+            font-size: 0.78rem;
         }
 
         .field-input:focus {
@@ -348,33 +348,33 @@
 
         .btn-submit {
             width: 100%;
-            height: 42px;
+            height: 36px;
             background-color: var(--brand-maroon);
             color: #ffffff;
             border: none;
-            border-radius: 8px;
+            border-radius: 7px;
             font-family: inherit;
             font-weight: 700;
-            font-size: 0.92rem;
+            font-size: 0.84rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s ease;
             box-shadow: 0 2px 4px rgba(120, 16, 35, 0.2);
-            margin-top: 1rem;
         }
 
         .btn-submit:hover {
             background-color: var(--brand-maroon-hover);
             transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(120, 16, 35, 0.25);
         }
 
         .register-footer {
             text-align: center;
-            font-size: 0.78rem;
+            font-size: 0.74rem;
             color: #1f2937;
-            margin-top: 1rem;
+            margin-top: 0.85rem;
         }
 
         .register-link {

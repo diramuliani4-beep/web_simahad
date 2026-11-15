@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Konfirmasi Keluar - {{ $namaSistem ?? 'SIMAHAD' }}</title>
+    {{-- Favicon UIN Imam Bonjol --}}
+<link rel="icon" type="image/png" href="{{ asset('images/logo_uin.png') }}?v=2">
+<link rel="shortcut icon" type="image/png" href="{{ asset('images/logo_uin.png') }}?v=2">
 
     <style>
         * {

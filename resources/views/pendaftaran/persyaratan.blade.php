@@ -1,28 +1,14 @@
-<!DOCTYPE html>
+@extends('layouts.mahasiswa')
 
-<html lang="id">
+@section('title', 'Pendaftaran Mahasiswa Baru - Dokumen dan Pembayaran')
 
-<head>
+@push('styles')
+<style>
 
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-
-    <title>Pendaftaran Mahasiswa Baru - Dokumen dan Pembayaran</title>
-
-    <!-- Google Fonts -->
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <style>
-
-        *, *::before, *::after {
+        .pendaftaran-persyaratan-page,
+        .pendaftaran-persyaratan-page *,
+        .pendaftaran-persyaratan-page *::before,
+        .pendaftaran-persyaratan-page *::after {
 
             box-sizing: border-box;
 
@@ -32,7 +18,7 @@
 
         }
 
-        :root {
+        .pendaftaran-persyaratan-page {
 
             --primary-maroon: #6e001b;
 
@@ -48,11 +34,11 @@
 
         }
 
-        body {
+        .pendaftaran-persyaratan-page {
 
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-            min-height: 100vh;
+            min-height: calc(100vh - var(--header-height, 68px) - 66px);
 
             display: flex;
 
@@ -70,7 +56,10 @@
 
             background-position: center top;
 
-            background-attachment: fixed;
+            background-repeat: no-repeat;
+            isolation: isolate;
+            overflow: hidden;
+            border-radius: 14px;
 
         }
 
@@ -78,7 +67,7 @@
 
         .page-overlay {
 
-            position: fixed;
+            position: absolute;
 
             inset: 0;
 
@@ -87,6 +76,7 @@
             backdrop-filter: blur(3px);
 
             z-index: 1;
+            pointer-events: none;
 
         }
 
@@ -619,60 +609,89 @@
         }
 
         /* Validasi dan informasi pembayaran. */
+
         .form-error {
+
             display: block;
+
             margin-top: 0.35rem;
+
             color: #b42318;
+
             font-size: 0.76rem;
+
             line-height: 1.45;
+
         }
 
         .form-input.is-invalid,
+
         .upload-dropzone.is-invalid {
+
             border-color: #b42318;
+
         }
 
         .upload-dropzone:focus-within {
+
             border-color: var(--primary-maroon-hover);
+
             box-shadow: 0 0 0 3px rgba(110, 0, 27, 0.1);
+
         }
 
         .payment-notice {
+
             padding: 0.8rem 0.95rem;
+
             background: #fff7ed;
+
             border: 1px solid #fed7aa;
+
             border-radius: 10px;
+
             color: #854d0e;
+
             font-size: 0.79rem;
+
             line-height: 1.55;
+
             margin: 0 0 1.25rem;
+
         }
 
         .form-required-note {
+
             color: var(--text-muted);
+
             font-size: 0.74rem;
+
             margin-top: 0.75rem;
+
         }
 
         .btn-maroon-pill:disabled {
+
             opacity: 0.65;
+
             cursor: not-allowed;
+
             transform: none;
+
         }
 
         @media (max-width: 640px) {
+
             .form-footer { flex-wrap: wrap; gap: 0.75rem; }
+
         }
 
     </style>
+@endpush
 
-</head>
-
-<body class="sb-mandiri">
-    {{-- Sidebar bersama seluruh role SIMAHAD. --}}
-    <x-panel.sidebar ragam="mandiri" tombol-buka />
-
-    <div class="page-overlay"></div>
+@section('content')
+<div class="pendaftaran-persyaratan-page">
+<div class="page-overlay"></div>
 
     <div class="form-card">
 
@@ -741,139 +760,245 @@
             </div>
 
         </div>
+
         <!-- Form tahap ketiga: persyaratan dan pembayaran. -->
-            <form action="{{ route('pendaftaran.simpanDokumen') }}" method="POST" enctype="multipart/form-data">
+
+            <form id="formDokumen" action="{{ route('pendaftaran.simpanDokumen') }}" method="POST" enctype="multipart/form-data">
+
             @csrf
 
             <div class="payment-notice" role="note">
+
                 <strong>Persyaratan pembayaran awal:</strong> minimal Rp1.000.000 dan
+
                 <strong>wajib mengunggah bukti pembayaran</strong>. Pendaftaran akan
+
                 berstatus <strong>Menunggu Verifikasi</strong> sampai diperiksa pengelola Ma'had.
+
             </div>
 
             <!-- Alasan mendaftar. -->
+
             <div class="form-group">
+
                 <label for="alasan_daftar" class="form-label">Alasan daftar ke Ma'had*</label>
+
                 <textarea id="alasan_daftar" name="alasan_daftar"
+
                           class="form-input @error('alasan_daftar') is-invalid @enderror"
+
                           placeholder="Tuliskan alasan kamu ingin tinggal di Ma'had..."
+
                           maxlength="5000" required>{{ old('alasan_daftar', $data['alasan_daftar'] ?? '') }}</textarea>
+
                 @error('alasan_daftar')
+
                     <span class="form-error" role="alert">{{ $message }}</span>
+
                 @enderror
+
             </div>
 
             <!-- Nominal Rupiah akan diformat saat diketik. -->
+
             <div class="form-group">
+
                 <label for="nominal_pembayaran" class="form-label">Nominal Pembayaran Awal*</label>
+
                 <input type="text" id="nominal_pembayaran" name="nominal_pembayaran"
+
                        class="form-input @error('nominal_pembayaran') is-invalid @enderror"
+
                        inputmode="numeric" autocomplete="off"
+
                        placeholder="Contoh: Rp1.000.000"
+
                        value="{{ old('nominal_pembayaran', $data['nominal_pembayaran'] ?? '') }}"
+
                        aria-describedby="bantuan_nominal" required>
+
                 <div class="form-subtext" id="bantuan_nominal">Pembayaran awal minimal Rp1.000.000.</div>
+
                 @error('nominal_pembayaran')
+
                     <span class="form-error" role="alert">{{ $message }}</span>
+
                 @enderror
+
             </div>
 
             <!-- Bukti pembayaran wajib dan hanya file PDF/gambar. -->
+
             <div class="form-group">
+
                 <label for="bukti_pembayaran" class="form-label">Bukti Pembayaran Awal*</label>
+
                 <div class="upload-dropzone @error('bukti_pembayaran') is-invalid @enderror" id="uploadZone">
+
                     <input type="file" id="bukti_pembayaran" name="bukti_pembayaran"
+
                            class="file-hidden-input" accept=".pdf,.jpg,.jpeg,.png"
+
                            aria-describedby="bantuan_bukti" required
+
                            onchange="handleFileSelected(this, 'fileNameDisplay')">
+
                     <div class="upload-icon" aria-hidden="true">
+
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+
                              stroke="currentColor" stroke-width="2"
+
                              stroke-linecap="round" stroke-linejoin="round">
+
                             <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
+
                             <path d="M12 12v9"></path>
+
                             <path d="m8 16 4-4 4 4"></path>
+
                         </svg>
+
                     </div>
+
                     <span class="upload-text" id="fileNameDisplay">Unggah bukti pembayaran</span>
+
                     <span class="upload-sub" id="bantuan_bukti">PDF, JPG, JPEG, atau PNG — maksimal 5 MB</span>
+
                 </div>
+
                 @error('bukti_pembayaran')
+
                     <span class="form-error" role="alert">{{ $message }}</span>
+
                 @enderror
+
             </div>
 
             <!-- Konfirmasi kebenaran data. -->
+
             <div class="form-group">
+
                 <label for="konfirmasi_data" class="form-label">Konfirmasi Data*</label>
+
                 <label class="confirm-wrap" for="konfirmasi_data">
+
                     <input type="checkbox" id="konfirmasi_data" name="konfirmasi_data"
+
                            value="1" class="confirm-checkbox" required
+
                            @checked(old('konfirmasi_data', false))>
+
                     <span class="confirm-label">Saya menyatakan bahwa data dan bukti pembayaran yang saya kirim sudah benar.</span>
+
                 </label>
+
                 @error('konfirmasi_data')
+
                     <span class="form-error" role="alert">{{ $message }}</span>
+
                 @enderror
+
             </div>
 
             <p class="form-required-note">* Kolom wajib diisi.</p>
 
             <!-- Navigasi tahap terakhir. -->
+
             <div class="form-footer">
+
                 <a href="{{ route('pendaftaran.akademik') }}" class="btn-maroon-pill">Kembali</a>
+
                 <button type="submit" class="btn-maroon-pill" id="btnKirim">Kirim Pendaftaran</button>
+
             </div>
+
         </form>
 
     </div>
+</div>
+@endsection
 
-    <script>
+@push('scripts')
+<script>
+
         const nominalInput = document.getElementById('nominal_pembayaran');
+
         const formDokumen = document.getElementById('formDokumen');
+
         const btnKirim = document.getElementById('btnKirim');
+
         const MINIMAL_PEMBAYARAN = 1000000;
 
         // Menampilkan format Rupiah; controller tetap memvalidasi angka asli.
+
         function formatNominal() {
+
             const angka = nominalInput.value.replace(/\D/g, '');
+
             nominalInput.value = angka ? 'Rp' + Number(angka).toLocaleString('id-ID') : '';
+
             const nilai = angka ? Number(angka) : 0;
+
             nominalInput.setCustomValidity(
+
                 angka && nilai < MINIMAL_PEMBAYARAN
+
                     ? 'Pembayaran awal minimal Rp1.000.000.'
+
                     : ''
+
             );
+
         }
 
         nominalInput.addEventListener('input', formatNominal);
+
         formatNominal();
 
         // Tampilkan nama dokumen dan cek ukurannya sebelum dikirim.
+
         function handleFileSelected(input, displayId) {
+
             const display = document.getElementById(displayId);
+
             const file = input.files && input.files[0];
+
             if (!file) {
+
                 display.textContent = 'Unggah bukti pembayaran';
+
                 return;
+
             }
+
             const ekstensiValid = /\.(pdf|jpe?g|png)$/i.test(file.name);
+
             if (!ekstensiValid || file.size > 5 * 1024 * 1024) {
+
                 input.value = '';
+
                 display.textContent = 'Unggah bukti pembayaran';
+
                 alert('Bukti pembayaran harus PDF, JPG, JPEG, atau PNG dengan ukuran maksimal 5 MB.');
+
                 return;
+
             }
+
             display.textContent = file.name;
+
         }
 
         // Mencegah klik ganda selama permintaan disampaikan ke server.
+
         formDokumen.addEventListener('submit', function () {
+
             btnKirim.disabled = true;
+
             btnKirim.textContent = 'Mengirim...';
+
         });
+
     </script>
-
-</body>
-
-</html>
+@endpush

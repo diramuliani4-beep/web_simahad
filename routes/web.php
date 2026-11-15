@@ -208,11 +208,13 @@ Route::middleware('auth')->group(function () {
         ->name('kamar');
 
     Route::post('/kamar/pilih', [AuthController::class, 'pilihKamar'])
-        ->name('kamar.pilih');
+        ->name('kamar.pilih')
+        ->middleware(\App\Http\Middleware\PastikanPendaftaranDisetujui::class);
 
     // Pengajuan pindah kamar, diverifikasi Musyrifah pada menu Pengajuan Kamar
     Route::post('/kamar/pindah', [AuthController::class, 'pindahKamar'])
-        ->name('kamar.pindah');
+        ->name('kamar.pindah')
+        ->middleware(\App\Http\Middleware\PastikanPendaftaranDisetujui::class);
 
     // Profil mahasiswa
     Route::get('/profil-mhs', [ProfilMhsController::class, 'index'])
@@ -382,7 +384,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/surat-perizinan-mhs/pengajuan-izin-pulang', [
         PengajuanIzinPulangController::class,
         'store',
-    ])->name('surat.perizinan.mhs.pengajuan.store');
+    ])->name('surat.perizinan.mhs.pengajuan.store')
+        ->middleware(\App\Http\Middleware\PastikanPendaftaranDisetujui::class);
 
     // Izin kegiatan fakultas/prodi dan kampus
     Route::get('/surat-perizinan-mhs/kegiatan', [
@@ -393,7 +396,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/surat-perizinan-mhs/kegiatan', [
         SuratPerizinanMhsController::class,
         'simpanKegiatan',
-    ])->name('surat.perizinan.mhs.kegiatan.store');
+    ])->name('surat.perizinan.mhs.kegiatan.store')
+        ->middleware(\App\Http\Middleware\PastikanPendaftaranDisetujui::class);
 
     // Surat pulang semester (unduh, cetak, unggah berkas bertanda tangan)
     Route::get('/surat-perizinan-mhs/surat-pulang-semester', [
@@ -404,7 +408,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/surat-perizinan-mhs/surat-pulang-semester', [
         SuratPerizinanMhsController::class,
         'semesterStore',
-    ])->name('surat.perizinan.mhs.semester.store');
+    ])->name('surat.perizinan.mhs.semester.store')
+        ->middleware(\App\Http\Middleware\PastikanPendaftaranDisetujui::class);
 
     Route::get('/surat-perizinan-mhs/{suratPerizinan}/cetak', [
         SuratPerizinanMhsController::class,

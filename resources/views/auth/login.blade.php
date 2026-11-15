@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>{{ $namaSistem ?? 'SIMAHAD' }} - Masuk & Akses Layanan Ma'had</title>
+    {{-- Favicon UIN Imam Bonjol --}}
+<link rel="icon" type="image/png" href="{{ asset('images/logo_uin.png') }}?v=2">
+<link rel="shortcut icon" type="image/png" href="{{ asset('images/logo_uin.png') }}?v=2">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -531,6 +534,28 @@
             font-weight: 600;
             font-size: 0.78rem;
             cursor: pointer;
+        }
+
+        /* ========================================================
+           FINISHING: Dimensi Login mengikuti halaman Register
+           Referensi Register: inner-frame 566px mobile / 571px desktop.
+           Tidak menggunakan scroll di dalam card atau form.
+           ======================================================== */
+        .inner-frame {
+            min-height: 566px;
+        }
+
+        @media (min-width: 600px) {
+            .inner-frame {
+                min-height: 571px;
+            }
+        }
+
+        /* Ruang kosong di form Login dibagi seimbang, tanpa
+           menggeser logo dan judul yang sejajar dengan Register. */
+        .auth-form {
+            margin-top: auto;
+            margin-bottom: auto;
         }
     </style>
 </head>

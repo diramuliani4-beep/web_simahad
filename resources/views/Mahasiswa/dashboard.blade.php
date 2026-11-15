@@ -1,1227 +1,1072 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Dashboard - SIMAHAD UIN Imam Bonjol</title>
+@extends('layouts.mahasiswa')
+@section('title', 'Dashboard Mahasiswa')
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+@push('styles')
+<style>
+.mhs-dashboard-page,
+.mhs-dashboard-page *,
+.mhs-dashboard-page *::before,
+.mhs-dashboard-page *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-    <style>
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+.mhs-dashboard-page {
+    --primary-maroon: #6b0d1b;
+    --primary-maroon-hover: #580a16;
+    --maroon-tint: #f8eff2;
+    --maroon-border: #ecd9dd;
+    --text-dark: #1f2430;
+    --text-secondary: #4f5767;
+    --text-muted: #6b7280;
+    --line: #ecedf2;
+    --bg-page: #f7f5f4;
+    --header-height: 68px;
+}
 
-        :root {
-            --primary-maroon: #6b0d1b;
-            --primary-maroon-hover: #580a16;
-            --maroon-tint: #f8eff2;
-            --maroon-border: #ecd9dd;
-            --text-dark: #1f2430;
-            --text-secondary: #4f5767;
-            --text-muted: #6b7280;
-            --line: #ecedf2;
-            --bg-page: #f7f5f4;
-            --header-height: 68px;
-        }
+.mhs-dashboard-page .dashboard-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+}
 
-        body {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-page);
-            color: var(--text-dark);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-        }
+.mhs-dashboard-page .dashboard-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
 
-        /* ================= TOP NAVBAR ================= */
-        .top-navbar {
-            height: var(--header-height);
-            background-color: #ffffff;
-            border-bottom: 1px solid var(--line);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            box-shadow: 0 2px 14px rgba(59, 7, 15, 0.05);
-        }
+.mhs-dashboard-page .dashboard-eyebrow-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--primary-maroon);
+}
 
-        .navbar-brand-wrap {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            min-width: 0;
-        }
+.mhs-dashboard-page .dashboard-date {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #ffffff;
+    color: var(--primary-maroon);
+    font-size: 12.5px;
+    font-weight: 700;
+    box-shadow: 0 1px 2px rgba(31, 36, 48, 0.04);
+}
 
-        .brand-logo-img {
-            height: 40px;
-            width: auto;
-            object-fit: contain;
-            flex-shrink: 0;
-        }
+.mhs-dashboard-page .dashboard-date svg {
+    width: 15px;
+    height: 15px;
+    color: var(--primary-maroon);
+}
 
-        .brand-teks {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.1;
-            min-width: 0;
-        }
-
-        .brand-title {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 19px;
-            font-weight: 800;
-            color: var(--primary-maroon);
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-        }
-
-        .brand-sub {
-            font-size: 10.5px;
-            font-weight: 600;
-            letter-spacing: 0.09em;
-            text-transform: uppercase;
-            color: #c9a96a;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .navbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 1.15rem;
-        }
-
-        .mobile-toggle-btn {
-            display: none;
-            background: transparent;
-            border: none;
-            color: var(--primary-maroon);
-            cursor: pointer;
-            padding: 0.4rem;
-        }
-
-        /* ================= BODY WRAPPER ================= */
-        .dashboard-body {
-            display: flex;
-            flex: 1;
-            min-height: calc(100vh - var(--header-height));
-            width: 100%;
-        }
-
-        /* ================= MAIN CONTENT ================= */
-        .main-content {
-            flex: 1;
-            padding: 1.5rem 2.25rem 3rem 2.25rem;
-            display: flex;
-            flex-direction: column;
-            background-color: var(--bg-page);
-            overflow-y: auto;
-            min-width: 0;
-        }
-
-        .dashboard-topline {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 18px;
-        }
-
-        .dashboard-eyebrow {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text-secondary);
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-        }
-
-        .dashboard-eyebrow-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--primary-maroon);
-        }
-
-        .dashboard-date {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 15px;
-            border-radius: 999px;
-            border: 1px solid var(--line);
-            background: #ffffff;
-            color: var(--primary-maroon);
-            font-size: 12.5px;
-            font-weight: 700;
-            box-shadow: 0 1px 2px rgba(31, 36, 48, 0.04);
-        }
-
-        .dashboard-date svg {
-            width: 15px;
-            height: 15px;
-            color: var(--primary-maroon);
-        }
-
-        .mhs-hero {
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 28px;
-            padding: 32px 34px;
-            border-radius: 20px;
-            background:
-                radial-gradient(120% 160% at 100% 0%, rgba(201, 169, 106, 0.22), transparent 58%),
+.mhs-dashboard-page .mhs-hero {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+    padding: 32px 34px;
+    border-radius: 20px;
+    background: radial-gradient(120% 160% at 100% 0%, rgba(201, 169, 106, 0.22), transparent 58%),
                 linear-gradient(135deg, #7d1022 0%, #5c0a17 100%);
-            box-shadow: 0 16px 32px -18px rgba(96, 8, 28, 0.55);
-            color: #ffffff;
-            isolation: isolate;
-            margin-bottom: 1.35rem;
-        }
-
-        .mhs-hero::before,
-        .mhs-hero::after {
-            content: "";
-            position: absolute;
-            z-index: -1;
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-
-        .mhs-hero::before {
-            top: -220px;
-            right: -96px;
-            width: 360px;
-            height: 360px;
-            box-shadow: 0 0 0 44px rgba(255, 255, 255, 0.035), 0 0 0 96px rgba(255, 255, 255, 0.022);
-        }
-
-        .mhs-hero::after {
-            right: 190px;
-            bottom: -250px;
-            width: 270px;
-            height: 270px;
-        }
-
-        .mhs-hero-content {
-            position: relative;
-            z-index: 1;
-            min-width: 0;
-        }
-
-        .mhs-hero-label {
-            display: inline-flex;
-            align-items: center;
-            margin-bottom: 12px;
-            padding: 5px 11px;
-            border: 1px solid rgba(255, 255, 255, 0.26);
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.1);
-            font-size: 10.5px;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
-
-        .mhs-hero h1 {
-            margin: 0 0 8px;
-            font-size: clamp(21px, 2vw, 29px);
-            font-weight: 800;
-            line-height: 1.25;
-            letter-spacing: -0.025em;
-            color: #ffffff;
-        }
-
-        .mhs-hero p {
-            margin: 0;
-            max-width: 560px;
-            font-size: 12.5px;
-            line-height: 1.65;
-            color: rgba(255, 255, 255, 0.78);
-        }
-
-        .mhs-hero-board {
-            position: relative;
-            z-index: 1;
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 2px;
-            min-width: 330px;
-            padding: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            -webkit-backdrop-filter: blur(8px);
-            backdrop-filter: blur(8px);
-        }
-
-        .mhs-hero-stat {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            padding: 12px 14px;
-            border-radius: 11px;
-        }
-
-        .mhs-hero-stat + .mhs-hero-stat {
-            box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.16);
-        }
-
-        .mhs-hero-stat span {
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.01em;
-            color: rgba(255, 255, 255, 0.72);
-        }
-
-        .mhs-hero-stat strong {
-            font-size: clamp(20px, 1.9vw, 26px);
-            font-weight: 750;
-            letter-spacing: -0.02em;
-            line-height: 1.15;
-            color: #ffffff;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .simahad-card {
-            border: 1px solid var(--line);
-            border-radius: 16px;
-            background-color: #ffffff;
-            transition: box-shadow 0.2s ease, border-color 0.2s ease;
-        }
-
-        .simahad-card:hover {
-            box-shadow: 0 4px 14px rgba(107, 13, 27, 0.06);
-        }
-
-        .student-summary-card {
-            padding: 1.25rem 1.65rem;
-            margin-bottom: 1.35rem;
-        }
-
-        .card-heading-maroon {
-            color: var(--primary-maroon);
-            font-size: 0.98rem;
-            font-weight: 700;
-            margin-bottom: 0.85rem;
-            letter-spacing: -0.01em;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .student-profile-row {
-            display: flex;
-            align-items: center;
-            gap: 1.15rem;
-            flex-wrap: wrap;
-        }
-
-        .student-avatar-box {
-            width: 56px;
-            height: 56px;
-            border-radius: 12px;
-            background-color: #f8eff2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            color: var(--primary-maroon);
-            overflow: hidden;
-        }
-
-        .student-avatar-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .student-info-col {
-            display: flex;
-            flex-direction: column;
-            gap: 0.2rem;
-            min-width: 0;
-        }
-
-        .student-name {
-            font-size: 1.05rem;
-            font-weight: 800;
-            color: #1f2430;
-            letter-spacing: -0.01em;
-            line-height: 1.2;
-        }
-
-        .student-program {
-            font-size: 0.88rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-            line-height: 1.3;
-        }
-
-        .student-status {
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: #178154;
-            line-height: 1.3;
-        }
-
-        .status-chip-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.6rem;
-            margin-top: 1rem;
-            padding-top: 0.95rem;
-            border-top: 1px dashed #e6e2dc;
-        }
-
-        .status-chip {
-            display: inline-flex;
-            flex-direction: column;
-            gap: 0.15rem;
-            min-width: 132px;
-            padding: 0.5rem 0.75rem;
-            border: 1px solid #ecedf2;
-            border-radius: 10px;
-            background: #ffffff;
-        }
-
-        .status-chip .chip-label {
-            font-size: 0.68rem;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            color: #6b7280;
-        }
-
-        .status-chip .chip-value {
-            font-size: 0.84rem;
-            font-weight: 700;
-            color: #1f2430;
-            line-height: 1.35;
-        }
-
-        .status-chip.ok .chip-value {
-            color: #22653a;
-        }
-
-        .status-chip.warning .chip-value {
-            color: #8a5a0d;
-        }
-
-        .status-chip.danger .chip-value {
-            color: #8a1224;
-        }
-
-        /* ================= GRID ================= */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 1.35rem;
-            margin-bottom: 1.35rem;
-        }
-
-        .grid-card {
-            padding: 1.25rem 1.45rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 220px;
-        }
-
-        .grid-card.compact-height {
-            min-height: 175px;
-        }
-
-        .grid-card.full-width {
-            grid-column: 1 / -1;
-        }
-
-        .card-header-flex {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-        }
-
-        .card-detail-footer {
-            text-align: right;
-            margin-top: 0.75rem;
-        }
-
-        .link-card-detail {
-            color: var(--primary-maroon);
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            transition: color 0.15s ease, transform 0.15s ease;
-        }
-
-        .link-card-detail:hover {
-            color: var(--primary-maroon-hover);
-            transform: translateX(2px);
-            text-decoration: underline;
-        }
-
-        /* ================= TAGIHAN ================= */
-        .tagihan-center-wrap {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 1.25rem 0.5rem;
-            flex-grow: 1;
-        }
-
-        .tagihan-empty-title {
-            color: var(--primary-maroon);
-            font-size: 1.15rem;
-            font-weight: 800;
-            margin-bottom: 0.4rem;
-            letter-spacing: -0.01em;
-        }
-
-        .tagihan-empty-desc {
-            color: #1f2430;
-            font-size: 0.92rem;
-            font-weight: 500;
-            max-width: 290px;
-            line-height: 1.45;
-        }
-
-        .tagihan-body {
-            flex-grow: 1;
-            padding-top: 0.35rem;
-        }
-
-        .tagihan-nominal {
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: #1f2430;
-            line-height: 1.15;
-            letter-spacing: -0.02em;
-        }
-
-        .tagihan-sub {
-            margin-top: 0.15rem;
-            font-size: 0.83rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-
-        .tagihan-meta-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.4rem 1.15rem;
-            margin-top: 0.75rem;
-            font-size: 0.78rem;
-            color: var(--text-muted);
-        }
-
-        .tagihan-meta-row strong {
-            color: #4f5767;
-            font-weight: 700;
-        }
-
-        .badge-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            padding: 0.23rem 0.65rem;
-            border-radius: 999px;
-            font-size: 0.7rem;
-            font-weight: 800;
-            white-space: nowrap;
-        }
-
-        .badge-status.belum {
-            background: #fff4df;
-            color: #8a5a0d;
-        }
-
-        .badge-status.menunggu {
-            background: #eaf0fa;
-            color: #3d5f8f;
-        }
-
-        .badge-status.terlambat {
-            background: #fdeef0;
-            color: #8a1224;
-        }
-
-        .badge-status.lunas {
-            background: #eef7f0;
-            color: #22653a;
-        }
-
-        .badge-status.terkumpul {
-            background: #eaf0fa;
-            color: #3d5f8f;
-        }
-
-        .badge-status.dinilai {
-            background: #eef7f0;
-            color: #22653a;
-        }
-
-        .reminder-alert {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.5rem;
-            margin-top: 0.85rem;
-            padding: 0.6rem 0.75rem;
-            border-radius: 9px;
-            font-size: 0.78rem;
-            font-weight: 600;
-            line-height: 1.5;
-            text-decoration: none;
-        }
-
-        .reminder-alert.danger {
-            border: 1px solid #f2ccd2;
-            background: #fdeef0;
-            color: #8a1224;
-        }
-
-        .reminder-alert.info {
-            border: 1px solid #d8e2f0;
-            background: #eff4fb;
-            color: #3d5f8f;
-        }
-
-        .reminder-alert.success {
-            border: 1px solid #cfe6d5;
-            background: #eef7f0;
-            color: #22653a;
-        }
-
-        .va-inline {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.5rem;
-            margin-top: 0.75rem;
-            padding: 0.55rem 0.7rem;
-            border: 1px dashed #ded8d2;
-            border-radius: 9px;
-            background: #ffffff;
-        }
-
-        .va-inline .va-label {
-            font-size: 0.66rem;
-            font-weight: 800;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            color: #6b7280;
-        }
-
-        .va-inline .va-number {
-            font-size: 0.92rem;
-            font-weight: 800;
-            letter-spacing: 0.06em;
-            color: #1f2430;
-            word-break: break-all;
-        }
-
-        .btn-copy-mini {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            padding: 0.35rem 0.6rem;
-            border: 1px solid var(--line);
-            border-radius: 7px;
-            background: #fff;
-            color: var(--primary-maroon);
-            font-family: inherit;
-            font-size: 0.7rem;
-            font-weight: 800;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        .btn-copy-mini:hover {
-            background: var(--maroon-tint);
-        }
-
-        .btn-copy-mini.is-copied {
-            border-color: #22653a;
-            color: #22653a;
-            background: #eef7f0;
-        }
-
-        /* ================= ABSENSI ================= */
-        .absensi-badges-row {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin: 0.85rem 0 0.65rem 0;
-        }
-
-        .stat-pill {
-            flex: 1;
-            text-align: center;
-            padding: 0.45rem 0.5rem;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .stat-pill.hadir {
-            background-color: #cfe6d5;
-            border: 1px solid #cfe6d5;
-            color: #22653a;
-        }
-
-        .stat-pill.izin {
-            background-color: #fff4df;
-            border: 1px solid #f0dfc2;
-            color: #8a5a0d;
-        }
-
-        .stat-pill.alpa {
-            background-color: #fdeef0;
-            border: 1px solid #f2ccd2;
-            color: #8a1224;
-        }
-
-        .stat-number {
-            font-size: 1.15rem;
-            font-weight: 800;
-            line-height: 1.1;
-        }
-
-        .stat-label {
-            font-size: 0.72rem;
-            font-weight: 600;
-            line-height: 1.2;
-        }
-
-        .absensi-meeting-count {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            margin-bottom: 0.35rem;
-        }
-
-        .attendance-progress-track {
-            width: 100%;
-            height: 5px;
-            background-color: #ecedf2;
-            border-radius: 9999px;
-            overflow: hidden;
-            margin-bottom: 0.3rem;
-        }
-
-        .attendance-progress-bar {
-            width: 0;
-            height: 100%;
-            background-color: #22653a;
-            border-radius: 9999px;
-            transition: width 0.3s ease;
-        }
-
-        .attendance-progress-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.7rem;
-            color: var(--text-muted);
-        }
-
-        .attendance-percentage-val {
-            font-weight: 700;
-            color: #22653a;
-        }
-
-        /* ================= KALENDER ================= */
-        .kalender-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-            margin-bottom: 0.85rem;
-        }
-
-        .kalender-bulan {
-            font-size: 0.95rem;
-            font-weight: 800;
-            color: #1f2430;
-        }
-
-        .kalender-nav {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .kalender-nav a {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 30px;
-            height: 30px;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            color: var(--primary-maroon);
-            text-decoration: none;
-            font-weight: 800;
-            line-height: 1;
-        }
-
-        .kalender-nav a:hover {
-            background: var(--maroon-tint);
-        }
-
-        .kalender-grid {
-            display: grid;
-            grid-template-columns: repeat(7, minmax(0, 1fr));
-            gap: 4px;
-        }
-
-        .kalender-hari {
-            text-align: center;
-            padding: 0.3rem 0;
-            font-size: 0.68rem;
-            font-weight: 800;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-        }
-
-        .kalender-cell {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 2px;
-            min-height: 42px;
-            border-radius: 8px;
-            border: 1px solid transparent;
-            background: #faf8f6;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #4f5767;
-            text-decoration: none;
-        }
-
-        a.kalender-cell:hover {
-            border-color: var(--maroon-border);
-            background: #fbf9f7;
-        }
-
-        .kalender-cell.luar {
-            background: transparent;
-            color: #b9bcc6;
-        }
-
-        .kalender-cell.hari-ini {
-            border-color: var(--gold, #c9a96a);
-        }
-
-        .kalender-cell.terpilih {
-            background: var(--primary-maroon);
-            border-color: var(--primary-maroon);
-            color: #ffffff;
-        }
-
-        .kalender-dot {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background: var(--primary-maroon);
-        }
-
-        .kalender-cell.terpilih .kalender-dot {
-            background: #ffffff;
-        }
-
-        .kalender-detail {
-            margin-top: 1rem;
-            padding-top: 0.9rem;
-            border-top: 1px dashed #e6e2dc;
-        }
-
-        .kalender-detail-title {
-            font-size: 0.78rem;
-            font-weight: 800;
-            color: var(--primary-maroon);
-            margin-bottom: 0.5rem;
-        }
-
-        .kalender-item {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 0.6rem;
-            padding: 0.5rem 0.65rem;
-            border: 1px solid #ecedf2;
-            border-radius: 9px;
-            background: #ffffff;
-        }
-
-        .kalender-item + .kalender-item {
-            margin-top: 0.4rem;
-        }
-
-        .kalender-item-title {
-            font-size: 0.82rem;
-            font-weight: 700;
-            color: #1f2430;
-        }
-
-        .kalender-item-sub {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            line-height: 1.4;
-        }
-
-        .kalender-item-jam {
-            font-size: 0.72rem;
-            font-weight: 800;
-            color: var(--primary-maroon);
-            white-space: nowrap;
-        }
-
-        /* ================= DAFTAR RINGKAS ================= */
-        .ringkas-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.55rem;
-        }
-
-        .ringkas-item {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 0.6rem;
-            padding: 0.55rem 0.7rem;
-            border: 1px solid #ecedf2;
-            border-radius: 9px;
-            background: #ffffff;
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .ringkas-item:hover {
-            border-color: #ded8d2;
-            background: #fbf9f7;
-        }
-
-        .ringkas-item-main {
-            min-width: 0;
-        }
-
-        .ringkas-mapel {
-            font-size: 0.66rem;
-            font-weight: 800;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            color: var(--primary-maroon);
-        }
-
-        .ringkas-title {
-            font-size: 0.84rem;
-            font-weight: 700;
-            color: #1f2430;
-            line-height: 1.35;
-            word-break: break-word;
-        }
-
-        .ringkas-sub {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            line-height: 1.4;
-            margin-top: 1px;
-        }
-
-        .ringkas-nilai {
-            display: inline-flex;
-            align-items: baseline;
-            gap: 3px;
-            padding: 0.2rem 0.55rem;
-            border-radius: 999px;
-            background: #eef7f0;
-            color: #22653a;
-            font-size: 0.68rem;
-            font-weight: 800;
-            white-space: nowrap;
-        }
-
-        .ringkas-nilai span {
-            font-size: 0.86rem;
-        }
-
-        .ringkas-kosong {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 0.25rem;
-            padding: 1.1rem 0.75rem;
-            border: 1px dashed #e6e2dc;
-            border-radius: 10px;
-            background: #ffffff;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            line-height: 1.5;
-        }
-
-        .izin-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.45rem;
-            margin-top: 0.35rem;
-        }
-
-        .izin-chip {
-            flex: 1 1 88px;
-            padding: 0.45rem 0.5rem;
-            border-radius: 9px;
-            border: 1px solid #ecedf2;
-            background: #ffffff;
-            text-align: center;
-        }
-
-        .izin-chip .angka {
-            display: block;
-            font-size: 1.05rem;
-            font-weight: 800;
-            color: #1f2430;
-            line-height: 1.2;
-        }
-
-        .izin-chip .teks {
-            font-size: 0.66rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            line-height: 1.2;
-        }
-
-        .izin-chip.menunggu .angka { color: #8a5a0d; }
-        .izin-chip.disetujui .angka { color: #22653a; }
-        .izin-chip.ditolak .angka { color: #8a1224; }
-        .izin-chip.selesai .angka { color: #3d5f8f; }
-
-        /* ================= NOTIFIKASI ================= */
-        .notif-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.45rem;
-        }
-
-        .notif-form {
-            margin: 0;
-        }
-
-        .notif-button {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.55rem;
-            width: 100%;
-            padding: 0.55rem 0.7rem;
-            border: 1px solid #ecedf2;
-            border-radius: 9px;
-            background: #ffffff;
-            cursor: pointer;
-            text-align: left;
-            font-family: inherit;
-        }
-
-        .notif-button:hover {
-            background: #fbf9f7;
-            border-color: #ded8d2;
-        }
-
-        .notif-button.belum {
-            background: #fdf6f7;
-            border-color: #f0dde2;
-        }
-
-        .notif-ikon {
-            flex-shrink: 0;
-            font-size: 0.95rem;
-            line-height: 1.35;
-        }
-
-        .notif-body {
-            min-width: 0;
-            flex: 1;
-        }
-
-        .notif-judul {
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-            font-size: 0.81rem;
-            font-weight: 700;
-            color: #1f2430;
-            line-height: 1.35;
-        }
-
-        .notif-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #8d1c2e;
-            flex-shrink: 0;
-        }
-
-        .notif-pesan {
-            margin-top: 1px;
-            font-size: 0.73rem;
-            color: var(--text-muted);
-            line-height: 1.45;
-        }
-
-        .notif-waktu {
-            margin-top: 2px;
-            font-size: 0.67rem;
-            font-weight: 700;
-            color: #6b7280;
-        }
-
-        /* ================= RESPONSIVE ================= */
-        @media (max-width: 991px) {
-            .mobile-toggle-btn {
-                display: block;
-            }
-
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .main-content {
-                padding: 1.5rem 1.25rem 2.5rem 1.25rem;
-            }
-
-            .mhs-hero {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 20px;
-                padding: 25px;
-            }
-
-            .mhs-hero-board {
-                min-width: 0;
-            }
-        }
-
-        @media (max-width: 560px) {
-            .brand-title {
-                font-size: 17px;
-            }
-
-            .brand-sub {
-                display: none;
-            }
-
-            .brand-logo-img {
-                height: 34px;
-            }
-
-            .top-navbar {
-                padding: 0 14px;
-            }
-
-            .dashboard-topline {
-                margin-bottom: 14px;
-            }
-
-            .dashboard-date {
-                padding: 7px 12px;
-                font-size: 11.5px;
-            }
-
-            .mhs-hero {
-                padding: 22px 20px;
-                border-radius: 16px;
-            }
-
-            .mhs-hero h1 {
-                font-size: 22px;
-            }
-
-            .mhs-hero-stat {
-                padding: 10px 10px;
-            }
-
-            .mhs-hero-stat span {
-                font-size: 10.5px;
-            }
-
-            .kalender-cell {
-                min-height: 36px;
-                font-size: 0.72rem;
-            }
-
-            .kalender-hari {
-                font-size: 0.6rem;
-            }
-
-            .va-inline {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-        }
-    </style>
-</head>
-<body>
-
-    <!-- ================= TOP NAVBAR ================= -->
-    <header class="top-navbar">
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <button type="button" class="mobile-toggle-btn" id="menuToggle" aria-label="Buka atau tutup menu" aria-controls="sidebar" aria-expanded="false">
-                <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-            </button>
-
-            <a href="{{ route('dashboard') }}" class="navbar-brand-wrap">
-                <img src="{{ asset('images/logo_uin.png') }}" alt="Logo SIMAHAD" class="brand-logo-img">
-                <span class="brand-teks">
-                    <span class="brand-title">SIMAHAD</span>
-                    <span class="brand-sub">Ma'had Al-Jami'ah UIN Imam Bonjol</span>
-                </span>
-            </a>
-        </div>
-
-        <div class="navbar-actions">
-            <x-notifikasi-dropdown />
-            <x-mahasiswa.profile-dropdown />
-        </div>
-    </header>
-
-    <div class="dashboard-body">
-        {{-- Sidebar bersama: identitas, menu aktif, dan laci mobile dikelola komponen panel.sidebar. --}}
-        <x-panel.sidebar ragam="alir" atas="68px" />
-        <!-- ================= MAIN CONTENT ================= -->
-        <main class="main-content">
+    box-shadow: 0 16px 32px -18px rgba(96, 8, 28, 0.55);
+    color: #ffffff;
+    isolation: isolate;
+    margin-bottom: 1.35rem;
+}
+
+.mhs-dashboard-page .mhs-hero::before,
+.mhs-dashboard-page .mhs-hero::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.mhs-dashboard-page .mhs-hero::before {
+    top: -220px;
+    right: -96px;
+    width: 360px;
+    height: 360px;
+    box-shadow: 0 0 0 44px rgba(255, 255, 255, 0.035), 0 0 0 96px rgba(255, 255, 255, 0.022);
+}
+
+.mhs-dashboard-page .mhs-hero::after {
+    right: 190px;
+    bottom: -250px;
+    width: 270px;
+    height: 270px;
+}
+
+.mhs-dashboard-page .mhs-hero-content {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+}
+
+.mhs-dashboard-page .mhs-hero-label {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 5px 11px;
+    border: 1px solid rgba(255, 255, 255, 0.26);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.mhs-dashboard-page .mhs-hero h1 {
+    margin: 0 0 8px;
+    font-size: clamp(21px, 2vw, 29px);
+    font-weight: 800;
+    line-height: 1.25;
+    letter-spacing: -0.025em;
+    color: #ffffff;
+}
+
+.mhs-dashboard-page .mhs-hero p {
+    margin: 0;
+    max-width: 560px;
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.mhs-dashboard-page .mhs-hero-board {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2px;
+    min-width: 330px;
+    padding: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+.mhs-dashboard-page .mhs-hero-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 14px;
+    border-radius: 11px;
+}
+
+.mhs-dashboard-page .mhs-hero-stat + .mhs-hero-stat {
+    box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.16);
+}
+
+.mhs-dashboard-page .mhs-hero-stat span {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.mhs-dashboard-page .mhs-hero-stat strong {
+    font-size: clamp(20px, 1.9vw, 26px);
+    font-weight: 750;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: #ffffff;
+    font-variant-numeric: tabular-nums;
+}
+
+.mhs-dashboard-page .simahad-card {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background-color: #ffffff;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.mhs-dashboard-page .simahad-card:hover {
+    box-shadow: 0 4px 14px rgba(107, 13, 27, 0.06);
+}
+
+.mhs-dashboard-page .student-summary-card {
+    padding: 1.25rem 1.65rem;
+    margin-bottom: 1.35rem;
+}
+
+.mhs-dashboard-page .card-heading-maroon {
+    color: var(--primary-maroon);
+    font-size: 0.98rem;
+    font-weight: 700;
+    margin-bottom: 0.85rem;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mhs-dashboard-page .student-profile-row {
+    display: flex;
+    align-items: center;
+    gap: 1.15rem;
+    flex-wrap: wrap;
+}
+
+.mhs-dashboard-page .student-avatar-box {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background-color: #f8eff2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--primary-maroon);
+    overflow: hidden;
+}
+
+.mhs-dashboard-page .student-avatar-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.mhs-dashboard-page .student-info-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.mhs-dashboard-page .student-name {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #1f2430;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+}
+
+.mhs-dashboard-page .student-program {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+.mhs-dashboard-page .student-status {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #178154;
+    line-height: 1.3;
+}
+
+.mhs-dashboard-page .status-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1rem;
+    padding-top: 0.95rem;
+    border-top: 1px dashed #e6e2dc;
+}
+
+.mhs-dashboard-page .status-chip {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 132px;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ecedf2;
+    border-radius: 10px;
+    background: #ffffff;
+}
+
+.mhs-dashboard-page .status-chip .chip-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #6b7280;
+}
+
+.mhs-dashboard-page .status-chip .chip-value {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #1f2430;
+    line-height: 1.35;
+}
+
+.mhs-dashboard-page .status-chip.ok .chip-value {
+    color: #22653a;
+}
+
+.mhs-dashboard-page .status-chip.warning .chip-value {
+    color: #8a5a0d;
+}
+
+.mhs-dashboard-page .status-chip.danger .chip-value {
+    color: #8a1224;
+}
+
+.mhs-dashboard-page .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.35rem;
+    margin-bottom: 1.35rem;
+}
+
+.mhs-dashboard-page .grid-card {
+    padding: 1.25rem 1.45rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 220px;
+}
+
+.mhs-dashboard-page .grid-card.compact-height {
+    min-height: 175px;
+}
+
+.mhs-dashboard-page .grid-card.full-width {
+    grid-column: 1 / -1;
+}
+
+.mhs-dashboard-page .card-header-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.mhs-dashboard-page .card-detail-footer {
+    text-align: right;
+    margin-top: 0.75rem;
+}
+
+.mhs-dashboard-page .link-card-detail {
+    color: var(--primary-maroon);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.mhs-dashboard-page .link-card-detail:hover {
+    color: var(--primary-maroon-hover);
+    transform: translateX(2px);
+    text-decoration: underline;
+}
+
+.mhs-dashboard-page .tagihan-center-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1.25rem 0.5rem;
+    flex-grow: 1;
+}
+
+.mhs-dashboard-page .tagihan-empty-title {
+    color: var(--primary-maroon);
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin-bottom: 0.4rem;
+    letter-spacing: -0.01em;
+}
+
+.mhs-dashboard-page .tagihan-empty-desc {
+    color: #1f2430;
+    font-size: 0.92rem;
+    font-weight: 500;
+    max-width: 290px;
+    line-height: 1.45;
+}
+
+.mhs-dashboard-page .tagihan-body {
+    flex-grow: 1;
+    padding-top: 0.35rem;
+}
+
+.mhs-dashboard-page .tagihan-nominal {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #1f2430;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+}
+
+.mhs-dashboard-page .tagihan-sub {
+    margin-top: 0.15rem;
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.mhs-dashboard-page .tagihan-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.15rem;
+    margin-top: 0.75rem;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.mhs-dashboard-page .tagihan-meta-row strong {
+    color: #4f5767;
+    font-weight: 700;
+}
+
+.mhs-dashboard-page .badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.23rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.mhs-dashboard-page .badge-status.belum {
+    background: #fff4df;
+    color: #8a5a0d;
+}
+
+.mhs-dashboard-page .badge-status.menunggu {
+    background: #eaf0fa;
+    color: #3d5f8f;
+}
+
+.mhs-dashboard-page .badge-status.terlambat {
+    background: #fdeef0;
+    color: #8a1224;
+}
+
+.mhs-dashboard-page .badge-status.lunas {
+    background: #eef7f0;
+    color: #22653a;
+}
+
+.mhs-dashboard-page .badge-status.terkumpul {
+    background: #eaf0fa;
+    color: #3d5f8f;
+}
+
+.mhs-dashboard-page .badge-status.dinilai {
+    background: #eef7f0;
+    color: #22653a;
+}
+
+.mhs-dashboard-page .reminder-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-top: 0.85rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 9px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.5;
+    text-decoration: none;
+}
+
+.mhs-dashboard-page .reminder-alert.danger {
+    border: 1px solid #f2ccd2;
+    background: #fdeef0;
+    color: #8a1224;
+}
+
+.mhs-dashboard-page .reminder-alert.info {
+    border: 1px solid #d8e2f0;
+    background: #eff4fb;
+    color: #3d5f8f;
+}
+
+.mhs-dashboard-page .reminder-alert.success {
+    border: 1px solid #cfe6d5;
+    background: #eef7f0;
+    color: #22653a;
+}
+
+.mhs-dashboard-page .va-inline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding: 0.55rem 0.7rem;
+    border: 1px dashed #ded8d2;
+    border-radius: 9px;
+    background: #ffffff;
+}
+
+.mhs-dashboard-page .va-inline .va-label {
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #6b7280;
+}
+
+.mhs-dashboard-page .va-inline .va-number {
+    font-size: 0.92rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: #1f2430;
+    word-break: break-all;
+}
+
+.mhs-dashboard-page .btn-copy-mini {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.35rem 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: #fff;
+    color: var(--primary-maroon);
+    font-family: inherit;
+    font-size: 0.7rem;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.mhs-dashboard-page .btn-copy-mini:hover {
+    background: var(--maroon-tint);
+}
+
+.mhs-dashboard-page .btn-copy-mini.is-copied {
+    border-color: #22653a;
+    color: #22653a;
+    background: #eef7f0;
+}
+
+.mhs-dashboard-page .absensi-badges-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.85rem 0 0.65rem 0;
+}
+
+.mhs-dashboard-page .stat-pill {
+    flex: 1;
+    text-align: center;
+    padding: 0.45rem 0.5rem;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.mhs-dashboard-page .stat-pill.hadir {
+    background-color: #cfe6d5;
+    border: 1px solid #cfe6d5;
+    color: #22653a;
+}
+
+.mhs-dashboard-page .stat-pill.izin {
+    background-color: #fff4df;
+    border: 1px solid #f0dfc2;
+    color: #8a5a0d;
+}
+
+.mhs-dashboard-page .stat-pill.alpa {
+    background-color: #fdeef0;
+    border: 1px solid #f2ccd2;
+    color: #8a1224;
+}
+
+.mhs-dashboard-page .stat-number {
+    font-size: 1.15rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.mhs-dashboard-page .stat-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.mhs-dashboard-page .absensi-meeting-count {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-bottom: 0.35rem;
+}
+
+.mhs-dashboard-page .attendance-progress-track {
+    width: 100%;
+    height: 5px;
+    background-color: #ecedf2;
+    border-radius: 9999px;
+    overflow: hidden;
+    margin-bottom: 0.3rem;
+}
+
+.mhs-dashboard-page .attendance-progress-bar {
+    width: 0;
+    height: 100%;
+    background-color: #22653a;
+    border-radius: 9999px;
+    transition: width 0.3s ease;
+}
+
+.mhs-dashboard-page .attendance-progress-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.mhs-dashboard-page .attendance-percentage-val {
+    font-weight: 700;
+    color: #22653a;
+}
+
+.mhs-dashboard-page .kalender-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.85rem;
+}
+
+.mhs-dashboard-page .kalender-bulan {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #1f2430;
+}
+
+.mhs-dashboard-page .kalender-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.mhs-dashboard-page .kalender-nav a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--primary-maroon);
+    text-decoration: none;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.mhs-dashboard-page .kalender-nav a:hover {
+    background: var(--maroon-tint);
+}
+
+.mhs-dashboard-page .kalender-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 4px;
+}
+
+.mhs-dashboard-page .kalender-hari {
+    text-align: center;
+    padding: 0.3rem 0;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.mhs-dashboard-page .kalender-cell {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 42px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: #faf8f6;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #4f5767;
+    text-decoration: none;
+}
+
+.mhs-dashboard-page a.kalender-cell:hover {
+    border-color: var(--maroon-border);
+    background: #fbf9f7;
+}
+
+.mhs-dashboard-page .kalender-cell.luar {
+    background: transparent;
+    color: #b9bcc6;
+}
+
+.mhs-dashboard-page .kalender-cell.hari-ini {
+    border-color: var(--gold, #c9a96a);
+}
+
+.mhs-dashboard-page .kalender-cell.terpilih {
+    background: var(--primary-maroon);
+    border-color: var(--primary-maroon);
+    color: #ffffff;
+}
+
+.mhs-dashboard-page .kalender-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--primary-maroon);
+}
+
+.mhs-dashboard-page .kalender-cell.terpilih .kalender-dot {
+    background: #ffffff;
+}
+
+.mhs-dashboard-page .kalender-detail {
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px dashed #e6e2dc;
+}
+
+.mhs-dashboard-page .kalender-detail-title {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--primary-maroon);
+    margin-bottom: 0.5rem;
+}
+
+.mhs-dashboard-page .kalender-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.6rem;
+    padding: 0.5rem 0.65rem;
+    border: 1px solid #ecedf2;
+    border-radius: 9px;
+    background: #ffffff;
+}
+
+.mhs-dashboard-page .kalender-item + .kalender-item {
+    margin-top: 0.4rem;
+}
+
+.mhs-dashboard-page .kalender-item-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #1f2430;
+}
+
+.mhs-dashboard-page .kalender-item-sub {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.mhs-dashboard-page .kalender-item-jam {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--primary-maroon);
+    white-space: nowrap;
+}
+
+.mhs-dashboard-page .ringkas-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.mhs-dashboard-page .ringkas-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.6rem;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid #ecedf2;
+    border-radius: 9px;
+    background: #ffffff;
+    text-decoration: none;
+    color: inherit;
+}
+
+.mhs-dashboard-page .ringkas-item:hover {
+    border-color: #ded8d2;
+    background: #fbf9f7;
+}
+
+.mhs-dashboard-page .ringkas-item-main {
+    min-width: 0;
+}
+
+.mhs-dashboard-page .ringkas-mapel {
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--primary-maroon);
+}
+
+.mhs-dashboard-page .ringkas-title {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #1f2430;
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.mhs-dashboard-page .ringkas-sub {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+    margin-top: 1px;
+}
+
+.mhs-dashboard-page .ringkas-nilai {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 3px;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: #eef7f0;
+    color: #22653a;
+    font-size: 0.68rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.mhs-dashboard-page .ringkas-nilai span {
+    font-size: 0.86rem;
+}
+
+.mhs-dashboard-page .ringkas-kosong {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 1.1rem 0.75rem;
+    border: 1px dashed #e6e2dc;
+    border-radius: 10px;
+    background: #ffffff;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.5;
+}
+
+.mhs-dashboard-page .izin-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.35rem;
+}
+
+.mhs-dashboard-page .izin-chip {
+    flex: 1 1 88px;
+    padding: 0.45rem 0.5rem;
+    border-radius: 9px;
+    border: 1px solid #ecedf2;
+    background: #ffffff;
+    text-align: center;
+}
+
+.mhs-dashboard-page .izin-chip .angka {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #1f2430;
+    line-height: 1.2;
+}
+
+.mhs-dashboard-page .izin-chip .teks {
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    line-height: 1.2;
+}
+
+.mhs-dashboard-page .izin-chip.menunggu .angka {
+    color: #8a5a0d;
+}
+
+.mhs-dashboard-page .izin-chip.disetujui .angka {
+    color: #22653a;
+}
+
+.mhs-dashboard-page .izin-chip.ditolak .angka {
+    color: #8a1224;
+}
+
+.mhs-dashboard-page .izin-chip.selesai .angka {
+    color: #3d5f8f;
+}
+
+.mhs-dashboard-page .notif-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.mhs-dashboard-page .notif-form {
+    margin: 0;
+}
+
+.mhs-dashboard-page .notif-button {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    width: 100%;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid #ecedf2;
+    border-radius: 9px;
+    background: #ffffff;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+}
+
+.mhs-dashboard-page .notif-button:hover {
+    background: #fbf9f7;
+    border-color: #ded8d2;
+}
+
+.mhs-dashboard-page .notif-button.belum {
+    background: #fdf6f7;
+    border-color: #f0dde2;
+}
+
+.mhs-dashboard-page .notif-ikon {
+    flex-shrink: 0;
+    font-size: 0.95rem;
+    line-height: 1.35;
+}
+
+.mhs-dashboard-page .notif-body {
+    min-width: 0;
+    flex: 1;
+}
+
+.mhs-dashboard-page .notif-judul {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.81rem;
+    font-weight: 700;
+    color: #1f2430;
+    line-height: 1.35;
+}
+
+.mhs-dashboard-page .notif-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #8d1c2e;
+    flex-shrink: 0;
+}
+
+.mhs-dashboard-page .notif-pesan {
+    margin-top: 1px;
+    font-size: 0.73rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+}
+
+.mhs-dashboard-page .notif-waktu {
+    margin-top: 2px;
+    font-size: 0.67rem;
+    font-weight: 700;
+    color: #6b7280;
+}
+
+@media (max-width: 991px) {
+.mhs-dashboard-page .dashboard-grid {
+    grid-template-columns: 1fr;
+}
+
+.mhs-dashboard-page .mhs-hero {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+    padding: 25px;
+}
+
+.mhs-dashboard-page .mhs-hero-board {
+    min-width: 0;
+}
+}
+
+@media (max-width: 560px) {
+.mhs-dashboard-page .dashboard-topline {
+    margin-bottom: 14px;
+}
+
+.mhs-dashboard-page .dashboard-date {
+    padding: 7px 12px;
+    font-size: 11.5px;
+}
+
+.mhs-dashboard-page .mhs-hero {
+    padding: 22px 20px;
+    border-radius: 16px;
+}
+
+.mhs-dashboard-page .mhs-hero h1 {
+    font-size: 22px;
+}
+
+.mhs-dashboard-page .mhs-hero-stat {
+    padding: 10px 10px;
+}
+
+.mhs-dashboard-page .mhs-hero-stat span {
+    font-size: 10.5px;
+}
+
+.mhs-dashboard-page .kalender-cell {
+    min-height: 36px;
+    font-size: 0.72rem;
+}
+
+.mhs-dashboard-page .kalender-hari {
+    font-size: 0.6rem;
+}
+
+.mhs-dashboard-page .va-inline {
+    flex-direction: column;
+    align-items: flex-start;
+}
+}
+</style>
+@endpush
+
+@section('content')
+<div class="mhs-dashboard-page">
             <div class="dashboard-topline">
                 
                 <span class="dashboard-date">
@@ -1232,18 +1077,6 @@
                     {{ now('Asia/Jakarta')->locale('id')->translatedFormat('l, d F Y') }}
                 </span>
             </div>
-
-            @if (session('success'))
-                <div style="margin-bottom:1rem; padding:0.7rem 0.9rem; border:1px solid #cfe6d5; border-radius:10px; background:#eef7f0; color:#22653a; font-size:0.82rem; font-weight:600;">
-                    {{ session('success') }}
-                </div>
-            @endif
-
-            @if ($errors->any())
-                <div style="margin-bottom:1rem; padding:0.7rem 0.9rem; border:1px solid #f2ccd2; border-radius:10px; background:#fdeef0; color:#8a1224; font-size:0.82rem; font-weight:600;">
-                    {{ $errors->first() }}
-                </div>
-            @endif
 
             @php
                 $pembayaran = $ringkasanPembayaran;
@@ -1739,10 +1572,11 @@
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
+</div>
+@endsection
 
-    <script>
+@push('scripts')
+<script>
         // Lebar bar kehadiran dari data server.
         document.querySelectorAll('[data-lebar]').forEach(function (bar) {
             bar.style.width = bar.dataset.lebar + '%';
@@ -1787,5 +1621,4 @@
 
         // Buka/tutup laci sidebar ditangani komponen panel.sidebar.
     </script>
-</body>
-</html>
+@endpush
