@@ -635,6 +635,7 @@
         }
 
         .pembelajaran-page .progress-bar-fill{
+            width: 0;
             height: 100%;
             background: linear-gradient(90deg, #790c20, #b91c1c);
             border-radius: 9999px;
@@ -725,6 +726,10 @@
 
         .pembelajaran-page .custom-table tbody tr:hover td{
             background: #fdf8f9;
+        }
+
+        .pembelajaran-page .custom-table tbody tr.kelompok-saya{
+            background: #fffcf4;
         }
 
         /* JADWAL TERDEKAT CARDS */
@@ -1321,10 +1326,7 @@
 
         /* Di bawah 992px sidebar bersama menjadi laci dan konten memakai lebar penuh. */
         @media (max-width: 991px) {
-            .pembelajaran-page .main, .pembelajaran-page body.sb-sempit .main{
-                margin-left: 0;
-            }
-
+            .pembelajaran-page .main, .pembelajaran-page body.sb-sempit .main{margin-left: 0;}
             .pembelajaran-page .mobile-toggle{
                 display: inline-flex;
                 align-items: center;
@@ -1362,7 +1364,6 @@
             .pembelajaran-page .tabs-header-wrap{ flex-direction: column; align-items: flex-start; }
             .pembelajaran-page .kelompok-select-form{ width: 100%; justify-content: space-between; }
         }
-
     /* Isolasi halaman Pembelajaran, supaya tidak mengubah header/sidebar panel. */
     .pembelajaran-page {
         width: 100%;
@@ -1521,7 +1522,7 @@
                                         <strong>{{ $m['hadir'] }} / 16 TM ({{ $m['persentase'] }}%)</strong>
                                     </div>
                                     <div class="progress-bar-wrap">
-                                        <div class="progress-bar-fill {{ $m['is_lulus'] ? 'complete' : '' }}" style="width: {{ $m['persentase'] }}%;"></div>
+                                        <div class="progress-bar-fill {{ $m['is_lulus'] ? 'complete' : '' }}" data-progress="{{ $m['persentase'] }}"></div>
                                     </div>
                                     <div class="progress-pills">
                                         <span class="pill-stat hadir">Hadir: {{ $m['hadir'] }}</span>
@@ -1662,7 +1663,7 @@
                         </thead>
                         <tbody>
                             @forelse($daftarPengajarKelompok as $idx => $p)
-                                <tr style="{{ $p['is_kelompok_saya'] ? 'background: #fffcf4;' : '' }}">
+                                <tr class="{{ $p['is_kelompok_saya'] ? 'kelompok-saya' : '' }}">
                                     <td>{{ $idx + 1 }}</td>
                                     <td style="text-align: left; font-weight: 700;">
                                         {{ $p['nama'] }}
@@ -1805,7 +1806,7 @@
                         <button type="button" id="nextMonth" aria-label="Bulan berikutnya">›</button>
                     </div>
 
-                    <div class="calendar-grid" id="calendarGrid"></div>
+                    <div class="calendar-grid" id="calendarGrid" data-calendar-events='@json($calendarEvents ?? [])'></div>
 
                     <div class="calendar-legend">
                         <span class="legend-dot"></span>
@@ -2125,7 +2126,13 @@
         // ============================================
         // KALENDER DINAMIS
         // ============================================
-        const calendarEvents = @json($calendarEvents ?? []);
+        // Data dari Blade dibaca sebagai JSON, bukan disisipkan sebagai sintaks JavaScript.
+        const calendarEvents = JSON.parse(document.getElementById('calendarGrid')?.dataset.calendarEvents || '[]');
+
+        // Lebar progres tetap mengikuti persentase dari data pembelajaran.
+        document.querySelectorAll('.pembelajaran-page .progress-bar-fill[data-progress]').forEach(function (bar) {
+            bar.style.width = bar.dataset.progress + '%';
+        });
 
         let shownDate = new Date();
         let shownYear = shownDate.getFullYear();
