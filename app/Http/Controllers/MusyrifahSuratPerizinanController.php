@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\SuratPerizinan;
 use App\Services\AuditTrailService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -21,7 +23,7 @@ class MusyrifahSuratPerizinanController extends Controller
      */
     public function index(Request $request): View
     {
-        $this->pastikanPengelola($request);
+        $lokasi = $this->lokasiPengelola($request);
 
         $filter = $request->validate([
             'jenis' => ['nullable', Rule::in([
@@ -47,16 +49,18 @@ class MusyrifahSuratPerizinanController extends Controller
             'periode_sampai.after_or_equal' => 'Periode akhir tidak boleh sebelum periode awal.',
         ]);
 
-        $pengajuans = SuratPerizinan::query()
+        $pengajuans = $this->batasiWilayahSurat(SuratPerizinan::query(), $lokasi)
             ->with('user')
             ->when(filled($filter['jenis'] ?? null), fn ($query) => $query->where('jenis', $filter['jenis']))
             ->when(filled($filter['status'] ?? null), fn ($query) => $query->where('status', $filter['status']))
             ->when(filled($filter['nama'] ?? null), function ($query) use ($filter): void {
                 $nama = '%'.trim($filter['nama']).'%';
 
-                $query->whereHas('user', fn ($user) => $user
-                    ->where('name', 'like', $nama)
-                    ->orWhere('nim', 'like', $nama));
+                // Kelompokkan pencarian OR agar tidak memperluas batas wilayah.
+                $query->whereHas('user', fn (Builder $user) => $user
+                    ->where(fn (Builder $pencarian) => $pencarian
+                        ->where('name', 'like', $nama)
+                        ->orWhere('nim', 'like', $nama)));
             })
             ->when(filled($filter['periode_dari'] ?? null), fn ($query) => $query->whereDate('tanggal_mulai', '>=', $filter['periode_dari']))
             ->when(filled($filter['periode_sampai'] ?? null), fn ($query) => $query->whereDate('tanggal_mulai', '<=', $filter['periode_sampai']))
@@ -67,7 +71,7 @@ class MusyrifahSuratPerizinanController extends Controller
         $akhirBulan = Carbon::now()->endOfMonth()->toDateString();
 
         // Monitoring kuota izin pulang pada bulan berjalan.
-        $kuotaMonitoring = SuratPerizinan::query()
+        $kuotaMonitoring = $this->batasiWilayahSurat(SuratPerizinan::query(), $lokasi)
             ->with('user')
             ->where('jenis', SuratPerizinan::JENIS_PULANG)
             ->whereIn('status', SuratPerizinan::statusMenahanKuota())
@@ -102,7 +106,8 @@ class MusyrifahSuratPerizinanController extends Controller
      */
     public function show(Request $request, SuratPerizinan $suratPerizinan): View
     {
-        $this->pastikanPengelola($request);
+        $lokasi = $this->lokasiPengelola($request);
+        $this->pastikanAksesSurat($lokasi, $suratPerizinan);
 
         return view('musyrifah.detail_surat_perizinan', [
             'pengajuan' => $suratPerizinan->load(['user', 'riwayats', 'keputusanOleh']),
@@ -118,7 +123,8 @@ class MusyrifahSuratPerizinanController extends Controller
      */
     public function keputusan(Request $request, SuratPerizinan $suratPerizinan): RedirectResponse
     {
-        $this->pastikanPengelola($request);
+        $lokasi = $this->lokasiPengelola($request);
+        $this->pastikanAksesSurat($lokasi, $suratPerizinan);
 
         if ($suratPerizinan->suratSemester()) {
             return back()->with('error', 'Surat pulang semester diproses melalui verifikasi surat bertanda tangan.');
@@ -148,40 +154,53 @@ class MusyrifahSuratPerizinanController extends Controller
 
         $musyrifah = $request->user();
         $catatan = filled($validated['catatan_musyrifah'] ?? null) ? trim($validated['catatan_musyrifah']) : null;
-        $statusSebelum = $suratPerizinan->status;
+        // Query perubahan tetap dibatasi gedung/lantai untuk menghindari
+        // bypass lewat POST langsung. Update + riwayat + audit atomik.
+        $berhasil = DB::transaction(function () use ($suratPerizinan, $lokasi, $validated, $musyrifah, $catatan): bool {
+            $statusSebelum = $suratPerizinan->status;
 
-        // Update bersyarat mencegah dua Musyrifah memutus pengajuan yang sama.
-        $berhasil = SuratPerizinan::query()
-            ->whereKey($suratPerizinan->id)
-            ->whereIn('status', [SuratPerizinan::STATUS_MENUNGGU, SuratPerizinan::STATUS_PERLU_PERBAIKAN])
-            ->update([
-                'status' => $validated['keputusan'],
-                'keputusan_oleh' => $musyrifah->id,
-                'keputusan_nama' => $musyrifah->name,
-                'keputusan_pada' => now(),
-                'catatan_musyrifah' => $catatan,
-            ]);
+            $diubah = $this->batasiWilayahSurat(SuratPerizinan::query(), $lokasi)
+                ->whereKey($suratPerizinan->id)
+                ->where('jenis', '!=', SuratPerizinan::JENIS_SEMESTER)
+                ->whereIn('status', [
+                    SuratPerizinan::STATUS_MENUNGGU,
+                    SuratPerizinan::STATUS_PERLU_PERBAIKAN,
+                ])
+                ->update([
+                    'status' => $validated['keputusan'],
+                    'keputusan_oleh' => $musyrifah->id,
+                    'keputusan_nama' => $musyrifah->name,
+                    'keputusan_pada' => now(),
+                    'catatan_musyrifah' => $catatan,
+                ]);
+
+            if (! $diubah) {
+                return false;
+            }
+
+            $suratPerizinan->refresh()->catatRiwayat(
+                $validated['keputusan'],
+                $catatan,
+                $musyrifah
+            );
+
+            $this->audit->catat(
+                'perizinan',
+                'verifikasi_'.$validated['keputusan'],
+                'Izin '.$suratPerizinan->labelJenis(),
+                (int) $suratPerizinan->getKey(),
+                'Keputusan izin menjadi '.$validated['keputusan'].'.',
+                $musyrifah,
+                ['status' => $statusSebelum],
+                ['status' => $validated['keputusan'], 'catatan_musyrifah' => $catatan],
+            );
+
+            return true;
+        });
 
         if (! $berhasil) {
-            return back()->with('error', 'Pengajuan sudah diproses Musyrifah lain. Muat ulang halaman.');
+            return back()->with('error', 'Pengajuan sudah diproses atau bukan kewenangan wilayah Anda. Muat ulang halaman.');
         }
-
-        $suratPerizinan->refresh()->catatRiwayat(
-            $validated['keputusan'],
-            $catatan,
-            $musyrifah
-        );
-
-        $this->audit->catat(
-            'perizinan',
-            'verifikasi_'.$validated['keputusan'],
-            'Izin '.$suratPerizinan->labelJenis(),
-            (int) $suratPerizinan->getKey(),
-            'Keputusan izin menjadi '.$validated['keputusan'].'.',
-            $musyrifah,
-            ['status' => $statusSebelum],
-            ['status' => $validated['keputusan'], 'catatan_musyrifah' => $catatan],
-        );
 
         $pesan = $validated['keputusan'] === SuratPerizinan::STATUS_DISETUJUI
             ? 'Pengajuan berhasil disetujui.'
@@ -197,7 +216,8 @@ class MusyrifahSuratPerizinanController extends Controller
      */
     public function verifikasiSurat(Request $request, SuratPerizinan $suratPerizinan): RedirectResponse
     {
-        $this->pastikanPengelola($request);
+        $lokasi = $this->lokasiPengelola($request);
+        $this->pastikanAksesSurat($lokasi, $suratPerizinan);
 
         abort_unless($suratPerizinan->suratSemester(), 404);
 
@@ -229,28 +249,50 @@ class MusyrifahSuratPerizinanController extends Controller
 
         $musyrifah = $request->user();
         $catatan = filled($validated['catatan_musyrifah'] ?? null) ? trim($validated['catatan_musyrifah']) : null;
-        $statusSebelum = $suratPerizinan->status;
+        // Surat semester juga diperiksa ulang pada query UPDATE untuk
+        // mencegah verifikasi ganda atau dari wilayah lain.
+        $berhasil = DB::transaction(function () use ($suratPerizinan, $lokasi, $validated, $musyrifah, $catatan): bool {
+            $statusSebelum = $suratPerizinan->status;
 
-        $suratPerizinan->update([
-            'status' => $validated['status'],
-            'keputusan_oleh' => $musyrifah->id,
-            'keputusan_nama' => $musyrifah->name,
-            'keputusan_pada' => now(),
-            'catatan_musyrifah' => $catatan,
-        ]);
+            $diubah = $this->batasiWilayahSurat(SuratPerizinan::query(), $lokasi)
+                ->whereKey($suratPerizinan->id)
+                ->where('jenis', SuratPerizinan::JENIS_SEMESTER)
+                ->whereNotNull('surat_tertanda_path')
+                ->whereNotIn('status', [
+                    SuratPerizinan::STATUS_SELESAI,
+                    SuratPerizinan::STATUS_DIBATALKAN,
+                ])
+                ->update([
+                    'status' => $validated['status'],
+                    'keputusan_oleh' => $musyrifah->id,
+                    'keputusan_nama' => $musyrifah->name,
+                    'keputusan_pada' => now(),
+                    'catatan_musyrifah' => $catatan,
+                ]);
 
-        $suratPerizinan->catatRiwayat($validated['status'], $catatan, $musyrifah);
+            if (! $diubah) {
+                return false;
+            }
 
-        $this->audit->catat(
-            'perizinan',
-            'verifikasi_surat_'.$validated['status'],
-            'Surat izin '.$suratPerizinan->labelJenis(),
-            (int) $suratPerizinan->getKey(),
-            'Verifikasi surat bertanda tangan menjadi '.$validated['status'].'.',
-            $musyrifah,
-            ['status' => $statusSebelum],
-            ['status' => $validated['status'], 'catatan_musyrifah' => $catatan],
-        );
+            $suratPerizinan->refresh()->catatRiwayat($validated['status'], $catatan, $musyrifah);
+
+            $this->audit->catat(
+                'perizinan',
+                'verifikasi_surat_'.$validated['status'],
+                'Surat izin '.$suratPerizinan->labelJenis(),
+                (int) $suratPerizinan->getKey(),
+                'Verifikasi surat bertanda tangan menjadi '.$validated['status'].'.',
+                $musyrifah,
+                ['status' => $statusSebelum],
+                ['status' => $validated['status'], 'catatan_musyrifah' => $catatan],
+            );
+
+            return true;
+        });
+
+        if (! $berhasil) {
+            return back()->with('error', 'Surat sudah diproses atau bukan kewenangan wilayah Anda. Muat ulang halaman.');
+        }
 
         $pesan = $validated['status'] === SuratPerizinan::STATUS_SELESAI
             ? 'Surat bertanda tangan berhasil diverifikasi.'
@@ -266,7 +308,8 @@ class MusyrifahSuratPerizinanController extends Controller
      */
     public function dokumen(Request $request, SuratPerizinan $suratPerizinan, string $jenis): BinaryFileResponse
     {
-        $this->pastikanPengelola($request);
+        $lokasi = $this->lokasiPengelola($request);
+        $this->pastikanAksesSurat($lokasi, $suratPerizinan);
 
         $path = match ($jenis) {
             'pendukung' => $suratPerizinan->dokumen_path,
@@ -281,12 +324,68 @@ class MusyrifahSuratPerizinanController extends Controller
     }
 
     /**
-     * Hanya Musyrifah/Pengelola yang boleh memeriksa pengajuan.
+     * Mengambil wilayah dari profil Musyrifah yang ditetapkan Admin.
+     * Musyrifah tanpa wilayah penempatan tidak boleh mengakses data perizinan.
+     *
+     * @return array{gedung: string, lantai: int}
      */
-    private function pastikanPengelola(Request $request): void
+    private function lokasiPengelola(Request $request): array
     {
-        $role = strtolower((string) $request->user()?->role);
+        $akun = $request->user();
+        $role = strtolower(trim((string) $akun?->role));
         abort_unless(in_array($role, ['musyrifah', 'pengelola'], true), 403);
+
+        abort_unless(
+            strtolower(trim((string) $akun->status)) === 'aktif',
+            403,
+            'Akun Musyrifah belum aktif.'
+        );
+
+        $gedung = trim((string) $akun->gedung_penempatan);
+        $lantai = filter_var($akun->lantai_penempatan, FILTER_VALIDATE_INT);
+
+        abort_if(
+            $gedung === '' || $lantai === false || $lantai < 1,
+            403,
+            'Penempatan gedung dan lantai belum ditetapkan oleh Admin.'
+        );
+
+        return ['gedung' => $gedung, 'lantai' => (int) $lantai];
+    }
+
+    /**
+     * Filter utama semua daftar, monitoring, dan UPDATE surat.
+     * Wilayah berasal dari users.kamar_id -> kamars.gedung/lantai.
+     * Mahasiswa yang belum punya kamar aktif tidak otomatis diizinkan.
+     *
+     * @param array{gedung: string, lantai: int} $lokasi
+     */
+    private function batasiWilayahSurat(Builder $query, array $lokasi): Builder
+    {
+        return $query->whereHas('user.kamar', function (Builder $kamar) use ($lokasi): void {
+            // Case-insensitive dan mengabaikan spasi tepi sesuai
+            // cara membandingkan wilayah pada modul Data Kamar.
+            $kamar->whereRaw('LOWER(TRIM(gedung)) = ?', [mb_strtolower($lokasi['gedung'])])
+                ->where('lantai', $lokasi['lantai']);
+        });
+    }
+
+    /**
+     * Perlindungan langsung URL detail, dokumen, dan POST keputusan.
+     *
+     * @param array{gedung: string, lantai: int} $lokasi
+     */
+    private function pastikanAksesSurat(array $lokasi, SuratPerizinan $suratPerizinan): void
+    {
+        $diizinkan = $this->batasiWilayahSurat(SuratPerizinan::query(), $lokasi)
+            ->whereKey($suratPerizinan->getKey())
+            ->exists();
+
+        abort_unless(
+            $diizinkan,
+            403,
+            'Surat perizinan ini berada di luar gedung/lantai penempatan Musyrifah.'
+        );
     }
 
     /**

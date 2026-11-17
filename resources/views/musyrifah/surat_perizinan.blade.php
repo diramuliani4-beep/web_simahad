@@ -1,8 +1,13 @@
 @extends('layouts.musyrifah')
-
 @section('title', 'Surat & Perizinan')
-
 @section('content')
+
+@php
+    // Wilayah tetap divalidasi dan ditegakkan oleh controller pada setiap route.
+    $akunMusyrifah = auth()->user();
+    $gedungWilayah = trim((string) ($akunMusyrifah?->gedung_penempatan ?? ''));
+    $lantaiWilayah = (int) ($akunMusyrifah?->lantai_penempatan ?? 0);
+@endphp
 
 <style>
     .izin-page {
@@ -30,6 +35,45 @@
         margin-top: 5px;
         font-size: 14px;
         color: #555;
+    }
+
+    .izin-wilayah {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 0 20px 20px;
+        padding: 14px 18px;
+        background: #f8edef;
+        border: 1px solid #e9ccd3;
+        border-radius: 12px;
+    }
+
+    .izin-wilayah strong {
+        display: block;
+        color: #800d22;
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    .izin-wilayah p {
+        color: #5f454b;
+        font-size: 12.5px;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .izin-wilayah__lokasi {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: #fff;
+        border: 1px solid #800d22;
+        color: #800d22;
+        font-size: 12.5px;
+        font-weight: 700;
     }
 
     .izin-chip {
@@ -196,10 +240,15 @@
     }
 
     .izin-badge--menunggu { background: #fdf1d8; color: #8a5a00; border: 1px solid #e0b658; }
+
     .izin-badge--disetujui { background: #e7f6ec; color: #1e6b3a; border: 1px solid #7fbf95; }
+
     .izin-badge--ditolak { background: #fdeaea; color: #a01c2c; border: 1px solid #e2969f; }
+
     .izin-badge--perbaikan { background: #fdf1d8; color: #8a4b00; border: 1px solid #e0a558; }
+
     .izin-badge--selesai { background: #e8eefb; color: #22457f; border: 1px solid #93a9d6; }
+
     .izin-badge--dibatalkan { background: #eef0f3; color: #4b5563; border: 1px solid #b9c0ca; }
 
     .izin-detail {
@@ -229,53 +278,54 @@
         color: #a01c2c;
         font-weight: 700;
     }
-
     @media (max-width: 1200px) {
         .izin-filter {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
     }
-
     @media (max-width: 768px) {
         .izin-heading,
         .izin-filter,
         .izin-table-wrapper,
         .izin-section-title,
+        .izin-wilayah,
         .izin-alert {
             margin-left: 0;
             margin-right: 0;
         }
-
         .izin-heading h1 {
             font-size: 24px;
         }
-
         .izin-filter {
             grid-template-columns: 1fr;
         }
     }
 </style>
-
 <div class="izin-page">
-
     <section class="izin-heading">
         <div>
             <h1>Surat &amp; Perizinan</h1>
             <p>Periksa pengajuan izin kegiatan, izin pulang mingguan, dan surat pulang semester mahasiswa.</p>
         </div>
         <span class="izin-chip">
-            {{ $jumlahMenunggu }} pengajuan menunggu tindakan
+            {{ $jumlahMenunggu }} menunggu pada hasil filter
         </span>
     </section>
+
+    <div class="izin-wilayah" role="note">
+        <div>
+            <strong>Perizinan Mahasiswa Sesuai Wilayah Penugasan</strong>
+            <p>Hanya pengajuan dari mahasiswa yang menempati kamar aktif di gedung dan lantai penempatan Anda yang ditampilkan dan dapat diproses.</p>
+        </div>
+        <span class="izin-wilayah__lokasi">Gedung {{ $gedungWilayah }} · Lantai {{ $lantaiWilayah }}</span>
+    </div>
 
     @if (session('success'))
         <div class="izin-alert izin-alert--sukses">{{ session('success') }}</div>
     @endif
-
     @if (session('error'))
         <div class="izin-alert izin-alert--gagal">{{ session('error') }}</div>
     @endif
-
     @if ($errors->any())
         <div class="izin-alert izin-alert--gagal">
             <strong>Periksa kembali data yang dimasukkan:</strong>
@@ -286,7 +336,6 @@
             </ul>
         </div>
     @endif
-
     <form method="GET" action="{{ route('musyrifah.surat_perizinan') }}" class="izin-filter">
         <div>
             <label for="filterJenis">Jenis Izin</label>
@@ -297,7 +346,6 @@
                 @endforeach
             </select>
         </div>
-
         <div>
             <label for="filterStatus">Status</label>
             <select id="filterStatus" name="status">
@@ -307,22 +355,18 @@
                 @endforeach
             </select>
         </div>
-
         <div>
             <label for="filterNama">Nama / NIM Mahasiswa</label>
             <input type="text" id="filterNama" name="nama" value="{{ $filter['nama'] ?? '' }}" placeholder="Cari nama atau NIM">
         </div>
-
         <div>
             <label for="filterDari">Periode Mulai</label>
             <input type="date" id="filterDari" name="periode_dari" value="{{ $filter['periode_dari'] ?? '' }}">
         </div>
-
         <div>
             <label for="filterSampai">Periode Sampai</label>
             <input type="date" id="filterSampai" name="periode_sampai" value="{{ $filter['periode_sampai'] ?? '' }}">
         </div>
-
         <div class="izin-filter__aksi" style="grid-column: 1 / -1;">
             <button type="submit" class="izin-btn izin-btn--primary">
                 Terapkan Filter
@@ -330,9 +374,7 @@
             <a href="{{ route('musyrifah.surat_perizinan') }}" class="izin-btn">Reset</a>
         </div>
     </form>
-
     <h2 class="izin-section-title">Monitoring Kuota Izin Pulang &mdash; {{ $bulanBerjalan }}</h2>
-
     <div class="izin-table-wrapper">
         <table class="izin-table">
             <thead>
@@ -361,15 +403,13 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="izin-empty">Belum ada pemakaian kuota izin pulang pada bulan ini.</td>
+                        <td colspan="5" class="izin-empty">Belum ada pemakaian kuota izin pulang pada bulan ini di wilayah penugasan Anda.</td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
-
-    <h2 class="izin-section-title">Daftar Pengajuan</h2>
-
+    <h2 class="izin-section-title">Daftar Pengajuan Mahasiswa Wilayah Anda</h2>
     <div class="izin-table-wrapper">
         <table class="izin-table">
             <thead>
@@ -408,13 +448,11 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="izin-empty">Belum ada pengajuan perizinan.</td>
+                        <td colspan="9" class="izin-empty">Tidak ada pengajuan perizinan yang sesuai filter di wilayah penugasan Anda.</td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
-
 </div>
-
 @endsection

@@ -28,6 +28,8 @@ use Illuminate\Support\Collection;
     'activation_token',
     'activation_expires_at',
     'last_login_at',
+    'gedung_penempatan',
+    'lantai_penempatan',
 ])]
 #[Hidden(['password', 'remember_token', 'activation_token'])]
 class User extends Authenticatable
@@ -152,6 +154,7 @@ class User extends Authenticatable
             'last_login_at' => 'datetime',
             'password_set_at' => 'datetime',
             'password' => 'hashed',
+            'lantai_penempatan' => 'integer',
         ];
     }
 

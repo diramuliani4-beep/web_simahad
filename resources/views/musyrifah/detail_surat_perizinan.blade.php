@@ -1,23 +1,37 @@
 @extends('layouts.musyrifah')
-
 @php
     use App\Models\SuratPerizinan;
-
     $mahasiswa = $pengajuan->user;
+    $akunMusyrifah = auth()->user();
+    $gedungWilayah = trim((string) ($akunMusyrifah?->gedung_penempatan ?? ''));
+    $lantaiWilayah = (int) ($akunMusyrifah?->lantai_penempatan ?? 0);
+    // Tombol hanya ditampilkan pada status yang dapat diproses; controller tetap memvalidasi wilayah.
     $bolehDiputus = ! $pengajuan->suratSemester() && $pengajuan->masihMenunggu();
     $bolehDiverifikasi = $pengajuan->suratSemester()
         && $pengajuan->punyaSuratTertanda()
         && ! in_array($pengajuan->status, [SuratPerizinan::STATUS_SELESAI, SuratPerizinan::STATUS_DIBATALKAN], true);
 @endphp
-
 @section('title', 'Detail Pengajuan Perizinan')
-
 @section('content')
-
 <style>
     .rincian {
         width: 100%;
         color: #080808;
+    }
+
+    .rincian-wilayah {
+        margin: 0 20px 20px;
+        padding: 13px 17px;
+        background: #f8edef;
+        border: 1px solid #e9ccd3;
+        border-radius: 12px;
+        color: #800d22;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .rincian-wilayah strong {
+        font-weight: 700;
     }
 
     .rincian__kepala {
@@ -137,10 +151,15 @@
     }
 
     .rincian-badge--menunggu { background: #fdf1d8; color: #8a5a00; border: 1px solid #e0b658; }
+
     .rincian-badge--disetujui { background: #e7f6ec; color: #1e6b3a; border: 1px solid #7fbf95; }
+
     .rincian-badge--ditolak { background: #fdeaea; color: #a01c2c; border: 1px solid #e2969f; }
+
     .rincian-badge--perbaikan { background: #fdf1d8; color: #8a4b00; border: 1px solid #e0a558; }
+
     .rincian-badge--selesai { background: #e8eefb; color: #22457f; border: 1px solid #93a9d6; }
+
     .rincian-badge--dibatalkan { background: #eef0f3; color: #4b5563; border: 1px solid #b9c0ca; }
 
     .rincian-berkas {
@@ -324,30 +343,26 @@
         color: #6b7280;
         line-height: 1.6;
     }
-
     @media (max-width: 900px) {
         .rincian-grid {
             grid-template-columns: 1fr;
         }
     }
-
     @media (max-width: 768px) {
         .rincian__kepala,
         .rincian-grid,
         .rincian-kartu--penuh,
+        .rincian-wilayah,
         .rincian-alert {
             margin-left: 0;
             margin-right: 0;
         }
-
         .rincian__kepala h1 {
             font-size: 23px;
         }
     }
 </style>
-
 <div class="rincian">
-
     <section class="rincian__kepala">
         <div>
             <h1>Detail Pengajuan Perizinan</h1>
@@ -356,14 +371,17 @@
         <a href="{{ route('musyrifah.surat_perizinan') }}">Kembali ke Daftar</a>
     </section>
 
+    <div class="rincian-wilayah" role="note">
+        <strong>Wilayah verifikasi:</strong> Gedung {{ $gedungWilayah }} · Lantai {{ $lantaiWilayah }}.
+        Detail ini hanya dapat diakses oleh Musyrifah yang memiliki kewenangan wilayah penempatan mahasiswa.
+    </div>
+
     @if (session('success'))
         <div class="rincian-alert rincian-alert--sukses">{{ session('success') }}</div>
     @endif
-
     @if (session('error'))
         <div class="rincian-alert rincian-alert--gagal">{{ session('error') }}</div>
     @endif
-
     @if ($errors->any())
         <div class="rincian-alert rincian-alert--gagal">
             <strong>Periksa kembali data yang dimasukkan:</strong>
@@ -374,7 +392,6 @@
             </ul>
         </div>
     @endif
-
     <div class="rincian-grid">
         <section class="rincian-kartu">
             <h2>Identitas Mahasiswa</h2>
@@ -392,6 +409,16 @@
                     <td>{{ $mahasiswa?->kamar?->nama_kamar ?: '-' }}</td>
                 </tr>
                 <tr>
+                    <th>Gedung / Lantai</th>
+                    <td>
+                        @if ($mahasiswa?->kamar)
+                            {{ $mahasiswa->kamar->gedung ?: '-' }} / Lantai {{ $mahasiswa->kamar->lantai ?: '-' }}
+                        @else
+                            Belum memiliki kamar aktif
+                        @endif
+                    </td>
+                </tr>
+                <tr>
                     <th>No. HP</th>
                     <td>{{ $mahasiswa?->no_hp ?: '-' }}</td>
                 </tr>
@@ -401,7 +428,6 @@
                 </tr>
             </table>
         </section>
-
         <section class="rincian-kartu">
             <h2>Ringkasan Pengajuan</h2>
             <table class="rincian-tabel">
@@ -432,7 +458,6 @@
                     </tr>
                 @endif
             </table>
-
             @if ($pengajuan->izinPulang() && $kuotaPulang)
                 <div class="rincian-kuota">
                     <span>Kuota {{ $kuotaPulang['bulan'] }}: {{ $kuotaPulang['terpakai'] }} / {{ $kuotaPulang['maksimal'] }}</span>
@@ -441,7 +466,6 @@
             @endif
         </section>
     </div>
-
     <section class="rincian-kartu rincian-kartu--penuh">
         <h2>Rincian Izin</h2>
         <table class="rincian-tabel">
@@ -503,9 +527,7 @@
                 <td>{{ $pengajuan->alasan ?: '-' }}</td>
             </tr>
         </table>
-
         <h2 style="margin-top:18px;">Dokumen</h2>
-
         @if ($pengajuan->punyaDokumen())
             <div class="rincian-berkas">
                 <a href="{{ route('musyrifah.surat_perizinan.dokumen', [$pengajuan, 'pendukung']) }}" target="_blank" rel="noopener">
@@ -518,7 +540,6 @@
         @else
             <p class="rincian-kosong">Tidak ada dokumen pendukung pada pengajuan ini.</p>
         @endif
-
         @if ($pengajuan->suratSemester())
             @if ($pengajuan->punyaSuratTertanda())
                 <div class="rincian-berkas">
@@ -536,11 +557,9 @@
             @endif
         @endif
     </section>
-
     <div class="rincian-grid">
         <section class="rincian-kartu">
             <h2>Keputusan Musyrifah</h2>
-
             @if ($pengajuan->keputusan_nama)
                 <table class="rincian-tabel">
                     <tr>
@@ -559,10 +578,8 @@
                 <p class="rincian-kosong">Pengajuan ini belum memiliki keputusan.</p>
             @endif
         </section>
-
         <section class="rincian-kartu">
             <h2>Riwayat Perubahan Status</h2>
-
             <div class="rincian-riwayat">
                 @forelse ($pengajuan->riwayats as $riwayat)
                     <div class="rincian-riwayat__baris">
@@ -583,14 +600,11 @@
             </div>
         </section>
     </div>
-
     @if ($bolehDiputus)
         <section class="rincian-kartu rincian-kartu--penuh">
             <h2>Ambil Keputusan</h2>
-
             <form method="POST" action="{{ route('musyrifah.surat_perizinan.keputusan', $pengajuan) }}" class="rincian-keputusan">
                 @csrf
-
                 <div class="rincian-opsi">
                     <label>
                         <input type="radio" name="keputusan" value="{{ SuratPerizinan::STATUS_DISETUJUI }}" required
@@ -603,7 +617,6 @@
                         Tolak
                     </label>
                 </div>
-
                 <label class="judul" for="catatanKeputusan">Catatan Keputusan (wajib saat menolak)</label>
                 <textarea
                     id="catatanKeputusan"
@@ -611,20 +624,16 @@
                     maxlength="2000"
                     placeholder="Tuliskan pertimbangan atau alasan keputusan."
                 >{{ old('catatan_musyrifah') }}</textarea>
-
                 <button type="submit" class="rincian-btn">Simpan Keputusan</button>
             </form>
         </section>
     @endif
-
     @if ($pengajuan->suratSemester())
         <section class="rincian-kartu rincian-kartu--penuh">
             <h2>Verifikasi Surat Bertanda Tangan</h2>
-
             @if ($bolehDiverifikasi)
                 <form method="POST" action="{{ route('musyrifah.surat_perizinan.verifikasi', $pengajuan) }}" class="rincian-keputusan">
                     @csrf
-
                     <div class="rincian-opsi">
                         <label>
                             <input type="radio" name="status" value="{{ SuratPerizinan::STATUS_SELESAI }}" required
@@ -637,7 +646,6 @@
                             Perlu Perbaikan
                         </label>
                     </div>
-
                     <label class="judul" for="catatanVerifikasi">Catatan Verifikasi (wajib saat perlu perbaikan)</label>
                     <textarea
                         id="catatanVerifikasi"
@@ -645,7 +653,6 @@
                         maxlength="2000"
                         placeholder="Contoh: tanda tangan orang tua belum terbaca, mohon unggah ulang."
                     >{{ old('catatan_musyrifah') }}</textarea>
-
                     <button type="submit" class="rincian-btn">Simpan Verifikasi</button>
                 </form>
             @elseif ($pengajuan->status === SuratPerizinan::STATUS_SELESAI)
@@ -657,47 +664,35 @@
             @endif
         </section>
     @endif
-
 </div>
-
 <script>
     (function () {
         var formKeputusan = document.querySelector('form[action*="keputusan"]');
-
         if (formKeputusan) {
             var catatanKeputusan = formKeputusan.querySelector('#catatanKeputusan');
             var opsiKeputusan = formKeputusan.querySelectorAll('input[name="keputusan"]');
-
             function sinkronKeputusan() {
                 var terpilih = formKeputusan.querySelector('input[name="keputusan"]:checked');
                 catatanKeputusan.required = terpilih !== null && terpilih.value === 'ditolak';
             }
-
             opsiKeputusan.forEach(function (opsi) {
                 opsi.addEventListener('change', sinkronKeputusan);
             });
-
             sinkronKeputusan();
         }
-
         var formVerifikasi = document.querySelector('form[action*="verifikasi-surat"]');
-
         if (formVerifikasi) {
             var catatanVerifikasi = formVerifikasi.querySelector('#catatanVerifikasi');
             var opsiVerifikasi = formVerifikasi.querySelectorAll('input[name="status"]');
-
             function sinkronVerifikasi() {
                 var terpilih = formVerifikasi.querySelector('input[name="status"]:checked');
                 catatanVerifikasi.required = terpilih !== null && terpilih.value === 'perlu_perbaikan';
             }
-
             opsiVerifikasi.forEach(function (opsi) {
                 opsi.addEventListener('change', sinkronVerifikasi);
             });
-
             sinkronVerifikasi();
         }
     })();
 </script>
-
 @endsection

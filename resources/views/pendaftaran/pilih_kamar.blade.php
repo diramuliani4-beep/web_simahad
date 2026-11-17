@@ -295,6 +295,11 @@
     <x-panel.sidebar ragam="mandiri" tombol-buka />
 
 <div class="container">
+    @php
+        $pengajuanSaya = $pengajuanSaya ?? null;
+        $pengajuanPenempatanMenunggu = $pengajuanSaya
+            && $pengajuanSaya->status === \App\Models\PengajuanKamar::STATUS_MENUNGGU;
+    @endphp
 
     <a href="{{ route('pendaftaran.konfirmasi') }}" class="back">
         <span>←</span>
@@ -303,7 +308,7 @@
 
     <p class="description">
         Pilih kamar yang tersedia sesuai kebutuhanmu.
-        Penempatan kamar menunggu persetujuan pengelola Ma’had.
+        Pengajuan penempatan pertama diverifikasi oleh Musyrifah yang mengelola gedung dan lantai kamar pilihanmu.
     </p>
 
     @if(session('success'))
@@ -333,17 +338,17 @@
 
         <p>
             Kamar yang kamu pilih belum menjadi penempatan tetap
-            sampai disetujui pengelola.
+            sampai disetujui Musyrifah yang bertanggung jawab atas lantai tujuan.
         </p>
     </div>
 
-    @if(isset($pengajuanSaya) && $pengajuanSaya
-        && $pengajuanSaya->status === 'menunggu')
+    @if($pengajuanPenempatanMenunggu)
 
         <div class="pending-box">
             <strong>Pengajuan kamar sedang diproses.</strong><br>
-            Kamu sudah mengajukan kamar.
-            Silakan menunggu persetujuan pengelola Ma’had.
+            Kamu sudah mengajukan kamar. Pengajuan penempatan pertama
+            menunggu pemeriksaan Musyrifah gedung dan lantai kamar tujuan.
+            Belum ada penempatan resmi sampai pengajuan disetujui.
         </div>
 
     @endif
@@ -402,9 +407,9 @@
                     Kembali
                 </a>
 
-                @if(!$kamarDetail->penuh &&
-                    !($pengajuanSaya &&
-                    $pengajuanSaya->status === 'menunggu'))
+                @if($kamarDetail->bisaDiajukan()
+                    && (int) $kamarDetail->tempat_tersedia > 0
+                    && ! $pengajuanPenempatanMenunggu)
 
                     <form method="POST"
                           action="{{ route('pendaftaran.simpanPilihanKamarMhs') }}"
@@ -426,7 +431,7 @@
                 @else
 
                     <button class="btn disabled" disabled>
-                        Tidak Tersedia
+                        {{ $pengajuanPenempatanMenunggu ? 'Pengajuan Sedang Diproses' : 'Tidak Tersedia' }}
                     </button>
 
                 @endif
@@ -440,6 +445,10 @@
     <h2 class="section-title">Daftar Kamar</h2>
 
     @forelse($kamars as $kamar)
+        @php
+            $kamarDapatDiajukan = $kamar->bisaDiajukan()
+                && (int) $kamar->tempat_tersedia > 0;
+        @endphp
 
         <div class="room-card">
 
@@ -453,10 +462,10 @@
 
                 <h3>Kamar {{ $kamar->nomor_kamar }}</h3>
 
-                @if($kamar->penuh)
-                    <span class="badge full">Penuh</span>
-                @else
+                @if($kamarDapatDiajukan)
                     <span class="badge available">Tersedia</span>
+                @else
+                    <span class="badge full">{{ $kamar->penuh ? 'Penuh' : 'Tidak Tersedia' }}</span>
                 @endif
 
             </div>
@@ -501,9 +510,7 @@
                     Cek Kamar
                 </a>
 
-                @if(!$kamar->penuh &&
-                    !($pengajuanSaya &&
-                    $pengajuanSaya->status === 'menunggu'))
+                @if($kamarDapatDiajukan && ! $pengajuanPenempatanMenunggu)
 
                     <a href="{{ route(
                         'pendaftaran.detailKamarMhs',
@@ -515,7 +522,7 @@
                 @else
 
                     <button class="btn disabled" disabled>
-                        Penuh
+                        {{ $pengajuanPenempatanMenunggu ? 'Pengajuan Sedang Diproses' : ($kamar->penuh ? 'Penuh' : 'Tidak Tersedia') }}
                     </button>
 
                 @endif

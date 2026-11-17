@@ -20,6 +20,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -45,14 +46,60 @@ class DashboardRingkasanService
     /**
      * Ringkasan operasional harian Musyrifah.
      *
+     * Perhitungan yang terkait penghuni, kamar, pengajuan kamar, dan perizinan
+     * selalu dibatasi pada users.gedung_penempatan dan lantai_penempatan.
+     * Pendaftaran/pembayaran/pembelajaran belum memiliki relasi penugasan
+     * Musyrifah per lantai, sehingga tetap ditandai sebagai rekap umum.
+     *
+     * Bisa dipanggil tanpa argumen dari AuthController yang telah ada.
+     *
      * @return array<string, mixed>
      */
-    public function musyrifah(): array
+    public function musyrifah(?User $petugas = null): array
     {
-        $kamar = Kamar::query()->withCount('users')->get();
-        $kapasitas = (int) $kamar->sum('kapasitas');
-        $terisi = (int) $kamar->sum('users_count');
+        // Ambil guard secara eksplisit agar Intelephense mengenali method user().
+        // Setelah itu pastikan hasilnya benar-benar model User aplikasi.
+        $akunLogin = Auth::guard()->user();
+        $petugas = $petugas ?? ($akunLogin instanceof User ? $akunLogin : null);
+        abort_unless(
+            $petugas instanceof User && strtolower(trim((string) $petugas->role)) === 'musyrifah',
+            403,
+            'Halaman ini hanya dapat diakses Musyrifah.'
+        );
+        abort_unless(
+            strtolower(trim((string) $petugas->status)) === 'aktif',
+            403,
+            'Akun Musyrifah belum aktif.'
+        );
 
+        $namaGedung = trim((string) $petugas->gedung_penempatan);
+        $nomorLantai = filter_var($petugas->lantai_penempatan, FILTER_VALIDATE_INT);
+        $sudahDiatur = $namaGedung !== '' && $nomorLantai !== false && $nomorLantai >= 1;
+        $wilayah = $sudahDiatur
+            ? ['gedung' => $namaGedung, 'lantai' => (int) $nomorLantai]
+            : null;
+
+        // Khusus data wilayah; tanpa penempatan, hasil harus 0, BUKAN seluruh Ma'had.
+        $kamarsWilayah = $this->batasiKamarDashboard(Kamar::query(), $wilayah)
+            ->withCount('users')
+            ->orderBy('nomor_kamar')
+            ->get();
+        $kapasitas = (int) $kamarsWilayah->sum('kapasitas');
+        $terisi = (int) $kamarsWilayah->sum('users_count');
+        $mahasiswaWilayah = User::query()
+            ->whereRaw('LOWER(role) = ?', ['mahasiswa'])
+            ->whereHas('kamar', fn (Builder $query) => $this->batasiKamarDashboard($query, $wilayah))
+            ->count();
+
+        // Antrean kamar mengikuti persis tahapan kewenangan controller Data Kamar:
+        // - penempatan: tujuan di wilayah Musyrifah;
+        // - pindah: sebelum persetujuan asal di wilayah asal;
+        // - pindah: setelah persetujuan asal di wilayah tujuan.
+        $antrianKamar = $this->batasiPengajuanKamarDashboard(PengajuanKamar::query(), $wilayah);
+        $antrianSurat = $this->batasiSuratDashboard(SuratPerizinan::query(), $wilayah);
+
+        // Pembelajaran belum mengikat jadwal ke gedung/lantai Musyrifah.
+        // Tetap sebagai rekap umum, tidak digabung ke 'tindakan wilayah'.
         $hariIni = JadwalPembelajaran::HARI[now()->dayOfWeekIso] ?? 'Senin';
         $jadwalHariIni = JadwalPembelajaran::query()->where('hari', $hariIni)->get();
         $absensiHariIni = AbsensiPembelajaran::query()
@@ -61,8 +108,20 @@ class DashboardRingkasanService
             ->count('jadwal_id');
 
         return [
-            'totalMahasiswa' => $this->jumlahMahasiswa(),
+            'penempatan' => [
+                'sudahDiatur' => $sudahDiatur,
+                'gedung' => $wilayah['gedung'] ?? null,
+                'lantai' => $wilayah['lantai'] ?? null,
+                'label' => $sudahDiatur
+                    ? $wilayah['gedung'].' · Lantai '.$wilayah['lantai']
+                    : 'Belum ditetapkan Admin',
+            ],
+            'totalMahasiswa' => $mahasiswaWilayah,
+            'totalMahasiswaGlobal' => $this->jumlahMahasiswa(),
+            // Calon pendaftar belum punya kamar aktif; jangan dianggap
+            // 'mahasiswa wilayah'. Rekap ini tetap seluruh Ma'had.
             'pendaftaran' => [
+                'cakupan' => 'global',
                 'menunggu' => Pendaftaran::query()
                     ->whereIn('status', self::STATUS_PENDAFTARAN_MENUNGGU)
                     ->count(),
@@ -74,43 +133,57 @@ class DashboardRingkasanService
                     ->get(),
             ],
             'kamar' => [
-                'jumlah' => $kamar->count(),
+                'jumlah' => $kamarsWilayah->count(),
                 'kapasitas' => $kapasitas,
                 'terisi' => $terisi,
                 'sisa' => max(0, $kapasitas - $terisi),
                 'persentase' => $kapasitas > 0 ? round(($terisi / $kapasitas) * 100, 1) : 0.0,
-                'per_lantai' => $this->kamarPerLantai($kamar),
+                'per_lantai' => $this->kamarPerLantai($kamarsWilayah),
             ],
             'pengajuanKamar' => [
-                'menunggu' => PengajuanKamar::query()->where('status', PengajuanKamar::STATUS_MENUNGGU)->count(),
-                'terbaru' => PengajuanKamar::query()
-                    ->with(['user', 'kamar'])
-                    ->where('status', PengajuanKamar::STATUS_MENUNGGU)
+                'menunggu' => (clone $antrianKamar)->count(),
+                'tahapAsal' => (clone $antrianKamar)
+                    ->where('jenis', PengajuanKamar::JENIS_PINDAH)
+                    ->whereNull('persetujuan_asal_oleh')
+                    ->count(),
+                'tahapTujuan' => (clone $antrianKamar)
+                    ->where('jenis', PengajuanKamar::JENIS_PINDAH)
+                    ->whereNotNull('persetujuan_asal_oleh')
+                    ->count(),
+                'terbaru' => (clone $antrianKamar)
+                    ->with(['user', 'kamar', 'kamarAsal'])
                     ->latest('id')
                     ->limit(5)
                     ->get(),
             ],
+            // Pembayaran tetap umum: jangan mengklaim data sudah per lantai.
             'pembayaran' => $this->ringkasanPembayaran(),
             'suratPerizinan' => [
-                'menunggu' => SuratPerizinan::query()->where('status', SuratPerizinan::STATUS_MENUNGGU)->count(),
-                'perluPerbaikan' => SuratPerizinan::query()
+                'menunggu' => (clone $antrianSurat)
+                    ->where('status', SuratPerizinan::STATUS_MENUNGGU)
+                    ->count(),
+                'perluPerbaikan' => (clone $antrianSurat)
                     ->where('status', SuratPerizinan::STATUS_PERLU_PERBAIKAN)
                     ->count(),
-                'semesterMenunggu' => SuratPerizinan::query()
+                'semesterMenunggu' => (clone $antrianSurat)
                     ->where('jenis', SuratPerizinan::JENIS_SEMESTER)
                     ->whereIn('status', [
                         SuratPerizinan::STATUS_MENUNGGU,
                         SuratPerizinan::STATUS_PERLU_PERBAIKAN,
                     ])
                     ->count(),
-                'terbaru' => SuratPerizinan::query()
+                'terbaru' => (clone $antrianSurat)
                     ->with('user')
-                    ->whereIn('status', [SuratPerizinan::STATUS_MENUNGGU, SuratPerizinan::STATUS_PERLU_PERBAIKAN])
+                    ->whereIn('status', [
+                        SuratPerizinan::STATUS_MENUNGGU,
+                        SuratPerizinan::STATUS_PERLU_PERBAIKAN,
+                    ])
                     ->latest('id')
                     ->limit(5)
                     ->get(),
             ],
             'pembelajaran' => [
+                'cakupan' => 'global',
                 'kelompok' => $this->jumlahKelompok(),
                 'jadwalHariIni' => $jadwalHariIni->count(),
                 'hariIni' => $hariIni,
@@ -133,6 +206,69 @@ class DashboardRingkasanService
             ],
             'zonaWaktu' => self::ZONA_WAKTU,
         ];
+    }
+
+    /**
+     * Scoping lokasi yang sama dengan Surat Perizinan dan Data Kamar.
+     * Tidak ada penempatan = tidak boleh membaca data per wilayah.
+     *
+     * @param array{gedung:string,lantai:int}|null $wilayah
+     */
+    private function batasiKamarDashboard(Builder $query, ?array $wilayah): Builder
+    {
+        if ($wilayah === null) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query
+            ->whereRaw('LOWER(TRIM(gedung)) = ?', [mb_strtolower($wilayah['gedung'])])
+            ->where('lantai', $wilayah['lantai']);
+    }
+
+    /**
+     * Scoping antrean yang dapat diputuskan pada tahap saat ini.
+     * Harus tetap selaras dengan MusyrifahDataKamarController@index.
+     *
+     * @param array{gedung:string,lantai:int}|null $wilayah
+     */
+    private function batasiPengajuanKamarDashboard(Builder $query, ?array $wilayah): Builder
+    {
+        $query->where('status', PengajuanKamar::STATUS_MENUNGGU);
+        if ($wilayah === null) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->where(function (Builder $utama) use ($wilayah): void {
+            $utama->where(function (Builder $penempatan) use ($wilayah): void {
+                $penempatan->where('jenis', PengajuanKamar::JENIS_PENEMPATAN)
+                    ->whereHas('kamar', fn (Builder $kamar) => $this->batasiKamarDashboard($kamar, $wilayah));
+            })->orWhere(function (Builder $pindah) use ($wilayah): void {
+                $pindah->where('jenis', PengajuanKamar::JENIS_PINDAH)
+                    ->where(function (Builder $tahap) use ($wilayah): void {
+                        $tahap->where(function (Builder $asal) use ($wilayah): void {
+                            $asal->whereNull('persetujuan_asal_oleh')
+                                ->whereHas('kamarAsal', fn (Builder $kamar) => $this->batasiKamarDashboard($kamar, $wilayah));
+                        })->orWhere(function (Builder $tujuan) use ($wilayah): void {
+                            $tujuan->whereNotNull('persetujuan_asal_oleh')
+                                ->whereHas('kamar', fn (Builder $kamar) => $this->batasiKamarDashboard($kamar, $wilayah));
+                        });
+                    });
+            });
+        });
+    }
+
+    /**
+     * Izin ditentukan dari users.kamar_id, bukan alamat yang diisikan pengaju.
+     *
+     * @param array{gedung:string,lantai:int}|null $wilayah
+     */
+    private function batasiSuratDashboard(Builder $query, ?array $wilayah): Builder
+    {
+        if ($wilayah === null) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->whereHas('user.kamar', fn (Builder $kamar) => $this->batasiKamarDashboard($kamar, $wilayah));
     }
 
     /**

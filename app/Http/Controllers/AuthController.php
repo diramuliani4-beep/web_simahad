@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kamar;
+use App\Models\Pendaftaran;
 use App\Models\PengajuanKamar;
 use App\Models\User;
 use App\Services\DashboardRingkasanService;
@@ -488,6 +489,7 @@ class AuthController extends Controller
         $pengajuanSaya = PengajuanKamar::with('kamar')
             ->where('user_id', $user->id)
             ->where('jenis', PengajuanKamar::JENIS_PENEMPATAN)
+            ->latest('id')
             ->first();
 
         // Pengajuan pindah kamar terakhir milik mahasiswa ini
@@ -506,6 +508,7 @@ class AuthController extends Controller
                     ->where('status', PengajuanKamar::STATUS_MENUNGGU)
                     ->where('user_id', '!=', $user->id),
             ])
+            ->orderBy('gedung')
             ->orderBy('lantai')
             ->orderBy('nomor_kamar')
             ->get()
@@ -569,12 +572,31 @@ class AuthController extends Controller
                 ->with('error', 'Kamu sudah memiliki penempatan kamar.');
         }
 
+        // Samakan aturan dengan jalur PendaftaranController::simpanPilihanKamarMhs().
+        // Pengajuan dari POST /kamar/pilih tidak boleh melewati persetujuan pendaftaran.
+        $pendaftaranTerakhir = Pendaftaran::query()
+            ->where('user_id', $user->id)
+            ->latest('id')
+            ->first();
+
+        if (! $pendaftaranTerakhir || $pendaftaranTerakhir->status !== 'disetujui') {
+            return redirect()
+                ->route('kamar')
+                ->with('error', 'Pendaftaran Ma’had belum disetujui. Pengajuan kamar baru dapat dikirim setelah pendaftaran disetujui.');
+        }
+
         try {
             PengajuanKamar::ajukan($user, Kamar::findOrFail($validated['kamar_id']));
-        } catch (\Throwable $e) {
+        } catch (\RuntimeException $e) {
             return redirect()
                 ->route('kamar')
                 ->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()
+                ->route('kamar')
+                ->with('error', 'Pengajuan kamar belum dapat diproses. Silakan coba kembali atau hubungi pengelola Ma’had.');
         }
 
         return redirect()
@@ -612,22 +634,39 @@ class AuthController extends Controller
         }
 
         try {
-            PengajuanKamar::ajukanPindah(
+            $pengajuan = PengajuanKamar::ajukanPindah(
                 $user,
                 Kamar::findOrFail($validated['kamar_id']),
                 trim($validated['alasan'])
             );
-        } catch (\Throwable $e) {
+        } catch (\RuntimeException $e) {
             return redirect()
                 ->route('kamar')
                 ->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()
+                ->route('kamar')
+                ->with('error', 'Pengajuan pindah kamar belum dapat diproses. Silakan coba kembali atau hubungi pengelola Ma’had.');
         }
+
+        // Status tetap 'menunggu' sampai ada keputusan akhir.
+        // Selama proses, users.kamar_id tidak berubah.
+        $pengajuan->loadMissing(['kamarAsal', 'kamar']);
+        $asal = $pengajuan->kamarAsal;
+        $tujuan = $pengajuan->kamar;
+        $lintasWilayah = $asal && $tujuan && (
+            mb_strtolower(trim((string) $asal->gedung)) !== mb_strtolower(trim((string) $tujuan->gedung))
+            || (int) $asal->lantai !== (int) $tujuan->lantai
+        );
+
+        $pesan = $lintasWilayah
+            ? 'Pengajuan pindah kamar berhasil dikirim. Menunggu persetujuan Musyrifah asal, kemudian Musyrifah tujuan. Kamu tetap menempati kamar sekarang sampai kedua pihak menyetujui.'
+            : 'Pengajuan pindah kamar berhasil dikirim. Menunggu persetujuan Musyrifah yang mengelola lantai ini. Kamu tetap menempati kamar sekarang sampai disetujui.';
 
         return redirect()
             ->route('kamar')
-            ->with(
-                'success',
-                'Pengajuan pindah kamar berhasil dikirim. Penempatan kamu tetap pada kamar saat ini sampai Musyrifah menyetujui pengajuan.'
-            );
+            ->with('success', $pesan);
     }
 }

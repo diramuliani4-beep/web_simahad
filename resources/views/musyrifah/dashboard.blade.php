@@ -12,41 +12,43 @@
         $pembelajaran = $ringkasan['pembelajaran'];
 
         $zona = $ringkasan['zonaWaktu'];
+        $penempatan = $ringkasan['penempatan'];
+        $wilayahDitentukan = (bool) ($penempatan['sudahDiatur'] ?? false);
+        $namaWilayah = $penempatan['label'] ?? 'Belum ditetapkan Admin';
 
         $nominalTeks = (float) $pembayaran['nominal'] > 0
             ? $pembayaran['nominalRupiah']
             : 'nominal belum diatur';
 
-        $perluTindakan = (int) $pendaftaran['menunggu']
-            + (int) $pengajuan['menunggu']
-            + (int) $perizinan['menunggu']
-            + (int) $pembelajaran['absensiBelumDiisi'];
+        // Total tindakan di hero hanya data yang benar-benar milik wilayah.
+        // Pendaftaran & pembelajaran merupakan layanan Ma'had umum.
+        $perluTindakan = (int) $pengajuan['menunggu'] + (int) $perizinan['menunggu'];
 
         $tindakan = [
             [
-                'judul' => 'Pendaftaran',
-                'meta' => $pendaftaran['disetujui'].' disetujui',
+                'judul' => 'Pendaftaran (umum)',
+                'meta' => 'Seluruh Ma’had · '.$pendaftaran['disetujui'].' disetujui',
                 'jumlah' => (int) $pendaftaran['menunggu'],
                 'ikon' => 'pendaftaran',
                 'rute' => route('musyrifah.pendaftaran'),
             ],
             [
                 'judul' => 'Pengajuan kamar',
-                'meta' => 'Pindah & penetapan',
+                'meta' => 'Wilayah Anda · pindah & penetapan',
                 'jumlah' => (int) $pengajuan['menunggu'],
                 'ikon' => 'penghuni',
                 'rute' => route('musyrifah.data_kamar'),
             ],
             [
                 'judul' => 'Surat perizinan',
-                'meta' => $perizinan['perluPerbaikan'].' perlu perbaikan',
+                'meta' => 'Wilayah Anda · '.$perizinan['perluPerbaikan'].' perlu perbaikan',
                 'jumlah' => (int) $perizinan['menunggu'],
                 'ikon' => 'surat',
                 'rute' => route('musyrifah.surat_perizinan'),
             ],
             [
-                'judul' => 'Absensi mengajar',
-                'meta' => $pembelajaran['jadwalHariIni'].' jadwal hari ini',
+                'judul' => 'Absensi (umum)',
+                'meta' => 'Seluruh Ma’had · '.$pembelajaran['jadwalHariIni'].' jadwal hari ini',
                 'jumlah' => (int) $pembelajaran['absensiBelumDiisi'],
                 'ikon' => 'absensi',
                 'rute' => route('musyrifah.manajemen_pembelajaran'),
@@ -133,6 +135,34 @@
         }
 
         #simahad-musyrifah-dashboard .sd-date svg { width: 15px; height: 15px; color: var(--sd-maroon); }
+
+        /* ---------- Batas cakupan dashboard ---------- */
+        #simahad-musyrifah-dashboard .sd-scope {
+            display: flex;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 12px 16px;
+            border: 1px solid #e7d7dc;
+            border-radius: 12px;
+            background: #fbf7f8;
+            color: #60202f;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        #simahad-musyrifah-dashboard .sd-scope strong { font-weight: 750; }
+        #simahad-musyrifah-dashboard .sd-scope--warning {
+            border-color: #edd9a7;
+            background: #fff8e8;
+            color: #795116;
+        }
+        #simahad-musyrifah-dashboard .sd-scope--note {
+            margin-top: 12px;
+            padding: 9px 11px;
+            color: var(--sd-faint);
+            border-color: var(--sd-line);
+            background: #fbfbfd;
+        }
 
         /* ---------- Hero ---------- */
         #simahad-musyrifah-dashboard .sd-hero {
@@ -648,11 +678,11 @@
             <div class="sd-hero-content">
                 <span class="sd-hero-label">Musyrifah</span>
                 <h1>Assalamu’alaikum, {{ auth()->user()->name ?? 'Musyrifah' }}</h1>
-                <p>Pantau keterisian kamar, verifikasi berkas, dan siapkan layanan Ma’had hari ini.</p>
+                <p>Pantau kamar, pengajuan, dan perizinan sesuai penempatan dari Admin.</p>
             </div>
             <div class="sd-hero-board" role="group" aria-label="Ringkasan hari ini">
                 <div class="sd-hero-stat">
-                    <span>Total Mahasiswa</span>
+                    <span>Mahasiswa wilayah</span>
                     <strong>{{ number_format($ringkasan['totalMahasiswa'], 0, ',', '.') }}</strong>
                 </div>
                 <div class="sd-hero-stat">
@@ -660,17 +690,29 @@
                     <strong>{{ $formatPersen((float) $kamar['persentase']) }}%</strong>
                 </div>
                 <div class="sd-hero-stat">
-                    <span>Perlu tindakan</span>
+                    <span>Tindakan wilayah</span>
                     <strong>{{ number_format($perluTindakan, 0, ',', '.') }}</strong>
                 </div>
             </div>
         </header>
 
+        @if ($wilayahDitentukan)
+            <div class="sd-scope" role="status">
+                <strong>Wilayah tugas: {{ $namaWilayah }}</strong>
+                <span>Statistik mahasiswa, kamar, pengajuan kamar, dan surat perizinan hanya untuk wilayah ini. Kamar gedung lain tetap bisa dilihat melalui menu Data Kamar.</span>
+            </div>
+        @else
+            <div class="sd-scope sd-scope--warning" role="alert">
+                <strong>Wilayah belum ditetapkan Admin.</strong>
+                <span>Statistik wilayah ditampilkan nol dan tidak ada antrean validasi wilayah. Hubungi Admin untuk menetapkan gedung dan lantai.</span>
+            </div>
+        @endif
+
         <section class="sd-section" aria-labelledby="sd-tindakan-heading">
             <div class="sd-section-head">
                 <div>
                     <h2 id="sd-tindakan-heading">Perlu Tindakan</h2>
-                    <p>Apa yang menunggu Anda selesaikan hari ini.</p>
+                    <p>Pengajuan kamar dan perizinan dihitung per wilayah; pendaftaran serta pembelajaran adalah antrean umum Ma’had.</p>
                 </div>
             </div>
             <div class="sd-actions">
@@ -693,7 +735,7 @@
                     <span class="sd-mark"><x-panel.ikon nama="pendaftaran" /></span>
                     <div>
                         <h3>Pendaftaran Menunggu Verifikasi</h3>
-                        <p>Berkas calon mahasiswa yang menunggu validasi</p>
+                        <p>Pendaftaran calon mahasiswa seluruh Ma’had (belum berbasis lantai)</p>
                     </div>
                 </div>
                 <a class="sd-card-link" href="{{ route('musyrifah.pendaftaran') }}">Verifikasi</a>
@@ -728,7 +770,7 @@
                         <span class="sd-mark"><x-panel.ikon nama="pembelajaran" /></span>
                         <div>
                             <h3>Jadwal Hari Ini</h3>
-                            <p>{{ $pembelajaran['jadwalHariIni'] }} jadwal · {{ $pembelajaran['kelompok'] }} kelompok</p>
+                            <p>Seluruh Ma’had · {{ $pembelajaran['jadwalHariIni'] }} jadwal · {{ $pembelajaran['kelompok'] }} kelompok</p>
                         </div>
                     </div>
                     <a class="sd-card-link" href="{{ route('musyrifah.manajemen_pembelajaran') }}">Kelola</a>
@@ -790,7 +832,7 @@
                         <span class="sd-mark"><x-panel.ikon nama="kamar" /></span>
                         <div>
                             <h3>Kapasitas &amp; Keterisian Kamar</h3>
-                            <p>{{ $kamar['jumlah'] }} kamar terdaftar</p>
+                            <p>{{ $kamar['jumlah'] }} kamar pada {{ $namaWilayah }}</p>
                         </div>
                     </div>
                     <a class="sd-card-link" href="{{ route('musyrifah.data_kamar') }}">Data kamar</a>
@@ -807,7 +849,7 @@
                             @foreach ($kamar['per_lantai'] as $lantai)
                                 @php $persenLantai = $lantai['kapasitas'] > 0 ? min(100, round(($lantai['terisi'] / $lantai['kapasitas']) * 100, 1)) : 0; @endphp
                                 <div class="sd-lantai-row">
-                                    <span>Lantai {{ $lantai['lantai'] }}</span>
+                                    <span>{{ $penempatan['gedung'] ?? 'Gedung' }} · Lantai {{ $lantai['lantai'] }}</span>
                                     <strong>{{ $lantai['terisi'] }}/{{ $lantai['kapasitas'] }}</strong>
                                 </div>
                                 <span class="sd-track is-thin" role="img" aria-label="Lantai {{ $lantai['lantai'] }} terisi {{ $formatPersen((float) $persenLantai) }} persen">
@@ -818,9 +860,13 @@
                     @endif
 
                     <p class="sd-footnote">
-                        {{ $kamar['sisa'] > 0
-                            ? $kamar['sisa'].' tempat masih tersedia untuk penempatan mahasiswa.'
-                            : 'Semua tempat sudah terisi.' }}
+                        {{ ! $wilayahDitentukan
+                            ? 'Penempatan wilayah belum diatur Admin.'
+                            : ($kamar['kapasitas'] === 0
+                                ? 'Belum ada kamar pada wilayah penempatan.'
+                                : ($kamar['sisa'] > 0
+                                    ? $kamar['sisa'].' tempat tersedia di wilayah ini.'
+                                    : 'Semua tempat di wilayah ini sudah terisi.')) }}
                     </p>
                 </div>
             </article>
@@ -831,7 +877,7 @@
                         <span class="sd-mark"><x-panel.ikon nama="pembayaran" /></span>
                         <div>
                             <h3>Pembayaran</h3>
-                            <p>Status tagihan periode aktif</p>
+                            <p>Rekap seluruh Ma’had · belum dibagi per lantai</p>
                         </div>
                     </div>
                     <a class="sd-card-link" href="{{ route('musyrifah.pembayaran') }}">Verifikasi</a>
@@ -853,14 +899,14 @@
                         @if ($pembayaran['pengingat'])
                             <div class="sd-alert">
                                 <x-panel.ikon nama="pembayaran" />
-                                <span>Jatuh tempo {{ $pembayaran['jatuhTempo'] }} — sisa {{ $pembayaran['sisaHari'] }} hari. Segera ingatkan mahasiswa.</span>
+                                <span>Jatuh tempo {{ $pembayaran['jatuhTempo'] }} — sisa {{ $pembayaran['sisaHari'] }} hari. Tindak lanjuti sesuai kewenangan petugas pembayaran.</span>
                             </div>
                         @endif
 
                         <p class="sd-footnote">
                             {{ $pembayaran['belum'] > 0
-                                ? $pembayaran['belum'].' mahasiswa belum melunasi tagihan periode ini.'
-                                : 'Seluruh mahasiswa sudah melunasi tagihan periode ini.' }}
+                                ? 'Secara keseluruhan, '.$pembayaran['belum'].' mahasiswa belum melunasi tagihan periode ini.'
+                                : 'Seluruh mahasiswa dalam rekap Ma’had telah melunasi tagihan periode ini.' }}
                         </p>
                     @else
                         <div class="sd-empty">

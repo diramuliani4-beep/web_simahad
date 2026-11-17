@@ -12,13 +12,9 @@ class PengajuanKamar extends Model
     use HasFactory;
 
     public const STATUS_MENUNGGU = 'menunggu';
-
     public const STATUS_DISETUJUI = 'disetujui';
-
     public const STATUS_DITOLAK = 'ditolak';
-
     public const JENIS_PENEMPATAN = 'penempatan';
-
     public const JENIS_PINDAH = 'pindah';
 
     protected $table = 'pengajuan_kamars';
@@ -33,53 +29,63 @@ class PengajuanKamar extends Model
         'catatan',
         'diverifikasi_oleh',
         'status',
+        'persetujuan_asal_oleh',
+        'persetujuan_asal_pada',
     ];
 
-    /**
-     * Mahasiswa yang mengajukan kamar.
-     */
+    protected function casts(): array
+    {
+        return [
+            'persetujuan_asal_pada' => 'datetime',
+        ];
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    /**
-     * Kamar yang dipilih mahasiswa (kamar tujuan pada pengajuan pindah).
-     */
+    /** Kamar tujuan (atau pilihan penempatan pertama). */
     public function kamar(): BelongsTo
     {
         return $this->belongsTo(Kamar::class, 'kamar_id');
     }
 
-    /**
-     * Kamar asal sebelum mahasiswa mengajukan pindah kamar.
-     */
     public function kamarAsal(): BelongsTo
     {
         return $this->belongsTo(Kamar::class, 'kamar_asal_id');
     }
 
-    /**
-     * Musyrifah/pengelola yang memproses pengajuan.
-     */
+    /** Verifikator akhir: Musyrifah tujuan untuk perpindahan lintas wilayah. */
     public function verifikator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'diverifikasi_oleh');
     }
 
-    /**
-     * Label jenis pengajuan untuk tampilan.
-     */
+    /** Persetujuan tahap pertama dari Musyrifah kamar asal. */
+    public function verifikatorAsal(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'persetujuan_asal_oleh');
+    }
+
     public function labelJenis(): string
     {
         return $this->jenis === self::JENIS_PINDAH ? 'Pindah Kamar' : 'Penempatan Baru';
     }
 
-    /**
-     * Label status pengajuan untuk tampilan.
-     */
+    public function menungguPersetujuanTujuan(): bool
+    {
+        return $this->jenis === self::JENIS_PINDAH
+            && $this->status === self::STATUS_MENUNGGU
+            && $this->persetujuan_asal_oleh !== null;
+    }
+
     public function labelStatus(): string
     {
+        if ($this->menungguPersetujuanTujuan()) {
+            return 'Menunggu Persetujuan Musyrifah Tujuan';
+        }
+
         return match ($this->status) {
             self::STATUS_MENUNGGU => 'Menunggu Verifikasi',
             self::STATUS_DISETUJUI => 'Disetujui',
@@ -88,28 +94,19 @@ class PengajuanKamar extends Model
         };
     }
 
-    /**
-     * Apakah pengajuan masih menunggu verifikasi Musyrifah.
-     */
     public function masihMenunggu(): bool
     {
         return $this->status === self::STATUS_MENUNGGU;
     }
 
-    /**
-     * Berkas pendaftaran mahasiswa terkait.
-     */
     public function pendaftaran(): BelongsTo
     {
         return $this->belongsTo(Pendaftaran::class, 'pendaftaran_id');
     }
 
     /**
-     * Jumlah tempat tidur yang masih bisa diajukan pada sebuah kamar.
-     *
-     * Dihitung dari penghuni resmi (users.kamar_id) ditambah pengajuan yang
-     * masih menunggu, sehingga angka yang dilihat mahasiswa selalu sama
-     * dengan data kamar yang dikelola Musyrifah.
+     * Pengajuan 'menunggu' tetap mencakup tahap pertama dan kedua, agar
+     * reservasi slot, daftar pengajuan aktif, dan aplikasi mahasiswa konsisten.
      */
     public static function slotTersedia(Kamar $kamar, ?int $kecualiUserId = null): int
     {
@@ -127,14 +124,7 @@ class PengajuanKamar extends Model
         return max(0, (int) $kamar->kapasitas - $penghuni - $menunggu);
     }
 
-    /**
-     * Menyimpan pengajuan penempatan kamar mahasiswa.
-     *
-     * Satu mahasiswa hanya memiliki satu pengajuan aktif; pengajuan lama yang
-     * masih menunggu atau ditolak akan diperbarui ke kamar pilihan terbaru.
-     *
-     * @throws \RuntimeException ketika kamar tidak dapat diajukan
-     */
+    /** Pendaftaran penempatan pertama: perilaku lama dipertahankan. */
     public static function ajukan(User $user, Kamar $kamar): self
     {
         return DB::transaction(function () use ($user, $kamar): self {
@@ -149,35 +139,27 @@ class PengajuanKamar extends Model
             if ($pengajuanLama?->status === self::STATUS_DISETUJUI) {
                 throw new \RuntimeException('Pengajuan kamar kamu sudah disetujui.');
             }
-
             if (! $kamar->bisaDiajukan()) {
-                throw new \RuntimeException(
-                    'Kamar '.$kamar->nomor_kamar.' sedang tidak dapat diajukan.'
-                );
+                throw new \RuntimeException('Kamar '.$kamar->nomor_kamar.' sedang tidak dapat diajukan.');
             }
-
             if (static::slotTersedia($kamar, $user->id) <= 0) {
-                throw new \RuntimeException(
-                    'Maaf, Kamar '.$kamar->nomor_kamar.' sudah penuh atau sedang dalam proses pengajuan.'
-                );
+                throw new \RuntimeException('Maaf, Kamar '.$kamar->nomor_kamar.' sudah penuh atau sedang dalam proses pengajuan.');
             }
 
             $pendaftaran = Pendaftaran::query()
-                ->where('user_id', $user->id)
-                ->latest('id')
-                ->first();
+                ->where('user_id', $user->id)->latest('id')->first();
 
             return static::query()->updateOrCreate(
-                [
-                    'user_id' => $user->id,
-                    'jenis' => self::JENIS_PENEMPATAN,
-                ],
+                ['user_id' => $user->id, 'jenis' => self::JENIS_PENEMPATAN],
                 [
                     'pendaftaran_id' => $pendaftaran?->id,
                     'kamar_id' => $kamar->id,
                     'kamar_asal_id' => null,
                     'alasan' => null,
                     'catatan' => null,
+                    'diverifikasi_oleh' => null,
+                    'persetujuan_asal_oleh' => null,
+                    'persetujuan_asal_pada' => null,
                     'status' => self::STATUS_MENUNGGU,
                 ]
             );
@@ -185,23 +167,19 @@ class PengajuanKamar extends Model
     }
 
     /**
-     * Mengajukan pindah kamar tanpa mengubah penempatan yang sedang aktif.
-     *
-     * Penempatan baru hanya diterapkan setelah Musyrifah menyetujui pengajuan.
-     *
-     * @throws \RuntimeException ketika pengajuan pindah tidak dapat dibuat
+     * Pindah kamar tidak langsung mengubah users.kamar_id.
+     * Pengajuan dengan status menunggu, termasuk setelah persetujuan asal,
+     * mencegah permohonan pindah ganda.
      */
     public static function ajukanPindah(User $user, Kamar $kamarTujuan, string $alasan): self
     {
         return DB::transaction(function () use ($user, $kamarTujuan, $alasan): self {
             $santri = User::query()->lockForUpdate()->findOrFail($user->id);
-
             if (! $santri->kamar_id) {
                 throw new \RuntimeException('Kamu belum memiliki penempatan kamar yang dapat dipindahkan.');
             }
 
             $tujuan = Kamar::query()->lockForUpdate()->findOrFail($kamarTujuan->id);
-
             if ((int) $santri->kamar_id === (int) $tujuan->id) {
                 throw new \RuntimeException('Kamar tujuan sama dengan kamar yang kamu tempati saat ini.');
             }
@@ -210,31 +188,20 @@ class PengajuanKamar extends Model
                 ->where('user_id', $santri->id)
                 ->where('jenis', self::JENIS_PINDAH)
                 ->where('status', self::STATUS_MENUNGGU)
-                ->lockForUpdate()
-                ->exists();
+                ->lockForUpdate()->exists();
 
             if ($sudahMengajukan) {
-                throw new \RuntimeException(
-                    'Kamu masih memiliki pengajuan pindah kamar yang menunggu verifikasi Musyrifah.'
-                );
+                throw new \RuntimeException('Kamu masih memiliki pengajuan pindah kamar yang menunggu verifikasi Musyrifah.');
             }
-
             if (! $tujuan->bisaDiajukan()) {
-                throw new \RuntimeException(
-                    'Kamar '.$tujuan->nomor_kamar.' sedang tidak dapat diajukan.'
-                );
+                throw new \RuntimeException('Kamar '.$tujuan->nomor_kamar.' sedang tidak dapat diajukan.');
             }
-
             if (static::slotTersedia($tujuan, $santri->id) <= 0) {
-                throw new \RuntimeException(
-                    'Maaf, Kamar '.$tujuan->nomor_kamar.' sudah penuh atau sedang dalam proses pengajuan.'
-                );
+                throw new \RuntimeException('Maaf, Kamar '.$tujuan->nomor_kamar.' sudah penuh atau sedang dalam proses pengajuan.');
             }
 
             $pendaftaran = Pendaftaran::query()
-                ->where('user_id', $santri->id)
-                ->latest('id')
-                ->first();
+                ->where('user_id', $santri->id)->latest('id')->first();
 
             return static::query()->create([
                 'user_id' => $santri->id,
@@ -244,6 +211,9 @@ class PengajuanKamar extends Model
                 'jenis' => self::JENIS_PINDAH,
                 'alasan' => $alasan,
                 'catatan' => null,
+                'diverifikasi_oleh' => null,
+                'persetujuan_asal_oleh' => null,
+                'persetujuan_asal_pada' => null,
                 'status' => self::STATUS_MENUNGGU,
             ]);
         });
