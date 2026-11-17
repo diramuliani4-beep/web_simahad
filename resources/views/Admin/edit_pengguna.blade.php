@@ -55,37 +55,31 @@
 .um-dialog-icon svg{width:25px;height:25px}.um-dialog h2{font-size:17px;line-height:1.35;margin:0 0 8px}.um-dialog p{margin:0;font-size:12.5px;color:#797377;line-height:1.55}.um-dialog strong{color:#333;overflow-wrap:anywhere}
 .um-dialog-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.um-dialog-actions .um-btn{min-height:38px;padding:7px 12px;font-size:12px}
 @media(max-width:720px){.um-card-top,.um-toolbar,.um-footer,.um-section,.um-form-foot{padding-left:16px;padding-right:16px}.um-grid{grid-template-columns:1fr}.um-wide{grid-column:auto}.um-head h1{font-size:22px}.um-dialog{padding:18px 16px 16px}.um-dialog-icon{width:46px;height:46px;margin-bottom:11px}.um-dialog-icon svg{width:22px;height:22px}.um-dialog h2{font-size:16px}.um-dialog p{font-size:12px}.um-dialog-actions{gap:8px}.um-dialog-actions .um-btn{min-height:36px;font-size:11.5px}}
+/* Lokasi tugas: field operasional khusus akun Musyrifah. */
+.um-page .um-placement[hidden]{display:none!important}
+.um-page .um-placement .um-grid{margin-bottom:0}
+.um-page .um-placement select:disabled{background:#f7f4f5;color:#8d8388;cursor:not-allowed}
 </style>
 @endpush
 @section('content')
 <style>
-.um-aktivasi-baris{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;margin-top:18px;padding:16px 18px;border:1px solid #ecd9dd;border-radius:11px;background:#fff;box-shadow:0 3px 12px rgba(70,15,33,.04)}
+.um-aktivasi-baris{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:14px;margin-top:18px;padding:16px 18px;border:1px solid #ecd9dd;border-radius:11px;background:#fff;box-shadow:0 3px 12px rgba(70,15,33,.04)}
 .um-aktivasi-baris strong{display:block;margin-bottom:4px;font-size:13px;color:#6B0D1B}
 .um-aktivasi-baris p{margin:0;font-size:11.5px;line-height:1.6;color:#7a6f72;max-width:62ch}
 @media(max-width:600px){.um-aktivasi-baris .um-btn{width:100%}}
 </style>
 <div class="um-page">
-<header class="um-head"><div class="um-crumb"><a href="{{ route('admin.dashboard') }}">Dashboard</a> / <a href="{{ route('admin.manajemen-pengguna') }}">Manajemen Pengguna</a> / Edit Pengguna</div><h1>Edit Pengguna</h1><p>Admin dapat memperbarui identitas, role, dan status login akun. Kata sandi tetap menjadi hak pemilik akun. Biodata pegawai yang terhubung tetap dipertahankan.</p></header>
+<header class="um-head"><h1>Edit Pengguna</h1></header>
 @if (session('success'))<div class="um-alert" role="status">{{ session('success') }}</div>@endif
 @if (session('error'))<div class="um-alert um-alert-error" role="alert">{{ session('error') }}</div>@endif
 @if ($errors->any())<div class="um-alert um-alert-error" role="alert"><strong>Periksa kembali isian berikut:</strong><ul style="margin:8px 0 0;padding-left:20px">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 <form id="umFormEdit" method="POST" action="{{ route('admin.manajemen-pengguna.update', $akun->getKey()) }}" autocomplete="off">@csrf @method('PUT')
 <section class="um-card">
-  <div class="um-card-top"><div><h2>Formulir Edit Akun</h2><p>Perbarui identitas, role, atau akses login akun.</p></div><span class="um-role">{{ ucfirst($akun->role) }}</span></div>
+  <div class="um-card-top"><div><h2>Formulir Edit Akun</h2></div><span class="um-role">{{ ucfirst($akun->role) }}</span></div>
   <div class="um-section"><h3><span class="um-step">01</span> Informasi Pengguna</h3>
-    @if ((int) auth()->id() === (int) $akun->getKey())
-      <div class="um-note info" role="status">
-        <strong>Anda sedang mengedit akun sendiri.</strong> Nama, email, dan nomor HP bisa diperbarui. Role dan status juga bisa diubah selama masih ada Admin aktif lain. Jika perubahan menghilangkan akses Admin, Anda akan keluar otomatis setelah menyimpan. Kata sandi diubah melalui Pengaturan Akun.
-      </div>
-    @endif
-    @if ($akun->pegawaiAkun?->pegawai)
-      <div class="um-note"><strong>Data Pegawai terhubung:</strong> {{ $akun->pegawaiAkun->pegawai->nama_pegawai }}. Perubahan nama, email, dan nomor HP di sini ikut disinkronkan ke biodata pegawai. Status kepegawaian tetap terpisah.</div>
-    @elseif (in_array($akun->role, ['guru', 'musyrifah', 'pimpinan'], true))
-      <div class="um-note info">Akun ini belum terhubung dengan Data Pegawai. Jika disimpan dengan role operasional Ma'had, sistem akan membuat biodata dasar selama tidak ada data yang bertabrakan.</div>
-    @endif
     <div class="um-grid">
       <div class="um-field um-wide"><label class="um-label" for="name">Nama Lengkap <span class="um-required">*</span></label><input id="name" name="name" type="text" class="um-control @error('name') is-invalid @enderror" placeholder="Nama pengguna" maxlength="255" value="{{ old('name', $akun->name) }}" required ><span class="um-error">@error('name'){{ $message }}@enderror</span></div>
-      <div class="um-field"><label class="um-label" for="email">Email Akun <span class="um-required">*</span></label><input id="email" name="email" type="email" class="um-control @error('email') is-invalid @enderror" placeholder="nama@contoh.com" maxlength="255" value="{{ old('email', $akun->email) }}" required ><span class="um-error">@error('email'){{ $message }}@enderror</span><p class="um-help">Perubahan email untuk akun terkait akan diperbarui juga di Data Pegawai.</p></div>
+      <div class="um-field"><label class="um-label" for="email">Email Akun <span class="um-required">*</span></label><input id="email" name="email" type="email" class="um-control @error('email') is-invalid @enderror" placeholder="nama@contoh.com" maxlength="255" value="{{ old('email', $akun->email) }}" required ><span class="um-error">@error('email'){{ $message }}@enderror</span></div>
       <div class="um-field"><label class="um-label" for="no_hp">Nomor HP</label><input id="no_hp" name="no_hp" type="tel" class="um-control @error('no_hp') is-invalid @enderror" placeholder="08xxxxxxxxxx" maxlength="20" value="{{ old('no_hp', $akun->no_hp) }}" ><span class="um-error">@error('no_hp'){{ $message }}@enderror</span></div>
       <div class="um-field"><label class="um-label" for="role">Role Pengguna <span class="um-required">*</span></label><select id="role" name="role" required class="um-control @error('role') is-invalid @enderror"><option value="">-- Pilih role --</option>
 <option value="admin" @selected(old('role', $akun->role) === 'admin')>Admin</option>
@@ -96,35 +90,48 @@
         @if ($akun->role === 'pengelola')
           <p class="um-help" style="color:#a52540"><strong>Role lama terdeteksi:</strong> Pengelola. Pilih <strong>Musyrifah (Pengelola)</strong> sebelum menyimpan. Sistem tidak mengubah role akun lama secara diam-diam.</p>
         @endif
-        <p class="um-help">Akun yang terhubung dengan Data Pegawai tidak boleh diubah menjadi Mahasiswa.</p>@error('role')<span class="um-error">{{ $message }}</span>@enderror
+        @error('role')<span class="um-error">{{ $message }}</span>@enderror
+      </div>
+      <div class="um-field um-wide um-placement" id="umMusyrifahPlacement"
+           data-lokasi="{{ json_encode((object) ($lokasiPenempatan ?? []), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) }}" hidden>
+        <div class="um-grid">
+          <div class="um-field">
+            <label class="um-label" for="gedung_penempatan">Gedung Penempatan <span class="um-required">*</span></label>
+            <select id="gedung_penempatan" name="gedung_penempatan"
+                    class="um-control @error('gedung_penempatan') is-invalid @enderror" disabled>
+              <option value="">-- Pilih gedung --</option>
+              @foreach (array_keys($lokasiPenempatan ?? []) as $namaGedung)
+                <option value="{{ $namaGedung }}" @selected(old('gedung_penempatan', $akun->gedung_penempatan) === $namaGedung)>{{ $namaGedung }}</option>
+              @endforeach
+            </select>
+            @error('gedung_penempatan')<span class="um-error">{{ $message }}</span>@enderror
+            @if (empty($lokasiPenempatan))
+              <span class="um-error">Gedung dan lantai belum tersedia di Data Kamar.</span>
+            @endif
+          </div>
+          <div class="um-field">
+            <label class="um-label" for="lantai_penempatan">Lantai Penempatan <span class="um-required">*</span></label>
+            <select id="lantai_penempatan" name="lantai_penempatan"
+                    class="um-control @error('lantai_penempatan') is-invalid @enderror"
+                    data-old="{{ old('lantai_penempatan', $akun->lantai_penempatan) }}" disabled>
+              <option value="">-- Pilih gedung terlebih dahulu --</option>
+            </select>
+            @error('lantai_penempatan')<span class="um-error">{{ $message }}</span>@enderror
+          </div>
+        </div>
       </div>
     </div>
   </div>
-  <div class="um-section"><h3><span class="um-step">02</span> Status Akun & Keamanan</h3>
+  <div class="um-section"><h3><span class="um-step">02</span> Status Akun</h3>
     <div class="um-grid"><div class="um-field"><label class="um-label" for="status">Status Akun <span class="um-required">*</span></label><select name="status" id="status" required class="um-control">@if(in_array($akun->status, ['menunggu aktivasi','menunggu','pending'], true))<option value="{{ $akun->status }}" @selected(old('status', $akun->status) === $akun->status)>Menunggu Aktivasi</option>@endif<option value="aktif" @selected(old('status', $akun->status) === 'aktif')>Aktif</option>
-<option value="nonaktif" @selected(old('status', $akun->status) === 'nonaktif')>Nonaktif</option></select><p class="um-help">Hanya status login. Tidak mengubah status pegawai.</p></div></div>
-    <div class="um-note info">
-      <strong>Kata sandi tidak diatur dari halaman ini.</strong> Pemilik akun membuat kata sandi sendiri melalui tautan aktivasi
-      (untuk akun baru) atau menggantinya di menu Pengaturan Akun. Dengan demikian Admin tidak pernah mengetahui kata sandi pengguna.
-    </div>
-    @if (in_array(strtolower((string) $akun->status), ['menunggu aktivasi', 'menunggu', 'pending'], true))
-      <div class="um-note">
-        Akun ini belum diaktifkan. Gunakan tombol <strong>Kirim Ulang Aktivasi</strong> di bawah formulir untuk mengirim tautan aktivasi baru
-        (berlaku 48 jam) ke {{ $akun->email }}.
-      </div>
-    @endif
+<option value="nonaktif" @selected(old('status', $akun->status) === 'nonaktif')>Nonaktif</option></select></div></div>
   </div>
   <div class="um-form-foot"><a class="um-btn" href="{{ route('admin.manajemen-pengguna') }}">Batal</a><button class="um-btn um-btn-primary" id="umSubmitEdit" type="submit">Simpan Perubahan</button></div>
 </section>
 </form>
-
 @if (in_array(strtolower((string) $akun->status), ['menunggu aktivasi', 'menunggu', 'pending'], true))
   <form method="POST" action="{{ route('admin.manajemen-pengguna.aktivasi', $akun->getKey()) }}" class="um-aktivasi-baris">
     @csrf
-    <div>
-      <strong>Kirim Ulang Aktivasi</strong>
-      <p>Tautan aktivasi baru akan dikirim ke {{ $akun->email }}. Kata sandi lama tidak berubah dan tetap tidak diketahui Admin.</p>
-    </div>
     <button type="submit" class="um-btn um-btn-primary">Kirim Ulang Aktivasi</button>
   </form>
 @endif
@@ -135,7 +142,42 @@
 document.addEventListener('DOMContentLoaded',function(){
  const form=document.getElementById('umFormEdit');
  const button=document.getElementById('umSubmitEdit');
- if(!form||!button)return;
+ const roleInput=document.getElementById('role');
+ const placement=document.getElementById('umMusyrifahPlacement');
+ const gedungInput=document.getElementById('gedung_penempatan');
+ const lantaiInput=document.getElementById('lantai_penempatan');
+ if(!form||!button||!roleInput||!placement||!gedungInput||!lantaiInput)return;
+ let lokasi={};
+ try {
+   const parsed=JSON.parse(placement.dataset.lokasi||'{}');
+   if(parsed && typeof parsed==='object' && !Array.isArray(parsed)) lokasi=parsed;
+ } catch (_) {
+   lokasi={};
+ }
+ function syncPenempatan(resetLantai=false){
+   const aktif=roleInput.value==='musyrifah';
+   placement.hidden=!aktif;
+   const adaGedung=Object.keys(lokasi).length>0;
+   gedungInput.disabled=!aktif||!adaGedung;
+   gedungInput.required=aktif;
+   const lantaiSebelumnya=resetLantai?'':(lantaiInput.value||lantaiInput.dataset.old||'');
+   const daftar=Array.isArray(lokasi[gedungInput.value])?lokasi[gedungInput.value]:[];
+   lantaiInput.replaceChildren(new Option(
+     gedungInput.value?'-- Pilih lantai --':'-- Pilih gedung terlebih dahulu --',''
+   ));
+   daftar.forEach(function(lantai){
+     lantaiInput.add(new Option('Lantai '+lantai,String(lantai)));
+   });
+   if(daftar.map(String).includes(String(lantaiSebelumnya))){
+     lantaiInput.value=String(lantaiSebelumnya);
+   }
+   lantaiInput.dataset.old='';
+   lantaiInput.disabled=!aktif||!gedungInput.value||!daftar.length;
+   lantaiInput.required=aktif;
+ }
+ roleInput.addEventListener('change',function(){syncPenempatan(true)});
+ gedungInput.addEventListener('change',function(){syncPenempatan(true)});
+ syncPenempatan();
  form.addEventListener('submit',function(){
    if(!form.checkValidity())return;
    button.disabled=true;button.textContent='Menyimpan...';

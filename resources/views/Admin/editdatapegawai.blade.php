@@ -1,7 +1,5 @@
 @extends('layouts.admin')
-
 @section('title', 'Edit Data Pegawai')
-
 @push('styles')
 <style>
     .pgform, .pgform * { box-sizing: border-box; }
@@ -69,30 +67,26 @@
     }
 </style>
 @endpush
-
 @section('content')
 <div class="pgform">
     <header class="pgform-head">
-        <nav class="pgform-crumb" aria-label="Breadcrumb">
-            <a href="{{ route('admin.dashboard') }}">Dashboard</a> / <a href="{{ route('admin.data-pegawai.index') }}">Data Pegawai</a> / Edit Data Pegawai
-        </nav>
         <h1 class="pgform-title">Edit Data Pegawai</h1>
-        <p class="pgform-desc">Perbarui biodata pegawai yang sudah tersimpan. Tidak perlu memilih akun atau role.</p>
     </header>
-
     @php
         // Cek tautan yang sesungguhnya di tabel pegawai_akun, bukan kolom user_id lama.
         // Controller mengunci email di server dengan aturan yang sama.
         $emailTerhubung = $pegawai->akunLink()->exists();
+        // Data penempatan mengikuti akun pengguna, bukan kiriman formulir.
+        $akunPenempatan = $pegawai->user;
+        $musyrifahTerhubung = $akunPenempatan !== null
+            && strtolower(trim((string) $akunPenempatan->role)) === 'musyrifah';
     @endphp
-
     @if($errors->any())
         <div class="pgform-alert" role="alert">
             <strong>Data belum berhasil disimpan. Periksa isian berikut:</strong>
             <ul>@foreach($errors->all() as $pesan)<li>{{ $pesan }}</li>@endforeach</ul>
         </div>
     @endif
-
     <form id="formPegawai" action="{{ route('admin.data-pegawai.update', $pegawai->getKey()) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
@@ -105,17 +99,11 @@
                 </div>
                 <div>
                     <h2>Formulir Biodata Pegawai</h2>
-                    <p>Informasi kepegawaian tersimpan pada tabel pegawais dan tidak menentukan izin login SIMAHAD.</p>
                 </div>
             </div>
-
             <div class="pgform-body">
                 <section class="pgform-section">
                     <h3><span class="pgform-step">01</span> Identitas Pegawai</h3>
-                    <div class="pgform-note">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7h.01"/></svg>
-                        <div><strong>Nama dapat diubah.</strong> Jika pegawai sudah memiliki akun, nama akan ikut diperbarui pada Manajemen Pengguna. <strong>Email dapat diubah selama belum terhubung dengan akun login.</strong> Status pegawai tidak memengaruhi akses login.</div>
-                    </div>
                     <div class="pgform-grid">
                         <div class="pgform-field full">
                             <label class="pgform-label" for="nama_pegawai">Nama lengkap <span class="pgform-required">*</span></label>
@@ -129,14 +117,12 @@
                             @if ($emailTerhubung)
                                 <input id="email" type="email" readonly aria-readonly="true" class="pgform-input"
                                        value="{{ $pegawai->user?->email ?? $pegawai->email }}">
-                                <p class="pgform-help">Email sudah menjadi identitas akun SIMAHAD dan tidak dapat diubah dari Data Pegawai.</p>
                                 <button type="button" class="pgform-inline-action" id="mintaUbahEmail"
                                         aria-haspopup="dialog" aria-controls="dialogEmail">Ingin mengubah email?</button>
                             @else
                                 <input id="email" name="email" type="email" required maxlength="255"
                                        class="pgform-input @error('email') invalid @enderror"
                                        value="{{ old('email', $pegawai->email) }}" placeholder="pegawai@contoh.com" autocomplete="email">
-                                <p class="pgform-help">Belum punya akun login, jadi email biodata masih dapat diubah.</p>
                             @endif
                             @error('email')<span class="pgform-error">{{ $message }}</span>@enderror
                         </div>
@@ -170,9 +156,40 @@
                         </div>
                     </div>
                 </section>
-
                 <section class="pgform-section">
-                    <h3><span class="pgform-step">02</span> Foto Pegawai</h3>
+                    <h3><span class="pgform-step">02</span> Penugasan Pegawai</h3>
+                    <div class="pgform-grid">
+                        <div class="pgform-field">
+                            <label class="pgform-label" for="jabatan">Jabatan</label>
+                            <input id="jabatan" name="jabatan" type="text" maxlength="150"
+                                   class="pgform-input @error('jabatan') invalid @enderror"
+                                   value="{{ old('jabatan', $pegawai->jabatan) }}" placeholder="Masukkan jabatan pegawai">
+                            @error('jabatan')<span class="pgform-error">{{ $message }}</span>@enderror
+                        </div>
+                        <div class="pgform-field">
+                            <label class="pgform-label" for="kelompok_yang_diajar">Kelompok yang Diajar</label>
+                            <input id="kelompok_yang_diajar" name="kelompok_yang_diajar" type="text" maxlength="255"
+                                   class="pgform-input @error('kelompok_yang_diajar') invalid @enderror"
+                                   value="{{ old('kelompok_yang_diajar', $pegawai->kelompok_yang_diajar) }}" placeholder="Masukkan kelompok yang diajar">
+                            @error('kelompok_yang_diajar')<span class="pgform-error">{{ $message }}</span>@enderror
+                        </div>
+                        @if ($musyrifahTerhubung)
+                            <div class="pgform-field">
+                                <label class="pgform-label" for="gedung_yang_dikelola">Gedung yang Dikelola</label>
+                                <input id="gedung_yang_dikelola" type="text" class="pgform-input"
+                                       value="{{ $akunPenempatan->gedung_penempatan ?: '—' }}" readonly aria-readonly="true">
+                            </div>
+                            <div class="pgform-field">
+                                <label class="pgform-label" for="lantai_yang_dikelola">Lantai yang Dikelola</label>
+                                <input id="lantai_yang_dikelola" type="text" class="pgform-input"
+                                       value="{{ $akunPenempatan->lantai_penempatan !== null ? 'Lantai ' . $akunPenempatan->lantai_penempatan : '—' }}"
+                                       readonly aria-readonly="true">
+                            </div>
+                        @endif
+                    </div>
+                </section>
+                <section class="pgform-section">
+                    <h3><span class="pgform-step">03</span> Foto Pegawai</h3>
                     <div class="pgform-photo-row">
                         <div class="pgform-preview" id="previewFoto" aria-label="Pratinjau foto pegawai">
                             @if ($pegawai->foto && \Illuminate\Support\Facades\Route::has('admin.data-pegawai.foto'))
@@ -186,14 +203,12 @@
                         <div class="pgform-photo-upload">
                             <label class="pgform-label" for="foto">Ganti foto (opsional)</label>
                             <input id="foto" name="foto" type="file" accept="image/jpeg,image/png,image/webp">
-                            <p class="pgform-help">JPG, PNG, atau WEBP. Maksimal 2 MB. Kosongkan untuk mempertahankan foto lama.</p>
                             @error('foto')<span class="pgform-error">{{ $message }}</span>@enderror
                         </div>
                     </div>
                 </section>
-
                 <section class="pgform-section">
-                    <h3><span class="pgform-step">03</span> Status Kepegawaian</h3>
+                    <h3><span class="pgform-step">04</span> Status Kepegawaian</h3>
                     <div class="pgform-grid">
                         <div class="pgform-field">
                             <label class="pgform-label" for="status_pegawai">Status pegawai <span class="pgform-required">*</span></label>
@@ -201,14 +216,7 @@
                                 <option value="1" @selected((string) old('status_pegawai', (int) $pegawai->status_pegawai) === '1')>Aktif</option>
                                 <option value="0" @selected((string) old('status_pegawai', (int) $pegawai->status_pegawai) === '0')>Nonaktif</option>
                             </select>
-                            <p class="pgform-help">Status data pegawai saja. Tidak memberi atau mencabut akses login.</p>
                             @error('status_pegawai')<span class="pgform-error">{{ $message }}</span>@enderror
-                        </div>
-                        <div class="pgform-field">
-                            <div class="pgform-note" style="height:100%;margin:0">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7h.01"/></svg>
-                                <div>Role, password, dan status akun login dikelola secara terpisah di <strong>Manajemen Pengguna</strong>.</div>
-                            </div>
                         </div>
                     </div>
                 </section>
@@ -219,7 +227,6 @@
             </div>
         </div>
     </form>
-
     @if ($emailTerhubung)
         <dialog class="pgform-modal" id="dialogEmail" aria-labelledby="dialogEmailJudul" aria-describedby="dialogEmailPesan">
             <div class="pgform-modal-inner">
@@ -234,7 +241,6 @@
     @endif
 </div>
 @endsection
-
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -250,10 +256,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
     if (!fotoInput || !preview) return;
-
     const fotoAwal = preview.innerHTML;
     let previewUrl = null;
-
     fotoInput.addEventListener('change', function () {
         if (previewUrl) URL.revokeObjectURL(previewUrl);
         previewUrl = null;
@@ -272,7 +276,6 @@ document.addEventListener('DOMContentLoaded', function () {
         img.alt = 'Pratinjau foto pegawai';
         preview.replaceChildren(img);
     });
-
     if (form && tombolSimpan) {
         form.addEventListener('submit', function () {
             if (!form.checkValidity()) return;

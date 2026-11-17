@@ -19,10 +19,15 @@ class Pegawai extends Model
         'pendidikan_terakhir',
         'alamat',
         'status_pegawai',
+        'jabatan',
+        'kelompok_yang_diajar',
+        'gedung_yang_dikelola',
+        'lantai_yang_dikelola',
     ];
 
     protected $casts = [
         'status_pegawai' => 'boolean',
+        'lantai_yang_dikelola' => 'integer',
     ];
 
     public function akunLink(): HasOne

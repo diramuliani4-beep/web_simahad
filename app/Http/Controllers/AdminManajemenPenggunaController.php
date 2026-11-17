@@ -98,7 +98,9 @@ class AdminManajemenPenggunaController extends Controller
             ->orderBy('nama_pegawai')
             ->get(['id', 'nama_pegawai', 'email', 'no_hp']);
 
-        return view('Admin.tambah_pengguna', compact('pegawaiTersedia'));
+        $lokasiPenempatan = $this->lokasiPenempatanTersedia();
+
+        return view('Admin.tambah_pengguna', compact('pegawaiTersedia', 'lokasiPenempatan'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -113,6 +115,29 @@ class AdminManajemenPenggunaController extends Controller
             'no_hp' => ['nullable', 'string', 'max:20'],
             'role' => ['required', Rule::in(self::ROLES)],
         ]);
+
+        // Hanya akun Musyrifah yang memerlukan penempatan. Kedua nilai harus
+        // merupakan pasangan gedung/lantai yang sudah tercatat di Data Kamar.
+        $penempatan = null;
+        if ($data['role'] === 'musyrifah') {
+            $pilihan = $request->validate([
+                'gedung_penempatan' => ['required', 'string', 'max:150'],
+                'lantai_penempatan' => ['required', 'integer', 'min:1', 'max:65535'],
+            ]);
+
+            $gedung = trim($pilihan['gedung_penempatan']);
+            $lantai = (string) (int) $pilihan['lantai_penempatan'];
+            $lokasiTersedia = $this->lokasiPenempatanTersedia();
+
+            if (! array_key_exists($gedung, $lokasiTersedia)
+                || ! in_array($lantai, $lokasiTersedia[$gedung], true)) {
+                throw ValidationException::withMessages([
+                    'gedung_penempatan' => 'Gedung dan lantai tidak terdaftar pada Data Kamar. Pilih lokasi yang tersedia.',
+                ]);
+            }
+
+            $penempatan = ['gedung' => $gedung, 'lantai' => (int) $lantai];
+        }
 
         $pegawaiId = isset($data['pegawai_id']) ? (int) $data['pegawai_id'] : null;
 
@@ -129,7 +154,7 @@ class AdminManajemenPenggunaController extends Controller
             ]);
         }
 
-        $akunBaru = DB::transaction(function () use ($request, $data, $pegawaiId): User {
+        $akunBaru = DB::transaction(function () use ($request, $data, $pegawaiId, $penempatan): User {
             $pegawai = null;
 
             if ($pegawaiId) {
@@ -176,6 +201,13 @@ class AdminManajemenPenggunaController extends Controller
                 'status' => 'menunggu aktivasi',
             ]);
 
+            // Penempatan disimpan langsung di tabel users, bukan tabel baru.
+            if ($penempatan !== null) {
+                $akun->gedung_penempatan = $penempatan['gedung'];
+                $akun->lantai_penempatan = $penempatan['lantai'];
+                $akun->save();
+            }
+
             if (! $pegawai && in_array($akun->role, self::ROLES_AUTO_PEGAWAI, true)) {
                 // Hanya role operasional Ma'had yang otomatis memperoleh biodata pegawai.
                 // Admin bukan indikator kepegawaian; mahasiswa memakai modul tersendiri.
@@ -214,7 +246,12 @@ class AdminManajemenPenggunaController extends Controller
         $this->pastikanAdmin($request);
         $user->load('pegawaiAkun.pegawai');
 
-        return view('Admin.edit_pengguna', ['akun' => $user]);
+        $lokasiPenempatan = $this->lokasiPenempatanTersedia();
+
+        return view('Admin.edit_pengguna', [
+            'akun' => $user,
+            'lokasiPenempatan' => $lokasiPenempatan,
+        ]);
     }
 
     public function update(Request $request, User $user): RedirectResponse
@@ -230,11 +267,33 @@ class AdminManajemenPenggunaController extends Controller
             'status' => ['required', Rule::in(array_merge(self::STATUS_AKUN, self::STATUS_MENUNGGU))],
         ]);
 
+        // Penempatan hanya untuk Musyrifah dan wajib cocok dengan Data Kamar.
+        $penempatan = null;
+        if ($data['role'] === 'musyrifah') {
+            $pilihan = $request->validate([
+                'gedung_penempatan' => ['required', 'string', 'max:150'],
+                'lantai_penempatan' => ['required', 'integer', 'min:1', 'max:65535'],
+            ]);
+
+            $gedung = trim($pilihan['gedung_penempatan']);
+            $lantai = (string) (int) $pilihan['lantai_penempatan'];
+            $lokasiTersedia = $this->lokasiPenempatanTersedia();
+
+            if (! array_key_exists($gedung, $lokasiTersedia)
+                || ! in_array($lantai, $lokasiTersedia[$gedung], true)) {
+                throw ValidationException::withMessages([
+                    'gedung_penempatan' => 'Gedung dan lantai tidak terdaftar di Data Kamar. Pilih penempatan yang tersedia.',
+                ]);
+            }
+
+            $penempatan = ['gedung' => $gedung, 'lantai' => (int) $lantai];
+        }
+
         // Bila Admin memindahkan akun ke status menunggu aktivasi, tautan aktivasi baru dikirim ulang.
         $perluKirimAktivasi = $data['status'] === 'menunggu aktivasi'
             && ! in_array(strtolower((string) $user->status), self::STATUS_MENUNGGU, true);
 
-        $keluarDariAkunSendiri = DB::transaction(function () use ($request, $user, $data): bool {
+        $keluarDariAkunSendiri = DB::transaction(function () use ($request, $user, $data, $penempatan): bool {
             $akun = User::query()->lockForUpdate()->findOrFail($user->getKey());
             $link = PegawaiAkun::query()->where('user_id', $akun->getKey())->first();
             $pegawai = $link ? Pegawai::query()->lockForUpdate()->findOrFail($link->pegawai_id) : null;
@@ -287,6 +346,8 @@ class AdminManajemenPenggunaController extends Controller
             $akun->no_hp = $data['no_hp'] ?? null;
             $akun->role = $data['role'];
             $akun->status = $data['status'];
+            $akun->gedung_penempatan = $penempatan['gedung'] ?? null;
+            $akun->lantai_penempatan = $penempatan['lantai'] ?? null;
             $akun->save();
 
             if ($pegawai) {
@@ -423,6 +484,32 @@ class AdminManajemenPenggunaController extends Controller
         return $hasil['terkirim']
             ? back()->with('success', 'Tautan aktivasi baru sudah dikirim ke '.$user->email.'.')
             : back()->with('error', 'Tautan aktivasi gagal dikirim ke '.$user->email.'. '.$hasil['alasan']);
+    }
+
+    /**
+     * Daftar gedung dan lantai berasal dari kamar yang sudah tercatat.
+     * Tidak membuat atau mengubah data kamar.
+     */
+    private function lokasiPenempatanTersedia(): array
+    {
+        return DB::table('kamars')
+            ->select(['gedung', 'lantai'])
+            ->distinct()
+            ->get()
+            ->filter(fn ($kamar) => trim((string) $kamar->gedung) !== ''
+                && ctype_digit((string) $kamar->lantai)
+                && (int) $kamar->lantai >= 1
+                && (int) $kamar->lantai <= 65535)
+            ->groupBy(fn ($kamar) => trim((string) $kamar->gedung))
+            ->map(fn ($daftarKamar) => $daftarKamar
+                ->pluck('lantai')
+                ->map(fn ($lantai) => (string) (int) $lantai)
+                ->unique()
+                ->sort(SORT_NUMERIC)
+                ->values()
+                ->all())
+            ->sortKeys()
+            ->all();
     }
 
     private function normalisasiInput(Request $request): void

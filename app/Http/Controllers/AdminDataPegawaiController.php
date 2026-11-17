@@ -29,6 +29,8 @@ class AdminDataPegawaiController extends Controller
         $aturan = [
             'nama_pegawai' => ['required', 'string', 'min:2', 'max:150', 'not_regex:/^\s*$/u'],
             'no_hp' => ['nullable', 'string', 'max:20'],
+            'jabatan' => ['nullable', 'string', 'max:150'],
+            'kelompok_yang_diajar' => ['nullable', 'string', 'max:255'],
             'jenis_kelamin' => ['nullable', Rule::in(['L', 'P'])],
             'pendidikan_terakhir' => ['nullable', 'string', 'max:100'],
             'alamat' => ['nullable', 'string', 'max:3000'],
@@ -108,6 +110,12 @@ class AdminDataPegawaiController extends Controller
                 'nama_pegawai' => trim($data['nama_pegawai']),
                 'email' => trim($data['email']),
                 'no_hp' => $data['no_hp'] ?? null,
+                // Jabatan dan kelompok diisi manual oleh Admin pada form Data Pegawai.
+                'jabatan' => filled($data['jabatan'] ?? null) ? trim($data['jabatan']) : null,
+                'kelompok_yang_diajar' => filled($data['kelompok_yang_diajar'] ?? null) ? trim($data['kelompok_yang_diajar']) : null,
+                // Tanpa akun terhubung, penempatan tidak boleh ditentukan secara manual.
+                'gedung_yang_dikelola' => null,
+                'lantai_yang_dikelola' => null,
                 'jenis_kelamin' => $data['jenis_kelamin'] ?? null,
                 'pendidikan_terakhir' => $data['pendidikan_terakhir'] ?? null,
                 'alamat' => $data['alamat'] ?? null,
@@ -208,6 +216,26 @@ class AdminDataPegawaiController extends Controller
                 }
 
                 $dataPegawai->no_hp = $data['no_hp'] ?? null;
+                // Form lama yang belum mengirim field tidak menghapus data manual yang sudah ada.
+                if (array_key_exists('jabatan', $data)) {
+                    $dataPegawai->jabatan = filled($data['jabatan']) ? trim($data['jabatan']) : null;
+                }
+                if (array_key_exists('kelompok_yang_diajar', $data)) {
+                    $dataPegawai->kelompok_yang_diajar = filled($data['kelompok_yang_diajar'])
+                        ? trim($data['kelompok_yang_diajar']) : null;
+                }
+
+                // Kolom penempatan hanya menyalin dari akun Musyrifah yang TERHUBUNG.
+                // Nilai gedung/lantai dari request Data Pegawai tidak pernah dipercaya.
+                if ($userIdTerhubung !== null && strtolower((string) $akun->role) === 'musyrifah') {
+                    $dataPegawai->gedung_yang_dikelola = $akun->gedung_penempatan;
+                    $dataPegawai->lantai_yang_dikelola = $akun->lantai_penempatan;
+                } else {
+                    // Tidak ada akun / bukan Musyrifah => jangan menyimpan penempatan lama.
+                    $dataPegawai->gedung_yang_dikelola = null;
+                    $dataPegawai->lantai_yang_dikelola = null;
+                }
+
                 $dataPegawai->jenis_kelamin = $data['jenis_kelamin'] ?? null;
                 $dataPegawai->pendidikan_terakhir = $data['pendidikan_terakhir'] ?? null;
                 $dataPegawai->alamat = $data['alamat'] ?? null;

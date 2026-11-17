@@ -1,7 +1,5 @@
 @extends('layouts.admin')
-
 @section('title', 'Tambah Pengguna')
-
 @push('styles')
 <style>
 /* Seluruh style dibatasi agar tidak memengaruhi halaman modul lain. */
@@ -35,7 +33,6 @@
 .um-create .um-note.neutral { border-color:#e0e4eb; background:#f7f8fa; color:#536174; }
 .um-create .um-alert { margin:0 0 18px; padding:14px 16px; border:1px solid #ecc3cc; border-radius:9px; background:#fff1f3; color:#9c253d; font-size:12px; }
 .um-create .um-alert ul { margin:8px 0 0; padding-left:19px; }
-
 .um-create .um-form-foot { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:11px; padding:20px 25px; border-top:1px solid #f0e8e9; }
 .um-create .um-btn { display:inline-flex; justify-content:center; align-items:center; min-height:43px; padding:10px 20px; border:1px solid #e1d5d9; border-radius:8px; background:#fff; color:#564a50; font-family:inherit; font-size:12px; font-weight:600; cursor:pointer; }
 .um-create .um-btn:hover { background:#f8eef1; }
@@ -49,7 +46,6 @@
   .um-create :is(.um-section,.um-card-title,.um-form-foot) { padding-left:16px; padding-right:16px; }
   .um-create .um-form-foot .um-btn { flex:1; }
 }
-
 /* Pencarian pegawai langsung di kolom Nama: tanpa pilihan mode terpisah. */
 .um-create .um-name-search { position:relative; }
 .um-create .um-name-search input { padding-right:46px; }
@@ -71,9 +67,13 @@
 .um-create .um-field .um-lookup-note { padding-top:5px; }
 .um-create .um-form-foot { position:relative; }
 @media(max-width:700px) { .um-create .um-linked { flex-direction:column; } }
+.um-create .um-placement[hidden] { display: none !important; }
+.um-create .um-placement { border-top: 1px solid #f0e6e9; padding-top: 20px; margin-top: 2px; }
+.um-create .um-placement-title { margin: 0 0 17px; color: var(--wine); font-size: 13px; font-weight: 700; }
+.um-create .um-placement .um-grid { margin-bottom: 22px; }
+.um-create .um-control:disabled { background: #f7f4f5; color: #82797e; cursor: not-allowed; }
 </style>
 @endpush
-
 @section('content')
 <div class="um-create">
     <header class="um-head">
@@ -84,25 +84,21 @@
         <h1>Tambah Pengguna</h1>
         <p>Masukkan nama pengguna. Jika sudah tercatat di Data Pegawai dan belum punya akun, pilih namanya dari saran yang muncul.</p>
     </header>
-
     @if ($errors->any())
         <div class="um-alert" role="alert">
             <strong>Data belum berhasil disimpan. Periksa isian berikut:</strong>
             <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
         </div>
     @endif
-
     <form id="umFormCreate" method="POST" action="{{ route('admin.manajemen-pengguna.store') }}">
         @csrf
         {{-- Hanya diisi bila Admin benar-benar memilih saran pegawai. --}}
         <input type="hidden" name="pegawai_id" id="pegawai_id" value="{{ old('pegawai_id', '') }}">
-
         <div class="um-card">
             <div class="um-card-title">
                 <h2>Formulir Akun Pengguna</h2>
                 <p>Identitas, email, dan role ditentukan Admin. Kata sandi dibuat sendiri oleh pemilik akun melalui tautan aktivasi.</p>
             </div>
-
             <section class="um-section" aria-labelledby="infoPengguna">
                 <h3 id="infoPengguna"><span class="um-step">01</span> Informasi Pengguna</h3>
                 <div class="um-note">
@@ -152,6 +148,10 @@
                             placeholder="nama@contoh.com" autocomplete="email" value="{{ old('email') }}">
                         <p class="um-help">Jika memilih pegawai, email otomatis mengikuti Data Pegawai dan tidak dapat diedit di sini.</p>
                         @error('email')<span class="um-error">{{ $message }}</span>@enderror
+                        <div class="um-linked" id="umEmailPegawaiNotice" hidden>
+                            <span id="umEmailPegawaiText">Email ini sudah ada di Data Pegawai.</span>
+                            <button type="button" id="umUsePegawaiEmail">Pakai Data Pegawai</button>
+                        </div>
                     </div>
                     <div class="um-field">
                         <label class="um-label" for="no_hp">Nomor HP</label>
@@ -174,9 +174,39 @@
                         @error('role')<span class="um-error">{{ $message }}</span>@enderror
                     </div>
                 </div>
+                {{-- Lokasi tugas Musyrifah berasal dari data kamar, bukan daftar statis. --}}
+                <div class="um-placement" id="umMusyrifahPlacement"
+                    data-lokasi="{{ json_encode($lokasiPenempatan ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) }}" hidden>
+                    <h4 class="um-placement-title">Penempatan Musyrifah</h4>
+                    <div class="um-grid">
+                        <div class="um-field">
+                            <label class="um-label" for="gedung_penempatan">Gedung Penempatan <span class="um-required">*</span></label>
+                            <select id="gedung_penempatan" name="gedung_penempatan"
+                                class="um-control @error('gedung_penempatan') is-invalid @enderror"
+                                disabled>
+                                <option value="">-- Pilih gedung --</option>
+                                @foreach (array_keys($lokasiPenempatan ?? []) as $namaGedung)
+                                    <option value="{{ $namaGedung }}" @selected(old('gedung_penempatan') === $namaGedung)>{{ $namaGedung }}</option>
+                                @endforeach
+                            </select>
+                            @error('gedung_penempatan')<span class="um-error">{{ $message }}</span>@enderror
+                            @if (empty($lokasiPenempatan))
+                                <span class="um-error">Belum ada gedung dan lantai yang terdaftar pada Data Kamar.</span>
+                            @endif
+                        </div>
+                        <div class="um-field">
+                            <label class="um-label" for="lantai_penempatan">Lantai Penempatan <span class="um-required">*</span></label>
+                            <select id="lantai_penempatan" name="lantai_penempatan"
+                                class="um-control @error('lantai_penempatan') is-invalid @enderror"
+                                data-old="{{ old('lantai_penempatan', '') }}" disabled>
+                                <option value="">-- Pilih gedung terlebih dahulu --</option>
+                            </select>
+                            @error('lantai_penempatan')<span class="um-error">{{ $message }}</span>@enderror
+                        </div>
+                    </div>
+                </div>
                 <div class="um-note neutral" role="status" id="umSourceNote">Ketik data secara manual atau pilih pegawai dari saran nama. Admin tidak membuat kata sandi; tautan aktivasi dikirim ke email pengguna.</div>
             </section>
-
             <section class="um-section" aria-labelledby="keamananPengguna">
                 <h3 id="keamananPengguna"><span class="um-step">02</span> Aktivasi Akun</h3>
                 <div class="um-note">
@@ -194,18 +224,21 @@
     </form>
 </div>
 @endsection
-
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
-
     const form = document.getElementById('umFormCreate');
     const nameInput = document.getElementById('name');
     const emailInput = document.getElementById('email');
     const hpInput = document.getElementById('no_hp');
     const pegawaiIdInput = document.getElementById('pegawai_id');
     const roleInput = document.getElementById('role');
+    const placement = document.getElementById('umMusyrifahPlacement');
+    const gedungInput = document.getElementById('gedung_penempatan');
+    const lantaiInput = document.getElementById('lantai_penempatan');
+    // Lokasi dikirim oleh AdminManajemenPenggunaController dari tabel kamars.
+    const lokasi = JSON.parse(placement.dataset.lokasi || '{}');
     const suggestions = document.getElementById('umSuggestions');
     const searchBox = document.getElementById('umNameSearch');
     const emptyState = document.getElementById('umSuggestEmpty');
@@ -215,13 +248,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const clearButton = document.getElementById('umClearChoice');
     const sourceNote = document.getElementById('umSourceNote');
     const submitButton = document.getElementById('umSubmit');
+    const noticeEmail = document.getElementById('umEmailPegawaiNotice');
+    const noticeEmailText = document.getElementById('umEmailPegawaiText');
+    const gunakanPegawaiEmail = document.getElementById('umUsePegawaiEmail');
     if (!form || !nameInput || !emailInput || !hpInput || !pegawaiIdInput || !roleInput || !suggestions || !searchBox || !emptyState || !linkedNote || !linkedName || !clearButton || !sourceNote || !submitButton) return;
-
     let selectedPegawai = null;
     let manualDraft = null;
     let visibleOptions = [];
     let activeIndex = -1;
-
     function cleanText(value) {
         return String(value || '').normalize('NFKD').toLocaleLowerCase('id-ID').trim();
     }
@@ -272,6 +306,48 @@ document.addEventListener('DOMContentLoaded', function () {
             sourceNote.textContent = 'Input manual aktif. Jika akun dibuat untuk Guru, Musyrifah (Pengelola), atau Pimpinan, biodata dasar pegawai akan dibuat otomatis. Tautan aktivasi dikirim ke email pengguna.';
         }
     }
+    function isiPilihanLantai(pulihkan = false) {
+        const gedung = gedungInput.value;
+        const pilihan = Object.prototype.hasOwnProperty.call(lokasi, gedung) && Array.isArray(lokasi[gedung])
+            ? lokasi[gedung] : [];
+        const lama = pulihkan ? lantaiInput.dataset.old : lantaiInput.value;
+        const placeholder = gedung ? '-- Pilih lantai --' : '-- Pilih gedung terlebih dahulu --';
+        lantaiInput.replaceChildren(new Option(placeholder, ''));
+        pilihan.forEach(lantai => {
+            const nilai = String(lantai);
+            lantaiInput.add(new Option('Lantai ' + nilai, nilai));
+        });
+        if (pilihan.some(lantai => String(lantai) === String(lama))) {
+            lantaiInput.value = String(lama);
+        }
+        const aktif = roleInput.value === 'musyrifah';
+        lantaiInput.disabled = !aktif || !gedung;
+    }
+    function tampilkanPenempatan() {
+        const musyrifah = roleInput.value === 'musyrifah';
+        placement.hidden = !musyrifah;
+        gedungInput.disabled = !musyrifah;
+        gedungInput.required = musyrifah;
+        lantaiInput.required = musyrifah;
+        isiPilihanLantai(false);
+    }
+    // Saat akun lama dihapus, biodata pegawai tetap ada. Tawarkan tautkan
+    // pegawai yang belum memiliki akun, bukan membuat pegawai duplikat.
+    let calonPegawaiEmail = null;
+    function periksaEmailPegawai() {
+        if (!noticeEmail || !noticeEmailText || !gunakanPegawaiEmail) return;
+        const email = String(emailInput.value || '').trim().toLowerCase();
+        calonPegawaiEmail = (!selectedPegawai && email)
+            ? options.find(option => String(option.dataset.email || '').trim().toLowerCase() === email) || null
+            : null;
+        noticeEmail.hidden = !calonPegawaiEmail;
+        if (calonPegawaiEmail) {
+            noticeEmailText.textContent = 'Email sudah tercatat atas nama '
+                + (calonPegawaiEmail.dataset.nama || 'pegawai')
+                + ' di Data Pegawai. Gunakan biodata tersebut agar tidak ganda.';
+        }
+    }
+
     function applySelection(option, restoring = false) {
         if (!restoring) manualDraft = { name: nameInput.value, email: emailInput.value, hp: hpInput.value };
         selectedPegawai = option;
@@ -285,6 +361,7 @@ document.addEventListener('DOMContentLoaded', function () {
         linkedNote.hidden = false;
         setDropdown(false);
         updateRoleGuard();
+        periksaEmailPegawai();
     }
     function clearSelection(keepTypedName) {
         selectedPegawai = null;
@@ -298,6 +375,16 @@ document.addEventListener('DOMContentLoaded', function () {
         manualDraft = null;
         linkedNote.hidden = true;
         updateRoleGuard();
+        periksaEmailPegawai();
+    }
+    emailInput.addEventListener('input', periksaEmailPegawai);
+    if (gunakanPegawaiEmail) {
+        gunakanPegawaiEmail.addEventListener('click', function () {
+            if (calonPegawaiEmail) {
+                applySelection(calonPegawaiEmail);
+                nameInput.focus();
+            }
+        });
     }
 
     nameInput.addEventListener('input', function () {
@@ -329,10 +416,10 @@ document.addEventListener('DOMContentLoaded', function () {
         nameInput.focus();
     });
     roleInput.addEventListener('change', function () {
+        tampilkanPenempatan();
         updateRoleGuard();
         if (!selectedPegawai) filterSuggestions();
     });
-
     // Pemulihan setelah validasi Laravel gagal: pegawai dipilih secara eksplisit sebelumnya.
     const previousSelection = options.find(option => option.dataset.id === pegawaiIdInput.value);
     if (previousSelection) applySelection(previousSelection, true);
@@ -341,8 +428,15 @@ document.addEventListener('DOMContentLoaded', function () {
         emailInput.readOnly = false;
         hpInput.readOnly = false;
     }
+    gedungInput.addEventListener('change', function () {
+        // Saat gedung berganti, pilihan lantai sebelumnya harus direset.
+        lantaiInput.value = '';
+        isiPilihanLantai(false);
+    });
+    isiPilihanLantai(true);
+    tampilkanPenempatan();
     updateRoleGuard();
-
+    periksaEmailPegawai();
     form.addEventListener('submit', function (event) {
         if (!form.checkValidity()) {
             event.preventDefault();
