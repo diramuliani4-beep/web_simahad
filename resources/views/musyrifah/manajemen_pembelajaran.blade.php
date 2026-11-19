@@ -5,571 +5,363 @@
 @section('content')
 
 <style>
-    .musyrifah-pembelajaran {
-        width: 100%;
-        color: #171717;
-        font-family: 'Poppins', Arial, sans-serif;
-        padding-bottom: 50px;
-    }
-
-    .musyrifah-pembelajaran * {
-        box-sizing: border-box;
-    }
-
-    .mp-heading {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin: 0 0 24px;
-    }
-
-    .mp-back {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: #111;
-        font-size: 30px;
-        line-height: 1;
-        text-decoration: none;
-        flex-shrink: 0;
-        transition: transform 0.2s, color 0.2s;
-    }
-
-    .mp-back:hover {
-        color: #800d22;
-        transform: translateX(-3px);
-    }
-
-    .mp-heading-text {
-        min-width: 0;
-    }
-
-    .mp-title {
-        margin: 0;
-        font-size: 30px;
-        font-weight: 700;
-        line-height: 1.25;
-        color: #080808;
-    }
-
-    .mp-subtitle {
-        margin: 4px 0 0;
-        color: #555;
-        font-size: 15px;
-    }
-
-    /* KARTU RINGKASAN ATAS */
-    .mp-summary-grid {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 14px;
-        margin: 0 0 24px;
-    }
-
-    .mp-summary-card {
-        min-height: 120px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: flex-start;
-        padding: 16px 20px;
-        border: 1px solid #edd5db;
-        border-radius: 16px;
-        background: #fff;
-        box-shadow: 0 2px 6px rgba(128, 13, 34, 0.04);
-        border-left: 5px solid #800d22;
-    }
-
-    .mp-summary-card:nth-child(2) { border-left-color: #2563eb; }
-    .mp-summary-card:nth-child(3) { border-left-color: #10b981; }
-    .mp-summary-card:nth-child(4) { border-left-color: #f59e0b; }
-
-    .mp-summary-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 28px;
-        height: 28px;
-        margin-bottom: 6px;
-        color: #800d22;
-    }
-
-    .mp-summary-icon svg {
-        width: 24px;
-        height: 24px;
-        stroke: currentColor;
-        fill: none;
-        stroke-width: 2;
-    }
-
-    .mp-summary-value {
-        margin: 0;
-        color: #111;
-        font-size: 28px;
-        font-weight: 700;
-        line-height: 1.2;
-    }
-
-    .mp-summary-label {
-        margin-top: 4px;
-        color: #64748b;
-        font-size: 14px;
-        font-weight: 500;
-    }
-
-    /* TAB MENU / AKSES CEPAT */
-    .mp-tabs-nav {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 22px;
-        overflow-x: auto;
-        padding-bottom: 6px;
-        border-bottom: 2px solid #e2e8f0;
-    }
-
-    .mp-tab-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 11px 20px;
-        border: none;
-        border-bottom: 3px solid transparent;
-        background: transparent;
-        color: #64748b;
-        font-family: inherit;
-        font-size: 15px;
-        font-weight: 600;
-        cursor: pointer;
-        white-space: nowrap;
-        transition: all 0.2s ease;
-        border-radius: 8px 8px 0 0;
-    }
-
-    .mp-tab-btn:hover {
-        color: #800d22;
-        background: #fbf1f3;
-    }
-
-    .mp-tab-btn.active {
-        color: #800d22;
-        border-bottom-color: #800d22;
-        background: #fbf1f3;
-    }
-
-    .mp-tab-panel {
-        display: none;
-        animation: fadeIn 0.25s ease;
-    }
-
-    .mp-tab-panel.active {
-        display: block;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(6px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* KONTEN TAB & CARD */
-    .mp-card {
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 16px;
-        padding: 22px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-        margin-bottom: 20px;
-    }
-
-    .mp-card-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 14px;
-        margin-bottom: 18px;
-    }
-
-    .mp-card-title {
-        font-size: 19px;
-        font-weight: 700;
-        color: #1e293b;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .btn-action-primary {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: #800d22;
-        color: #fff;
-        padding: 9px 18px;
-        border-radius: 10px;
-        border: none;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background 0.2s;
-        text-decoration: none;
-    }
-
-    .btn-action-primary:hover {
-        background: #5f0016;
-    }
-
-    /* TABEL UMUM */
-    .mp-table-wrap {
-        width: 100%;
-        overflow-x: auto;
-        border-radius: 14px;
-        border: 1px solid #edd5db;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-    }
-
-    .mp-table {
-        width: 100%;
-        min-width: 780px;
-        border-collapse: separate;
-        border-spacing: 0;
-        background: #fff;
-    }
-
-    .mp-table thead th {
-        padding: 13px 14px;
-        background: #650019;
-        color: #fff;
-        font-size: 14px;
-        font-weight: 700;
-        text-align: center;
-        white-space: nowrap;
-    }
-
-    .mp-table thead th:first-child { border-top-left-radius: 13px; }
-    .mp-table thead th:last-child { border-top-right-radius: 13px; }
-
-    .mp-table tbody td {
-        padding: 14px 12px;
-        text-align: center;
-        vertical-align: middle;
-        font-size: 14px;
-        color: #1e293b;
-        border-right: 1px solid rgba(80, 50, 50, .12);
-        border-bottom: 1px solid rgba(80, 50, 50, .12);
-    }
-
-    .mp-table tbody tr:hover td {
-        background: #fbf4f6;
-    }
-
-    .mp-table tbody td:last-child { border-right: none; }
-    .mp-table tbody tr:last-child td { border-bottom: none; }
-
-    /* BADGE & PILL */
-    .badge-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        padding: 5px 12px;
-        border-radius: 9999px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .badge-green { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
-    .badge-yellow { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
-    .badge-red { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
-    .badge-blue { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
-
-    /* TOMBOL AKSI TABEL */
-    .btn-table-edit {
-        padding: 6px 12px;
-        border-radius: 6px;
-        background: #f1f5f9;
-        color: #334155;
-        border: 1px solid #cbd5e1;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .btn-table-edit:hover {
-        background: #e2e8f0;
-        color: #0f172a;
-    }
-
-    .btn-table-del {
-        padding: 6px 12px;
-        border-radius: 6px;
-        background: #fef2f2;
-        color: #b91c1c;
-        border: 1px solid #fecaca;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .btn-table-del:hover {
-        background: #fee2e2;
-    }
-
-    .btn-table-detail {
-        padding: 6px 14px;
-        border-radius: 6px;
-        background: #800d22;
-        color: #fff;
-        border: none;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background 0.2s;
-    }
-
-    .btn-table-detail:hover {
-        background: #5f0016;
-    }
-
-    /* FILTER BAR PEMANTAUAN & KELULUSAN */
-    .filter-bar {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-bottom: 18px;
-        padding: 14px 18px;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-    }
-
-    .filter-input {
-        flex: 1;
-        min-width: 220px;
-        height: 42px;
-        padding: 0 14px;
-        border: 1px solid #cbd5e1;
-        border-radius: 8px;
-        font-family: inherit;
-        font-size: 14px;
-        outline: none;
-        background: #fff;
-    }
-
-    .filter-select {
-        height: 42px;
-        padding: 0 14px;
-        border: 1px solid #cbd5e1;
-        border-radius: 8px;
-        font-family: inherit;
-        font-size: 14px;
-        outline: none;
-        background: #fff;
-        min-width: 170px;
-    }
-
-    /* PROGRES BAR */
-    .progress-bar-wrap {
-        width: 100%;
-        height: 8px;
-        background: #e2e8f0;
-        border-radius: 9999px;
-        overflow: hidden;
-        margin-top: 6px;
-    }
-
-    .progress-bar-fill {
-        height: 100%;
-        background: #800d22;
-        border-radius: 9999px;
-        transition: width 0.3s ease;
-    }
-
-    /* MODAL */
-    .modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(15, 23, 42, 0.6);
-        backdrop-filter: blur(4px);
-        z-index: 9999;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 16px;
-        opacity: 0;
-        transition: opacity 0.25s ease;
-    }
-
-    .modal-overlay.active {
-        display: flex;
-        opacity: 1;
-    }
-
-    .modal-card {
-        background: #fff;
-        border-radius: 18px;
-        max-width: 720px;
-        width: 100%;
-        max-height: 90vh;
-        overflow-y: auto;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
-        display: flex;
-        flex-direction: column;
-        transform: scale(0.96);
-        transition: transform 0.25s ease;
-    }
-
-    .modal-overlay.active .modal-card {
-        transform: scale(1);
-    }
-
-    .modal-top {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 20px 24px;
-        border-bottom: 1px solid #f1f5f9;
-        background: #fdf8f9;
-        border-top-left-radius: 18px;
-        border-top-right-radius: 18px;
-    }
-
-    .modal-top-title {
-        font-size: 19px;
-        font-weight: 700;
-        color: #800d22;
-    }
-
-    .modal-close-btn {
-        background: none;
-        border: none;
-        font-size: 26px;
-        color: #64748b;
-        cursor: pointer;
-        line-height: 1;
-    }
-
-    .modal-inner {
-        padding: 22px 24px;
-    }
-
-    .form-group {
-        margin-bottom: 14px;
-    }
-
-    .form-label {
-        display: block;
-        font-size: 13px;
-        font-weight: 600;
-        color: #334155;
-        margin-bottom: 5px;
-    }
-
-    .form-control {
-        width: 100%;
-        height: 42px;
-        padding: 0 14px;
-        border: 1px solid #cbd5e1;
-        border-radius: 8px;
-        font-family: inherit;
-        font-size: 14px;
-        outline: none;
-    }
-
-    .form-control:focus {
-        border-color: #800d22;
-    }
-
-    .modal-footer-btns {
-        padding: 16px 24px;
-        background: #f8fafc;
-        border-top: 1px solid #e2e8f0;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 10px;
-        border-bottom-left-radius: 18px;
-        border-bottom-right-radius: 18px;
-    }
-
-    .btn-modal-cancel {
-        padding: 9px 18px;
-        background: #e2e8f0;
-        color: #334155;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-    }
-
-    /* GRID PERTEMUAN 1-16 */
-    .pertemuan-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
-        gap: 10px;
-        margin-top: 14px;
-        max-height: 380px;
-        overflow-y: auto;
-        padding: 4px;
-    }
-
-    .pertemuan-card-item {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 10px 12px;
-        text-align: center;
-    }
-
-    .pertemuan-card-num {
-        font-size: 14px;
-        font-weight: 700;
-        color: #800d22;
-    }
-
-    .pertemuan-card-date {
-        font-size: 11px;
-        color: #64748b;
-        margin-top: 2px;
-    }
-
-    .pertemuan-card-badge {
-        display: inline-block;
-        margin-top: 6px;
-        font-size: 11px;
-        padding: 2px 8px;
-        border-radius: 9999px;
-        font-weight: 600;
-    }
-
-    @media (max-width: 900px) {
-        .mp-summary-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-
-    @media (max-width: 600px) {
-        .mp-summary-grid { grid-template-columns: 1fr; }
-        .mp-title { font-size: 24px; }
-    }
-    .mp-dokumentasi { min-width: 140px; font-size: 12px; text-align: left; }
-    .mp-dokumentasi summary { color: #6b0d1b; cursor: pointer; font-weight: 600; }
-    .mp-dokumentasi a, .mp-dokumentasi-link { display: block; margin-top: 8px; color: #6b0d1b; font-size: 12px; text-decoration: underline; }
-    .mp-dokumentasi-empty { display: block; margin-top: 6px; color: #4f5767; font-size: 12px; }
+/* ==============================================================
+   SIMAHAD — MANAJEMEN PEMBELAJARAN MUSYRIFAH
+   Tampilan seragam Admin | CSS dibatasi ke modul ini & modalnya.
+   Semua route, Blade, modal, dan fungsi JavaScript asli dipertahankan.
+   ============================================================== */
+.musyrifah-pembelajaran {
+    --mp-maroon: #800b22;
+    --mp-maroon-hover: #64081b;
+    --mp-ink: #20242e;
+    --mp-muted: #78808d;
+    --mp-border: #eadcdf;
+    --mp-surface: #fff;
+    width: 100%; max-width: 100%; min-width: 0;
+    padding: 0 0 36px;
+    margin: 0;
+    color: var(--mp-ink);
+    font-family: 'Poppins', Arial, sans-serif;
+    font-size: 13px;
+    container-type: inline-size;
+    isolation: isolate;
+}
+.musyrifah-pembelajaran *, .musyrifah-pembelajaran *::before, .musyrifah-pembelajaran *::after,
+.modal-overlay *, .modal-overlay *::before, .modal-overlay *::after {box-sizing: border-box;}
+.musyrifah-pembelajaran > *, .musyrifah-pembelajaran .mp-card, .musyrifah-pembelajaran .mp-tab-panel,
+.musyrifah-pembelajaran .mp-table-wrap {min-width: 0; max-width: 100%;}
+
+/* JUDUL & BREADCRUMB */
+.musyrifah-pembelajaran .mp-heading {
+    display: block; width: 100%; margin: 0 0 24px; padding: 0 0 20px;
+    border-bottom: 1px solid #e8ced4;
+}
+.musyrifah-pembelajaran .mp-breadcrumb {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    margin: 0 0 12px; color: #8c8b96; font-size: 12px;
+}
+.musyrifah-pembelajaran .mp-breadcrumb a {color: var(--mp-maroon); text-decoration: none;}
+.musyrifah-pembelajaran .mp-breadcrumb a:hover {text-decoration: underline;}
+.musyrifah-pembelajaran .mp-breadcrumb span[aria-hidden] {color: #b8a5aa;}
+.musyrifah-pembelajaran .mp-heading-text {min-width: 0;}
+.musyrifah-pembelajaran .mp-title {
+    margin: 0 0 6px; color: #24232d; letter-spacing: -.65px;
+    font-size: clamp(23px, 2.1vw, 29px); font-weight: 750; line-height: 1.3;
+}
+.musyrifah-pembelajaran .mp-subtitle {max-width: 850px; margin: 0; color: #7c808d; font-size: 13px; line-height: 1.7;}
+.musyrifah-pembelajaran .mp-back {display: none;}
+
+/* RINGKASAN 4 KARTU */
+.musyrifah-pembelajaran .mp-summary-grid {
+    width: 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px; margin: 0 0 24px;
+}
+.musyrifah-pembelajaran .mp-summary-card {
+    position: relative; display: grid; align-content: center; justify-items: start;
+    grid-template-columns: 47px minmax(0,1fr); grid-template-rows: auto auto;
+    column-gap: 13px; min-height: 101px; padding: 17px 16px;
+    background: #fff; border: 1px solid #eadbdf; border-radius: 14px;
+    box-shadow: 0 4px 14px rgba(45, 20, 34, .035); min-width: 0;
+}
+.musyrifah-pembelajaran .mp-summary-card:nth-child(n) {border-left: 1px solid #eadbdf;}
+.musyrifah-pembelajaran .mp-summary-icon {
+    grid-row: 1 / span 2; grid-column: 1; width: 45px; height: 45px;
+    display: inline-flex; justify-content: center; align-items: center;
+    border-radius: 11px; color: #8b1530; background: #f8e9ee; margin: 0;
+}
+.musyrifah-pembelajaran .mp-summary-card:nth-child(2) .mp-summary-icon {color: #9a6815; background: #fff2dc;}
+.musyrifah-pembelajaran .mp-summary-card:nth-child(3) .mp-summary-icon {color: #1b7457; background: #e7f7ed;}
+.musyrifah-pembelajaran .mp-summary-card:nth-child(4) .mp-summary-icon {color: #7e599c; background: #f1ebfa;}
+.musyrifah-pembelajaran .mp-summary-icon svg {width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round;}
+.musyrifah-pembelajaran .mp-summary-label {grid-column: 2; grid-row: 1; margin: 0; color: #7c808e; font-size: 11px; font-weight: 500; line-height: 1.5;}
+.musyrifah-pembelajaran .mp-summary-value {grid-column: 2; grid-row: 2; margin: 2px 0 0; color: #20212c; font-size: 23px; font-weight: 750; line-height: 1.25;}
+
+/* TABS -- tidak mendorong layout saat sidebar dibuka */
+.musyrifah-pembelajaran .mp-tabs-nav {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+    width: 100%; margin: 0 0 18px; padding: 0; overflow: visible;
+    border: 0;
+}
+.musyrifah-pembelajaran .mp-tab-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 7px; min-height: 37px; padding: 9px 13px;
+    color: #62616c; background: #fff; border: 1px solid #eadfe2;
+    border-radius: 999px; font-family: inherit; font-size: 11.5px; font-weight: 600;
+    white-space: normal; text-align: center; cursor: pointer;
+    transition: background .16s, color .16s, border-color .16s;
+}
+.musyrifah-pembelajaran .mp-tab-btn:hover {color: var(--mp-maroon); background: #fcf5f6; border-color: #e2c3cd;}
+.musyrifah-pembelajaran .mp-tab-btn.active {
+    color: white; background: var(--mp-maroon); border-color: var(--mp-maroon);
+    box-shadow: 0 3px 8px rgba(128, 11, 34, .10);
+}
+.musyrifah-pembelajaran .mp-tab-btn:focus-visible,
+.musyrifah-pembelajaran button:focus-visible,
+.modal-overlay button:focus-visible {outline: 3px solid rgba(201,169,106,.5); outline-offset: 2px;}
+.musyrifah-pembelajaran .mp-tab-panel {display: none; width: 100%; min-width: 0;}
+.musyrifah-pembelajaran .mp-tab-panel.active {display: block; animation: mpFadeIn .22s ease-out;}
+@keyframes mpFadeIn {from {opacity: .5; transform: translateY(4px);} to {opacity: 1; transform: translateY(0);}}
+
+/* KARTU PANEL DAN HEADER TABEL */
+.musyrifah-pembelajaran .mp-card {
+    width: 100%; min-width: 0; margin: 0 0 22px; padding: 0;
+    border: 1px solid #e9dadf; border-radius: 14px;
+    background: #fff; box-shadow: 0 4px 16px rgba(45,20,34,.035);
+    overflow: hidden; display: block;
+}
+.musyrifah-pembelajaran .mp-card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; flex-wrap: wrap; margin: 0; padding: 20px 24px;
+    background: #fff; border-bottom: 1px solid #f0e5e8;
+}
+.musyrifah-pembelajaran .mp-card-header > div {min-width: 0; flex: 1 1 350px;}
+.musyrifah-pembelajaran .mp-card-title {
+    margin: 0; display: flex; align-items: center; gap: 8px;
+    color: #22232a; font-size: 17px; font-weight: 700; line-height: 1.35;
+}
+.musyrifah-pembelajaran .mp-card-header p {margin: 5px 0 0 !important; color: #83818c !important; font-size: 12px !important; line-height: 1.65;}
+.musyrifah-pembelajaran .btn-action-primary {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    min-height: 40px; padding: 10px 15px; border-radius: 9px;
+    border: 1px solid var(--mp-maroon); background: var(--mp-maroon); color: #fff;
+    font-family: inherit; font-size: 12px; font-weight: 600; text-decoration: none; white-space: nowrap;
+    cursor: pointer; box-shadow: none; transition: background .16s;
+}
+.musyrifah-pembelajaran .btn-action-primary:hover, .modal-overlay .btn-action-primary:hover {background: #63091b; color: #fff;}
+.musyrifah-pembelajaran .mp-table-wrap {
+    width: 100%; min-width: 0; max-width: 100%; overflow-x: auto;
+    border: 0; border-radius: 0; box-shadow: none;
+    scrollbar-width: thin; scrollbar-color: #d4c0c7 #faf7f8;
+    -webkit-overflow-scrolling: touch;
+}
+.musyrifah-pembelajaran .mp-table {width: 100%; min-width: 750px; border: 0; border-spacing: 0; border-collapse: collapse; table-layout: auto; background: #fff;}
+.musyrifah-pembelajaran #tab-pemantauan .mp-table {min-width: 1160px;}
+.musyrifah-pembelajaran #tab-jadwal .mp-table, .musyrifah-pembelajaran #tab-kelulusan .mp-table {min-width: 940px;}
+.musyrifah-pembelajaran .mp-table thead th {
+    padding: 14px 13px; background: var(--mp-maroon); color: #fff;
+    font-size: 11px; font-weight: 700; text-align: left; line-height: 1.45;
+    vertical-align: middle; border: 0; white-space: nowrap;
+}
+.musyrifah-pembelajaran .mp-table thead th:first-child,
+.musyrifah-pembelajaran .mp-table thead th:last-child {border-radius: 0;}
+.musyrifah-pembelajaran .mp-table tbody td {
+    min-width: 0; padding: 13px 12px; font-size: 12px; line-height: 1.6;
+    color: #4a4c58; background: #fff; border: 0; border-bottom: 1px solid #f1e8eb;
+    vertical-align: middle; text-align: left; overflow-wrap: anywhere;
+}
+.musyrifah-pembelajaran .mp-table tbody tr:nth-child(even) td {background: #fcf9fa;}
+.musyrifah-pembelajaran .mp-table tbody tr:hover td {background: #faf1f3;}
+.musyrifah-pembelajaran .mp-table tbody tr:last-child td {border-bottom: 0;}
+.musyrifah-pembelajaran .mp-table td:first-child {width: 45px; color: #7e7e88;}
+.musyrifah-pembelajaran .mp-table td:nth-child(3) {min-width: 95px;}
+.musyrifah-pembelajaran .mp-table td[style*="text-align: left"] {text-align: left !important;}
+.musyrifah-pembelajaran .mp-table td[style*="padding-left: 18px"],
+.musyrifah-pembelajaran .mp-table td[style*="padding-left: 16px"],
+.musyrifah-pembelajaran .mp-table td[style*="padding-left: 14px"] {padding-left: 13px !important;}
+.musyrifah-pembelajaran .mp-table tbody td > div[style*="display: flex"] {justify-content: flex-start !important; flex-wrap: wrap; gap: 6px;}
+.musyrifah-pembelajaran .mp-table tbody td form {margin: 0;}
+.musyrifah-pembelajaran .badge-pill,
+.modal-overlay .badge-pill {
+    display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px;
+    border-radius: 999px; font-size: 11px; font-weight: 650;
+    line-height: 1.4; white-space: normal;
+}
+.musyrifah-pembelajaran .badge-green, .modal-overlay .badge-green {background: #e2f7ea; color: #137449; border: 1px solid #c6ead4;}
+.musyrifah-pembelajaran .badge-yellow, .modal-overlay .badge-yellow {background: #fff3dc; color: #97610f; border: 1px solid #f5e0b8;}
+.musyrifah-pembelajaran .badge-red, .modal-overlay .badge-red {background: #fff0f1; color: #a62735; border: 1px solid #f3d3d7;}
+.musyrifah-pembelajaran .badge-blue, .modal-overlay .badge-blue {background: #f3edf0; color: #8a1830; border: 1px solid #eadcdf;}
+.musyrifah-pembelajaran .btn-table-edit, .musyrifah-pembelajaran .btn-table-del,
+.musyrifah-pembelajaran .btn-table-detail {
+    min-height: 33px; display: inline-flex; align-items: center; justify-content: center;
+    padding: 7px 11px; border-radius: 8px; font-family: inherit; font-size: 11.5px; font-weight: 600;
+    cursor: pointer; transition: background .16s, border-color .16s;
+}
+.musyrifah-pembelajaran .btn-table-edit {background: #fff; border: 1px solid #e6d3da; color: #782138;}
+.musyrifah-pembelajaran .btn-table-edit:hover {background: #f9edf0;}
+.musyrifah-pembelajaran .btn-table-del {background: #fff7f8; border: 1px solid #f0cbd2; color: #b33349;}
+.musyrifah-pembelajaran .btn-table-del:hover {background: #ffebef;}
+.musyrifah-pembelajaran .btn-table-detail {background: var(--mp-maroon); color: #fff; border: 1px solid var(--mp-maroon);}
+.musyrifah-pembelajaran .btn-table-detail:hover {background: var(--mp-maroon-hover);}
+
+/* FILTER BAR & PROGRESS */
+.musyrifah-pembelajaran .filter-bar {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
+    margin: 0; padding: 17px 22px; border: 0; border-bottom: 1px solid #eee2e6;
+    background: #fff;
+}
+.musyrifah-pembelajaran .filter-input,
+.musyrifah-pembelajaran .filter-select {
+    display: block; max-width: 100%; height: 40px; padding: 0 12px;
+    border: 1px solid #e6d7dd; border-radius: 9px; outline: none;
+    font-family: inherit; font-size: 12px; font-weight: 400; color: #374151; background: #fff;
+}
+.musyrifah-pembelajaran .filter-input {min-width: 0; flex: 1 1 240px;}
+.musyrifah-pembelajaran .filter-select {min-width: 150px; flex: 0 1 195px;}
+.musyrifah-pembelajaran .filter-input:focus, .musyrifah-pembelajaran .filter-select:focus {border-color: #971531; box-shadow: 0 0 0 3px rgba(128,11,34,.08);}
+.musyrifah-pembelajaran .progress-bar-wrap {width: 100%; height: 7px; margin-top: 7px; border-radius: 999px; background: #eee4e7; overflow: hidden;}
+.musyrifah-pembelajaran .progress-bar-fill {height: 100%; border-radius: 999px; background: #8d1732; transition: width .3s;}
+.musyrifah-pembelajaran .mp-dokumentasi {min-width: 100px; max-width: 190px; font-size: 11px; text-align: left;}
+.musyrifah-pembelajaran .mp-dokumentasi summary {color: #800b22; font-weight: 650; cursor: pointer;}
+.musyrifah-pembelajaran .mp-dokumentasi a, .musyrifah-pembelajaran .mp-dokumentasi-link {display: block; margin-top: 6px; color: #800b22; font-size: 11px; text-decoration: underline;}
+.musyrifah-pembelajaran .mp-dokumentasi-empty {display: block; margin-top: 6px; color: #78808c; font-size: 11px;}
+
+/* KARTU KPI KELULUSAN: menimpa gaya inline tanpa mengubah data */
+.musyrifah-pembelajaran #tab-kelulusan .mp-kpi-grid {
+    display: grid !important; grid-template-columns: repeat(3, minmax(0,1fr)) !important;
+    gap: 12px !important; padding: 18px 22px 10px !important; margin: 0 !important;
+}
+.musyrifah-pembelajaran #tab-kelulusan .mp-kpi-grid > div {
+    min-width: 0; padding: 15px 17px !important; border-radius: 11px !important;
+    border: 1px solid #ece1e5 !important; background: #fff !important;
+}
+.musyrifah-pembelajaran #tab-kelulusan .mp-kpi-grid > div > div:first-child {font-size: 11px !important; color: #7d7b86 !important;}
+.musyrifah-pembelajaran #tab-kelulusan .mp-kpi-grid > div > div:last-child {font-size: 20px !important; color: #272631 !important; line-height: 1.4; overflow-wrap: anywhere;}
+.musyrifah-pembelajaran #tab-kelulusan .mp-kpi-grid > div:nth-child(2) {border-top: 3px solid #78b99a !important;}
+.musyrifah-pembelajaran #tab-kelulusan .mp-kpi-grid > div:nth-child(3) {border-top: 3px solid #d895a1 !important;}
+
+/* MODAL: di luar wrapper halaman, jadi memakai selector tersendiri */
+.modal-overlay {
+    position: fixed; inset: 0; z-index: 9999; display: none;
+    align-items: center; justify-content: center; padding: 16px;
+    background: rgba(21,12,25,.65); backdrop-filter: blur(3px);
+    overflow-y: auto;
+}
+.modal-overlay.active {display: flex;}
+.modal-overlay .modal-card {
+    background: #fff; border: 1px solid #eddce1; border-radius: 15px;
+    width: min(100%, 740px); max-width: 740px; min-width: 0;
+    max-height: min(91dvh, 900px); overflow-y: auto; overflow-x: hidden;
+    box-shadow: 0 24px 65px rgba(0,0,0,.23); display: flex; flex-direction: column;
+    transform: none;
+}
+.modal-overlay .modal-top {
+    position: sticky; top: 0; z-index: 2; display: flex;
+    align-items: center; justify-content: space-between; gap: 12px;
+    padding: 16px 22px; background: #800b22; border: 0; border-radius: 0;
+    color: #fff;
+}
+.modal-overlay .modal-top-title {font-size: 16px; line-height: 1.4; font-weight: 700; color: #fff;}
+.modal-overlay .modal-close-btn {
+    flex: 0 0 auto; width: 31px; height: 31px; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.42); background: transparent;
+    color: #fff; font-size: 22px; cursor: pointer; line-height: 1;
+}
+.modal-overlay .modal-close-btn:hover {background: rgba(255,255,255,.13);}
+.modal-overlay .modal-inner {padding: 19px 22px; min-width: 0;}
+.modal-overlay .form-group {margin: 0 0 13px; min-width: 0;}
+.modal-overlay .form-label {display: block; margin: 0 0 6px; font-size: 12px; font-weight: 600; color: #3c3944;}
+.modal-overlay .form-control {
+    display: block; min-width: 0; width: 100%; min-height: 40px;
+    padding: 9px 12px; border-radius: 8px;
+    border: 1px solid #e3d4da; background: #fff; color: #302f39;
+    font-family: inherit; font-size: 12px; font-weight: 400; outline: none;
+}
+.modal-overlay textarea.form-control {height: auto; min-height: 70px; resize: vertical;}
+.modal-overlay .form-control:focus {border-color: #800b22; box-shadow: 0 0 0 3px rgba(128,11,34,.09);}
+.modal-overlay .modal-footer-btns {
+    display: flex; justify-content: flex-end; align-items: center; gap: 9px; flex-wrap: wrap;
+    margin: 0; padding: 14px 22px; border-top: 1px solid #eee3e6;
+    background: #fcf9fa; border-radius: 0;
+}
+.modal-overlay .btn-modal-cancel {
+    min-height: 38px; padding: 8px 15px; background: #fff; color: #6c525d;
+    border: 1px solid #e4d4db; border-radius: 8px; font-weight: 600; cursor: pointer;
+}
+.modal-overlay .btn-action-primary {min-height: 38px; padding: 8px 15px; border: 1px solid #800b22; border-radius: 8px; color: #fff; background: #800b22; font-size: 12px; font-weight: 600; cursor: pointer;}
+.modal-overlay .pertemuan-grid {display: grid; grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); gap: 10px; margin-top: 14px; max-height: 450px; overflow-y: auto; padding: 4px;}
+.modal-overlay .pertemuan-card-item {padding: 12px; background: #fbf8f9; border: 1px solid #eee0e4; border-radius: 10px; text-align: center;}
+.modal-overlay .pertemuan-card-num {font-size: 13px; font-weight: 700; color: #800b22;}
+.modal-overlay .pertemuan-card-date {font-size: 11px; color: #77808c; margin-top: 3px;}
+.modal-overlay .mp-table-wrap {max-width: 100%; overflow-x: auto; border: 1px solid #eadcdf; border-radius: 9px;}
+.modal-overlay .mp-table {width: 100%; min-width: 680px; border-collapse: collapse;}
+.modal-overlay .mp-table th {padding: 11px 12px; text-align: left; background: #800b22; color: #fff; font-size: 11px;}
+.modal-overlay .mp-table td {padding: 11px 12px; border-bottom: 1px solid #eee4e6; font-size: 12px; color: #4a4b55;}
+.modal-overlay .badge-pill {font-size: 11px;}
+
+/* RESPONSIVE BERDASARKAN LEBAR KONTEN (sidebar aman) */
+@container (max-width: 1040px) {
+.musyrifah-pembelajaran .mp-summary-grid {grid-template-columns: repeat(2, minmax(0,1fr));}
+.musyrifah-pembelajaran .mp-tabs-nav {gap: 7px;}
+.musyrifah-pembelajaran .mp-tab-btn {font-size: 11px;}
+}
+@container (max-width: 760px) {
+.musyrifah-pembelajaran .mp-heading {margin-bottom: 18px; padding-bottom: 15px;}
+.musyrifah-pembelajaran .mp-card-header {padding: 17px 16px;}
+.musyrifah-pembelajaran .mp-card-header > div {flex: 1 1 100%;}
+.musyrifah-pembelajaran .mp-card-header .btn-action-primary {width: 100%;}
+.musyrifah-pembelajaran .mp-table-wrap {overflow: visible !important;}
+.musyrifah-pembelajaran .mp-table, .musyrifah-pembelajaran .mp-table tbody {display: block; width: 100%; min-width: 0 !important;}
+.musyrifah-pembelajaran .mp-table thead {display: none;}
+.musyrifah-pembelajaran .mp-table tbody tr {
+        display: grid; width: 100%; grid-template-columns: repeat(2,minmax(0,1fr));
+        gap: 11px 15px; margin: 0; padding: 17px 16px;
+        border-bottom: 1px solid #f0e5e8; background: #fff;
+    }
+.musyrifah-pembelajaran .mp-table tbody tr:nth-child(even) {background: #fcf9fa;}
+.musyrifah-pembelajaran .mp-table tbody tr td, .musyrifah-pembelajaran .mp-table tbody tr:nth-child(even) td {
+        display: block; min-width: 0 !important; width: 100% !important;
+        padding: 0 !important; border: 0 !important; background: transparent !important;
+        text-align: left !important; overflow-wrap: anywhere;
+    }
+.musyrifah-pembelajaran .mp-table tbody tr td[data-label]::before {
+        content: attr(data-label); display: block; margin: 0 0 5px;
+        color: #94909a; font-size: 10px; font-weight: 700;
+        line-height: 1.4; text-transform: uppercase; letter-spacing: .025em;
+    }
+.musyrifah-pembelajaran .mp-table tbody tr td:first-child {grid-column: 1 / -1; color: #978d92; font-size: 11px;}
+.musyrifah-pembelajaran .mp-table tbody tr td:nth-child(2) {grid-column: 1 / -1;}
+.musyrifah-pembelajaran .mp-table tbody tr td:last-child {grid-column: 1 / -1; padding-top: 8px !important; border-top: 1px solid #f0e8ea !important;}
+.musyrifah-pembelajaran .mp-table tbody tr td[colspan] {grid-column: 1 / -1; padding: 14px 4px !important;}
+.musyrifah-pembelajaran .mp-table tbody tr td[colspan]::before {display: none;}
+.musyrifah-pembelajaran .mp-table tbody td > div[style*="display: flex"] {justify-content: flex-start !important;}
+.musyrifah-pembelajaran #tab-pemantauan .mp-table tbody tr td:nth-child(6) {grid-column: 1 / -1;}
+.musyrifah-pembelajaran #tab-pemantauan .mp-table tbody tr td:nth-child(8) {grid-column: 1 / -1;}
+.musyrifah-pembelajaran #tab-kelulusan .mp-kpi-grid {grid-template-columns: 1fr !important;}
+.musyrifah-pembelajaran .filter-bar {padding: 14px 16px;}
+.musyrifah-pembelajaran .filter-input, .musyrifah-pembelajaran .filter-select {flex: 1 1 100%; width: 100%; min-width: 0;}
+}
+@container (max-width: 460px) {
+.musyrifah-pembelajaran .mp-title {font-size: 21px;}
+.musyrifah-pembelajaran .mp-subtitle {font-size: 12px;}
+.musyrifah-pembelajaran .mp-summary-grid {grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; margin-bottom: 18px;}
+.musyrifah-pembelajaran .mp-summary-card {min-height: 87px; grid-template-columns: 38px minmax(0,1fr); column-gap: 9px; padding: 12px 11px;}
+.musyrifah-pembelajaran .mp-summary-icon {width: 37px; height: 37px;}
+.musyrifah-pembelajaran .mp-summary-icon svg {width: 20px; height: 20px;}
+.musyrifah-pembelajaran .mp-summary-value {font-size: 19px;}
+.musyrifah-pembelajaran .mp-summary-label {font-size: 10px;}
+.musyrifah-pembelajaran .mp-tabs-nav {display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px;}
+.musyrifah-pembelajaran .mp-tab-btn {white-space: normal; font-size: 10.5px; padding: 8px 7px; border-radius: 9px;}
+.musyrifah-pembelajaran .mp-tab-btn:last-child {grid-column: 1 / -1;}
+
+}
+@media (max-width: 600px) {
+    .modal-overlay {padding: 8px;}
+    .modal-overlay .modal-card {width: 100%; max-height: calc(100dvh - 16px);}
+    .modal-overlay .modal-top {padding: 13px 14px;}
+    .modal-overlay .modal-top-title {font-size: 14px;}
+    .modal-overlay .modal-inner {padding: 15px 14px;}
+    .modal-overlay .modal-footer-btns {padding: 13px 14px;}
+    .modal-overlay .modal-footer-btns button {flex: 1 1 auto;}
+    .modal-overlay .form-control {font-size: 13px;}
+    .modal-overlay .modal-inner > div[style*="grid-template-columns"] {grid-template-columns: 1fr !important;}
+}
+@media (prefers-reduced-motion: reduce) {
+    .musyrifah-pembelajaran *, .modal-overlay * {animation-duration: .01ms !important; transition-duration: .01ms !important;}
+}
 </style>
 
 <div class="musyrifah-pembelajaran">
 
-    <!-- HEADER -->
+    <!-- HEADER SERAGAM DENGAN MANAJEMEN PENGGUNA ADMIN -->
     <div class="mp-heading">
-        <a href="{{ route('musyrifah.dashboard') }}"
-           class="mp-back"
-           title="Kembali ke Dashboard"
-           aria-label="Kembali ke Dashboard">←</a>
+        <nav class="mp-breadcrumb" aria-label="Breadcrumb">
+            <a href="{{ route('musyrifah.dashboard') }}">Dashboard</a>
+            <span aria-hidden="true">/</span>
+            <span>Manajemen Pembelajaran</span>
+        </nav>
         <div class="mp-heading-text">
             <h1 class="mp-title">Manajemen Pembelajaran</h1>
-            <p class="mp-subtitle">Kelola mata pelajaran, 6 kelompok belajar, jadwal, pemantauan 16 pertemuan, dan kelulusan mahasiswa.</p>
+            <p class="mp-subtitle">Kelola mata pelajaran, kelompok belajar, jadwal, pemantauan 16 pertemuan, dan kelulusan mahasiswa.</p>
         </div>
     </div>
 
@@ -586,7 +378,7 @@
     @endif
 
     <!-- RINGKASAN ATAS -->
-    <section class="mp-summary-grid" aria-label="Ringkasan pembelajaran">
+    <div class="mp-summary-grid" aria-label="Ringkasan pembelajaran">
         <div class="mp-summary-card">
             <span class="mp-summary-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21z"/><path d="M4 5.5v13A2.5 2.5 0 0 1 6.5 16H20M8 7h8M8 10h8"/></svg>
@@ -618,7 +410,7 @@
             <p class="mp-summary-value">{{ $targetPertemuan ?? 16 }} TM</p>
             <div class="mp-summary-label">Target Pertemuan</div>
         </div>
-    </section>
+    </div>
 
     <!-- NAVIGASI 5 MENU UTAMA -->
     <nav class="mp-tabs-nav" aria-label="Menu Manajemen Pembelajaran">
@@ -670,22 +462,22 @@
                     <tbody>
                         @forelse($daftarMataPelajaran as $idx => $mapel)
                             <tr>
-                                <td>{{ $idx + 1 }}</td>
-                                <td style="font-weight: 600; color: #800d22;">{{ $mapel->kode ?? '-' }}</td>
-                                <td style="text-align: left; font-weight: 600; padding-left: 18px;">
+                                <td data-label="No">{{ $idx + 1 }}</td>
+                                <td style="font-weight: 600; color: #800d22;" data-label="Kode">{{ $mapel->kode ?? '-' }}</td>
+                                <td style="text-align: left; font-weight: 600; padding-left: 18px;" data-label="Nama Mata Pelajaran">
                                     {{ $mapel->nama }}
                                     <div style="font-size: 12px; font-weight: 400; color: #64748b; margin-top: 2px;">
                                         {{ $mapel->deskripsi ?? '' }}
                                     </div>
                                 </td>
-                                <td>
+                                <td data-label="Kategori Program">
                                     <span class="badge-pill badge-blue">{{ $mapel->kategori ?? 'Akademik' }}</span>
                                 </td>
-                                <td style="font-weight: 700;">{{ $mapel->target_pertemuan }} Pertemuan</td>
-                                <td>
+                                <td style="font-weight: 700;" data-label="Target Pertemuan">{{ $mapel->target_pertemuan }} Pertemuan</td>
+                                <td data-label="Jadwal Aktif">
                                     <span class="badge-pill badge-green">{{ $mapel->jadwals_count ?? 2 }} Kelas Terjadwal</span>
                                 </td>
-                                <td>
+                                <td data-label="Aksi">
                                     <div style="display: flex; gap: 6px; justify-content: center;">
                                         <button type="button" class="btn-table-edit"
                                                 onclick="openModalEditMapel({{ $mapel->id }}, '{{ addslashes($mapel->kode ?? '') }}', '{{ addslashes($mapel->nama) }}', '{{ addslashes($mapel->kategori ?? '') }}', {{ (int) $mapel->target_pertemuan }}, '{{ addslashes($mapel->deskripsi ?? '') }}')">
@@ -742,25 +534,25 @@
                     <tbody id="tbodyKelompokPengajar">
                         @forelse($daftarPengajar as $idx => $p)
                             <tr>
-                                <td>{{ $idx + 1 }}</td>
-                                <td style="text-align: left; font-weight: 600; padding-left: 16px;">
+                                <td data-label="No">{{ $idx + 1 }}</td>
+                                <td style="text-align: left; font-weight: 600; padding-left: 16px;" data-label="Nama Pengajar">
                                     {{ $p->nama_pengajar }}
                                 </td>
-                                <td style="text-align: left; padding-left: 16px;">
+                                <td style="text-align: left; padding-left: 16px;" data-label="Program Pembelajaran">
                                     {{ $p->program }}
                                 </td>
-                                <td>
+                                <td data-label="Kelompok Belajar">
                                     <span class="badge-pill badge-blue" style="font-weight: 700;">
                                         Kelompok {{ $p->kelompok_teks }}
                                     </span>
                                 </td>
-                                <td style="font-weight: 600; color: #800d22;">
+                                <td style="font-weight: 600; color: #800d22;" data-label="Beban Mengajar">
                                     {{ $p->jumlah_tm }}
                                 </td>
-                                <td style="font-size: 12px; color: #64748b;">
+                                <td style="font-size: 12px; color: #64748b;" data-label="Keterangan">
                                     {{ $p->keterangan ?? '-' }}
                                 </td>
-                                <td>
+                                <td data-label="Aksi">
                                     <div style="display: flex; gap: 6px; justify-content: center;">
                                         <button type="button" class="btn-table-edit" 
                                                 onclick="openModalEditKelompok({{ $p->id }}, '{{ addslashes($p->nama_pengajar) }}', '{{ addslashes($p->program) }}', '{{ addslashes($p->kelompok_teks) }}', '{{ addslashes($p->jumlah_tm) }}', '{{ addslashes($p->keterangan ?? '') }}')">
@@ -818,14 +610,14 @@
                     <tbody>
                         @forelse($daftarJadwal as $idx => $j)
                             <tr>
-                                <td>{{ $idx + 1 }}</td>
-                                <td style="text-align: left; font-weight: 600; padding-left: 16px;">
+                                <td data-label="No">{{ $idx + 1 }}</td>
+                                <td style="text-align: left; font-weight: 600; padding-left: 16px;" data-label="Mata Pelajaran">
                                     {{ $j->nama_mata_pelajaran }}
                                 </td>
-                                <td>
+                                <td data-label="Kelompok">
                                     <span class="badge-pill badge-blue">{{ $j->kelompok }}</span>
                                 </td>
-                                <td style="text-align: left; padding-left: 14px;">
+                                <td style="text-align: left; padding-left: 14px;" data-label="Guru Pengampu">
                                     <div style="font-weight: 600; color: #1e293b;">{{ $j->namaGuruPengampu() }}</div>
                                     @if ($j->guru_id)
                                         <div style="font-size: 11px; color: #15803d; margin-top: 2px;">Akun Guru tertaut</div>
@@ -833,15 +625,15 @@
                                         <div style="font-size: 11px; color: #b45309; margin-top: 2px;">Belum tertaut akun Guru</div>
                                     @endif
                                 </td>
-                                <td style="font-size: 13px;">
+                                <td style="font-size: 13px;" data-label="Periode">
                                     {{ $j->periode }}
                                 </td>
-                                <td>
+                                <td data-label="Hari &amp; Waktu">
                                     <div style="font-weight: 600; color: #800d22;">{{ $j->hari }}</div>
                                     <div style="font-size: 12px; color: #64748b;">{{ $j->jam_mulai }} - {{ $j->jam_selesai }} WIB</div>
                                 </td>
-                                <td style="font-size: 13px;">{{ $j->ruangan }}</td>
-                                <td>
+                                <td style="font-size: 13px;" data-label="Ruangan">{{ $j->ruangan }}</td>
+                                <td data-label="Aksi">
                                     <div style="display: flex; gap: 6px; justify-content: center;">
                                         <button type="button" class="btn-table-edit" 
                                                 onclick="openModalEditJadwal({{ $j->id }}, '{{ addslashes($j->nama_mata_pelajaran) }}', '{{ addslashes($j->kelompok) }}', {{ (int) $j->guru_id }}, '{{ addslashes($j->guru_pengampu) }}', '{{ addslashes($j->periode) }}', '{{ addslashes($j->hari) }}', '{{ addslashes($j->jam_mulai) }}', '{{ addslashes($j->jam_selesai) }}', '{{ addslashes($j->ruangan) }}')">
@@ -920,15 +712,15 @@
                                 data-pengajar="{{ strtolower($pm['pengajar']) }}"
                                 data-periode="{{ strtolower($pm['periode']) }}"
                                 data-kelompok="{{ strtolower($pm['kelompok']) }}">
-                                <td>{{ $idx + 1 }}</td>
-                                <td style="text-align: left; font-weight: 600; padding-left: 16px;">
+                                <td data-label="No">{{ $idx + 1 }}</td>
+                                <td style="text-align: left; font-weight: 600; padding-left: 16px;" data-label="Mata Pelajaran">
                                     {{ $pm['nama'] }}
                                     <div style="font-size: 11px; color: #800d22;">{{ $pm['kode'] }}</div>
                                 </td>
-                                <td><span class="badge-pill badge-blue">{{ $pm['kelompok'] }}</span></td>
-                                <td style="text-align: left; padding-left: 14px;">{{ $pm['pengajar'] }}</td>
-                                <td style="font-size: 13px;">{{ $pm['periode'] }}</td>
-                                <td style="min-width: 170px;">
+                                <td data-label="Kelompok"><span class="badge-pill badge-blue">{{ $pm['kelompok'] }}</span></td>
+                                <td style="text-align: left; padding-left: 14px;" data-label="Pengajar">{{ $pm['pengajar'] }}</td>
+                                <td style="font-size: 13px;" data-label="Periode">{{ $pm['periode'] }}</td>
+                                <td style="min-width: 170px;" data-label="Progres Pertemuan">
                                     <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600;">
                                         <span>{{ $pm['pertemuan_terlaksana'] }} dari 16 Pertemuan</span>
                                         <span>{{ round(($pm['pertemuan_terlaksana'] / 16) * 100) }}%</span>
@@ -937,16 +729,16 @@
                                         <div class="progress-bar-fill" style="width: {{ ($pm['pertemuan_terlaksana'] / 16) * 100 }}%;"></div>
                                     </div>
                                 </td>
-                                <td>
+                                <td data-label="Kehadiran">
                                     <span class="badge-pill badge-green">{{ $pm['persentase'] }}%</span>
                                 </td>
-                                <td style="font-size: 12px; color: #475569;">
+                                <td style="font-size: 12px; color: #475569;" data-label="Materi, Tugas &amp; Nilai">
                                     {{ $pm['jumlah_materi'] }} materi &middot; {{ $pm['jumlah_tugas'] }} tugas
                                     <div style="font-size: 11px; color: #800d22; margin-top: 2px;">
                                         Nilai rata-rata: {{ $pm['nilai_rata_rata'] !== null ? $pm['nilai_rata_rata'] : '-' }}
                                     </div>
                                 </td>
-                                <td>
+                                <td data-label="Dokumentasi">
                                     @if ($pm['jumlah_dokumentasi'] > 0)
                                         <details class="mp-dokumentasi">
                                             <summary>{{ $pm['jumlah_dokumentasi'] }} foto</summary>
@@ -960,7 +752,7 @@
                                         <span class="mp-dokumentasi-empty">Belum ada</span>
                                     @endif
                                 </td>
-                                <td>
+                                <td data-label="Aksi">
                                     <button type="button" class="btn-table-detail" onclick="openModalDetailPemantauan({{ $pm['id'] }}, '{{ addslashes($pm['nama']) }}', '{{ addslashes($pm['kelompok']) }}', '{{ addslashes($pm['periode']) }}')">
                                         Lihat Detail 16 TM
                                     </button>
@@ -995,7 +787,7 @@
             </div>
 
             <!-- KPI KELULUSAN -->
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px;">
+            <div class="mp-kpi-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px;">
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 18px;">
                     <div style="font-size: 13px; color: #64748b;">Total Mahasiswa Terdaftar</div>
                     <div style="font-size: 24px; font-weight: 700; color: #1e293b;">{{ $dataKelulusan['totalMahasiswa'] }} Orang</div>
@@ -1041,26 +833,26 @@
                                 data-nama="{{ strtolower($mhs['nama']) }}"
                                 data-nim="{{ strtolower($mhs['nim']) }}"
                                 data-status="{{ $mhs['is_lulus'] ? 'lulus' : 'belum' }}">
-                                <td>{{ $idx + 1 }}</td>
-                                <td style="text-align: left; font-weight: 600; padding-left: 18px;">
+                                <td data-label="No">{{ $idx + 1 }}</td>
+                                <td style="text-align: left; font-weight: 600; padding-left: 18px;" data-label="Nama Mahasiswa">
                                     {{ $mhs['nama'] }}
                                 </td>
-                                <td>{{ $mhs['nim'] }}</td>
-                                <td><span class="badge-pill badge-blue">{{ $mhs['kelompok'] }}</span></td>
-                                <td style="font-weight: 700;">
+                                <td data-label="NIM">{{ $mhs['nim'] }}</td>
+                                <td data-label="Kelompok"><span class="badge-pill badge-blue">{{ $mhs['kelompok'] }}</span></td>
+                                <td style="font-weight: 700;" data-label="Total Kehadiran">
                                     {{ $mhs['total_hadir'] }} / {{ $mhs['target_hadir'] }} Sesi
                                 </td>
-                                <td>
+                                <td data-label="Status Kelulusan">
                                     @if($mhs['is_lulus'])
                                         <span class="badge-pill badge-green">✓ Memenuhi Syarat</span>
                                     @else
                                         <span class="badge-pill badge-red">✕ Belum Memenuhi</span>
                                     @endif
                                 </td>
-                                <td style="font-size: 13px; color: {{ $mhs['is_lulus'] ? '#15803d' : '#b91c1c' }};">
+                                <td style="font-size: 13px; color: {{ $mhs['is_lulus'] ? '#15803d' : '#b91c1c' }};" data-label="Keterangan Syarat">
                                     {{ $mhs['catatan_syarat'] }}
                                 </td>
-                                <td>
+                                <td data-label="Aksi">
                                     <div style="display: flex; gap: 6px; justify-content: center;">
                                         <button type="button" class="btn-table-edit" onclick="openModalDetailKelulusan({{ $mhs['id'] }})">
                                             Rincian Syarat
