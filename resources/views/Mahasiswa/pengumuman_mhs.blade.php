@@ -7,808 +7,554 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-.pengumuman-page {
-    --primary-maroon: #6e001b;
-    --primary-maroon-hover: #580015;
-    --maroon-tint: #faedf0;
-    --maroon-border: #7c1a2e;
-    --text-dark: #111827;
-    --text-secondary: #4b5563;
-    --text-muted: #6b7280;
-    --border: #e5ded9;
-    font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-    background: transparent;
-    color: var(--text-dark);
-    min-width: 0;
-    width: 100%;
-}
-.pengumuman-page, .pengumuman-page *, .pengumuman-page *::before, .pengumuman-page *::after { box-sizing: border-box; }
-.pengumuman-page a { color: inherit; text-decoration: none; }
-.pengumuman-page button, .pengumuman-page input { font: inherit; }
-.pengumuman-page .page-heading {
-            padding: 0 0 1rem;
-            border-bottom: 1.5px solid var(--maroon-border);
-            background: transparent;
-        }
-.pengumuman-page .breadcrumb {
-            color: var(--primary-maroon);
-            font-size: 1.15rem;
-            font-weight: 500;
-            margin-bottom: .75rem;
-        }
-.pengumuman-page .page-heading h1 {
-            font-size: 2rem;
-            font-weight: 800;
-            line-height: 1.25;
-            margin-bottom: .35rem;
-            color: #111;
-        }
-.pengumuman-page .subtitle {
-            font-size: 1.05rem;
-            color: #333;
-            line-height: 1.5;
-        }
-.pengumuman-page .content {
-            padding: 1.25rem 0 2.5rem;
-        }
-.pengumuman-page .pencarian {
-            display: flex;
-            gap: .65rem;
-            margin-bottom: 1rem;
-        }
-.pengumuman-page .pencarian input {
-            flex: 1;
-            min-width: 0;
-            padding: .8rem 1.1rem;
-            border: 1px solid var(--border);
-            border-radius: 30px;
-            font-size: .95rem;
-            color: var(--text-dark);
-            outline: none;
-        }
-.pengumuman-page .pencarian input:focus {
-            border-color: var(--primary-maroon);
-        }
-.pengumuman-page .pencarian button {
-            padding: .8rem 1.6rem;
-            border: 1px solid var(--primary-maroon);
-            border-radius: 30px;
-            background: var(--primary-maroon);
-            color: #fff;
-            font-size: .95rem;
-            font-weight: 700;
-            cursor: pointer;
-        }
-.pengumuman-page .pencarian button:hover {
-            background: var(--primary-maroon-hover);
-        }
-.pengumuman-page .filters {
-            display: flex;
-            flex-wrap: wrap;
-            gap: .65rem;
-            padding-bottom: 1.25rem;
-            border-bottom: 1px solid var(--border);
-        }
-.pengumuman-page .filter-btn {
-            border: 1px solid var(--border);
-            background: #fff;
-            color: #555;
-            border-radius: 30px;
-            padding: .7rem 1rem;
-            font-size: .95rem;
-            cursor: pointer;
-            transition: all .2s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-.pengumuman-page .filter-btn:hover {
-            border-color: var(--primary-maroon);
-            color: var(--primary-maroon);
-        }
-.pengumuman-page .filter-btn.active {
-            background: var(--primary-maroon);
-            color: #fff;
-            border-color: var(--primary-maroon);
-        }
-.pengumuman-page .announcement {
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-            padding: 1.5rem 0;
-            border-bottom: 1px solid var(--border);
-        }
-.pengumuman-page .announcement[hidden] {
-            display: none !important;
-        }
-.pengumuman-page .announcement-icon {
-            width: 92px;
-            height: 76px;
-            flex-shrink: 0;
-            display: grid;
-            place-items: center;
-            background: #f8ecef;
-            color: var(--primary-maroon);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-.pengumuman-page .announcement-icon svg {
-            width: 25px;
-            height: 25px;
-        }
-.pengumuman-page .announcement-icon img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-.pengumuman-page .announcement-body {
-            flex: 1;
-            min-width: 0;
-        }
-.pengumuman-page .tag {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: .8rem;
-            font-weight: 700;
-            margin-bottom: .5rem;
-        }
-.pengumuman-page .tag-purple {
-            color: #8250c8;
-            background: #eee1fa;
-        }
-.pengumuman-page .tag-orange {
-            color: #e66b1d;
-            background: #ffeadb;
-        }
-.pengumuman-page .tag-blue {
-            color: #3185f6;
-            background: #dcecff;
-        }
-.pengumuman-page .tag-green {
-            color: #21865b;
-            background: #dff5e8;
-        }
-.pengumuman-page .tag-pink {
-            color: #be185d;
-            background: #fce7f3;
-        }
-.pengumuman-page .announcement h2 {
-            font-size: 1.05rem;
-            font-weight: 700;
-            line-height: 1.45;
-            margin: 0 0 .45rem;
-            color: #171717;
-        }
-.pengumuman-page .description {
-            font-size: .95rem;
-            line-height: 1.6;
-            color: #77716d;
-            margin: 0 0 .4rem;
-        }
-.pengumuman-page .date {
-            font-size: .85rem;
-            color: #88817d;
-            margin-bottom: .55rem;
-        }
-.pengumuman-page .read-more {
-            color: var(--primary-maroon);
-            font-size: .95rem;
-            font-weight: 700;
-            text-decoration: none;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-        }
-.pengumuman-page .read-more:hover {
-            text-decoration: underline;
-        }
-.pengumuman-page .empty {
-            display: none;
-            padding: 2rem 0;
-            color: var(--text-muted);
-            line-height: 1.6;
-        }
-.pengumuman-page .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, .45);
-            backdrop-filter: blur(2px);
-            z-index: 1400;
-            align-items: center;
-            justify-content: center;
-            padding: 1.5rem;
-        }
-.pengumuman-page .modal-overlay.active {
-            display: flex;
-        }
-.pengumuman-page .modal-box {
-            background: #fff;
-            border-radius: 16px;
-            max-width: 520px;
-            width: 100%;
-            max-height: 85vh;
-            overflow-y: auto;
-            padding: 1.85rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, .15);
-            position: relative;
-            border: 1.5px solid var(--maroon-border);
-        }
-.pengumuman-page .modal-title {
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: var(--primary-maroon);
-            margin: 0 2rem .75rem 0;
-        }
-.pengumuman-page .modal-body {
-            font-size: .95rem;
-            color: #374151;
-            line-height: 1.7;
-            margin-bottom: 1.5rem;
-            overflow-wrap: anywhere;
-        }
-.pengumuman-page .btn-modal-x {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: transparent;
-            border: none;
-            font-size: 1.6rem;
-            cursor: pointer;
-            color: #94a3b8;
-        }
-.pengumuman-page .btn-modal-action {
-            width: 100%;
-            background: var(--primary-maroon);
-            color: #fff;
-            padding: .8rem;
-            border-radius: 10px;
-            border: none;
-            font-weight: 700;
-            cursor: pointer;
-        }
-.pengumuman-page .btn-modal-action:hover {
-            background: var(--primary-maroon-hover);
-        }
-@media (max-width: 992px) {
-.pengumuman-page .page-heading {
-                padding: 0 0 1rem;
-            }
-.pengumuman-page .content {
-                padding: 1.25rem 0 2.5rem;
-            }
-}
-@media (max-width: 600px) {
-.pengumuman-page .page-heading {
-                padding: 0 0 1rem;
-            }
-.pengumuman-page .breadcrumb {
-                font-size: .95rem;
-            }
-.pengumuman-page .page-heading h1 {
-                font-size: 1.65rem;
-            }
-.pengumuman-page .subtitle {
-                font-size: .9rem;
-            }
-.pengumuman-page .content {
-                padding: 1.25rem 0 2.5rem;
-            }
-.pengumuman-page .filters {
-                gap: .5rem;
-            }
-.pengumuman-page .filter-btn {
-                padding: .6rem .8rem;
-                font-size: .85rem;
-            }
-.pengumuman-page .announcement {
-                gap: .75rem;
-                padding: 1.15rem 0;
-            }
-.pengumuman-page .announcement-icon {
-                width: 45px;
-                height: 45px;
-            }
-.pengumuman-page .announcement-icon svg {
-                width: 21px;
-                height: 21px;
-            }
-.pengumuman-page .announcement h2 {
-                font-size: .95rem;
-            }
-.pengumuman-page .description {
-                font-size: .85rem;
-            }
-.pengumuman-page .date, .pengumuman-page .read-more {
-                font-size: .8rem;
-            }
-.pengumuman-page .modal-box {
-                padding: 1.4rem;
-            }
-}
+    /* Pengumuman Mahasiswa — gaya yang konsisten dengan halaman Musyrifah. */
+    .pengumuman-page,
+    .pengumuman-modal {
+        --ann-maroon: #800b22;
+        --ann-maroon-dark: #65071a;
+        --ann-ink: #251f28;
+        --ann-muted: #80747c;
+        --ann-line: #eadde1;
+        --ann-soft: #fff6f8;
+        font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+        color: var(--ann-ink);
+    }
+    .pengumuman-page,
+    .pengumuman-page *,
+    .pengumuman-page *::before,
+    .pengumuman-page *::after,
+    .pengumuman-modal,
+    .pengumuman-modal *,
+    .pengumuman-modal *::before,
+    .pengumuman-modal *::after { box-sizing: border-box; }
+    .pengumuman-page {
+        display: block;
+        clear: both;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        padding: 0 0 28px;
+        margin: 0;
+        container-type: inline-size;
+    }
+    .pengumuman-page a { text-decoration: none; }
+    .pengumuman-page button,
+    .pengumuman-page input { font-family: inherit; }
+    .pengumuman-page svg { flex-shrink: 0; }
 
-/* ================================================================
-   PENYEMPURNAAN TAMPILAN PENGUMUMAN (HANYA CSS)
-   Seluruh selector dibatasi pada halaman Pengumuman.
-   ================================================================ */
-.pengumuman-page {
-    max-width: 1480px;
-    margin-inline: auto;
-    background: transparent;
-}
-
-.pengumuman-page .page-heading {
-    padding: 2px 0 24px;
-    background: transparent;
-    border-bottom: 0;
-}
-
-.pengumuman-page .breadcrumb {
-    margin-bottom: 12px;
-    font-size: .83rem;
-    font-weight: 650;
-    line-height: 1.5;
-}
-
-.pengumuman-page .page-heading h1 {
-    margin-bottom: 10px;
-    color: #171b2d;
-    font-size: clamp(1.55rem, 1.2rem + 1.25vw, 2rem);
-    font-weight: 800;
-    letter-spacing: -.035em;
-    line-height: 1.25;
-}
-
-.pengumuman-page .subtitle {
-    color: #64748b;
-    font-size: .93rem;
-    line-height: 1.65;
-}
-
-.pengumuman-page .content {
-    padding: 4px 0 48px;
-}
-
-.pengumuman-page .pencarian {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 16px;
-    align-items: stretch;
-}
-
-.pengumuman-page .pencarian input {
-    min-height: 48px;
-    padding: 12px 18px;
-    border: 1px solid #e8dade;
-    border-radius: 12px;
-    background: #fff;
-    color: #1f2937;
-    box-shadow: 0 2px 10px rgba(30, 24, 29, .025);
-    font-size: .89rem;
-    transition: border-color .18s ease, box-shadow .18s ease;
-}
-
-.pengumuman-page .pencarian input::placeholder {
-    color: #8b93a4;
-}
-
-.pengumuman-page .pencarian input:focus {
-    border-color: #9b4353;
-    box-shadow: 0 0 0 3px rgba(110, 0, 27, .09);
-}
-
-.pengumuman-page .pencarian button {
-    min-height: 48px;
-    min-width: 100px;
-    padding: 12px 22px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(110, 0, 27, .11);
-    font-size: .88rem;
-    transition: background .18s ease, transform .18s ease;
-}
-
-.pengumuman-page .pencarian button:hover {
-    transform: translateY(-1px);
-}
-
-.pengumuman-page .filters {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    padding-bottom: 0;
-    margin-bottom: 22px;
-    border-bottom: 0;
-}
-
-.pengumuman-page .filter-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 37px;
-    padding: 8px 14px;
-    border: 1px solid #e8dade;
-    border-radius: 10px;
-    background: #fff;
-    color: #596170;
-    font-size: .82rem;
-    font-weight: 600;
-    line-height: 1.3;
-    transition: background .18s ease, border-color .18s ease, color .18s ease;
-}
-
-.pengumuman-page .filter-btn.active {
-    background: #6e001b;
-    color: #fff;
-    border-color: #6e001b;
-    box-shadow: 0 3px 10px rgba(110, 0, 27, .10);
-}
-
-.pengumuman-page .filter-btn:focus-visible,
-.pengumuman-page .pencarian button:focus-visible,
-.pengumuman-page .read-more:focus-visible {
-    outline: 3px solid rgba(184, 144, 76, .55);
-    outline-offset: 3px;
-}
-
-.pengumuman-page #announcement-list {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 14px;
-    min-width: 0;
-}
-
-.pengumuman-page .announcement {
-    position: relative;
-    display: flex;
-    align-items: flex-start;
-    gap: 19px;
-    min-width: 0;
-    padding: 21px 23px;
-    border: 1px solid #e8dfe1;
-    border-radius: 16px;
-    background: #fff;
-    box-shadow: 0 4px 16px rgba(30, 30, 40, .035);
-    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-}
-
-.pengumuman-page .announcement:hover {
-    transform: translateY(-2px);
-    border-color: #d7b3be;
-    box-shadow: 0 8px 26px rgba(60, 28, 39, .08);
-}
-
-.pengumuman-page .announcement-icon {
-    width: 122px;
-    height: 110px;
-    flex: 0 0 122px;
-    border-radius: 12px;
-    background: #f8ecef;
-}
-
-.pengumuman-page .announcement-body {
-    min-width: 0;
-    padding: 1px 0;
-    overflow-wrap: anywhere;
-}
-
-.pengumuman-page .tag {
-    margin-bottom: 8px;
-    padding: 5px 10px;
-    border-radius: 7px;
-    font-size: .72rem;
-    letter-spacing: .01em;
-}
-
-.pengumuman-page .announcement h2 {
-    margin-bottom: 6px;
-    font-size: 1.03rem;
-    font-weight: 800;
-    line-height: 1.4;
-    color: #1c2332;
-}
-
-.pengumuman-page .description {
-    margin-bottom: 8px;
-    color: #657083;
-    font-size: .86rem;
-    line-height: 1.7;
-}
-
-.pengumuman-page .date {
-    margin-bottom: 10px;
-    color: #87909e;
-    font-size: .76rem;
-    line-height: 1.5;
-}
-
-.pengumuman-page .read-more {
-    display: inline-flex;
-    align-items: center;
-    color: #790c20;
-    font-size: .83rem;
-    font-weight: 750;
-    line-height: 1.5;
-}
-
-.pengumuman-page .empty {
-    padding: 34px 24px;
-    border: 1px dashed #d8bec5;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, .82);
-    color: #637083;
-    text-align: center;
-    font-size: .86rem;
-}
-
-@media (max-width: 768px) {
-    .pengumuman-page .page-heading {
-        padding-bottom: 20px;
+    /* Navigasi dan kepala halaman. */
+    .pengumuman-page .ann-breadcrumb {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 10px;
+        font-size: 11.5px;
+        line-height: 1.5;
+        color: #97868f;
+    }
+    .pengumuman-page .ann-breadcrumb a { color: var(--ann-maroon); font-weight: 700; }
+    .pengumuman-page .ann-breadcrumb a:hover { text-decoration: underline; }
+    .pengumuman-page .ann-header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px 18px;
+        padding: 0 0 17px;
+        margin-bottom: 17px;
+        border-bottom: 1px solid #e7cfd5;
+    }
+    .pengumuman-page .ann-heading-text { flex: 1 1 340px; min-width: 0; }
+    .pengumuman-page .ann-header h1 {
+        margin: 0;
+        color: #211b23;
+        font-size: clamp(22px, 2vw, 28px);
+        font-weight: 800;
+        letter-spacing: -.035em;
+        line-height: 1.25;
+    }
+    .pengumuman-page .ann-subtitle {
+        margin: 5px 0 0;
+        font-size: 12.5px;
+        color: var(--ann-muted);
+        line-height: 1.65;
     }
 
-    .pengumuman-page .filters {
-        gap: 8px;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        padding: 0 1px 8px;
-        margin-bottom: 16px;
-        scroll-snap-type: x proximity;
-        -webkit-overflow-scrolling: touch;
+    /* Area filter + daftar, satu panel utuh. */
+    .pengumuman-page .ann-panel {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid var(--ann-line);
+        border-radius: 15px;
+        box-shadow: 0 3px 16px rgba(48, 16, 30, .03);
     }
-
-    .pengumuman-page .filter-btn {
-        flex: 0 0 auto;
-        white-space: nowrap;
-        scroll-snap-align: start;
+    .pengumuman-page .ann-panel-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px 16px;
+        padding: 16px 19px 13px;
+        border-bottom: 1px solid #f0e6e9;
     }
-
-    .pengumuman-page .announcement {
-        gap: 15px;
-        padding: 17px;
+    .pengumuman-page .ann-panel-head h2 {
+        margin: 0;
+        color: #2b2028;
+        font-size: 15px;
+        font-weight: 800;
     }
-
-    .pengumuman-page .announcement-icon {
-        width: 94px;
-        height: 94px;
-        flex-basis: 94px;
+    .pengumuman-page .ann-total {
+        font-size: 11.5px;
+        color: var(--ann-muted);
+        line-height: 1.5;
     }
-}
-
-@media (max-width: 480px) {
-    .pengumuman-page .breadcrumb {
-        margin-bottom: 9px;
-        font-size: .78rem;
-    }
-
-    .pengumuman-page .page-heading h1 {
-        font-size: 1.55rem;
-    }
-
-    .pengumuman-page .subtitle {
-        font-size: .84rem;
-    }
-
-    .pengumuman-page .pencarian {
-        gap: 8px;
-    }
-
-    .pengumuman-page .pencarian input {
-        min-height: 44px;
-        padding: 10px 12px;
-        font-size: .8rem;
-    }
-
-    .pengumuman-page .pencarian button {
-        min-height: 44px;
-        min-width: 73px;
-        padding: 10px 12px;
-        font-size: .8rem;
-    }
-
-    .pengumuman-page .filter-btn {
-        padding: 7px 11px;
-        min-height: 35px;
-        font-size: .77rem;
-    }
-
-    .pengumuman-page .announcement {
+    .pengumuman-page .ann-controls {
+        display: grid;
         gap: 12px;
-        padding: 13px;
-        border-radius: 13px;
+        padding: 15px 19px;
+        border-bottom: 1px solid #f0e6e9;
+        background: #fff;
+        min-width: 0;
+    }
+    .pengumuman-page .ann-search {
+        display: flex;
+        align-items: stretch;
+        flex-wrap: wrap;
+        gap: 8px;
+        width: 100%;
+        margin: 0;
+    }
+    .pengumuman-page .ann-search-field {
+        position: relative;
+        display: flex;
+        flex: 1 1 240px;
+        min-width: 0;
+        align-items: center;
+    }
+    .pengumuman-page .ann-search-field svg {
+        position: absolute;
+        left: 12px;
+        width: 17px;
+        height: 17px;
+        pointer-events: none;
+        color: #998890;
+    }
+    .pengumuman-page .ann-search input {
+        width: 100%;
+        min-width: 0;
+        min-height: 40px;
+        padding: 9px 12px 9px 39px;
+        border: 1px solid #e2d1d7;
+        border-radius: 9px;
+        background: #fff;
+        color: #30262d;
+        font-size: 12px;
+        outline: 0;
+    }
+    .pengumuman-page .ann-search input::placeholder { color: #9a8e96; }
+    .pengumuman-page .ann-search input:focus {
+        border-color: #bd8f9c;
+        box-shadow: 0 0 0 3px rgba(128, 11, 34, .09);
+    }
+    .pengumuman-page .ann-search-submit,
+    .pengumuman-page .ann-reset {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 9px 17px;
+        border-radius: 9px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    .pengumuman-page .ann-search-submit {
+        border: 1px solid var(--ann-maroon);
+        background: var(--ann-maroon);
+        color: #fff;
+    }
+    .pengumuman-page .ann-search-submit:hover { background: var(--ann-maroon-dark); }
+    .pengumuman-page .ann-reset {
+        border: 1px solid #e5cfd5;
+        background: #fff;
+        color: var(--ann-maroon);
+    }
+    .pengumuman-page .ann-reset:hover { background: var(--ann-soft); }
+    .pengumuman-page .ann-category-row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 7px;
+        min-width: 0;
+    }
+    .pengumuman-page .ann-category-label {
+        margin-right: 5px;
+        color: #80757d;
+        font-size: 11.5px;
+        font-weight: 650;
+    }
+    .pengumuman-page .ann-category {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 33px;
+        padding: 6px 12px;
+        border: 1px solid #ebdfe2;
+        border-radius: 8px;
+        background: #fff;
+        color: #675c63;
+        font-size: 11px;
+        font-weight: 650;
+        line-height: 1.4;
+        white-space: nowrap;
+        transition: background-color .16s, border-color .16s;
+    }
+    .pengumuman-page .ann-category:hover { color: var(--ann-maroon); border-color: #c9a4ac; }
+    .pengumuman-page .ann-category.is-active {
+        border-color: var(--ann-maroon);
+        background: var(--ann-maroon);
+        color: #fff;
     }
 
-    .pengumuman-page .announcement-icon {
-        width: 76px;
-        height: 82px;
-        flex-basis: 76px;
-        border-radius: 10px;
+    /* Grid pengumuman: dua kartu pada desktop, satu pada area sempit. */
+    .pengumuman-page .ann-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: stretch;
+        gap: 11px;
+        min-width: 0;
+        padding: 16px 19px 20px;
+    }
+    .pengumuman-page .ann-item {
+        display: flex;
+        align-items: flex-start;
+        min-width: 0;
+        gap: 13px;
+        padding: 14px;
+        border: 1px solid #ede2e6;
+        border-radius: 11px;
+        background: #fff;
+        transition: border-color .18s, background-color .18s, box-shadow .18s;
+    }
+    .pengumuman-page .ann-item:hover {
+        border-color: #d9b8c1;
+        background: #fffafb;
+        box-shadow: 0 4px 14px rgba(68, 24, 37, .045);
+    }
+    .pengumuman-page .ann-thumb {
+        display: grid;
+        place-items: center;
+        flex: 0 0 86px;
+        width: 86px;
+        height: 86px;
+        overflow: hidden;
+        border: 1px solid #f0e0e5;
+        border-radius: 9px;
+        background: #faedf1;
+        color: var(--ann-maroon);
+    }
+    .pengumuman-page .ann-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .pengumuman-page .ann-thumb svg { width: 27px; height: 27px; }
+    .pengumuman-page .ann-item-body {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        flex: 1 1 auto;
+        align-items: flex-start;
+    }
+    .pengumuman-page .ann-tag {
+        display: inline-flex;
+        max-width: 100%;
+        padding: 3px 8px;
+        border-radius: 6px;
+        background: #f7eff3;
+        color: #8b2241;
+        font-size: 10px;
+        font-weight: 750;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+    .pengumuman-page .ann-item h3 {
+        margin: 7px 0 6px;
+        color: #251d25;
+        font-size: 13px;
+        font-weight: 800;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+    }
+    .pengumuman-page .ann-description {
+        display: -webkit-box;
+        width: 100%;
+        margin: 0 0 7px;
+        color: #756b73;
+        font-size: 11.5px;
+        line-height: 1.65;
+        line-clamp: 3;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        overflow-wrap: anywhere;
+    }
+    .pengumuman-page .ann-date {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin: 0 0 9px;
+        color: #8e8189;
+        font-size: 10.5px;
+        line-height: 1.5;
+    }
+    .pengumuman-page .ann-date svg { width: 13px; height: 13px; }
+    .pengumuman-page .ann-more {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: auto;
+        color: var(--ann-maroon);
+        font-size: 11.5px;
+        font-weight: 750;
+        line-height: 1.5;
+    }
+    .pengumuman-page .ann-more:hover { text-decoration: underline; }
+    .pengumuman-page .ann-empty {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        min-height: 170px;
+        justify-content: center;
+        padding: 26px 18px;
+        border: 1px dashed #e5cfd5;
+        border-radius: 11px;
+        background: #fffafb;
+        color: #857981;
+        text-align: center;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+    .pengumuman-page .ann-empty svg { color: var(--ann-maroon); width: 30px; height: 30px; }
+    .pengumuman-page :is(a, button, input):focus-visible {
+        outline: 3px solid rgba(201, 169, 106, .4);
+        outline-offset: 2px;
     }
 
-    .pengumuman-page .tag {
-        font-size: .68rem;
-        padding: 4px 8px;
+    /* Modal berada di luar container agar selalu berpusat pada viewport. */
+    .pengumuman-modal.modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 3000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background: rgba(26, 12, 19, .56);
+        backdrop-filter: blur(3px);
     }
+    .pengumuman-modal.modal-overlay.active { display: flex; }
+    .pengumuman-modal .modal-box {
+        position: relative;
+        width: min(560px, 100%);
+        max-height: min(88dvh, 850px);
+        padding: 23px;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        border: 1px solid #e9d8df;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 28px 75px rgba(22, 10, 18, .22);
+    }
+    .pengumuman-modal .modal-title {
+        margin: 0 42px 13px 0;
+        color: var(--ann-maroon);
+        font-size: 17px;
+        font-weight: 800;
+        line-height: 1.35;
+    }
+    .pengumuman-modal .modal-body {
+        margin-bottom: 20px;
+        color: #514550;
+        font-size: 12.5px;
+        line-height: 1.7;
+        overflow-wrap: anywhere;
+    }
+    .pengumuman-modal .btn-modal-x {
+        position: absolute;
+        top: 13px;
+        right: 15px;
+        display: grid;
+        place-items: center;
+        width: 33px;
+        height: 33px;
+        border: 1px solid #ebdce0;
+        border-radius: 8px;
+        background: #fff;
+        color: #776b72;
+        font-size: 20px;
+        cursor: pointer;
+    }
+    .pengumuman-modal .btn-modal-action {
+        width: 100%;
+        min-height: 40px;
+        border: 1px solid var(--ann-maroon);
+        border-radius: 9px;
+        background: var(--ann-maroon);
+        color: #fff;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .pengumuman-modal .btn-modal-action:hover { background: var(--ann-maroon-dark); }
 
-    .pengumuman-page .announcement h2 {
-        font-size: .92rem;
+    @container (max-width: 1020px) {
+        .pengumuman-page .ann-list { grid-template-columns: minmax(0, 1fr); }
     }
-
-    .pengumuman-page .description {
-        font-size: .78rem;
+    @container (max-width: 620px) {
+        .pengumuman-page .ann-panel-head { padding: 14px 14px 12px; }
+        .pengumuman-page .ann-controls { padding: 12px 14px; }
+        .pengumuman-page .ann-list { padding: 12px 14px 16px; }
+        .pengumuman-page .ann-header { align-items: flex-start; }
+        .pengumuman-page .ann-category-row { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 5px; overscroll-behavior-x: contain; }
+        .pengumuman-page .ann-category { flex: 0 0 auto; }
+        .pengumuman-page .ann-category-label { flex: 0 0 auto; }
+        .pengumuman-page .ann-thumb { flex-basis: 72px; width: 72px; height: 72px; }
+        .pengumuman-page .ann-item { gap: 11px; padding: 12px; }
+        .pengumuman-page .ann-item h3 { font-size: 12.5px; }
     }
-
-    .pengumuman-page .date,
-    .pengumuman-page .read-more {
-        font-size: .74rem;
+    @container (max-width: 390px) {
+        .pengumuman-page .ann-search-field { flex-basis: 100%; }
+        .pengumuman-page .ann-search-submit { flex: 1; }
+        .pengumuman-page .ann-reset { flex: 1; }
+        .pengumuman-page .ann-thumb { flex-basis: 58px; width: 58px; height: 62px; }
+        .pengumuman-page .ann-item { gap: 9px; padding: 10px; }
     }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .pengumuman-page .announcement,
-    .pengumuman-page .filter-btn,
-    .pengumuman-page .pencarian input,
-    .pengumuman-page .pencarian button {
-        transition: none;
+    @media (max-width: 480px) {
+        .pengumuman-modal.modal-overlay { padding: 0; align-items: flex-end; }
+        .pengumuman-modal .modal-box { width: 100%; max-height: 91dvh; border-radius: 15px 15px 0 0; padding: 18px 16px; }
     }
-
-    .pengumuman-page .announcement:hover,
-    .pengumuman-page .pencarian button:hover {
-        transform: none;
+    @media (prefers-reduced-motion: reduce) {
+        .pengumuman-page .ann-item,
+        .pengumuman-page .ann-category { transition: none; }
     }
-}
 </style>
 @endpush
 
 @section('content')
 <div class="pengumuman-page">
-<section class="page-heading">
-                <div class="breadcrumb">Dashboard / Pengumuman</div>
-                <h1>Pengumuman</h1>
-                <p class="subtitle">
-                    Informasi terbaru seputar kegiatan dan aktivitas Ma’had.
-                </p>
-            </section>
+    <nav class="ann-breadcrumb" aria-label="Navigasi halaman">
+        <a href="{{ route('dashboard') }}">Dashboard</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Pengumuman</span>
+    </nav>
 
-            <section class="content">
-
-                <form method="GET" action="{{ route('pengumuman.mhs') }}" class="pencarian">
-                    <input
-                        type="text"
-                        name="cari"
-                        value="{{ $filter['cari'] ?? '' }}"
-                        placeholder="Cari judul pengumuman"
-                        autocomplete="off"
-                    >
-
-                    @if (filled($filter['kategori'] ?? null))
-                        <input type="hidden" name="kategori" value="{{ $filter['kategori'] }}">
-                    @endif
-
-                    <button type="submit">Cari</button>
-                </form>
-
-                <div class="filters">
-                    <a
-                        href="{{ route('pengumuman.mhs', array_filter(['cari' => $filter['cari'] ?? null])) }}"
-                        class="filter-btn {{ blank($filter['kategori'] ?? null) ? 'active' : '' }}"
-                    >
-                        Semua
-                    </a>
-
-                    @foreach ($kategoriPilihan as $kategori)
-                        <a
-                            href="{{ route('pengumuman.mhs', array_filter(['cari' => $filter['cari'] ?? null, 'kategori' => $kategori])) }}"
-                            class="filter-btn {{ ($filter['kategori'] ?? '') === $kategori ? 'active' : '' }}"
-                        >
-                            {{ $kategori }}
-                        </a>
-                    @endforeach
-                </div>
-
-                <div id="announcement-list">
-
-                    @forelse ($pengumuman as $item)
-                        <article class="announcement" data-category="{{ $item->kategori }}">
-
-                            <div class="announcement-icon">
-                                @if ($item->punyaGambar())
-                                    <img
-                                        src="{{ route('pengumuman.mhs.berkas', [$item, 'gambar']) }}"
-                                        alt="Gambar pengumuman {{ $item->judul }}"
-                                    >
-                                @else
-                                    <svg viewBox="0 0 24 24" fill="none"
-                                         stroke="currentColor" stroke-width="2"
-                                         stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="m3 11 18-5v12L3 14v-3z"/>
-                                        <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
-                                    </svg>
-                                @endif
-                            </div>
-
-                            <div class="announcement-body">
-
-                                <span class="tag tag-purple">{{ $item->kategori }}</span>
-
-                                <h2>{{ $item->judul }}</h2>
-
-                                <p class="description">
-                                    {{ $item->ringkasan(200) }}
-                                </p>
-
-                                <div class="date">
-                                    Tanggal publikasi: {{ $item->tanggalTeks() }}
-                                </div>
-
-                                <a
-                                    class="read-more"
-                                    href="{{ route('pengumuman.mhs.show', $item) }}"
-                                >
-                                    Baca selengkapnya →
-                                </a>
-
-                            </div>
-                        </article>
-                    @empty
-                        <div class="empty" style="display: block;">
-                            Belum ada pengumuman yang sesuai dengan pencarian atau filter kategori.
-                        </div>
-                    @endforelse
-
-                </div>
-
-            </section>
-
-<!-- ================= MODAL INFORMASI ================= -->
-
-    <div class="modal-overlay" id="infoModal" role="dialog"
-         aria-modal="true" aria-labelledby="modalTitle"
-         onclick="closeModalOnBackdrop(event)">
-
-        <div class="modal-box">
-            <button type="button" class="btn-modal-x"
-                    aria-label="Tutup" onclick="closeInfoModal()">
-                &times;
-            </button>
-
-            <h2 class="modal-title" id="modalTitle">Informasi</h2>
-            <div class="modal-body" id="modalBody"></div>
-
-            <button type="button" class="btn-modal-action"
-                    onclick="closeInfoModal()">
-                Tutup
-            </button>
+    <header class="ann-header">
+        <div class="ann-heading-text">
+            <h1>Pengumuman</h1>
+            <p class="ann-subtitle">Informasi terbaru seputar kegiatan dan aktivitas Ma’had Al-Jami’ah.</p>
         </div>
+    </header>
+
+    <section class="ann-panel" aria-labelledby="pengumumanDaftarTitle">
+        <div class="ann-panel-head">
+            <h2 id="pengumumanDaftarTitle">Daftar Pengumuman</h2>
+            <span class="ann-total">{{ $pengumuman->count() }} pengumuman ditampilkan</span>
+        </div>
+
+        <div class="ann-controls">
+            <form method="GET" action="{{ route('pengumuman.mhs') }}" class="ann-search" role="search">
+                <label class="ann-search-field" for="cariPengumumanMhs">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"/><path d="m16 16 4.5 4.5"/></svg>
+                    <input type="search" name="cari" id="cariPengumumanMhs" value="{{ $filter['cari'] ?? '' }}" placeholder="Cari judul pengumuman..." autocomplete="off" aria-label="Cari judul pengumuman">
+                </label>
+                @if (filled($filter['kategori'] ?? null))
+                    <input type="hidden" name="kategori" value="{{ $filter['kategori'] }}">
+                @endif
+                <button type="submit" class="ann-search-submit">Cari</button>
+                @if (filled($filter['cari'] ?? null) || filled($filter['kategori'] ?? null))
+                    <a href="{{ route('pengumuman.mhs') }}" class="ann-reset">Reset</a>
+                @endif
+            </form>
+
+            <div class="ann-category-row" aria-label="Filter kategori pengumuman">
+                <span class="ann-category-label">Kategori:</span>
+                <a href="{{ route('pengumuman.mhs', array_filter(['cari' => $filter['cari'] ?? null])) }}"
+                   class="ann-category {{ blank($filter['kategori'] ?? null) ? 'is-active' : '' }}">Semua</a>
+                @foreach ($kategoriPilihan as $kategori)
+                    <a href="{{ route('pengumuman.mhs', array_filter(['cari' => $filter['cari'] ?? null, 'kategori' => $kategori])) }}"
+                       class="ann-category {{ ($filter['kategori'] ?? '') === $kategori ? 'is-active' : '' }}">{{ $kategori }}</a>
+                @endforeach
+            </div>
+        </div>
+
+        <div class="ann-list" id="announcement-list">
+            @forelse ($pengumuman as $item)
+                <article class="ann-item" data-category="{{ $item->kategori }}">
+                    <div class="ann-thumb">
+                        @if ($item->punyaGambar())
+                            <img src="{{ route('pengumuman.mhs.berkas', [$item, 'gambar']) }}"
+                                 alt="Gambar pengumuman {{ $item->judul }}" loading="lazy">
+                        @else
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+                        @endif
+                    </div>
+                    <div class="ann-item-body">
+                        <span class="ann-tag">{{ $item->kategori }}</span>
+                        <h3>{{ $item->judul }}</h3>
+                        <p class="ann-description">{{ $item->ringkasan(200) }}</p>
+                        <div class="ann-date">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>
+                            {{ $item->tanggalTeks() }}
+                        </div>
+                        <a class="ann-more" href="{{ route('pengumuman.mhs.show', $item) }}">
+                            Baca selengkapnya <span aria-hidden="true">&rarr;</span>
+                        </a>
+                    </div>
+                </article>
+            @empty
+                <div class="ann-empty">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+                    <strong>Belum ada pengumuman</strong>
+                    <span>Belum ada pengumuman yang sesuai dengan pencarian atau kategori yang dipilih.</span>
+                </div>
+            @endforelse
+        </div>
+    </section>
+</div>
+
+{{-- Modal informasi lama tetap disediakan untuk fungsi JavaScript yang sudah ada. --}}
+<div class="pengumuman-modal modal-overlay" id="infoModal" role="dialog"
+     aria-modal="true" aria-labelledby="modalTitle" onclick="closeModalOnBackdrop(event)">
+    <div class="modal-box">
+        <button type="button" class="btn-modal-x" aria-label="Tutup" onclick="closeInfoModal()">&times;</button>
+        <h2 class="modal-title" id="modalTitle">Informasi</h2>
+        <div class="modal-body" id="modalBody"></div>
+        <button type="button" class="btn-modal-action" onclick="closeInfoModal()">Tutup</button>
     </div>
 </div>
 @endsection
 
 @push('scripts')
 <script>
-    // Modal informasi
-        function openInfoModal(title, message) {
-            document.getElementById('modalTitle').textContent = title;
-            document.getElementById('modalBody').innerHTML = message;
-            document.getElementById('infoModal').classList.add('active');
-        }
-
-        function closeInfoModal() {
-            document.getElementById('infoModal').classList.remove('active');
-        }
-
-        function closeModalOnBackdrop(event) {
-            if (event.target.id === 'infoModal') {
-                closeInfoModal();
-            }
-        }
-
-        // Tutup modal dengan tombol Escape
-        document.addEventListener('keydown', event => {
-            if (event.key === 'Escape') {
-                closeInfoModal();
-            }
-        });
+    // Modal informasi (fungsi asal dipertahankan).
+    function openInfoModal(title, message) {
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalBody').innerHTML = message;
+        document.getElementById('infoModal').classList.add('active');
+    }
+    function closeInfoModal() {
+        document.getElementById('infoModal').classList.remove('active');
+    }
+    function closeModalOnBackdrop(event) {
+        if (event.target.id === 'infoModal') closeInfoModal();
+    }
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') closeInfoModal();
+    });
 </script>
 @endpush

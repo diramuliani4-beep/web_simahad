@@ -7,1372 +7,245 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-        .pembelajaran-page{
-            --maroon: #790c20;
-            --maroon-dark: #5e0817;
-            --maroon-light: #f8edef;
-            --border: #8a1428;
-            --text: #171717;
-            --muted: #64748b;
-            --page: #f8f8f8;
-            --white: #fff;
-            --success: #15803d;
-            --success-bg: #dcfce7;
-            --warning: #b45309;
-            --warning-bg: #fef3c7;
-            --danger: #b91c1c;
-            --danger-bg: #fee2e2;
-            --info: #1d4ed8;
-            --info-bg: #dbeafe;
-        }
-
-        .pembelajaran-page, .pembelajaran-page *{
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        .pembelajaran-page{
-            font-family: "Poppins", sans-serif;
-            color: var(--text);
-            background: var(--page);
-            font-size: 14px;
-        }
-
-        .pembelajaran-page a{
-            color: inherit;
-            text-decoration: none;
-        }
-
-        .pembelajaran-page button{
-            font: inherit;
-        }
-
-        /* =========================
-           HEADER
-        ========================= */
-        .pembelajaran-page .topbar{
-            height: 89px;
-            background: #fff;
-            border-bottom: 1px solid #edd5db;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 31px 0 20px;
-            position: fixed;
-            inset: 0 0 auto 0;
-            z-index: 100;
-            box-shadow: 0 2px 8px rgba(121, 12, 32, 0.05);
-        }
-
-        .pembelajaran-page .brand{
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .pembelajaran-page .brand-logo{
-            width: 65px;
-            height: 62px;
-            color: var(--maroon);
-        }
-
-        .pembelajaran-page .brand-name{
-            font-size: 30px;
-            font-weight: 700;
-            color: var(--maroon);
-            letter-spacing: -.8px;
-        }
-
-        .pembelajaran-page .top-actions{
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .pembelajaran-page .user-info-pill{
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: var(--maroon-light);
-            padding: 6px 14px;
-            border-radius: 9999px;
-            border: 1px solid #f1d5dc;
-        }
-
-        .pembelajaran-page .user-name-text{
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--maroon);
-        }
-
-        .pembelajaran-page .user-nim-text{
-            font-size: 11px;
-            color: #666;
-        }
-
-        .pembelajaran-page .notification{
-            width: 36px;
-            height: 36px;
-            background: var(--maroon);
-            border: none;
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-            color: white;
-            cursor: pointer;
-        }
-
-        .pembelajaran-page .notification svg{
-            width: 20px;
-            height: 20px;
-            stroke: white;
-            fill: none;
-            stroke-width: 1.8;
-        }
-
-        .pembelajaran-page .profile{
-            width: 48px;
-            height: 48px;
-            border: 1.5px solid #222;
-            border-radius: 50%;
-            background: #fff;
-            display: grid;
-            place-items: center;
-            overflow: hidden;
-        }
-
-        .pembelajaran-page .profile svg{
-            width: 44px;
-            height: 44px;
-        }
-
-        /* =========================
-           SIDEBAR
-        ========================= */
-        .pembelajaran-page .sidebar{
-            position: fixed;
-            top: 89px;
-            bottom: 0;
-            left: 0;
-            width: 300px;
-            overflow-y: auto;
-            border-right: 1px solid var(--border);
-            background:
-                linear-gradient(
-                    to bottom,
-                    rgba(255,255,255,.35),
-                    rgba(255,255,255,.68)
-                ),
-                url("{{ asset('images/mahad_al_jamiah.jpeg') }}");
-            background-size: cover;
-            background-position: center center;
-            display: flex;
-            flex-direction: column;
-            z-index: 50;
-        }
-
-        .pembelajaran-page .sidebar-menu{
-            padding: 22px 12px 18px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .pembelajaran-page .nav-pill{
-            min-height: 46px;
-            display: flex;
-            align-items: center;
-            gap: 11px;
-            padding: 10px 14px;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            background: rgba(255,255,255,.97);
-            color: #111;
-            font-size: 14px;
-            font-weight: 500;
-            transition: background .2s, color .2s;
-            cursor: pointer;
-        }
-
-        .pembelajaran-page .nav-pill:hover{
-            background: var(--maroon-light);
-            color: var(--maroon);
-        }
-
-        .pembelajaran-page .nav-pill.active{
-            background: var(--maroon-light);
-            color: var(--maroon);
-            box-shadow: 0 3px 5px rgba(0,0,0,.12);
-            font-weight: 700;
-        }
-
-        .pembelajaran-page .nav-icon{
-            width: 22px;
-            height: 22px;
-            flex-shrink: 0;
-            display: grid;
-            place-items: center;
-            color: #626d7e;
-        }
-
-        .pembelajaran-page .nav-pill.active .nav-icon{
-            color: var(--maroon);
-        }
-
-        .pembelajaran-page .nav-icon svg{
-            width: 20px;
-            height: 20px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 1.8;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .pembelajaran-page .nav-label{
-            flex: 1;
-        }
-
-        .pembelajaran-page .nav-arrow{
-            color: var(--maroon);
-            font-size: 22px;
-            line-height: 1;
-            font-weight: 700;
-        }
-
-        .pembelajaran-page .sidebar-bottom{
-            margin-top: auto;
-            padding: 18px 12px 20px;
-            border-top: 1px solid var(--border);
-        }
-
-        .pembelajaran-page .sidebar-bottom .nav-pill{
-            margin-bottom: 10px;
-        }
-
-        .pembelajaran-page .sidebar-bottom .nav-pill:last-child{
-            margin-bottom: 0;
-        }
-
-        /* =========================
-           MAIN CONTENT
-        ========================= */
-        .pembelajaran-page .main{
-            margin-left: var(--sb-w, 280px);
-            transition: margin-left .22s ease;
-            padding: 108px 36px 40px;
-            min-height: 100vh;
-            min-width: 0;
-        }
-
-        .pembelajaran-page body.sb-sempit .main{
-            margin-left: var(--sb-w-sempit, 84px);
-        }
-
-        .pembelajaran-page .page-header-row{
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 22px;
-        }
-
-        .pembelajaran-page .breadcrumb{
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--maroon);
-            margin-bottom: 4px;
-        }
-
-        .pembelajaran-page .page-title{
-            font-size: 28px;
-            font-weight: 700;
-            line-height: 1.25;
-            color: #0f172a;
-        }
-
-        .pembelajaran-page .page-description{
-            font-size: 14px;
-            color: var(--muted);
-            margin-top: 4px;
-            max-width: 780px;
-            line-height: 1.6;
-        }
-
-        .pembelajaran-page .sync-badge{
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: #ecfdf5;
-            color: #047857;
-            border: 1px solid #a7f3d0;
-            padding: 6px 14px;
-            border-radius: 9999px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .pembelajaran-page .sync-dot{
-            width: 8px;
-            height: 8px;
-            background: #10b981;
-            border-radius: 50%;
-            animation: pulse 1.8s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.8; }
-        }
-
-        /* =========================
-           STATISTIK GRID
-        ========================= */
-        .pembelajaran-page .stats-grid{
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 14px;
-            margin-bottom: 24px;
-        }
-
-        .pembelajaran-page .stat-card{
-            background: #fff;
-            border-radius: 14px;
-            padding: 16px 18px;
-            border: 1px solid #edd5db;
-            box-shadow: 0 2px 6px rgba(121, 12, 32, 0.04);
-            border-left: 5px solid var(--maroon);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .pembelajaran-page .stat-card:nth-child(2){ border-left-color: #2563eb; }
-        .pembelajaran-page .stat-card:nth-child(3){ border-left-color: #10b981; }
-        .pembelajaran-page .stat-card:nth-child(4){ border-left-color: #f59e0b; }
-
-        .pembelajaran-page .stat-icon{
-            width: 28px;
-            height: 28px;
-            color: var(--maroon);
-            margin-bottom: 8px;
-        }
-
-        .pembelajaran-page .stat-icon svg{
-            width: 24px;
-            height: 24px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .pembelajaran-page .stat-number{
-            font-size: 24px;
-            line-height: 1.2;
-            font-weight: 700;
-            color: #0f172a;
-        }
-
-        .pembelajaran-page .stat-label{
-            color: var(--muted);
-            font-size: 13px;
-            margin-top: 4px;
-            font-weight: 500;
-        }
-
-        .pembelajaran-page .stat-subtext{
-            font-size: 11px;
-            color: #888;
-            margin-top: 4px;
-        }
-
-        /* =========================
-           TABS NAVIGASI
-        ========================= */
-        .pembelajaran-page .tabs-header-wrap{
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            border-bottom: 2px solid #e2e8f0;
-            margin-bottom: 24px;
-            overflow-x: auto;
-            padding-bottom: 2px;
-        }
-
-        .pembelajaran-page .tabs-nav{
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .pembelajaran-page .tab-btn{
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 11px 18px;
-            border: none;
-            border-bottom: 3px solid transparent;
-            background: transparent;
-            color: #64748b;
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s ease;
-            border-radius: 8px 8px 0 0;
-        }
-
-        .pembelajaran-page .tab-btn:hover{
-            color: var(--maroon);
-            background: #fbf1f3;
-        }
-
-        .pembelajaran-page .tab-btn.active{
-            color: var(--maroon);
-            border-bottom-color: var(--maroon);
-            background: #fbf1f3;
-        }
-
-        .pembelajaran-page .kelompok-select-form{
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
-        }
-
-        .pembelajaran-page .kelompok-select-label{
-            font-size: 13px;
-            font-weight: 600;
-            color: #475569;
-        }
-
-        .pembelajaran-page .kelompok-select{
-            padding: 6px 12px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            font-family: inherit;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--maroon);
-            background: #fff;
-            outline: none;
-            cursor: pointer;
-        }
-
-        .pembelajaran-page .kelompok-select:focus{
-            border-color: var(--maroon);
-        }
-
-        .pembelajaran-page .tab-pane{
-            display: none;
-            animation: fadeIn 0.2s ease;
-        }
-
-        .pembelajaran-page .tab-pane.active{
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* =========================
-           CARDS & CONTENT
-        ========================= */
-        .pembelajaran-page .card{
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 22px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-            margin-bottom: 22px;
-        }
-
-        .pembelajaran-page .card-header{
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 18px;
-        }
-
-        .pembelajaran-page .card-title{
-            font-size: 18px;
-            font-weight: 700;
-            color: #0f172a;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .pembelajaran-page .card-desc{
-            font-size: 13px;
-            color: var(--muted);
-            margin-top: 2px;
-        }
-
-        /* =========================
-           GRID 5 MATA PELAJARAN
-        ========================= */
-        .pembelajaran-page .mapel-grid{
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-            gap: 18px;
-        }
-
-        .pembelajaran-page .mapel-card{
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
-            padding: 18px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .pembelajaran-page .mapel-card:hover{
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(121, 12, 32, 0.08);
-            border-color: #edd5db;
-        }
-
-        .pembelajaran-page .mapel-card-top{
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .pembelajaran-page .badge-pill{
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 3px 10px;
-            border-radius: 9999px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        .pembelajaran-page .badge-maroon{ background: var(--maroon-light); color: var(--maroon); border: 1px solid #f1d5dc; }
-        .pembelajaran-page .badge-blue{ background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
-        .pembelajaran-page .badge-green{ background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
-        .pembelajaran-page .badge-amber{ background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
-        .pembelajaran-page .badge-gray{ background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
-
-        .pembelajaran-page .mapel-title{
-            font-size: 16px;
-            font-weight: 700;
-            color: #0f172a;
-            line-height: 1.4;
-            margin-bottom: 6px;
-        }
-
-        .pembelajaran-page .mapel-meta-row{
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            font-size: 12px;
-            color: var(--muted);
-            margin-bottom: 8px;
-        }
-
-        .pembelajaran-page .mapel-meta-item{
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .pembelajaran-page .mapel-desc{
-            font-size: 12px;
-            color: #64748b;
-            line-height: 1.5;
-            margin-bottom: 14px;
-        }
-
-        .pembelajaran-page .progress-block{
-            background: #f8fafc;
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 14px;
-            border: 1px solid #f1f5f9;
-        }
-
-        .pembelajaran-page .progress-header{
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 12px;
-            margin-bottom: 6px;
-        }
-
-        .pembelajaran-page .progress-header strong{
-            color: #1e293b;
-        }
-
-        .pembelajaran-page .progress-bar-wrap{
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 9999px;
-            overflow: hidden;
-            margin-bottom: 8px;
-        }
-
-        .pembelajaran-page .progress-bar-fill{
-            width: 0;
-            height: 100%;
-            background: linear-gradient(90deg, #790c20, #b91c1c);
-            border-radius: 9999px;
-            transition: width 0.3s ease;
-        }
-
-        .pembelajaran-page .progress-bar-fill.complete{
-            background: linear-gradient(90deg, #15803d, #10b981);
-        }
-
-        .pembelajaran-page .progress-pills{
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            flex-wrap: wrap;
-        }
-
-        .pembelajaran-page .pill-stat{
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-weight: 600;
-        }
-
-        .pembelajaran-page .pill-stat.hadir{ background: #dcfce7; color: #166534; }
-        .pembelajaran-page .pill-stat.izin{ background: #e0f2fe; color: #075985; }
-        .pembelajaran-page .pill-stat.sakit{ background: #fef3c7; color: #92400e; }
-        .pembelajaran-page .pill-stat.alpa{ background: #fee2e2; color: #991b1b; }
-
-        .pembelajaran-page .btn-view-detail{
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            width: 100%;
-            padding: 9px 14px;
-            border-radius: 8px;
-            border: 1px solid #edd5db;
-            background: #fff;
-            color: var(--maroon);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .pembelajaran-page .btn-view-detail:hover{
-            background: var(--maroon);
-            color: #fff;
-            border-color: var(--maroon);
-        }
-
-        /* =========================
-           TABEL & JADWAL
-        ========================= */
-        .pembelajaran-page .table-responsive{
-            width: 100%;
-            overflow-x: auto;
-            border-radius: 12px;
-            border: 1px solid #edd5db;
-        }
-
-        .pembelajaran-page .custom-table{
-            width: 100%;
-            min-width: 720px;
-            border-collapse: separate;
-            border-spacing: 0;
-            background: #fff;
-        }
-
-        .pembelajaran-page .custom-table thead th{
-            padding: 12px 14px;
-            background: #790c20;
-            color: #fff;
-            font-size: 13px;
-            font-weight: 700;
-            text-align: center;
-            white-space: nowrap;
-        }
-
-        .pembelajaran-page .custom-table tbody td{
-            padding: 12px 14px;
-            border-bottom: 1px solid #f1f5f9;
-            text-align: center;
-            font-size: 13px;
-            color: #334155;
-        }
-
-        .pembelajaran-page .custom-table tbody tr:hover td{
-            background: #fdf8f9;
-        }
-
-        .pembelajaran-page .custom-table tbody tr.kelompok-saya{
-            background: #fffcf4;
-        }
-
-        /* JADWAL TERDEKAT CARDS */
-        .pembelajaran-page .schedule-grid{
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 14px;
-            margin-bottom: 22px;
-        }
-
-        .pembelajaran-page .schedule-card-item{
-            background: #fff;
-            border: 1px solid #edd5db;
-            border-radius: 12px;
-            padding: 14px 16px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            transition: box-shadow 0.2s;
-        }
-
-        .pembelajaran-page .schedule-card-item:hover{
-            box-shadow: 0 4px 12px rgba(121, 12, 32, 0.08);
-        }
-
-        .pembelajaran-page .schedule-time-box{
-            width: 82px;
-            min-width: 82px;
-            height: 78px;
-            border-radius: 10px;
-            background: var(--maroon-light);
-            color: var(--maroon);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
-
-        .pembelajaran-page .schedule-day-label{
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .pembelajaran-page .schedule-date-num{
-            font-size: 18px;
-            font-weight: 800;
-            line-height: 1.1;
-        }
-
-        .pembelajaran-page .schedule-details h4{
-            font-size: 14px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 4px;
-            line-height: 1.35;
-        }
-
-        .pembelajaran-page .schedule-details p{
-            font-size: 12px;
-            color: var(--muted);
-            line-height: 1.5;
-        }
-
-        /* =========================
-           KELULUSAN & SERTIFIKAT
-        ========================= */
-        .pembelajaran-page .graduation-banner{
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 18px;
-        }
-
-        .pembelajaran-page .graduation-banner.lulus{
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-            border: 2px solid #86efac;
-        }
-
-        .pembelajaran-page .graduation-banner.proses{
-            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-            border: 2px solid #fde68a;
-        }
-
-        .pembelajaran-page .grad-icon-wrap{
-            width: 58px;
-            height: 58px;
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-            font-size: 28px;
-            flex-shrink: 0;
-        }
-
-        .pembelajaran-page .graduation-banner.lulus .grad-icon-wrap{
-            background: #15803d;
-            color: #fff;
-        }
-
-        .pembelajaran-page .graduation-banner.proses .grad-icon-wrap{
-            background: #b45309;
-            color: #fff;
-        }
-
-        .pembelajaran-page .grad-content{
-            flex: 1;
-            min-width: 260px;
-        }
-
-        .pembelajaran-page .grad-title{
-            font-size: 19px;
-            font-weight: 800;
-            margin-bottom: 4px;
-        }
-
-        .pembelajaran-page .graduation-banner.lulus .grad-title{ color: #14532d; }
-        .pembelajaran-page .graduation-banner.proses .grad-title{ color: #78350f; }
-
-        .pembelajaran-page .grad-desc{
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .pembelajaran-page .graduation-banner.lulus .grad-desc{ color: #166534; }
-        .pembelajaran-page .graduation-banner.proses .grad-desc{ color: #92400e; }
-
-        .pembelajaran-page .btn-certificate{
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 24px;
-            border-radius: 12px;
-            background: #15803d;
-            color: #fff;
-            font-size: 14px;
-            font-weight: 700;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(21, 128, 61, 0.25);
-            transition: all 0.2s;
-        }
-
-        .pembelajaran-page .btn-certificate:hover{
-            background: #166534;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 14px rgba(21, 128, 61, 0.35);
-        }
-
-        .pembelajaran-page .btn-certificate:disabled{
-            background: #cbd5e1;
-            color: #64748b;
-            cursor: not-allowed;
-            box-shadow: none;
-            transform: none;
-        }
-
-        /* =========================
-           KALENDER
-        ========================= */
-        .pembelajaran-page .calendar-card{
-            width: 100%;
-            max-width: 680px;
-            background: #fff;
-            border: 1px solid #edd5db;
-            border-radius: 14px;
-            padding: 18px 20px;
-        }
-
-        .pembelajaran-page .calendar-heading{
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
-        }
-
-        .pembelajaran-page .calendar-heading h3{
-            font-size: 15px;
-            font-weight: 700;
-            color: #0f172a;
-        }
-
-        .pembelajaran-page .calendar-toolbar{
-            display: grid;
-            grid-template-columns: 32px 1fr 32px;
-            align-items: center;
-            text-align: center;
-            margin-bottom: 12px;
-        }
-
-        .pembelajaran-page .calendar-toolbar strong{
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--maroon);
-        }
-
-        .pembelajaran-page .calendar-toolbar button{
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            color: var(--maroon);
-            font-size: 18px;
-            cursor: pointer;
-            height: 32px;
-            display: grid;
-            place-items: center;
-        }
-
-        .pembelajaran-page .calendar-toolbar button:hover{
-            background: var(--maroon-light);
-        }
-
-        .pembelajaran-page .calendar-grid{
-            display: grid;
-            grid-template-columns: repeat(7, minmax(0, 1fr));
-            gap: 6px;
-        }
-
-        .pembelajaran-page .day-name{
-            text-align: center;
-            color: var(--muted);
-            font-size: 11px;
-            font-weight: 600;
-            padding: 4px 0 8px;
-        }
-
-        .pembelajaran-page .calendar-day{
-            min-height: 42px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            border-radius: 8px;
-            color: #334155;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            border: 1px solid transparent;
-            transition: all 0.15s;
-        }
-
-        .pembelajaran-page .calendar-day:hover{
-            background: #f8fafc;
-            border-color: #cbd5e1;
-        }
-
-        .pembelajaran-page .calendar-day.muted{
-            color: #cbd5e1;
-            cursor: default;
-        }
-
-        .pembelajaran-page .calendar-day.today{
-            border: 2px solid var(--maroon);
-            font-weight: 700;
-        }
-
-        .pembelajaran-page .calendar-day.has-event{
-            background: var(--maroon-light);
-            border-color: #f1d5dc;
-            color: var(--maroon);
-            font-weight: 700;
-        }
-
-        .pembelajaran-page .calendar-day.has-event::after{
-            content: "";
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background: var(--maroon);
-            position: absolute;
-            bottom: 4px;
-        }
-
-        .pembelajaran-page .calendar-legend{
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            color: var(--muted);
-            margin-top: 14px;
-            padding-top: 10px;
-            border-top: 1px solid #f1f5f9;
-        }
-
-        .pembelajaran-page .legend-dot{
-            width: 8px;
-            height: 8px;
-            background: var(--maroon);
-            border-radius: 50%;
-        }
-
-        .pembelajaran-page .calendar-info-box{
-            margin-top: 14px;
-            padding: 12px 14px;
-            background: #fdf8f9;
-            border-radius: 10px;
-            border: 1px solid #edd5db;
-            font-size: 13px;
-        }
-
-        /* =========================
-           MODALS
-        ========================= */
-        .pembelajaran-page .modal-overlay{
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(2px);
-            z-index: 200;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-            opacity: 0;
-            transition: opacity 0.25s ease;
-        }
-
-        .pembelajaran-page .modal-overlay.active{
-            display: flex;
-            opacity: 1;
-        }
-
-        .pembelajaran-page .modal-card{
-            background: #fff;
-            border-radius: 18px;
-            max-width: 740px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-            display: flex;
-            flex-direction: column;
-            transform: scale(0.96);
-            transition: transform 0.25s ease;
-        }
-
-        .pembelajaran-page .modal-overlay.active .modal-card{
-            transform: scale(1);
-        }
-
-        .pembelajaran-page .modal-top{
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px 24px;
-            border-bottom: 1px solid #f1f5f9;
-            background: #fdf8f9;
-            border-top-left-radius: 18px;
-            border-top-right-radius: 18px;
-        }
-
-        .pembelajaran-page .modal-top-title{
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--maroon);
-        }
-
-        .pembelajaran-page .modal-close-btn{
-            background: none;
-            border: none;
-            font-size: 26px;
-            color: #64748b;
-            cursor: pointer;
-            line-height: 1;
-        }
-
-        .pembelajaran-page .modal-inner{
-            padding: 22px 24px;
-        }
-
-        .pembelajaran-page .modal-footer-btns{
-            padding: 16px 24px;
-            background: #f8fafc;
-            border-top: 1px solid #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 10px;
-            border-bottom-left-radius: 18px;
-            border-bottom-right-radius: 18px;
-        }
-
-        .pembelajaran-page .btn-modal-cancel{
-            padding: 9px 18px;
-            background: #e2e8f0;
-            color: #334155;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .pembelajaran-page .btn-modal-action{
-            padding: 9px 18px;
-            background: var(--maroon);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .pembelajaran-page .pertemuan-grid{
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 10px;
-            margin-top: 14px;
-            max-height: 380px;
-            overflow-y: auto;
-            padding: 4px;
-        }
-
-        .pembelajaran-page .pertemuan-card-item{
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 10px 12px;
-            text-align: center;
-        }
-
-        .pembelajaran-page .pertemuan-card-num{
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--maroon);
-        }
-
-        .pembelajaran-page .pertemuan-card-date{
-            font-size: 11px;
-            color: #64748b;
-            margin-top: 2px;
-        }
-
-        .pembelajaran-page .pertemuan-card-badge{
-            display: inline-block;
-            margin-top: 6px;
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 9999px;
-            font-weight: 700;
-        }
-
-        /* RINGKASAN KEHADIRAN PADA MODAL MATA PELAJARAN */
-        .pembelajaran-page .abs-ringkasan{
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .pembelajaran-page .abs-stat{
-            padding: 8px 10px;
-            border: 1px solid #e6dde0;
-            border-radius: 10px;
-            background: #fff;
-            text-align: center;
-        }
-
-        .pembelajaran-page .abs-stat-label{
-            display: block;
-            color: #8b7e84;
-            font-size: 10.5px;
-            font-weight: 700;
-            letter-spacing: .04em;
-            text-transform: uppercase;
-        }
-
-        .pembelajaran-page .abs-stat strong{
-            display: block;
-            margin-top: 2px;
-            color: var(--maroon);
-            font-size: 18px;
-            font-weight: 700;
-            line-height: 1.2;
-        }
-
-        .pembelajaran-page .abs-stat.hadir strong{ color: #15803d; }
-        .pembelajaran-page .abs-stat.izin strong{ color: #1d4ed8; }
-        .pembelajaran-page .abs-stat.sakit strong{ color: #b45309; }
-        .pembelajaran-page .abs-stat.alpa strong{ color: #b91c1c; }
-
-        .pembelajaran-page .abs-stat--persen{
-            border-color: #e6d7b8;
-            background: #fffdf7;
-        }
-
-        .pembelajaran-page .abs-stat-note{
-            display: block;
-            margin-top: 2px;
-            color: #8b7e84;
-            font-size: 10.5px;
-            line-height: 1.35;
-        }
-
-        .pembelajaran-page .abs-periode{
-            margin-bottom: 12px;
-            border: 1px solid #efe5e7;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .pembelajaran-page .abs-periode-item{
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 4px 10px;
-            padding: 7px 11px;
-            border-bottom: 1px solid #f3ebed;
-            font-size: 11.5px;
-        }
-
-        .pembelajaran-page .abs-periode-item:last-child{
-            border-bottom: none;
-        }
-
-        .pembelajaran-page .abs-periode-nama{
-            flex: 1 1 140px;
-            min-width: 0;
-            color: #322a2d;
-            font-weight: 600;
-            overflow-wrap: anywhere;
-        }
-
-        .pembelajaran-page .abs-periode-detail{
-            color: #8b7e84;
-            font-size: 11px;
-        }
-
-        .pembelajaran-page .abs-periode-persen{
-            padding: 2px 9px;
-            border-radius: 999px;
-            background: #fdf6e8;
-            color: #6B0D1B;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        @media (max-width: 560px) {
-            .pembelajaran-page .abs-ringkasan{
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .pembelajaran-page .modal-inner{
-                padding: 16px;
-            }
-        }
-
-        /* SERTIFIKAT MODAL */
-        .pembelajaran-page .certificate-wrapper{
-            max-width: 680px;
-            text-align: center;
-            border: 8px double #800d22;
-            background: #fffcf8;
-            padding: 30px 40px;
-            position: relative;
-        }
-
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            #printableCertificate, #printableCertificate * {
-                visibility: visible;
-            }
-            #printableCertificate {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                border: 8px double #800d22 !important;
-                background: #fffcf8 !important;
-                padding: 40px !important;
-            }
-            .modal-footer-btns, .modal-close-btn {
-                display: none !important;
-            }
-        }
-
-        /* =========================
-           RESPONSIVE MOBILE
-        ========================= */
-        .pembelajaran-page .mobile-toggle, .pembelajaran-page .mobile-overlay{
-            display: none;
-        }
-
-        @media (max-width: 1100px) {
-            .pembelajaran-page .main{ padding: 100px 24px 30px; }
-            .pembelajaran-page .stats-grid{ grid-template-columns: repeat(2, 1fr); }
-        }
-
-        /* Di bawah 992px sidebar bersama menjadi laci dan konten memakai lebar penuh. */
-        @media (max-width: 991px) {
-            .pembelajaran-page .main, .pembelajaran-page body.sb-sempit .main{margin-left: 0;}
-            .pembelajaran-page .mobile-toggle{
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                border: 1px solid #e5d4d8;
-                border-radius: 8px;
-                padding: 7px 12px;
-                background: white;
-                color: var(--maroon);
-                margin-bottom: 14px;
-                cursor: pointer;
-                font-weight: 600;
-            }
-
-            .pembelajaran-page .mobile-overlay.open{
-                display: block;
-                position: fixed;
-                inset: 0;
-                background: rgba(0, 0, 0, .4);
-                z-index: 930;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .pembelajaran-page .topbar{ height: 72px; padding: 0 16px; }
-            .pembelajaran-page .brand-name{ font-size: 22px; }
-            .pembelajaran-page .brand-logo{ width: 44px; height: 42px; }
-            .pembelajaran-page .user-info-pill{ display: none; }
-            .pembelajaran-page .main{ padding: 86px 16px 30px; }
-            .pembelajaran-page .page-title{ font-size: 24px; }
-            .pembelajaran-page .stats-grid{ grid-template-columns: 1fr; }
-            .pembelajaran-page .mapel-grid{ grid-template-columns: 1fr; }
-            .pembelajaran-page .graduation-banner{ flex-direction: column; text-align: center; }
-            .pembelajaran-page .grad-icon-wrap{ margin: 0 auto; }
-            .pembelajaran-page .tabs-header-wrap{ flex-direction: column; align-items: flex-start; }
-            .pembelajaran-page .kelompok-select-form{ width: 100%; justify-content: space-between; }
-        }
-    /* Isolasi halaman Pembelajaran, supaya tidak mengubah header/sidebar panel. */
-    .pembelajaran-page {
-        width: 100%;
-        min-width: 0;
-    }
-    .pembelajaran-page .modal-overlay {
-        z-index: 1200; /* Di atas topbar global (1000) dan sidebar (900). */
-    }
-
+/* SIMAHAD | Pembelajaran Mahasiswa
+   Hanya mengatur konten, bukan header/sidebar dari layouts.mahasiswa. */
+.pembelajaran-page {
+  --maroon:#800b22; --maroon-dark:#65091a; --maroon-soft:#fff3f6;
+  --line:#eadfe3; --ink:#211d25; --muted:#776e7b;
+  --green:#137a4a; --amber:#a36a13; --red:#ba354d;
+  width:100% !important; max-width:100% !important; min-width:0 !important;
+  display:block !important; clear:both; margin:0 !important; padding:0 0 30px !important;
+  color:var(--ink); background:transparent; font-family:'Plus Jakarta Sans',Poppins,Arial,sans-serif;
+  font-size:13px; line-height:1.55; container-type:inline-size;
+}
+.pembelajaran-page,.pembelajaran-page *,.pembelajaran-page *::before,.pembelajaran-page *::after {box-sizing:border-box}
+.pembelajaran-page > *, .pembelajaran-page section, .pembelajaran-page div, .pembelajaran-page article {min-width:0}
+.pembelajaran-page a {color:inherit;text-decoration:none}
+.pembelajaran-page button,.pembelajaran-page input,.pembelajaran-page select {font:inherit}
+.pembelajaran-page button {cursor:pointer}
+.pembelajaran-page a:focus-visible,.pembelajaran-page button:focus-visible {outline:3px solid rgba(201,169,106,.5);outline-offset:2px}
+/* Header halaman: hanya breadcrumb menuju dashboard, tanpa tombol kembali tambahan */
+.pembelajaran-page .page-header-row {
+  display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;
+  gap:12px;margin:0 0 18px;padding:0 0 17px;border-bottom:1px solid #ead5dc;
+}
+.pembelajaran-page .page-header-row > div:first-child {flex:1 1 580px;min-width:0}
+.pembelajaran-page .breadcrumb {display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:0 0 10px;color:#8f8290;font-size:12px;font-weight:550}
+.pembelajaran-page .breadcrumb a {color:var(--maroon);font-weight:750}
+.pembelajaran-page .breadcrumb a:hover {text-decoration:underline}
+.pembelajaran-page .page-title {margin:0;color:#251b26;font-size:clamp(21px,2.1vw,28px);font-weight:800;line-height:1.28;letter-spacing:-.028em}
+.pembelajaran-page .page-description {margin:6px 0 0;color:var(--muted);font-size:12.5px;line-height:1.7;max-width:950px}
+.pembelajaran-page .sync-badge {display:none}
+.pembelajaran-page .sync-dot {display:none}
+/* Statistik ringkas */
+.pembelajaran-page .stats-grid {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 19px}
+.pembelajaran-page .stat-card {
+  position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:9px;
+  padding:15px 16px 14px;background:#fff;border:1px solid var(--line);border-radius:13px;
+  box-shadow:0 2px 9px rgba(44,11,27,.025);overflow:hidden;
+}
+.pembelajaran-page .stat-card::before {content:'';position:absolute;top:0;bottom:0;left:0;width:3px;background:var(--maroon)}
+.pembelajaran-page .stat-card:nth-child(2)::before{background:#7654b3}
+.pembelajaran-page .stat-card:nth-child(3)::before{background:#238658}
+.pembelajaran-page .stat-card:nth-child(4)::before{background:#cc9140}
+.pembelajaran-page .stat-card > div:first-child {display:grid;grid-template-columns:36px minmax(0,1fr);grid-template-rows:auto auto;align-items:center;column-gap:10px}
+.pembelajaran-page .stat-icon {grid-row:1 / 3;display:grid;place-items:center;width:36px;height:36px;border-radius:10px;background:#fbeaf0;color:var(--maroon)}
+.pembelajaran-page .stat-card:nth-child(2) .stat-icon{background:#f2ecfc}
+.pembelajaran-page .stat-card:nth-child(3) .stat-icon{background:#e9f7ee}
+.pembelajaran-page .stat-card:nth-child(4) .stat-icon{background:#fff3df}
+.pembelajaran-page .stat-icon svg {width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.pembelajaran-page .stat-number {grid-column:2;font-size:clamp(17px,1.65vw,23px);font-weight:800;color:#241b26;line-height:1.25;letter-spacing:-.025em;overflow-wrap:anywhere}
+.pembelajaran-page .stat-label {grid-column:2;color:#6e6472;font-size:11px;font-weight:650;line-height:1.45}
+.pembelajaran-page .stat-subtext {margin:0;padding-top:8px;border-top:1px dashed #eee4e8;font-size:10.7px;color:#8b808a;line-height:1.5;overflow-wrap:anywhere}
+/* Tab: horizontal di dalam panel, bukan melebar keluar halaman */
+.pembelajaran-page .tabs-header-wrap {display:flex;flex-direction:column;align-items:stretch;gap:10px;min-width:0;margin:0 0 16px;padding:10px 12px;background:#fff;border:1px solid var(--line);border-radius:13px;overflow:hidden}
+.pembelajaran-page .tabs-nav {display:flex;gap:7px;width:100%;max-width:100%;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;padding:1px 1px 6px;scrollbar-width:thin;scrollbar-color:#e2c6cf transparent}
+.pembelajaran-page .tab-btn {display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;gap:5px;min-height:37px;padding:8px 12px;color:#695f6c;background:#fff;border:1px solid #eee4e7;border-radius:8px;font-size:11.5px;font-weight:700;white-space:nowrap;transition:background .15s,color .15s,border-color .15s}
+.pembelajaran-page .tab-btn:hover {background:#fff5f7;color:var(--maroon);border-color:#e3bdc6}
+.pembelajaran-page .tab-btn.active {background:var(--maroon);border-color:var(--maroon);color:#fff;box-shadow:0 3px 9px rgba(128,11,34,.1)}
+.pembelajaran-page .kelompok-select-form {display:flex;align-items:center;align-self:flex-end;flex-wrap:wrap;gap:7px;padding:2px 4px;color:#695b64}
+.pembelajaran-page .kelompok-select-label {font-size:11px;font-weight:650}
+.pembelajaran-page .kelompok-select-form strong {font-size:11.5px !important;color:var(--maroon)!important}
+.pembelajaran-page .tab-pane{display:none;min-width:0}
+.pembelajaran-page .tab-pane.active{display:block}
+/* Kontainer utama di tiap tab */
+.pembelajaran-page .card {width:100%;min-width:0;padding:0;margin:0 0 16px;border:1px solid var(--line);border-radius:14px;background:#fff;box-shadow:0 2px 11px rgba(36,15,28,.024);overflow:hidden}
+.pembelajaran-page .card-header {display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 12px;margin:0 0 14px;padding:15px 18px;border-bottom:1px solid #f1e9eb}
+.pembelajaran-page .card-header > div:first-child {flex:1 1 360px;min-width:0}
+.pembelajaran-page .card-title{display:flex;align-items:center;gap:7px;margin:0;color:#251e27;font-size:15px;font-weight:800;line-height:1.45}
+.pembelajaran-page .card-desc{margin:4px 0 0;color:#807581;font-size:11.5px;line-height:1.6}
+.pembelajaran-page .badge-pill {display:inline-flex;align-items:center;gap:4px;max-width:100%;padding:4px 10px;border:1px solid transparent;border-radius:999px;font-size:10.5px;font-weight:750;line-height:1.4;white-space:normal;overflow-wrap:anywhere;text-align:center}
+.pembelajaran-page .badge-maroon{background:#fbeaf0;color:var(--maroon);border-color:#f0d8de}
+.pembelajaran-page .badge-blue{background:#eaf2ff;color:#315ca3;border-color:#dae8fa}
+.pembelajaran-page .badge-green{background:#e7f7ed;color:#18794b;border-color:#d5eddc}
+.pembelajaran-page .badge-amber{background:#fff3dc;color:#936014;border-color:#f4e4c4}
+.pembelajaran-page .badge-gray{background:#f4f5f7;color:#687180;border-color:#e7e9ec}
+/* Mata pelajaran dua kolom desktop, turun ke bawah saat konten sempit */
+.pembelajaran-page .mapel-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:0 18px 18px}
+.pembelajaran-page .mapel-card {display:flex;flex-direction:column;justify-content:space-between;gap:13px;min-width:0;padding:16px;border:1px solid #eadce1;border-radius:12px;background:#fff;transition:box-shadow .15s,border-color .15s}
+.pembelajaran-page .mapel-card:hover{border-color:#d8afbb;box-shadow:0 5px 16px rgba(70,17,37,.07)}
+.pembelajaran-page .mapel-card-top{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-bottom:10px}
+.pembelajaran-page .mapel-title{margin:0 0 5px;color:#241e26;font-size:15px;font-weight:800;line-height:1.45;overflow-wrap:anywhere}
+.pembelajaran-page .mapel-desc{margin:0 0 12px;color:#7e7580;font-size:11.5px;line-height:1.65}
+.pembelajaran-page .mapel-meta-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 10px;margin:0 0 12px}
+.pembelajaran-page .mapel-meta-item{display:flex;align-items:flex-start;gap:5px;min-width:0;color:#605562;font-size:11px;line-height:1.55;overflow-wrap:anywhere}
+.pembelajaran-page .mapel-meta-item strong{color:#312b34}
+.pembelajaran-page .progress-block{padding:12px;margin:0;border:1px solid #f0e7eb;border-radius:10px;background:#fcf9fa}
+.pembelajaran-page .progress-header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;font-size:11px;color:#766975;margin-bottom:8px}
+.pembelajaran-page .progress-header strong{color:#33262e;font-weight:800}
+.pembelajaran-page .progress-bar-wrap{width:100%;height:7px;margin-bottom:9px;border-radius:999px;background:#ebdfe4;overflow:hidden}
+.pembelajaran-page .progress-bar-fill{width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#800b22,#ba3651);transition:width .2s}
+.pembelajaran-page .progress-bar-fill.complete{background:linear-gradient(90deg,#18794b,#41ac73)}
+.pembelajaran-page .progress-pills{display:flex;flex-wrap:wrap;align-items:center;gap:5px}
+.pembelajaran-page .pill-stat{padding:3px 7px;border-radius:6px;font-size:10px;font-weight:750}
+.pembelajaran-page .pill-stat.hadir{background:#e7f7ed;color:#176944}
+.pembelajaran-page .pill-stat.izin{background:#e8f3ff;color:#2c6697}
+.pembelajaran-page .pill-stat.sakit{background:#fff2da;color:#a06716}
+.pembelajaran-page .pill-stat.alpa{background:#fde9ed;color:#a72640}
+.pembelajaran-page .btn-view-detail{display:inline-flex;align-items:center;justify-content:center;width:100%;min-height:38px;padding:9px 12px;border:1px solid #dfc4cc;border-radius:9px;color:var(--maroon);background:#fff;font-size:11.5px;font-weight:750}
+.pembelajaran-page .btn-view-detail:hover{background:#fff3f6;border-color:#c597a4}
+/* Tabel aman untuk desktop; pada layar HP menjadi kartu dengan label kolom */
+.pembelajaran-page .table-responsive{width:calc(100% - 36px);max-width:100%;margin:0 18px 18px;overflow-x:auto;overscroll-behavior-x:contain;border:1px solid #eadde2;border-radius:10px;scrollbar-width:thin}
+.pembelajaran-page .custom-table{width:100%;min-width:760px;border-collapse:collapse;background:#fff}
+.pembelajaran-page .custom-table thead th{padding:12px 11px;background:var(--maroon);color:#fff;font-size:11px;font-weight:750;text-align:left;white-space:nowrap}
+.pembelajaran-page .custom-table tbody td{padding:11px;border-bottom:1px solid #f1e8eb;color:#433943;font-size:11.5px;line-height:1.55;vertical-align:middle;text-align:left;overflow-wrap:anywhere}
+.pembelajaran-page .custom-table tbody tr:nth-child(even){background:#fffbfc}
+.pembelajaran-page .custom-table tbody tr:hover{background:#fff5f7}
+.pembelajaran-page .custom-table tbody tr:last-child td{border-bottom:0}
+.pembelajaran-page .custom-table tbody tr.kelompok-saya{background:#fffdf8}
+/* Jadwal */
+.pembelajaran-page .schedule-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:0 18px 18px;margin:0}
+.pembelajaran-page .schedule-card-item{display:flex;align-items:center;gap:12px;min-width:0;padding:12px 14px;border:1px solid #eee1e5;border-radius:11px;background:#fff}
+.pembelajaran-page .schedule-time-box{display:flex;flex:0 0 76px;flex-direction:column;align-items:center;justify-content:center;width:76px;min-height:77px;padding:9px;border-radius:10px;background:#fff2f5;color:var(--maroon);text-align:center}
+.pembelajaran-page .schedule-day-label{font-size:10px;font-weight:750;line-height:1.4}
+.pembelajaran-page .schedule-date-num{font-size:19px;font-weight:800;line-height:1.2}
+.pembelajaran-page .schedule-details{flex:1;min-width:0}
+.pembelajaran-page .schedule-details h4{margin:0 0 4px;color:#251d25;font-size:12.5px;font-weight:800;line-height:1.5;overflow-wrap:anywhere}
+.pembelajaran-page .schedule-details p{margin:3px 0 0;color:#796f79;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+/* Audit dan kelulusan */
+.pembelajaran-page .abs-ringkasan{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin:0 0 14px}
+.pembelajaran-page #tab-tugas .abs-ringkasan{grid-template-columns:repeat(4,minmax(0,1fr));margin:0 18px 14px}
+.pembelajaran-page .abs-stat{min-width:0;padding:10px;border:1px solid #eadfe4;border-radius:9px;background:#fff;text-align:center}
+.pembelajaran-page .abs-stat-label{display:block;color:#8c808c;font-size:10px;font-weight:700}
+.pembelajaran-page .abs-stat strong{display:block;margin-top:3px;color:var(--maroon);font-size:19px;font-weight:800;line-height:1.2}
+.pembelajaran-page .abs-stat.hadir strong{color:#15803d}
+.pembelajaran-page .abs-stat.izin strong{color:#1d4ed8}
+.pembelajaran-page .abs-stat.sakit strong{color:#a56b16}
+.pembelajaran-page .abs-stat.alpa strong{color:#b91c1c}
+.pembelajaran-page .abs-stat--persen{background:#fffdf7;border-color:#ecd9b8}
+.pembelajaran-page .abs-stat-note{display:block;margin-top:4px;color:#8c808c;font-size:10px;line-height:1.35}
+.pembelajaran-page .graduation-banner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 16px;padding:19px 20px;border:1px solid #efdba7;border-radius:13px;background:#fffaf0}
+.pembelajaran-page .graduation-banner.lulus{background:#f1fbf5;border-color:#c6e7d0}
+.pembelajaran-page .grad-icon-wrap{display:grid;flex:0 0 48px;place-items:center;width:48px;height:48px;border-radius:12px;background:#fff0cc;font-size:24px}
+.pembelajaran-page .graduation-banner.lulus .grad-icon-wrap{background:#e0f5e8}
+.pembelajaran-page .grad-content{flex:1 1 360px;min-width:0}
+.pembelajaran-page .grad-title{color:#774a13;font-size:15px;font-weight:800;line-height:1.4}
+.pembelajaran-page .graduation-banner.lulus .grad-title{color:#176640}
+.pembelajaran-page .grad-desc{margin:5px 0 0;color:#845f32;font-size:11.5px;line-height:1.7}
+.pembelajaran-page .graduation-banner.lulus .grad-desc{color:#3c7955}
+.pembelajaran-page .btn-certificate{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:9px 15px;border:0;border-radius:9px;background:#21804f;color:#fff;font-size:11.5px;font-weight:750}
+.pembelajaran-page .btn-certificate:hover:not(:disabled){background:#17673f}
+.pembelajaran-page .btn-certificate:disabled{background:#e3e4e6;color:#929aa2;cursor:not-allowed}
+/* Kalender */
+.pembelajaran-page #tab-kalender > .card{display:block!important;padding:18px!important}
+.pembelajaran-page .calendar-card{width:100%;max-width:760px;min-width:0;margin:0 auto;padding:16px;border:1px solid #eee2e5;border-radius:12px;background:#fff}
+.pembelajaran-page .calendar-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:13px}
+.pembelajaran-page .calendar-heading h3{margin:0;font-size:14px;font-weight:800;color:#29212a}
+.pembelajaran-page .calendar-toolbar{display:grid;grid-template-columns:36px minmax(0,1fr) 36px;align-items:center;gap:8px;margin:0 0 10px;text-align:center}
+.pembelajaran-page .calendar-toolbar strong{font-size:13px;color:var(--maroon)}
+.pembelajaran-page .calendar-toolbar button{display:grid;place-items:center;min-height:34px;padding:0;border:1px solid #e4d6db;border-radius:8px;color:var(--maroon);background:#fff;font-size:18px}
+.pembelajaran-page .calendar-toolbar button:hover{background:#fff2f6}
+.pembelajaran-page .calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.pembelajaran-page .day-name{text-align:center;padding:6px 0;color:#8f8690;font-size:10px;font-weight:700}
+.pembelajaran-page .calendar-day{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;min-height:42px;border:1px solid transparent;border-radius:8px;color:#413b43;font-size:12px;cursor:pointer}
+.pembelajaran-page .calendar-day:hover{background:#f8f3f4}
+.pembelajaran-page .calendar-day.muted{color:#c2bcc3;cursor:default}
+.pembelajaran-page .calendar-day.today{border-color:#be93a0;font-weight:800}
+.pembelajaran-page .calendar-day.has-event{background:#faebef;border-color:#efdae0;color:var(--maroon);font-weight:800}
+.pembelajaran-page .calendar-day.has-event::after{content:'';position:absolute;bottom:4px;width:5px;height:5px;border-radius:50%;background:var(--maroon)}
+.pembelajaran-page .calendar-legend{display:flex;align-items:center;gap:7px;margin-top:12px;padding-top:11px;border-top:1px solid #f0e8ea;color:#7a717d;font-size:11px}
+.pembelajaran-page .legend-dot{flex:0 0 8px;width:8px;height:8px;border-radius:50%;background:var(--maroon)}
+.pembelajaran-page .calendar-info-box{margin-top:11px;padding:12px;border:1px solid #f0e0e5;border-radius:9px;background:#fffbfc;color:#645966;font-size:11.5px;line-height:1.7;overflow-wrap:anywhere}
+/* Modal di atas layout bersama, tombol dan konten tetap berfungsi */
+.pembelajaran-page .modal-overlay{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:15px;background:rgba(22,12,20,.58);overflow-y:auto}
+.pembelajaran-page .modal-overlay.active{display:flex}
+.pembelajaran-page .modal-card{display:flex;flex-direction:column;width:min(100%,740px);max-height:min(90vh,900px);min-width:0;margin:auto;overflow-y:auto;border:1px solid #ebdce1;border-radius:15px;background:#fff;box-shadow:0 25px 65px rgba(23,11,23,.22)}
+.pembelajaran-page .modal-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 20px;border-bottom:1px solid #eee3e7;background:#fff8fa}
+.pembelajaran-page .modal-top-title{font-size:15px;font-weight:800;color:var(--maroon)}
+.pembelajaran-page .modal-close-btn{flex:0 0 auto;border:0;background:transparent;color:#77707a;font-size:25px;line-height:1;cursor:pointer}
+.pembelajaran-page .modal-inner{padding:17px 20px}
+.pembelajaran-page .modal-footer-btns{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;padding:13px 20px;border-top:1px solid #eee5e8;background:#fffafb}
+.pembelajaran-page .btn-modal-cancel,.pembelajaran-page .btn-modal-action{padding:9px 16px;border:1px solid #e6d5db;border-radius:8px;color:#6c5360;background:#fff;font-size:11.5px;font-weight:750}
+.pembelajaran-page .btn-modal-action{color:#fff;background:var(--maroon);border-color:var(--maroon)}
+.pembelajaran-page .pertemuan-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;max-height:340px;margin-top:11px;padding:2px;overflow-y:auto}
+.pembelajaran-page .pertemuan-card-item{min-width:0;padding:10px;border:1px solid #ece1e5;border-radius:9px;background:#fffafa;text-align:center}
+.pembelajaran-page .pertemuan-card-num{font-size:11.5px;font-weight:750;color:var(--maroon)}
+.pembelajaran-page .pertemuan-card-date{margin-top:3px;color:#827883;font-size:10.5px}
+.pembelajaran-page .pertemuan-card-badge{display:inline-flex;margin-top:6px;padding:3px 9px;border-radius:999px;font-size:10.5px;font-weight:700}
+.pembelajaran-page .abs-periode{margin:0 0 14px;border:1px solid #eee4e7;border-radius:10px;overflow:hidden}
+.pembelajaran-page .abs-periode-item{display:flex;align-items:center;flex-wrap:wrap;gap:6px 11px;padding:8px 12px;border-bottom:1px solid #f3ebed;font-size:11px}
+.pembelajaran-page .abs-periode-item:last-child{border-bottom:0}
+.pembelajaran-page .abs-periode-nama{flex:1 1 140px;min-width:0;font-weight:700;overflow-wrap:anywhere}
+.pembelajaran-page .abs-periode-detail{color:#827883}
+.pembelajaran-page .abs-periode-persen{padding:3px 9px;border-radius:999px;color:var(--maroon);background:#fff5e5;font-weight:700}
+.pembelajaran-page .certificate-wrapper{width:min(100%,740px);max-width:740px;padding:25px;border:7px double #800b22;background:#fffcf8;text-align:center;overflow-wrap:anywhere}
+/* Responsif berdasarkan lebar KONTEN, bukan lebar browser (sidebar bisa terbuka). */
+@container (max-width:1050px){
+ .pembelajaran-page .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .pembelajaran-page .mapel-grid,.pembelajaran-page .schedule-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .pembelajaran-page .mapel-meta-row{grid-template-columns:1fr}
+}
+@container (max-width:800px){
+ .pembelajaran-page .mapel-grid,.pembelajaran-page .schedule-grid{grid-template-columns:minmax(0,1fr)}
+ .pembelajaran-page .card-header{align-items:flex-start}
+ .pembelajaran-page .tabs-header-wrap{padding:9px}
+}
+@container (max-width:650px){
+ .pembelajaran-page .page-description{font-size:12px}
+ .pembelajaran-page .stat-card{padding:12px}
+ .pembelajaran-page .stat-number{font-size:18px}
+ .pembelajaran-page .card-header{padding:13px 14px}
+ .pembelajaran-page .mapel-grid,.pembelajaran-page .schedule-grid{padding:0 13px 14px}
+ .pembelajaran-page .mapel-card{padding:13px}
+ .pembelajaran-page .table-responsive{width:calc(100% - 26px);margin:0 13px 14px;overflow:visible;border:0;border-radius:0}
+ .pembelajaran-page .custom-table{width:100%;min-width:0;display:block;background:transparent}
+ .pembelajaran-page .custom-table thead{display:none}
+ .pembelajaran-page .custom-table tbody{display:grid;gap:10px}
+ .pembelajaran-page .custom-table tbody tr,.pembelajaran-page .custom-table tbody tr.kelompok-saya{display:block;padding:10px 12px;border:1px solid #eadde1;border-radius:10px;background:#fff;overflow:hidden}
+ .pembelajaran-page .custom-table tbody td{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;width:100%;padding:7px 0;border-bottom:1px dashed #f0e5e9;text-align:right !important;min-width:0}
+ .pembelajaran-page .custom-table tbody td:not([colspan])::before{content:attr(data-label);flex:0 0 42%;color:#897b85;font-size:10.5px;font-weight:700;text-align:left}
+ .pembelajaran-page .custom-table tbody td:last-child{border-bottom:0}
+ .pembelajaran-page .custom-table tbody td[colspan]{display:block;text-align:center!important}
+ .pembelajaran-page #tab-tugas .abs-ringkasan{grid-template-columns:repeat(2,minmax(0,1fr));margin:0 13px 13px}
+ .pembelajaran-page .calendar-card{padding:10px}
+ .pembelajaran-page .calendar-day{min-height:34px;font-size:11px}
+ .pembelajaran-page .graduation-banner{padding:15px;gap:11px}
+ .pembelajaran-page .pertemuan-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .pembelajaran-page .modal-top{padding:13px 14px}
+ .pembelajaran-page .modal-inner{padding:13px 14px}
+ .pembelajaran-page .modal-footer-btns{padding:12px 14px}
+ .pembelajaran-page .abs-ringkasan{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .pembelajaran-page .certificate-wrapper{padding:15px;border-width:5px}
+}
+@container (max-width:390px){
+ .pembelajaran-page .stats-grid{gap:8px}
+ .pembelajaran-page .stat-card > div:first-child{grid-template-columns:1fr;gap:6px}
+ .pembelajaran-page .stat-icon{grid-row:auto;width:30px;height:30px}
+ .pembelajaran-page .stat-number,.pembelajaran-page .stat-label{grid-column:1}
+ .pembelajaran-page .tab-btn{font-size:11px;padding:8px 10px}
+ .pembelajaran-page .calendar-grid{gap:2px}
+ .pembelajaran-page .calendar-day{min-height:31px}
+}
+@media (prefers-reduced-motion:reduce){
+ .pembelajaran-page *{transition:none!important;animation:none!important}
+}
+/* Sertifikat: ketika dicetak, sembunyikan panel lainnya */
+@media print{
+ body *{visibility:hidden!important}
+ #printableCertificate,#printableCertificate *{visibility:visible!important}
+ #printableCertificate{position:fixed!important;left:0!important;top:0!important;width:100%!important;max-width:none!important;max-height:none!important;overflow:visible!important;border:8px double #800b22!important;background:#fffcf8!important;padding:35px!important;box-shadow:none!important}
+ #printableCertificate .modal-footer-btns,#printableCertificate .modal-close-btn{display:none!important}
+}
 </style>
 @endpush
 
@@ -1380,19 +253,13 @@
 <div class="pembelajaran-page">
         <div class="page-header-row">
             <div>
-                <div class="breadcrumb">Dashboard / Pembelajaran Mahasiswa</div>
+                <nav class="breadcrumb" aria-label="Navigasi halaman"><a href="{{ route('dashboard') }}">Dashboard</a><span aria-hidden="true">/</span><span aria-current="page">Pembelajaran Mahasiswa</span></nav>
                 <h1 class="page-title">Pembelajaran Mahasiswa</h1>
                 <p class="page-description">
                     Mata pelajaran, jadwal tatap muka, materi, dan tugas yang ditetapkan Musyrifah untuk kelompok belajar Anda di Ma'had Al-Jami'ah, beserta progres pertemuan dan status sertifikat kelulusan.
                 </p>
             </div>
-            <div>
-                <div class="sync-badge" title="Data tersinkronisasi otomatis dengan pengaturan pembelajaran Musyrifah">
-                    <span class="sync-dot"></span>
-                    
-                </div>
-            </div>
-        </div>
+</div>
 
         @if($belumAdaKelompok)
             {{-- Mahasiswa belum ditempatkan Musyrifah pada kelompok belajar mana pun --}}
@@ -1635,14 +502,14 @@
                         <tbody>
                             @forelse($jadwalSaya as $idx => $js)
                                 <tr>
-                                    <td>{{ $idx + 1 }}</td>
-                                    <td style="font-weight: 700; color: var(--maroon);">{{ $js->hari }}</td>
-                                    <td style="font-weight: 600;">{{ $js->jamTeks() }}</td>
-                                    <td style="text-align: left; font-weight: 600;">{{ $js->namaMataPelajaran() }}</td>
-                                    <td><span class="badge-pill badge-blue">{{ $js->kelompok }}</span></td>
-                                    <td style="text-align: left;">{{ $js->namaGuruPengampu() }}</td>
-                                    <td>{{ $js->ruangan ?: '-' }}</td>
-                                    <td style="font-size: 12px; color: #64748b;">{{ $js->periode ?: '-' }}</td>
+                                    <td data-label="No">{{ $idx + 1 }}</td>
+                                    <td style="font-weight: 700; color: var(--maroon);" data-label="Hari">{{ $js->hari }}</td>
+                                    <td style="font-weight: 600;" data-label="Waktu">{{ $js->jamTeks() }}</td>
+                                    <td style="text-align: left; font-weight: 600;" data-label="Mata Pelajaran">{{ $js->namaMataPelajaran() }}</td>
+                                    <td data-label="Kelompok"><span class="badge-pill badge-blue">{{ $js->kelompok }}</span></td>
+                                    <td style="text-align: left;" data-label="Guru Pengampu">{{ $js->namaGuruPengampu() }}</td>
+                                    <td data-label="Ruangan">{{ $js->ruangan ?: '-' }}</td>
+                                    <td style="font-size: 12px; color: #64748b;" data-label="Periode">{{ $js->periode ?: '-' }}</td>
                                 </tr>
                             @empty
                                 <tr>
@@ -1691,15 +558,15 @@
                             <tbody>
                                 @foreach($materiPembelajaran as $idx => $materi)
                                     <tr>
-                                        <td>{{ $idx + 1 }}</td>
-                                        <td style="text-align: left; font-weight: 600;">{{ $materi['mapel'] }}</td>
-                                        <td><span class="badge-pill badge-blue">{{ $materi['kelompok'] }}</span></td>
-                                        <td>Ke-{{ $materi['pertemuan_ke'] }}</td>
-                                        <td style="font-size: 12px; color: #64748b;">{{ $materi['tanggal'] }}</td>
-                                        <td style="text-align: left;">{{ $materi['judul'] }}</td>
-                                        <td style="text-align: left; font-size: 12px; color: #475569;">{{ \Illuminate\Support\Str::limit($materi['ringkasan'], 90) ?: '-' }}</td>
-                                        <td style="text-align: left;">{{ $materi['guru'] }}</td>
-                                        <td>
+                                        <td data-label="No">{{ $idx + 1 }}</td>
+                                        <td style="text-align: left; font-weight: 600;" data-label="Mata Pelajaran">{{ $materi['mapel'] }}</td>
+                                        <td data-label="Kelompok"><span class="badge-pill badge-blue">{{ $materi['kelompok'] }}</span></td>
+                                        <td data-label="Pertemuan">Ke-{{ $materi['pertemuan_ke'] }}</td>
+                                        <td style="font-size: 12px; color: #64748b;" data-label="Tanggal">{{ $materi['tanggal'] }}</td>
+                                        <td style="text-align: left;" data-label="Judul Materi">{{ $materi['judul'] }}</td>
+                                        <td style="text-align: left; font-size: 12px; color: #475569;" data-label="Ringkasan">{{ \Illuminate\Support\Str::limit($materi['ringkasan'], 90) ?: '-' }}</td>
+                                        <td style="text-align: left;" data-label="Pengajar">{{ $materi['guru'] }}</td>
+                                        <td data-label="Berkas">
                                             @if($materi['ada_berkas'])
                                                 <span class="badge-pill badge-green">Berkas tersedia</span>
                                             @else
@@ -1770,13 +637,13 @@
                                 @foreach($daftarTugas as $idx => $item)
                                     @php($tugas = $item['tugas'])
                                     <tr>
-                                        <td>{{ $idx + 1 }}</td>
-                                        <td style="text-align: left; font-weight: 600;">{{ $tugas->namaMataPelajaran() }}</td>
-                                        <td><span class="badge-pill badge-blue">{{ $tugas->kelompok }}</span></td>
-                                        <td style="text-align: left;">{{ $tugas->judul }}</td>
-                                        <td style="text-align: left;">{{ $tugas->namaGuru() }}</td>
-                                        <td style="font-size: 12px; color: #64748b;">{{ $tugas->batasTeks() }}</td>
-                                        <td>
+                                        <td data-label="No">{{ $idx + 1 }}</td>
+                                        <td style="text-align: left; font-weight: 600;" data-label="Mata Pelajaran">{{ $tugas->namaMataPelajaran() }}</td>
+                                        <td data-label="Kelompok"><span class="badge-pill badge-blue">{{ $tugas->kelompok }}</span></td>
+                                        <td style="text-align: left;" data-label="Judul Tugas">{{ $tugas->judul }}</td>
+                                        <td style="text-align: left;" data-label="Pengajar">{{ $tugas->namaGuru() }}</td>
+                                        <td style="font-size: 12px; color: #64748b;" data-label="Batas Pengumpulan">{{ $tugas->batasTeks() }}</td>
+                                        <td data-label="Status">
                                             @if($item['status']['kelas'] === 'dinilai')
                                                 <span class="badge-pill badge-green">{{ $item['status']['label'] }}</span>
                                             @elseif($item['status']['kelas'] === 'terkumpul')
@@ -1787,7 +654,7 @@
                                                 <span class="badge-pill badge-gray">{{ $item['status']['label'] }}</span>
                                             @endif
                                         </td>
-                                        <td style="font-weight: 700; color: var(--maroon);">
+                                        <td style="font-weight: 700; color: var(--maroon);" data-label="Nilai">
                                             {{ $item['pengumpulan']?->nilai ?? '-' }}
                                         </td>
                                     </tr>
@@ -1829,18 +696,18 @@
                         <tbody>
                             @forelse($daftarPengajarKelompok as $idx => $p)
                                 <tr class="kelompok-saya">
-                                    <td>{{ $idx + 1 }}</td>
-                                    <td style="text-align: left; font-weight: 700;">
+                                    <td data-label="No">{{ $idx + 1 }}</td>
+                                    <td style="text-align: left; font-weight: 700;" data-label="Nama Pengajar">
                                         {{ $p['nama'] }}
                                     </td>
-                                    <td style="text-align: left;">{{ $p['program'] }}</td>
-                                    <td>
+                                    <td style="text-align: left;" data-label="Mata Pelajaran">{{ $p['program'] }}</td>
+                                    <td data-label="Kelompok">
                                         <span class="badge-pill badge-blue">{{ $p['kelompok'] }}</span>
                                     </td>
-                                    <td style="font-weight: 600;">{{ $p['jadwal'] }}</td>
-                                    <td>{{ $p['ruangan'] }}</td>
-                                    <td style="font-weight: 600; color: var(--maroon);">{{ $p['beban'] ?: '-' }}</td>
-                                    <td style="font-size: 12px; color: #64748b; text-align: left;">{{ $p['keterangan'] ?: '-' }}</td>
+                                    <td style="font-weight: 600;" data-label="Jadwal">{{ $p['jadwal'] }}</td>
+                                    <td data-label="Ruangan">{{ $p['ruangan'] }}</td>
+                                    <td style="font-weight: 600; color: var(--maroon);" data-label="Beban Mengajar">{{ $p['beban'] ?: '-' }}</td>
+                                    <td style="font-size: 12px; color: #64748b; text-align: left;" data-label="Keterangan">{{ $p['keterangan'] ?: '-' }}</td>
                                 </tr>
                             @empty
                                 <tr>
@@ -1928,15 +795,15 @@
                         <tbody>
                             @foreach($daftarMataPelajaran as $idx => $m)
                                 <tr>
-                                    <td>{{ $idx + 1 }}</td>
-                                    <td style="font-weight: 700; color: var(--maroon);">{{ $m['kode'] }}</td>
-                                    <td style="text-align: left; font-weight: 600;">{{ $m['nama'] }}</td>
-                                    <td>{{ $m['target_pertemuan'] }} Pertemuan</td>
-                                    <td style="font-weight: 700; color: #15803d;">{{ $m['hadir'] }} TM</td>
-                                    <td>{{ $m['izin'] + $m['sakit'] }} TM</td>
-                                    <td>{{ $m['alpa'] }} TM</td>
-                                    <td style="font-weight: 700;">{{ $m['persentase'] }}%</td>
-                                    <td>
+                                    <td data-label="No">{{ $idx + 1 }}</td>
+                                    <td style="font-weight: 700; color: var(--maroon);" data-label="Kode">{{ $m['kode'] }}</td>
+                                    <td style="text-align: left; font-weight: 600;" data-label="Mata Pelajaran">{{ $m['nama'] }}</td>
+                                    <td data-label="Target Wajib">{{ $m['target_pertemuan'] }} Pertemuan</td>
+                                    <td style="font-weight: 700; color: #15803d;" data-label="Kehadiran Saya">{{ $m['hadir'] }} TM</td>
+                                    <td data-label="Izin / Sakit">{{ $m['izin'] + $m['sakit'] }} TM</td>
+                                    <td data-label="Alpa">{{ $m['alpa'] }} TM</td>
+                                    <td style="font-weight: 700;" data-label="Progres (%)">{{ $m['persentase'] }}%</td>
+                                    <td data-label="Status Syarat">
                                         @if($m['is_lulus'])
                                             <span class="badge-pill badge-green">✓ Memenuhi Syarat</span>
                                         @else
@@ -1989,7 +856,7 @@
         <div class="modal-card" onclick="event.stopPropagation()">
             <div class="modal-top">
                 <div class="modal-top-title">Kehadiran &amp; Pertemuan Pembelajaran</div>
-                <button type="button" class="modal-close-btn" onclick="closeModal('modalDetailPertemuan')">&times;</button>
+                <button type="button" class="modal-close-btn" aria-label="Tutup modal" onclick="closeModal('modalDetailPertemuan')">&times;</button>
             </div>
             <div class="modal-inner">
                 <div style="background: #fdf8f9; border: 1px solid #f1d5dc; border-radius: 12px; padding: 14px 18px; margin-bottom: 12px;">
@@ -2044,7 +911,7 @@
     <div class="modal-overlay" id="modalSertifikat" onclick="closeModalOnBackdrop(event, 'modalSertifikat')">
         <div class="modal-card certificate-wrapper" id="printableCertificate" onclick="event.stopPropagation()">
             <div style="display: flex; justify-content: flex-end;">
-                <button type="button" class="modal-close-btn" onclick="closeModal('modalSertifikat')">&times;</button>
+                <button type="button" class="modal-close-btn" aria-label="Tutup modal" onclick="closeModal('modalSertifikat')">&times;</button>
             </div>
 
             <div style="color: #790c20; font-size: 26px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">
