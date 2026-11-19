@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -71,6 +72,28 @@ class User extends Authenticatable
     public function kelompokBelajarAnggotas(): HasMany
     {
         return $this->hasMany(KelompokBelajarAnggota::class, 'user_id');
+    }
+
+    /**
+     * Penempatan kelompok belajar per mata pelajaran yang ditetapkan Musyrifah.
+     *
+     * Hanya keanggotaan berstatus aktif yang dihitung agar mahasiswa tidak
+     * pernah melihat data kelompok lain atau penempatan yang sudah dicabut.
+     *
+     * @return Collection<int, KelompokBelajarAnggota>
+     */
+    public function penempatanKelompokBelajar(): Collection
+    {
+        return $this->kelompokBelajarAnggotas()
+            ->with(['kelompokBelajar', 'mataPelajaran'])
+            ->where(function (Builder $query) {
+                $query->whereNull('status')
+                    ->orWhereRaw('LOWER(status) = ?', ['aktif']);
+            })
+            ->get()
+            ->filter(fn (KelompokBelajarAnggota $anggota) => $anggota->kelompokBelajar !== null
+                && $anggota->mataPelajaran !== null)
+            ->values();
     }
 
     /** Pengumuman Ma'had yang ditulis oleh Musyrifah. */

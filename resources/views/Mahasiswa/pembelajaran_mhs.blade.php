@@ -1383,7 +1383,7 @@
                 <div class="breadcrumb">Dashboard / Pembelajaran Mahasiswa</div>
                 <h1 class="page-title">Pembelajaran Mahasiswa</h1>
                 <p class="page-description">
-                    Informasi 5 mata pelajaran kurikulum Ma'had Al-Jami'ah, jadwal tatap muka kelompok belajar, progres pemantauan 16 pertemuan, dan status sertifikat kelulusan.
+                    Mata pelajaran, jadwal tatap muka, materi, dan tugas yang ditetapkan Musyrifah untuk kelompok belajar Anda di Ma'had Al-Jami'ah, beserta progres pertemuan dan status sertifikat kelulusan.
                 </p>
             </div>
             <div>
@@ -1394,6 +1394,21 @@
             </div>
         </div>
 
+        @if($belumAdaKelompok)
+            {{-- Mahasiswa belum ditempatkan Musyrifah pada kelompok belajar mana pun --}}
+            <div class="card" style="text-align: center; padding: 48px 24px;">
+                <div style="font-size: 44px; line-height: 1;">👥</div>
+                <h2 class="card-title" style="justify-content: center; margin-top: 14px;">Kelompok Belajar Belum Ditetapkan</h2>
+                <p class="card-desc" style="max-width: 640px; margin: 10px auto 0;">
+                    Anda belum ditempatkan pada kelompok belajar mata pelajaran Ma'had Al-Jami'ah. Data pembelajaran
+                    (mata pelajaran, jadwal, materi, dan tugas) baru akan tampil setelah Musyrifah menetapkan kelompok
+                    belajar Anda pada setiap mata pelajaran.
+                </p>
+                <div style="margin-top: 18px;">
+                    <span class="badge-pill badge-amber">Menunggu penetapan kelompok oleh Musyrifah</span>
+                </div>
+            </div>
+        @else
         <!-- STATISTIK RINGKASAN PEMBELAJARAN SAYA -->
         <section class="stats-grid" aria-label="Statistik Pembelajaran">
             <div class="stat-card">
@@ -1404,7 +1419,7 @@
                     <div class="stat-number">{{ $totalMataPelajaran }}</div>
                     <div class="stat-label">Mata Pelajaran Kurikulum</div>
                 </div>
-                <div class="stat-subtext">5 Program Pembelajaran Wajib</div>
+                <div class="stat-subtext">{{ $totalMataPelajaran }} Program Pembelajaran Sesuai Kelompok</div>
             </div>
 
             <div class="stat-card">
@@ -1412,10 +1427,10 @@
                     <div class="stat-icon" style="color: #2563eb;">
                         <svg viewBox="0 0 24 24"><path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20"/><circle cx="10" cy="7" r="3.5"/><path d="M17 4.2a3.5 3.5 0 0 1 0 6.6M17 15h1.5a3.5 3.5 0 0 1 3.5 3.5V20"/></svg>
                     </div>
-                    <div class="stat-number">{{ $kelompokSaya }}</div>
+                    <div class="stat-number">{{ $jumlahKelompokSaya }}</div>
                     <div class="stat-label">Kelompok Belajar Saya</div>
                 </div>
-                <div class="stat-subtext">Dari total 6 kelompok belajar</div>
+                <div class="stat-subtext">{{ $kelompokSaya }}</div>
             </div>
 
             <div class="stat-card">
@@ -1423,7 +1438,7 @@
                     <div class="stat-icon" style="color: #10b981;">
                         <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M12 13v3l2 1"/></svg>
                     </div>
-                    <div class="stat-number">16 TM</div>
+                    <div class="stat-number">{{ $targetPertemuan }} TM</div>
                     <div class="stat-label">Target per Mata Pelajaran</div>
                 </div>
                 <div class="stat-subtext">Total Target: {{ $totalTargetKehadiran }} Pertemuan</div>
@@ -1451,45 +1466,46 @@
         <div class="tabs-header-wrap">
             <nav class="tabs-nav" aria-label="Tab Menu Pembelajaran">
                 <button type="button" class="tab-btn active" data-tab="tab-mapel" onclick="switchTab('tab-mapel', this)">
-                    📚 1. Mata Pelajaran &amp; Progres 16 TM
+                    📚 1. Mata Pelajaran &amp; Progres
                 </button>
                 <button type="button" class="tab-btn" data-tab="tab-jadwal" onclick="switchTab('tab-jadwal', this)">
                     🗓️ 2. Jadwal Pembelajaran Saya
                 </button>
+                <button type="button" class="tab-btn" data-tab="tab-materi" onclick="switchTab('tab-materi', this)">
+                    📖 3. Materi Pembelajaran
+                </button>
+                <button type="button" class="tab-btn" data-tab="tab-tugas" onclick="switchTab('tab-tugas', this)">
+                    📝 4. Tugas Saya
+                </button>
                 <button type="button" class="tab-btn" data-tab="tab-kelompok" onclick="switchTab('tab-kelompok', this)">
-                    👥 3. Kelompok &amp; Pengajar
+                    👥 5. Kelompok &amp; Pengajar
                 </button>
                 <button type="button" class="tab-btn" data-tab="tab-kelulusan" onclick="switchTab('tab-kelulusan', this)">
-                    🎓 4. Kelulusan &amp; Sertifikat
+                    🎓 6. Kelulusan &amp; Sertifikat
                 </button>
                 <button type="button" class="tab-btn" data-tab="tab-kalender" onclick="switchTab('tab-kalender', this)">
-                    📅 5. Kalender Pembelajaran
+                    📅 7. Kalender Pembelajaran
                 </button>
             </nav>
 
-            <form action="{{ route('pembelajaran.mhs') }}" method="GET" class="kelompok-select-form">
-                <label for="kelompokFilter" class="kelompok-select-label">Pilih Kelompok:</label>
-                <select name="kelompok" id="kelompokFilter" class="kelompok-select" onchange="this.form.submit()">
-                    @foreach($daftarKelompok as $k)
-                        <option value="{{ $k->nama_kelompok }}" {{ $kelompokSaya === $k->nama_kelompok ? 'selected' : '' }}>
-                            {{ $k->nama_kelompok }} {{ $k->nama_kelompok === ($user?->kamar ? 'Kelompok ' . $nomorKelompokSaya : 'Kelompok 1') ? '(Saya)' : '' }}
-                        </option>
-                    @endforeach
-                </select>
-            </form>
+            {{-- Penetapan kelompok hanya dapat diubah oleh Musyrifah, bukan oleh mahasiswa. --}}
+            <div class="kelompok-select-form">
+                <span class="kelompok-select-label">Penetapan Musyrifah:</span>
+                <strong style="font-size: 13px; color: var(--maroon);">{{ $kelompokSaya }}</strong>
+            </div>
         </div>
 
         <!-- ==================================================== -->
-        <!-- TAB 1: 5 MATA PELAJARAN & PROGRES 16 PERTEMUAN       -->
+        <!-- TAB 1: MATA PELAJARAN KELOMPOK & PROGRES            -->
         <!-- ==================================================== -->
         <section class="tab-pane active" id="tab-mapel">
             <div class="card">
                 <div class="card-header">
                     <div>
-                        <h2 class="card-title">5 Mata Pelajaran Kurikulum Ma'had Al-Jami'ah</h2>
-                        <p class="card-desc">Pantau capaian 16 pertemuan tatap muka di masing-masing program pembelajaran wajib.</p>
+                        <h2 class="card-title">Mata Pelajaran Kelompok Belajar Saya</h2>
+                        <p class="card-desc">Mata pelajaran beserta kelompok belajar yang ditetapkan Musyrifah dan capaian pertemuan tatap muka Anda.</p>
                     </div>
-                    <span class="badge-pill badge-maroon" style="font-size: 13px;">Kelompok: {{ $kelompokSaya }}</span>
+                    <span class="badge-pill badge-maroon" style="font-size: 13px;">{{ $kelompokSaya }}</span>
                 </div>
 
                 <div class="mapel-grid">
@@ -1498,6 +1514,7 @@
                             <div>
                                 <div class="mapel-card-top">
                                     <span class="badge-pill badge-blue">{{ $m['kategori'] }}</span>
+                                    <span class="badge-pill badge-green">{{ $m['kelompok'] }}</span>
                                     <span class="badge-pill badge-maroon" style="font-weight: 800;">{{ $m['kode'] }}</span>
                                 </div>
 
@@ -1509,17 +1526,20 @@
                                         <span>👤 <strong>{{ $m['guru_pengampu'] }}</strong></span>
                                     </div>
                                     <div class="mapel-meta-item">
-                                        <span>🗓️ {{ $m['hari'] }}, {{ $m['jam'] }}</span>
+                                        <span>🗓️ {{ $m['ada_jadwal'] ? $m['hari'].', '.$m['jam'] : 'Jadwal belum ditetapkan' }}</span>
                                     </div>
                                     <div class="mapel-meta-item">
                                         <span>📍 {{ $m['ruangan'] }}</span>
+                                    </div>
+                                    <div class="mapel-meta-item">
+                                        <span>📖 Materi: {{ $m['jumlah_materi'] }} · 📝 Tugas: {{ $m['tugas_terkumpul'] }}/{{ $m['jumlah_tugas'] }}</span>
                                     </div>
                                 </div>
 
                                 <div class="progress-block">
                                     <div class="progress-header">
-                                        <span>Progres Kehadiran 16 TM:</span>
-                                        <strong>{{ $m['hadir'] }} / 16 TM ({{ $m['persentase'] }}%)</strong>
+                                        <span>Progres Kehadiran {{ $m['target_pertemuan'] }} TM:</span>
+                                        <strong>{{ $m['hadir'] }} / {{ $m['target_pertemuan'] }} TM ({{ $m['persentase'] }}%)</strong>
                                     </div>
                                     <div class="progress-bar-wrap">
                                         <div class="progress-bar-fill {{ $m['is_lulus'] ? 'complete' : '' }}" data-progress="{{ $m['persentase'] }}"></div>
@@ -1544,7 +1564,7 @@
                         </div>
                     @empty
                         <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">
-                            Belum ada mata pelajaran terdaftar.
+                            Musyrifah belum menetapkan mata pelajaran untuk kelompok belajar Anda.
                         </div>
                     @endforelse
                 </div>
@@ -1560,7 +1580,7 @@
                 <div class="card-header">
                     <div>
                         <h2 class="card-title">Jadwal Tatap Muka Terdekat (Hari Ini &amp; Mendatang)</h2>
-                        <p class="card-desc">Jadwal pembelajaran aktif untuk {{ $kelompokSaya }} yang telah disinkronkan dari Musyrifah.</p>
+                        <p class="card-desc">Jadwal pembelajaran aktif untuk {{ $kelompokSaya }} yang telah ditetapkan Musyrifah.</p>
                     </div>
                 </div>
 
@@ -1582,7 +1602,7 @@
                         </div>
                     @empty
                         <div style="grid-column: 1/-1; text-align: center; padding: 30px; color: #888;">
-                            Belum ada jadwal tatap muka dalam waktu dekat.
+                            Belum ada jadwal tatap muka untuk kelompok belajar Anda.
                         </div>
                     @endforelse
                 </div>
@@ -1593,9 +1613,9 @@
                 <div class="card-header">
                     <div>
                         <h2 class="card-title">Daftar Jadwal Lengkap: {{ $kelompokSaya }}</h2>
-                        <p class="card-desc">Jadwal mingguan mata pelajaran yang diampu pengajar Ma'had.</p>
+                        <p class="card-desc">Jadwal mingguan mata pelajaran sesuai kelompok belajar yang ditetapkan Musyrifah.</p>
                     </div>
-                    <span class="badge-pill badge-green">{{ count($jadwalSaya) }} Sesi Terjadwal</span>
+                    <span class="badge-pill badge-green">{{ $jadwalSaya->count() }} Sesi Terjadwal</span>
                 </div>
 
                 <div class="table-responsive">
@@ -1617,16 +1637,16 @@
                                 <tr>
                                     <td>{{ $idx + 1 }}</td>
                                     <td style="font-weight: 700; color: var(--maroon);">{{ $js->hari }}</td>
-                                    <td style="font-weight: 600;">{{ $js->jam_mulai }} – {{ $js->jam_selesai }} WIB</td>
-                                    <td style="text-align: left; font-weight: 600;">{{ $js->nama_mata_pelajaran }}</td>
+                                    <td style="font-weight: 600;">{{ $js->jamTeks() }}</td>
+                                    <td style="text-align: left; font-weight: 600;">{{ $js->namaMataPelajaran() }}</td>
                                     <td><span class="badge-pill badge-blue">{{ $js->kelompok }}</span></td>
-                                    <td style="text-align: left;">{{ $js->guru_pengampu }}</td>
-                                    <td>{{ $js->ruangan }}</td>
-                                    <td style="font-size: 12px; color: #64748b;">{{ $js->periode }}</td>
+                                    <td style="text-align: left;">{{ $js->namaGuruPengampu() }}</td>
+                                    <td>{{ $js->ruangan ?: '-' }}</td>
+                                    <td style="font-size: 12px; color: #64748b;">{{ $js->periode ?: '-' }}</td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" style="padding: 30px; color: #888;">Belum ada jadwal untuk kelompok ini.</td>
+                                    <td colspan="8" style="padding: 30px; color: #888;">Belum ada jadwal untuk kelompok belajar Anda.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -1636,16 +1656,160 @@
         </section>
 
         <!-- ==================================================== -->
-        <!-- TAB 3: KELOMPOK BELAJAR & PENGAJAR                   -->
+        <!-- TAB 3: MATERI PEMBELAJARAN KELOMPOK SAYA             -->
+        <!-- ==================================================== -->
+        <section class="tab-pane" id="tab-materi">
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Materi Pembelajaran Kelompok Saya</h2>
+                        <p class="card-desc">Materi pertemuan yang dibagikan pengajar untuk {{ $kelompokSaya }}.</p>
+                    </div>
+                    <span class="badge-pill badge-green">{{ $materiPembelajaran->count() }} Materi</span>
+                </div>
+
+                @if($materiPembelajaran->isEmpty())
+                    <div style="text-align: center; padding: 36px 18px; color: #888;">
+                        Belum ada materi pembelajaran yang dibagikan untuk kelompok belajar Anda.
+                    </div>
+                @else
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Mata Pelajaran</th>
+                                    <th>Kelompok</th>
+                                    <th>Pertemuan</th>
+                                    <th>Tanggal</th>
+                                    <th>Judul Materi</th>
+                                    <th>Ringkasan</th>
+                                    <th>Pengajar</th>
+                                    <th>Berkas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($materiPembelajaran as $idx => $materi)
+                                    <tr>
+                                        <td>{{ $idx + 1 }}</td>
+                                        <td style="text-align: left; font-weight: 600;">{{ $materi['mapel'] }}</td>
+                                        <td><span class="badge-pill badge-blue">{{ $materi['kelompok'] }}</span></td>
+                                        <td>Ke-{{ $materi['pertemuan_ke'] }}</td>
+                                        <td style="font-size: 12px; color: #64748b;">{{ $materi['tanggal'] }}</td>
+                                        <td style="text-align: left;">{{ $materi['judul'] }}</td>
+                                        <td style="text-align: left; font-size: 12px; color: #475569;">{{ \Illuminate\Support\Str::limit($materi['ringkasan'], 90) ?: '-' }}</td>
+                                        <td style="text-align: left;">{{ $materi['guru'] }}</td>
+                                        <td>
+                                            @if($materi['ada_berkas'])
+                                                <span class="badge-pill badge-green">Berkas tersedia</span>
+                                            @else
+                                                <span class="badge-pill badge-gray">Tanpa berkas</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </div>
+        </section>
+
+        <!-- ==================================================== -->
+        <!-- TAB 4: TUGAS KELOMPOK BELAJAR SAYA                   -->
+        <!-- ==================================================== -->
+        <section class="tab-pane" id="tab-tugas">
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Tugas Kelompok Saya</h2>
+                        <p class="card-desc">Tugas yang dipublikasikan pengajar untuk {{ $kelompokSaya }} beserta status pengumpulan Anda.</p>
+                    </div>
+                    <span class="badge-pill badge-maroon">{{ $statistikTugas['total'] }} Tugas</span>
+                </div>
+
+                <div class="abs-ringkasan" aria-label="Ringkasan Tugas">
+                    <div class="abs-stat">
+                        <span class="abs-stat-label">Total</span>
+                        <strong>{{ $statistikTugas['total'] }}</strong>
+                    </div>
+                    <div class="abs-stat">
+                        <span class="abs-stat-label">Belum</span>
+                        <strong>{{ $statistikTugas['belum'] }}</strong>
+                    </div>
+                    <div class="abs-stat">
+                        <span class="abs-stat-label">Terkumpul</span>
+                        <strong>{{ $statistikTugas['terkumpul'] }}</strong>
+                    </div>
+                    <div class="abs-stat">
+                        <span class="abs-stat-label">Dinilai</span>
+                        <strong>{{ $statistikTugas['dinilai'] }}</strong>
+                    </div>
+                </div>
+
+                @if($daftarTugas->isEmpty())
+                    <div style="text-align: center; padding: 36px 18px; color: #888;">
+                        Belum ada tugas yang dipublikasikan untuk kelompok belajar Anda.
+                    </div>
+                @else
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Mata Pelajaran</th>
+                                    <th>Kelompok</th>
+                                    <th>Judul Tugas</th>
+                                    <th>Pengajar</th>
+                                    <th>Batas Pengumpulan</th>
+                                    <th>Status</th>
+                                    <th>Nilai</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($daftarTugas as $idx => $item)
+                                    @php($tugas = $item['tugas'])
+                                    <tr>
+                                        <td>{{ $idx + 1 }}</td>
+                                        <td style="text-align: left; font-weight: 600;">{{ $tugas->namaMataPelajaran() }}</td>
+                                        <td><span class="badge-pill badge-blue">{{ $tugas->kelompok }}</span></td>
+                                        <td style="text-align: left;">{{ $tugas->judul }}</td>
+                                        <td style="text-align: left;">{{ $tugas->namaGuru() }}</td>
+                                        <td style="font-size: 12px; color: #64748b;">{{ $tugas->batasTeks() }}</td>
+                                        <td>
+                                            @if($item['status']['kelas'] === 'dinilai')
+                                                <span class="badge-pill badge-green">{{ $item['status']['label'] }}</span>
+                                            @elseif($item['status']['kelas'] === 'terkumpul')
+                                                <span class="badge-pill badge-blue">{{ $item['status']['label'] }}</span>
+                                            @elseif($item['status']['kelas'] === 'terlambat')
+                                                <span class="badge-pill badge-amber">{{ $item['status']['label'] }}</span>
+                                            @else
+                                                <span class="badge-pill badge-gray">{{ $item['status']['label'] }}</span>
+                                            @endif
+                                        </td>
+                                        <td style="font-weight: 700; color: var(--maroon);">
+                                            {{ $item['pengumpulan']?->nilai ?? '-' }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </div>
+        </section>
+
+        <!-- ==================================================== -->
+        <!-- TAB 5: KELOMPOK BELAJAR & PENGAJAR                   -->
         <!-- ==================================================== -->
         <section class="tab-pane" id="tab-kelompok">
             <div class="card">
                 <div class="card-header">
                     <div>
-                        <h2 class="card-title">Daftar 8 Guru / Pengajar Kelompok Belajar</h2>
-                        <p class="card-desc">Informasi pengajar yang diatur oleh Musyrifah untuk mengampu 6 kelompok belajar Ma'had.</p>
+                        <h2 class="card-title">Pengajar Kelompok Belajar Saya</h2>
+                        <p class="card-desc">Pengajar yang ditetapkan Musyrifah pada jadwal {{ $kelompokSaya }}.</p>
                     </div>
-                    <span class="badge-pill badge-maroon">Kelompok Saya: {{ $kelompokSaya }}</span>
+                    <span class="badge-pill badge-maroon">{{ $kelompokSaya }}</span>
                 </div>
 
                 <div class="table-responsive">
@@ -1654,37 +1818,33 @@
                             <tr>
                                 <th>No</th>
                                 <th>Nama Pengajar</th>
-                                <th>Program Pembelajaran</th>
-                                <th>Kelompok Yang Diampu</th>
+                                <th>Mata Pelajaran</th>
+                                <th>Kelompok</th>
+                                <th>Jadwal</th>
+                                <th>Ruangan</th>
                                 <th>Beban Mengajar</th>
-                                <th>Status Pengampu</th>
                                 <th>Keterangan</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($daftarPengajarKelompok as $idx => $p)
-                                <tr class="{{ $p['is_kelompok_saya'] ? 'kelompok-saya' : '' }}">
+                                <tr class="kelompok-saya">
                                     <td>{{ $idx + 1 }}</td>
                                     <td style="text-align: left; font-weight: 700;">
                                         {{ $p['nama'] }}
                                     </td>
                                     <td style="text-align: left;">{{ $p['program'] }}</td>
                                     <td>
-                                        <span class="badge-pill badge-blue">Kelompok {{ $p['kelompok_teks'] }}</span>
+                                        <span class="badge-pill badge-blue">{{ $p['kelompok'] }}</span>
                                     </td>
-                                    <td style="font-weight: 600; color: var(--maroon);">{{ $p['jumlah_tm'] }}</td>
-                                    <td>
-                                        @if($p['is_kelompok_saya'])
-                                            <span class="badge-pill badge-green" style="font-weight: 700;">★ Pengajar Saya</span>
-                                        @else
-                                            <span class="badge-pill badge-gray">Kelompok Lain</span>
-                                        @endif
-                                    </td>
+                                    <td style="font-weight: 600;">{{ $p['jadwal'] }}</td>
+                                    <td>{{ $p['ruangan'] }}</td>
+                                    <td style="font-weight: 600; color: var(--maroon);">{{ $p['beban'] ?: '-' }}</td>
                                     <td style="font-size: 12px; color: #64748b; text-align: left;">{{ $p['keterangan'] ?: '-' }}</td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" style="padding: 30px; color: #888;">Belum ada data pengajar.</td>
+                                    <td colspan="8" style="padding: 30px; color: #888;">Belum ada pengajar pada jadwal kelompok belajar Anda.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -1694,7 +1854,7 @@
         </section>
 
         <!-- ==================================================== -->
-        <!-- TAB 4: KELULUSAN & SERTIFIKAT PEMBELAJARAN           -->
+        <!-- TAB 6: KELULUSAN & SERTIFIKAT PEMBELAJARAN           -->
         <!-- ==================================================== -->
         <section class="tab-pane" id="tab-kelulusan">
             <div class="graduation-banner {{ $isLulus ? 'lulus' : 'proses' }}">
@@ -1716,9 +1876,9 @@
                     </div>
                     <p class="grad-desc">
                         @if($isLulus)
-                            Anda telah hadir 100% (16 Pertemuan Penuh) di seluruh mata pelajaran yang dipersyaratkan. Sertifikat kelulusan Anda telah diterbitkan dan siap diunduh atau dicetak.
+                            Anda telah hadir penuh pada seluruh pertemuan mata pelajaran kelompok belajar Anda. Sertifikat kelulusan Anda telah diterbitkan dan siap diunduh atau dicetak.
                         @else
-                            Syarat Kelulusan: <strong>Wajib hadir minimal 16 pertemuan tatap muka di SELURUH mata pelajaran</strong>. Saat ini capaian Anda: <strong>{{ $totalHadirSeluruh }} / {{ $totalTargetKehadiran }} Pertemuan</strong> (Masih kurang di {{ $mapelBelumLulus }} mata pelajaran).
+                            Syarat Kelulusan: <strong>Wajib hadir pada seluruh pertemuan tatap muka di SELURUH mata pelajaran kelompok Anda</strong>. Saat ini capaian Anda: <strong>{{ $totalHadirSeluruh }} / {{ $totalTargetKehadiran }} Pertemuan</strong> (Masih kurang di {{ $mapelBelumLulus }} mata pelajaran).
                         @endif
                     </p>
                 </div>
@@ -1729,7 +1889,7 @@
                             🎓 Lihat &amp; Cetak Sertifikat
                         </button>
                     @else
-                        <button type="button" class="btn-certificate" disabled title="Sertifikat akan aktif setelah seluruh 5 mata pelajaran mencapai 16 kehadiran">
+                        <button type="button" class="btn-certificate" disabled title="Sertifikat akan aktif setelah seluruh mata pelajaran kelompok Anda memenuhi target kehadiran">
                             🔒 Sertifikat Terkunci
                         </button>
                     @endif
@@ -1741,10 +1901,12 @@
                 <div class="card-header">
                     <div>
                         <h2 class="card-title">Audit Capaian Kelulusan per Mata Pelajaran</h2>
-                        <p class="card-desc">Rincian pemenuhan syarat 16 kehadiran per program pembelajaran.</p>
+                        <p class="card-desc">Rincian pemenuhan syarat kehadiran per mata pelajaran pada kelompok belajar Anda.</p>
                     </div>
                     <span class="badge-pill {{ $isLulus ? 'badge-green' : 'badge-amber' }}">
-                        {{ $isLulus ? 'Lulus Penuh (5/5 Mapel)' : 'Progres: ' . (5 - $mapelBelumLulus) . '/5 Mapel Lengkap' }}
+                        {{ $isLulus
+                            ? 'Lulus Penuh (' . $totalMataPelajaran . '/' . $totalMataPelajaran . ' Mapel)'
+                            : 'Progres: ' . ($totalMataPelajaran - $mapelBelumLulus) . '/' . $totalMataPelajaran . ' Mapel Lengkap' }}
                     </span>
                 </div>
 
@@ -1769,7 +1931,7 @@
                                     <td>{{ $idx + 1 }}</td>
                                     <td style="font-weight: 700; color: var(--maroon);">{{ $m['kode'] }}</td>
                                     <td style="text-align: left; font-weight: 600;">{{ $m['nama'] }}</td>
-                                    <td>16 Pertemuan</td>
+                                    <td>{{ $m['target_pertemuan'] }} Pertemuan</td>
                                     <td style="font-weight: 700; color: #15803d;">{{ $m['hadir'] }} TM</td>
                                     <td>{{ $m['izin'] + $m['sakit'] }} TM</td>
                                     <td>{{ $m['alpa'] }} TM</td>
@@ -1790,14 +1952,14 @@
         </section>
 
         <!-- ==================================================== -->
-        <!-- TAB 5: KALENDER PEMBELAJARAN DINAMIS                -->
+        <!-- TAB 7: KALENDER PEMBELAJARAN DINAMIS                -->
         <!-- ==================================================== -->
         <section class="tab-pane" id="tab-kalender">
             <div class="card" style="display: flex; flex-direction: column; align-items: center;">
                 <div class="calendar-card">
                     <div class="calendar-heading">
                         <h3>Kalender Jadwal Pembelajaran Mahasiswa</h3>
-                        <span class="badge-pill badge-maroon">Kelompok: {{ $kelompokSaya }}</span>
+                        <span class="badge-pill badge-maroon">{{ $kelompokSaya }}</span>
                     </div>
 
                     <div class="calendar-toolbar">
@@ -1810,7 +1972,7 @@
 
                     <div class="calendar-legend">
                         <span class="legend-dot"></span>
-                        <span>Hari dengan jadwal tatap muka {{ $kelompokSaya }}</span>
+                        <span>Hari dengan jadwal tatap muka kelompok belajar Anda ({{ $kelompokSaya }})</span>
                     </div>
 
                     <div class="calendar-info-box" id="calendarDayInfo">
@@ -1832,7 +1994,7 @@
             <div class="modal-inner">
                 <div style="background: #fdf8f9; border: 1px solid #f1d5dc; border-radius: 12px; padding: 14px 18px; margin-bottom: 12px;">
                     <div style="font-size: 17px; font-weight: 700; color: var(--maroon);" id="detailMapelTitle">—</div>
-                    <div style="font-size: 13px; color: #64748b; margin-top: 3px;" id="detailMapelSub">Target: 16 Pertemuan Tatap Muka</div>
+                    <div style="font-size: 13px; color: #64748b; margin-top: 3px;" id="detailMapelSub">Memuat target pertemuan...</div>
                 </div>
 
                 {{-- Ringkasan kehadiran: total per status dan persentase periode berjalan --}}
@@ -1902,11 +2064,11 @@
                 {{ $user->name ?? 'Mahasiswa Ma\'had' }}
             </div>
             <div style="font-size: 15px; font-weight: 600; color: #555; margin-top: 4px;">
-                NIM: {{ $user->nim ?? '-' }} | Kelompok: {{ $kelompokSaya }}
+                NIM: {{ $user->nim ?? '-' }} | {{ $kelompokSaya }}
             </div>
 
             <p style="font-size: 14px; color: #333; margin-top: 24px; line-height: 1.7; max-width: 580px; margin-left: auto; margin-right: auto;">
-                Telah <strong>MEMENUHI SYARAT KELULUSAN</strong> pada seluruh rangkaian 5 program pembelajaran Ma'had Al-Jami'ah dengan tingkat kehadiran 100% (16 Pertemuan Penuh per Mata Pelajaran) yang diselenggarakan pada Semester Ganjil 2026/2027.
+                Telah <strong>MEMENUHI SYARAT KELULUSAN</strong> pada seluruh program pembelajaran Ma'had Al-Jami'ah yang menjadi kelompok belajarnya dengan kehadiran penuh pada setiap pertemuan mata pelajaran.
             </p>
 
             <div style="display: flex; justify-content: space-around; margin-top: 40px; padding-top: 10px;">
@@ -1932,6 +2094,8 @@
             </div>
         </div>
     </div>
+
+        @endif
 
 </div>
 @endsection

@@ -4,8 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\AbsensiPembelajaran;
 use App\Models\JadwalPembelajaran;
+use App\Models\KelompokBelajar;
+use App\Models\KelompokBelajarAnggota;
 use App\Models\MataPelajaran;
 use App\Models\PertemuanPembelajaran;
+use App\Models\Tugas;
 use App\Models\User;
 use Database\Seeders\PembelajaranSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -22,6 +25,20 @@ class PembelajaranMahasiswaTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
+    public function test_mahasiswa_tanpa_kelompok_melihat_informasi_belum_ada_kelompok(): void
+    {
+        $mahasiswa = User::factory()->create(['role' => 'mahasiswa']);
+
+        (new PembelajaranSeeder)->run();
+
+        $this->actingAs($mahasiswa)
+            ->get(route('pembelajaran.mhs'))
+            ->assertOk()
+            ->assertSee('Kelompok Belajar Belum Ditetapkan')
+            ->assertSee('Menunggu penetapan kelompok oleh Musyrifah')
+            ->assertDontSee('Pembelajaran Kitab Kuning');
+    }
+
     public function test_mahasiswa_can_view_synchronized_pembelajaran(): void
     {
         $user = User::factory()->create([
@@ -32,6 +49,7 @@ class PembelajaranMahasiswaTest extends TestCase
         ]);
 
         (new PembelajaranSeeder)->run();
+        $this->tempatkanSemuaMapel($user, $this->kelompok(1));
 
         $response = $this->actingAs($user)->get(route('pembelajaran.mhs'));
 
@@ -42,6 +60,8 @@ class PembelajaranMahasiswaTest extends TestCase
         $response->assertSee('Penguatan Bahasa Asing');
         $response->assertSee('Penguatan Keterampilan Khusus Wawasan Interdisipliner dan Moderasi Beragama');
         $response->assertSee('Jadwal Pembelajaran Saya');
+        $response->assertSee('Materi Pembelajaran');
+        $response->assertSee('Tugas Saya');
         $response->assertSee('Kelompok &amp; Pengajar', false);
         $response->assertSee('Kelulusan &amp; Sertifikat', false);
         $response->assertSee('Kalender Pembelajaran');
@@ -57,12 +77,51 @@ class PembelajaranMahasiswaTest extends TestCase
         ]);
 
         (new PembelajaranSeeder)->run();
+        $this->tempatkanSemuaMapel($userLulus, $this->kelompok(1));
 
         $response = $this->actingAs($userLulus)->get(route('pembelajaran.mhs'));
 
         $response->assertStatus(200);
         $response->assertSee('Memenuhi Syarat Kelulusan');
         $response->assertSee('Lihat &amp; Cetak Sertifikat', false);
+    }
+
+    public function test_pembelajaran_hanya_menampilkan_jadwal_materi_dan_tugas_kelompok_mahasiswa(): void
+    {
+        $mahasiswa = User::factory()->create(['role' => 'mahasiswa']);
+        $mapel = $this->buatMapel();
+
+        $this->buatJadwal($mapel, 'Kelompok 1', 'Senin', 'Ruang Kelompok Satu');
+        $this->buatJadwal($mapel, 'Kelompok 2', 'Rabu', 'Ruang Kelompok Dua');
+
+        $this->buatMateri($mapel, 'Kelompok 1', 'Materi Kaidah Fiqih');
+        $this->buatMateri($mapel, 'Kelompok 2', 'Materi Nahwu Lanjutan');
+
+        Tugas::factory()->dipublikasikan()->create([
+            'mata_pelajaran_id' => $mapel->id,
+            'nama_mata_pelajaran' => $mapel->nama,
+            'kelompok' => 'Kelompok 1',
+            'judul' => 'Tugas Kelompok Pertama',
+        ]);
+
+        Tugas::factory()->dipublikasikan()->create([
+            'mata_pelajaran_id' => $mapel->id,
+            'nama_mata_pelajaran' => $mapel->nama,
+            'kelompok' => 'Kelompok 2',
+            'judul' => 'Tugas Kelompok Kedua',
+        ]);
+
+        $this->tempatkan($mahasiswa, $mapel, $this->kelompok(1));
+
+        $response = $this->actingAs($mahasiswa)->get(route('pembelajaran.mhs'));
+
+        $response->assertOk()
+            ->assertSee('Ruang Kelompok Satu')
+            ->assertDontSee('Ruang Kelompok Dua')
+            ->assertSee('Materi Kaidah Fiqih')
+            ->assertDontSee('Materi Nahwu Lanjutan')
+            ->assertSee('Tugas Kelompok Pertama')
+            ->assertDontSee('Tugas Kelompok Kedua');
     }
 
     public function test_detail_pertemuan_ajax_returns_all_16_meetings(): void
@@ -74,8 +133,8 @@ class PembelajaranMahasiswaTest extends TestCase
         ]);
 
         (new PembelajaranSeeder)->run();
-
         $mapel = MataPelajaran::first();
+        $this->tempatkan($user, $mapel, $this->kelompok(1));
 
         $response = $this->actingAs($user)->getJson(route('pembelajaran.mhs.detail_pertemuan', $mapel->id));
 
@@ -91,6 +150,20 @@ class PembelajaranMahasiswaTest extends TestCase
         $this->assertCount(16, $response->json('pertemuan'));
     }
 
+    public function test_detail_pertemuan_menolak_mata_pelajaran_di_luar_kelompok_mahasiswa(): void
+    {
+        $mahasiswa = User::factory()->create(['role' => 'mahasiswa']);
+        [$mapel, $jadwal] = $this->buatMapelDenganJadwal();
+        $mapelLain = $this->buatMapel('Bahasa Arab', '111');
+
+        $this->simpanAbsensi($mahasiswa, $mapel, $jadwal, 1, 'hadir');
+        $this->tempatkan($mahasiswa, $mapel, $this->kelompok(1));
+
+        $this->actingAs($mahasiswa)
+            ->getJson(route('pembelajaran.mhs.detail_pertemuan', $mapelLain->id))
+            ->assertForbidden();
+    }
+
     public function test_detail_kehadiran_hanya_menampilkan_data_mahasiswa_yang_login(): void
     {
         $mahasiswa = User::factory()->create(['role' => 'mahasiswa']);
@@ -101,6 +174,7 @@ class PembelajaranMahasiswaTest extends TestCase
         $this->simpanAbsensi($mahasiswa, $mapel, $jadwal, 1, 'hadir');
         $this->simpanAbsensi($mahasiswa, $mapel, $jadwal, 2, 'izin');
         $this->simpanAbsensi($mahasiswaLain, $mapel, $jadwal, 3, 'alpa');
+        $this->tempatkan($mahasiswa, $mapel, $this->kelompok(1));
 
         $response = $this->actingAs($mahasiswa)
             ->getJson(route('pembelajaran.mhs.detail_pertemuan', $mapel->id));
@@ -121,11 +195,21 @@ class PembelajaranMahasiswaTest extends TestCase
         $this->assertEquals(50.0, $response->json('periode.0.persentase'));
     }
 
+    public function test_halaman_pembelajaran_hanya_untuk_peran_mahasiswa(): void
+    {
+        $guru = User::factory()->create(['role' => 'guru']);
+
+        $this->actingAs($guru)
+            ->get(route('pembelajaran.mhs'))
+            ->assertForbidden();
+    }
+
     public function test_sidebar_mahasiswa_tidak_lagi_memuat_menu_absensi(): void
     {
         $mahasiswa = User::factory()->create(['role' => 'mahasiswa']);
 
         (new PembelajaranSeeder)->run();
+        $this->tempatkanSemuaMapel($mahasiswa, $this->kelompok(1));
 
         $this->actingAs($mahasiswa)
             ->get(route('dashboard'))
@@ -140,28 +224,95 @@ class PembelajaranMahasiswaTest extends TestCase
     }
 
     /**
+     * Menempatkan mahasiswa pada satu kelompok untuk seluruh mata pelajaran.
+     */
+    private function tempatkanSemuaMapel(User $mahasiswa, KelompokBelajar $kelompok): void
+    {
+        foreach (MataPelajaran::all() as $mapel) {
+            $this->tempatkan($mahasiswa, $mapel, $kelompok);
+        }
+    }
+
+    /**
+     * Menyimpan penetapan kelompok belajar mahasiswa pada satu mata pelajaran.
+     */
+    private function tempatkan(User $mahasiswa, MataPelajaran $mapel, KelompokBelajar $kelompok): KelompokBelajarAnggota
+    {
+        return KelompokBelajarAnggota::updateOrCreate(
+            [
+                'user_id' => $mahasiswa->id,
+                'mata_pelajaran_id' => $mapel->id,
+            ],
+            [
+                'kelompok_belajar_id' => $kelompok->id,
+                'status' => 'aktif',
+            ]
+        );
+    }
+
+    /**
+     * Kelompok belajar master yang sudah tersedia di database SIMAHAD.
+     */
+    private function kelompok(int $nomor): KelompokBelajar
+    {
+        return KelompokBelajar::firstOrCreate(
+            ['nomor_kelompok' => $nomor],
+            [
+                'nama_kelompok' => 'Kelompok '.$nomor,
+                'keterangan' => 'Kelompok Belajar '.$nomor,
+            ]
+        );
+    }
+
+    private function buatMapel(string $nama = 'Pembelajaran Kitab Kuning', string $kode = 'PKK-01'): MataPelajaran
+    {
+        return MataPelajaran::create([
+            'nama' => $nama,
+            'kode' => $kode,
+            'kategori' => 'Program Ma\'had',
+            'target_pertemuan' => 16,
+        ]);
+    }
+
+    private function buatJadwal(
+        MataPelajaran $mapel,
+        string $kelompok,
+        string $hari,
+        string $ruangan
+    ): JadwalPembelajaran {
+        return JadwalPembelajaran::create([
+            'mata_pelajaran_id' => $mapel->id,
+            'nama_mata_pelajaran' => $mapel->nama,
+            'kelompok' => $kelompok,
+            'guru_pengampu' => 'Ust. Fulan',
+            'periode' => 'Semester Ganjil 2026/2027',
+            'hari' => $hari,
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '09:30',
+            'ruangan' => $ruangan,
+        ]);
+    }
+
+    private function buatMateri(MataPelajaran $mapel, string $kelompok, string $materi): PertemuanPembelajaran
+    {
+        return PertemuanPembelajaran::create([
+            'mata_pelajaran_id' => $mapel->id,
+            'kelompok' => $kelompok,
+            'periode' => 'Semester Ganjil 2026/2027',
+            'pertemuan_ke' => 1,
+            'tanggal' => '2026-09-07',
+            'materi' => $materi,
+            'status' => PertemuanPembelajaran::STATUS_SELESAI,
+        ]);
+    }
+
+    /**
      * @return array{0: MataPelajaran, 1: JadwalPembelajaran}
      */
     private function buatMapelDenganJadwal(): array
     {
-        $mapel = MataPelajaran::create([
-            'nama' => 'Pembelajaran Kitab Kuning',
-            'kode' => 'PKK-01',
-            'kategori' => 'Program Ma\'had',
-            'target_pertemuan' => 16,
-        ]);
-
-        $jadwal = JadwalPembelajaran::create([
-            'mata_pelajaran_id' => $mapel->id,
-            'nama_mata_pelajaran' => $mapel->nama,
-            'kelompok' => 'Kelompok 1',
-            'guru_pengampu' => 'Ust. Fulan',
-            'periode' => 'Semester Ganjil 2026/2027',
-            'hari' => 'Senin',
-            'jam_mulai' => '08:00',
-            'jam_selesai' => '09:30',
-            'ruangan' => 'Ruang 1',
-        ]);
+        $mapel = $this->buatMapel();
+        $jadwal = $this->buatJadwal($mapel, 'Kelompok 1', 'Senin', 'Ruang 1');
 
         return [$mapel, $jadwal];
     }
