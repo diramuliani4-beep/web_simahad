@@ -2,34 +2,39 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\KelompokBelajar;
+use App\Models\KelompokPengajar;
+use App\Models\MataPelajaran;
+use Illuminate\View\View;
 
 class PimpinanPembelajaranController extends Controller
 {
     /**
      * Menampilkan halaman pembelajaran untuk Pimpinan.
      */
-    public function index()
+    public function index(): View
     {
-        $mataPelajaran = 7;
-        $pengajar = 7;
-        $kelompokBelajar = 6;
+        $mataPelajaran = MataPelajaran::count() ?: 5;
+        $pengajar = KelompokPengajar::count() ?: 8;
+        $kelompokBelajar = KelompokBelajar::count() ?: 6;
         $targetPertemuan = 16;
 
-        $daftarKelompok = [
-            [
-                'nama' => 'Kelompok A',
-                'jumlah' => '10–15 mahasiswa',
-            ],
-            [
-                'nama' => 'Kelompok B',
-                'jumlah' => '10–15 mahasiswa',
-            ],
-            [
-                'nama' => 'Kelompok C',
-                'jumlah' => '10–15 mahasiswa',
-            ],
-        ];
+        $kelompokDb = KelompokBelajar::withCount('anggotas')->orderBy('nomor_kelompok')->get();
+        if ($kelompokDb->isNotEmpty()) {
+            $daftarKelompok = $kelompokDb->map(fn ($k) => [
+                'nama' => $k->nama_kelompok,
+                'jumlah' => $k->anggotas_count > 0 ? $k->anggotas_count.' mahasiswa terdaftar' : 'Belum ada anggota',
+            ])->toArray();
+        } else {
+            $daftarKelompok = [
+                ['nama' => 'Kelompok 1', 'jumlah' => '10–15 mahasiswa'],
+                ['nama' => 'Kelompok 2', 'jumlah' => '10–15 mahasiswa'],
+                ['nama' => 'Kelompok 3', 'jumlah' => '10–15 mahasiswa'],
+                ['nama' => 'Kelompok 4', 'jumlah' => '10–15 mahasiswa'],
+                ['nama' => 'Kelompok 5', 'jumlah' => '10–15 mahasiswa'],
+                ['nama' => 'Kelompok 6', 'jumlah' => '10–15 mahasiswa'],
+            ];
+        }
 
         return view('pimpinan.pembelajaran', compact(
             'mataPelajaran',

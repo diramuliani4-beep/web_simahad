@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\AbsensiPembelajaran;
 use App\Models\JadwalPembelajaran;
 use App\Models\KelompokBelajar;
+use App\Models\KelompokBelajarAnggota;
 use App\Models\KelompokPengajar;
 use App\Models\MataPelajaran;
 use App\Models\Notifikasi;
+use App\Models\Pendaftaran;
 use App\Models\PengumpulanTugas;
 use App\Models\PertemuanPembelajaran;
 use App\Models\Tugas;
@@ -52,9 +54,30 @@ class MusyrifahManajemenPembelajaranController extends Controller
         // 2. Data Menu 1: Mata Pelajaran (5 Mata Pelajaran Utama)
         $daftarMataPelajaran = MataPelajaran::withCount('jadwals')->get();
 
-        // 3. Data Menu 2: Kelompok Belajar (6 Kelompok & 8 Pengajar CRUD)
-        $daftarKelompok = KelompokBelajar::orderBy('nomor_kelompok')->get();
+        // 3. Data Menu 2: Kelompok Belajar & Anggota Mahasiswa (Pendaftaran Disetujui)
+        $daftarKelompok = KelompokBelajar::withCount('anggotas')->orderBy('nomor_kelompok')->get();
         $daftarPengajar = KelompokPengajar::orderBy('id')->get();
+
+        // Mahasiswa yang pendaftarannya telah diverifikasi dan disetujui Musyrifah
+        $mahasiswaDisetujui = User::query()
+            ->whereRaw('LOWER(role) = ?', ['mahasiswa'])
+            ->whereHas('pendaftarans', function ($q) {
+                $q->where('status', 'disetujui');
+            })
+            ->with(['pendaftarans' => function ($q) {
+                $q->where('status', 'disetujui')->latest();
+            }])
+            ->orderBy('name')
+            ->get();
+
+        // Daftar anggota kelompok belajar aktif
+        $daftarAnggotaKelompok = KelompokBelajarAnggota::with([
+            'user.pendaftarans',
+            'kelompokBelajar',
+            'mataPelajaran',
+        ])->latest()->get();
+
+        $totalAnggotaKelompok = $daftarAnggotaKelompok->count();
 
         // 4. Data Menu 3: Jadwal Pembelajaran
         $daftarJadwal = JadwalPembelajaran::orderByRaw("CASE hari 
@@ -100,8 +123,199 @@ class MusyrifahManajemenPembelajaranController extends Controller
             'daftarPemantauan',
             'listPeriode',
             'listKelompokFilter',
-            'dataKelulusan'
+            'dataKelulusan',
+            'mahasiswaDisetujui',
+            'daftarAnggotaKelompok',
+            'totalAnggotaKelompok'
         ));
+    }
+
+    /**
+     * Menambahkan mahasiswa (pendaftaran disetujui) ke dalam kelompok belajar untuk mata pelajaran tertentu.
+     * Aturan ketat: Satu mahasiswa hanya memiliki satu kelompok aktif untuk setiap mata pelajaran.
+     */
+    public function storeAnggota(Request $request): RedirectResponse|JsonResponse
+    {
+        $this->pastikanPengelola($request);
+
+        $validated = $request->validate([
+            'user_id' => ['required', 'exists:users,id'],
+            'mata_pelajaran_id' => ['required', 'exists:mata_pelajarans,id'],
+            'kelompok_belajar_id' => ['required', 'exists:kelompok_belajars,id'],
+            'keterangan' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        // Verifikasi bahwa mahasiswa pendaftarannya telah disetujui oleh Musyrifah
+        $hasApproved = Pendaftaran::where('user_id', $validated['user_id'])
+            ->where('status', 'disetujui')
+            ->exists();
+
+        if (! $hasApproved) {
+            $msg = 'Mahasiswa belum memiliki pendaftaran yang telah diverifikasi dan disetujui oleh Musyrifah.';
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+
+            return redirect()->route('musyrifah.manajemen_pembelajaran', ['tab' => 'kelompok'])
+                ->with('error', $msg);
+        }
+
+        // Pastikan satu mahasiswa hanya memiliki satu kelompok aktif untuk setiap mata pelajaran
+        $exists = KelompokBelajarAnggota::where('user_id', $validated['user_id'])
+            ->where('mata_pelajaran_id', $validated['mata_pelajaran_id'])
+            ->with(['kelompokBelajar', 'mataPelajaran', 'user'])
+            ->first();
+
+        if ($exists) {
+            $namaMhs = $exists->user?->name ?? 'Mahasiswa';
+            $namaMapel = $exists->mataPelajaran?->nama ?? 'mata pelajaran ini';
+            $namaKelompok = $exists->kelompokBelajar?->nama_kelompok ?? 'kelompok lain';
+            $msg = "Mahasiswa {$namaMhs} sudah terdaftar pada {$namaKelompok} untuk {$namaMapel}. Satu mahasiswa hanya boleh memiliki satu kelompok aktif per mata pelajaran. Gunakan fitur 'Pindah Kelompok' untuk mengubah kelompoknya.";
+
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+
+            return redirect()->route('musyrifah.manajemen_pembelajaran', ['tab' => 'kelompok'])
+                ->with('error', $msg);
+        }
+
+        $item = KelompokBelajarAnggota::create([
+            'user_id' => $validated['user_id'],
+            'mata_pelajaran_id' => $validated['mata_pelajaran_id'],
+            'kelompok_belajar_id' => $validated['kelompok_belajar_id'],
+            'status' => 'aktif',
+            'keterangan' => $validated['keterangan'] ?? 'Penempatan oleh Musyrifah',
+        ]);
+
+        $item->load(['user', 'kelompokBelajar', 'mataPelajaran']);
+
+        $namaMhs = $item->user?->name ?? 'Mahasiswa';
+        $namaKelompok = $item->kelompokBelajar?->nama_kelompok ?? 'Kelompok Belajar';
+        $namaMapel = $item->mataPelajaran?->nama ?? 'Mata Pelajaran';
+
+        $this->audit->catat(
+            'pembelajaran',
+            'anggota_kelompok_ditambahkan',
+            'Anggota Kelompok '.$namaMhs,
+            (int) $item->id,
+            "Mahasiswa {$namaMhs} ditambahkan ke {$namaKelompok} untuk {$namaMapel}.",
+            $request->user(),
+            [],
+            $item->getAttributes(),
+        );
+
+        $successMsg = "Mahasiswa {$namaMhs} berhasil ditambahkan ke {$namaKelompok} ({$namaMapel}).";
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $successMsg,
+                'data' => $item,
+            ]);
+        }
+
+        return redirect()->route('musyrifah.manajemen_pembelajaran', ['tab' => 'kelompok'])
+            ->with('success', $successMsg);
+    }
+
+    /**
+     * Memindahkan mahasiswa dari kelompok belajar saat ini ke kelompok belajar lain pada suatu mata pelajaran.
+     */
+    public function pindahKelompok(Request $request, int $id): RedirectResponse|JsonResponse
+    {
+        $this->pastikanPengelola($request);
+
+        $validated = $request->validate([
+            'kelompok_belajar_id' => ['required', 'exists:kelompok_belajars,id'],
+            'keterangan' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $item = KelompokBelajarAnggota::with(['user', 'kelompokBelajar', 'mataPelajaran'])->findOrFail($id);
+
+        if ((int) $item->kelompok_belajar_id === (int) $validated['kelompok_belajar_id']) {
+            $msg = 'Mahasiswa sudah terdaftar pada '.($item->kelompokBelajar?->nama_kelompok ?? 'kelompok ini').'. Silakan pilih kelompok belajar yang berbeda.';
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+
+            return redirect()->route('musyrifah.manajemen_pembelajaran', ['tab' => 'kelompok'])
+                ->with('error', $msg);
+        }
+
+        $kelompokLama = $item->kelompokBelajar?->nama_kelompok ?? 'Kelompok Lama';
+        $sebelum = $item->getAttributes();
+
+        $item->update([
+            'kelompok_belajar_id' => $validated['kelompok_belajar_id'],
+            'keterangan' => $validated['keterangan'] ?? $item->keterangan,
+        ]);
+
+        $item->load('kelompokBelajar');
+        $kelompokBaru = $item->kelompokBelajar?->nama_kelompok ?? 'Kelompok Baru';
+        $namaMhs = $item->user?->name ?? 'Mahasiswa';
+        $namaMapel = $item->mataPelajaran?->nama ?? 'Mata Pelajaran';
+
+        $this->audit->catat(
+            'pembelajaran',
+            'anggota_kelompok_dipindahkan',
+            'Anggota Kelompok '.$namaMhs,
+            (int) $item->id,
+            "Mahasiswa {$namaMhs} dipindahkan dari {$kelompokLama} ke {$kelompokBaru} pada {$namaMapel}.",
+            $request->user(),
+            $sebelum,
+            $item->getAttributes(),
+        );
+
+        $successMsg = "Mahasiswa {$namaMhs} berhasil dipindahkan ke {$kelompokBaru} untuk {$namaMapel}.";
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $successMsg,
+                'data' => $item,
+            ]);
+        }
+
+        return redirect()->route('musyrifah.manajemen_pembelajaran', ['tab' => 'kelompok'])
+            ->with('success', $successMsg);
+    }
+
+    /**
+     * Mengeluarkan mahasiswa dari kelompok belajar untuk mata pelajaran tertentu.
+     */
+    public function destroyAnggota(Request $request, int $id): RedirectResponse|JsonResponse
+    {
+        $this->pastikanPengelola($request);
+
+        $item = KelompokBelajarAnggota::with(['user', 'kelompokBelajar', 'mataPelajaran'])->findOrFail($id);
+        $namaMhs = $item->user?->name ?? 'Mahasiswa';
+        $namaKelompok = $item->kelompokBelajar?->nama_kelompok ?? 'Kelompok';
+        $namaMapel = $item->mataPelajaran?->nama ?? 'Mata Pelajaran';
+        $idItem = (int) $item->id;
+        $oldData = $item->getAttributes();
+
+        $item->delete();
+
+        $this->audit->catat(
+            'pembelajaran',
+            'anggota_kelompok_dikeluarkan',
+            'Anggota Kelompok '.$namaMhs,
+            $idItem,
+            "Mahasiswa {$namaMhs} dikeluarkan dari {$namaKelompok} pada {$namaMapel}.",
+            $request->user(),
+            $oldData,
+            [],
+        );
+
+        $successMsg = "Mahasiswa {$namaMhs} berhasil dikeluarkan dari {$namaKelompok} ({$namaMapel}).";
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => $successMsg]);
+        }
+
+        return redirect()->route('musyrifah.manajemen_pembelajaran', ['tab' => 'kelompok'])
+            ->with('success', $successMsg);
     }
 
     /**
@@ -907,8 +1121,8 @@ class MusyrifahManajemenPembelajaranController extends Controller
                 Artisan::call('migrate', ['--force' => true]);
             }
 
-            if (Schema::hasTable('mata_pelajarans') && Schema::hasTable('kelompok_pengajars')) {
-                if (MataPelajaran::count() === 0 || KelompokPengajar::count() === 0) {
+            if (Schema::hasTable('mata_pelajarans') && Schema::hasTable('kelompok_belajars')) {
+                if (MataPelajaran::count() === 0 || KelompokPengajar::count() === 0 || (Schema::hasTable('kelompok_belajar_anggotas') && KelompokBelajarAnggota::count() === 0)) {
                     (new PembelajaranSeeder)->run();
                 }
             }

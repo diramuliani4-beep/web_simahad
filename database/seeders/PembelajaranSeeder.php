@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\AbsensiPembelajaran;
 use App\Models\JadwalPembelajaran;
 use App\Models\KelompokBelajar;
+use App\Models\KelompokBelajarAnggota;
 use App\Models\KelompokPengajar;
 use App\Models\MataPelajaran;
 use App\Models\User;
@@ -69,8 +70,8 @@ class PembelajaranSeeder extends Seeder
             KelompokBelajar::updateOrCreate(
                 ['nomor_kelompok' => $i],
                 [
-                    'nama_kelompok' => 'Kelompok ' . $i,
-                    'keterangan' => 'Kelompok Belajar ' . $i . ' Mahad Al-Jamiah',
+                    'nama_kelompok' => 'Kelompok '.$i,
+                    'keterangan' => 'Kelompok Belajar '.$i.' Mahad Al-Jamiah',
                 ]
             );
         }
@@ -344,6 +345,31 @@ class PembelajaranSeeder extends Seeder
                 }
             }
         }
+
+        // 6. Data Anggota Kelompok Belajar (Mahasiswa Disetujui)
+        $kelompoks = KelompokBelajar::orderBy('nomor_kelompok')->get();
+        $mahasiswaDisetujui = User::whereRaw('LOWER(role) = ?', ['mahasiswa'])
+            ->whereHas('pendaftarans', fn ($q) => $q->where('status', 'disetujui'))
+            ->get();
+
+        if ($kelompoks->isNotEmpty()) {
+            foreach ($mahasiswaDisetujui as $uIdx => $u) {
+                foreach ($allMapels as $mIdx => $m) {
+                    $kIndex = ($uIdx + $mIdx) % $kelompoks->count();
+                    $k = $kelompoks[$kIndex];
+                    KelompokBelajarAnggota::updateOrCreate(
+                        [
+                            'user_id' => $u->id,
+                            'mata_pelajaran_id' => $m->id,
+                        ],
+                        [
+                            'kelompok_belajar_id' => $k->id,
+                            'status' => 'aktif',
+                            'keterangan' => 'Penempatan kelompok akademik semester',
+                        ]
+                    );
+                }
+            }
+        }
     }
 }
-

@@ -42,6 +42,7 @@ use App\Http\Controllers\ProfilAkunController;
 use App\Http\Controllers\ProfilMhsController;
 use App\Http\Controllers\SuratPerizinanMhsController;
 use App\Http\Controllers\TugasMhsController;
+use App\Http\Middleware\PastikanPendaftaranDisetujui;
 use App\Services\LaporanMahadService;
 use App\Services\PimpinanMonitoringService;
 use Illuminate\Http\Request;
@@ -209,12 +210,12 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/kamar/pilih', [AuthController::class, 'pilihKamar'])
         ->name('kamar.pilih')
-        ->middleware(\App\Http\Middleware\PastikanPendaftaranDisetujui::class);
+        ->middleware(PastikanPendaftaranDisetujui::class);
 
     // Pengajuan pindah kamar, diverifikasi Musyrifah pada menu Pengajuan Kamar
     Route::post('/kamar/pindah', [AuthController::class, 'pindahKamar'])
         ->name('kamar.pindah')
-        ->middleware(\App\Http\Middleware\PastikanPendaftaranDisetujui::class);
+        ->middleware(PastikanPendaftaranDisetujui::class);
 
     // Profil mahasiswa
     Route::get('/profil-mhs', [ProfilMhsController::class, 'index'])
@@ -385,7 +386,7 @@ Route::middleware('auth')->group(function () {
         PengajuanIzinPulangController::class,
         'store',
     ])->name('surat.perizinan.mhs.pengajuan.store')
-        ->middleware(\App\Http\Middleware\PastikanPendaftaranDisetujui::class);
+        ->middleware(PastikanPendaftaranDisetujui::class);
 
     // Izin kegiatan fakultas/prodi dan kampus
     Route::get('/surat-perizinan-mhs/kegiatan', [
@@ -397,7 +398,7 @@ Route::middleware('auth')->group(function () {
         SuratPerizinanMhsController::class,
         'simpanKegiatan',
     ])->name('surat.perizinan.mhs.kegiatan.store')
-        ->middleware(\App\Http\Middleware\PastikanPendaftaranDisetujui::class);
+        ->middleware(PastikanPendaftaranDisetujui::class);
 
     // Surat pulang semester (unduh, cetak, unggah berkas bertanda tangan)
     Route::get('/surat-perizinan-mhs/surat-pulang-semester', [
@@ -409,7 +410,7 @@ Route::middleware('auth')->group(function () {
         SuratPerizinanMhsController::class,
         'semesterStore',
     ])->name('surat.perizinan.mhs.semester.store')
-        ->middleware(\App\Http\Middleware\PastikanPendaftaranDisetujui::class);
+        ->middleware(PastikanPendaftaranDisetujui::class);
 
     Route::get('/surat-perizinan-mhs/{suratPerizinan}/cetak', [
         SuratPerizinanMhsController::class,
@@ -1033,6 +1034,22 @@ Route::middleware('auth')->group(function () {
         MusyrifahManajemenPembelajaranController::class,
         'index',
     ])->name('musyrifah.manajemen_pembelajaran');
+
+    // Anggota Kelompok Belajar (Mahasiswa Pendaftaran Disetujui)
+    Route::post('/musyrifah/manajemen-pembelajaran/anggota', [
+        MusyrifahManajemenPembelajaranController::class,
+        'storeAnggota',
+    ])->name('musyrifah.manajemen_pembelajaran.anggota.store');
+
+    Route::put('/musyrifah/manajemen-pembelajaran/anggota/{id}/pindah', [
+        MusyrifahManajemenPembelajaranController::class,
+        'pindahKelompok',
+    ])->name('musyrifah.manajemen_pembelajaran.anggota.pindah');
+
+    Route::delete('/musyrifah/manajemen-pembelajaran/anggota/{id}', [
+        MusyrifahManajemenPembelajaranController::class,
+        'destroyAnggota',
+    ])->name('musyrifah.manajemen_pembelajaran.anggota.destroy');
 
     Route::post('/musyrifah/manajemen-pembelajaran/kelompok', [
         MusyrifahManajemenPembelajaranController::class,

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AbsensiPembelajaran;
 use App\Models\JadwalPembelajaran;
 use App\Models\KelompokBelajar;
+use App\Models\KelompokBelajarAnggota;
 use App\Models\KelompokPengajar;
 use App\Models\MataPelajaran;
 use Carbon\Carbon;
@@ -32,8 +33,12 @@ class PembelajaranController extends Controller
         if ($kelompokRequest && is_string($kelompokRequest)) {
             $kelompokSaya = $kelompokRequest;
         } else {
-            $kelompokSaya = AbsensiPembelajaran::where('user_id', $user?->id)->value('kelompok')
-                ?: 'Kelompok 1';
+            // Prioritaskan keanggotaan kelompok belajar yang telah diatur oleh Musyrifah
+            $anggotaAktif = KelompokBelajarAnggota::where('user_id', $user?->id)
+                ->with('kelompokBelajar')
+                ->first();
+            $kelompokSaya = $anggotaAktif?->kelompokBelajar?->nama_kelompok
+                ?: (AbsensiPembelajaran::where('user_id', $user?->id)->value('kelompok') ?: 'Kelompok 1');
         }
 
         preg_match('/\d+/', $kelompokSaya, $matchKelompok);
@@ -57,15 +62,24 @@ class PembelajaranController extends Controller
         $iconNames = ['book-open', 'award', 'sparkles', 'languages', 'heart-handshake'];
 
         $daftarMataPelajaran = $mapels->map(function ($m, $index) use ($user, $kelompokSaya, $nomorKelompokSaya, $colors, $iconNames) {
+            // Cek keanggotaan spesifik mapel untuk mahasiswa dari pengaturan Musyrifah
+            $anggotaMapel = KelompokBelajarAnggota::where('user_id', $user?->id)
+                ->where('mata_pelajaran_id', $m->id)
+                ->with('kelompokBelajar')
+                ->first();
+            $kelompokMapelAktif = $anggotaMapel?->kelompokBelajar?->nama_kelompok ?: $kelompokSaya;
+            preg_match('/\d+/', $kelompokMapelAktif, $matchMapelKel);
+            $nomorKelompokMapel = isset($matchMapelKel[0]) ? (int) $matchMapelKel[0] : $nomorKelompokSaya;
+
             // Jadwal mapel untuk kelompok mahasiswa ini
             $jadwal = JadwalPembelajaran::where('mata_pelajaran_id', $m->id)
-                ->where('kelompok', $kelompokSaya)
+                ->where('kelompok', $kelompokMapelAktif)
                 ->first()
                 ?: JadwalPembelajaran::where('mata_pelajaran_id', $m->id)->first();
 
             // Pengajar dari KelompokPengajar atau Jadwal
             $pengajar = KelompokPengajar::where('program', 'LIKE', '%'.$m->nama.'%')
-                ->where('kelompok_teks', 'LIKE', '%'.$nomorKelompokSaya.'%')
+                ->where('kelompok_teks', 'LIKE', '%'.$nomorKelompokMapel.'%')
                 ->first();
 
             $namaPengajar = $pengajar?->nama_pengajar ?: ($jadwal?->guru_pengampu ?: 'Pengajar Ma\'had');
@@ -92,6 +106,7 @@ class PembelajaranController extends Controller
                 'kategori' => $m->kategori ?: 'Program Ma\'had',
                 'deskripsi' => $m->deskripsi,
                 'guru_pengampu' => $namaPengajar,
+                'kelompok' => $kelompokMapelAktif,
                 'hari' => $jadwal?->hari ?: 'Senin',
                 'jam' => $jadwal ? ($jadwal->jam_mulai.'–'.$jadwal->jam_selesai.' WIB') : '08:00–09:30 WIB',
                 'ruangan' => $jadwal?->ruangan ?: 'Ruang Kelas',

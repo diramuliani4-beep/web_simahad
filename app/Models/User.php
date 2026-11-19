@@ -67,6 +67,12 @@ class User extends Authenticatable
         return $this->hasMany(SuratPerizinan::class);
     }
 
+    /** Keanggotaan kelompok belajar mahasiswa pada mata pelajaran. */
+    public function kelompokBelajarAnggotas(): HasMany
+    {
+        return $this->hasMany(KelompokBelajarAnggota::class, 'user_id');
+    }
+
     /** Pengumuman Ma'had yang ditulis oleh Musyrifah. */
     public function pengumumans(): HasMany
     {

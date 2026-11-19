@@ -418,7 +418,7 @@
             📚 1. Mata Pelajaran ({{ count($daftarMataPelajaran) }})
         </button>
         <button type="button" class="mp-tab-btn" data-tab="tab-kelompok" onclick="switchTab('tab-kelompok', this)">
-            👥 2. Kelompok Belajar
+            👥 2. Kelompok Belajar ({{ $totalAnggotaKelompok ?? count($daftarAnggotaKelompok) }})
         </button>
         <button type="button" class="mp-tab-btn" data-tab="tab-jadwal" onclick="switchTab('tab-jadwal', this)">
             🗓️ 3. Jadwal Pembelajaran
@@ -503,74 +503,176 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- TAB 2: KELOMPOK BELAJAR (CRUD)             -->
+    <!-- TAB 2: KELOMPOK BELAJAR (ANGGOTA MAHASISWA) -->
     <!-- ========================================== -->
     <div class="mp-tab-panel" id="tab-kelompok">
+        <!-- RINGKASAN 6 KELOMPOK BELAJAR -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 22px;">
+            @foreach($daftarKelompok as $k)
+                <div style="background: #fff; border: 1px solid #eadbdf; border-radius: 12px; padding: 16px 18px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); display: flex; flex-direction: column; justify-content: space-between; transition: transform .15s, box-shadow .15s;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; background: #fdf2f4; color: #800d22; font-weight: 800; font-size: 13px; border: 1px solid #f2d4db;">
+                            K{{ $k->nomor_kelompok }}
+                        </span>
+                        <span class="badge-pill badge-blue" style="font-size: 10.5px; padding: 3px 8px;">
+                            {{ $k->anggotas_count ?? $k->anggotas->count() }} Mhs
+                        </span>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #1e293b;">{{ $k->nama_kelompok }}</h4>
+                        <p style="margin: 3px 0 10px; font-size: 11px; color: #64748b;">Kelompok Belajar Aktif</p>
+                    </div>
+                    <button type="button" class="btn-table-edit" style="width: 100%; justify-content: center; font-size: 11px; padding: 5px 8px;" onclick="filterTableKelompok('{{ $k->nama_kelompok }}')">
+                        Filter Kelompok Ini 🔍
+                    </button>
+                </div>
+            @endforeach
+        </div>
+
         <div class="mp-card">
             <div class="mp-card-header">
                 <div>
-                    <h2 class="mp-card-title">Pengaturan 6 Kelompok Belajar &amp; Pengajar</h2>
-                    <p style="margin: 4px 0 0; color: #64748b; font-size: 13px;">Daftar 8 pengajar pengampu kelompok belajar Ma'had Al-Jami'ah (Dilengkapi fitur CRUD Tambah, Ubah, Hapus).</p>
+                    <h2 class="mp-card-title">
+                        <span>👥</span> Manajemen Anggota Kelompok Belajar
+                    </h2>
+                    <p style="margin: 4px 0 0; color: #64748b; font-size: 13px;">
+                        Kelola distribusi mahasiswa (pendaftaran diverifikasi &amp; disetujui) pada kelompok belajar Ma'had Al-Jami'ah. Setiap mahasiswa hanya memiliki 1 kelompok aktif per mata pelajaran.
+                    </p>
                 </div>
 
-                <button type="button" class="btn-action-primary" onclick="openModalTambahKelompok()">
-                    + Tambah Pengajar Kelompok
+                <button type="button" class="btn-action-primary" onclick="openModalTambahAnggota()">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: middle; margin-right: 2px;"><path d="M12 5v14M5 12h14"/></svg>
+                    + Tambah Mahasiswa ke Kelompok
                 </button>
             </div>
 
+            <!-- FILTER BAR TABEL ANGGOTA -->
+            <div class="filter-bar" style="background: #faf7f8;">
+                <div style="display: flex; align-items: center; gap: 8px; flex: 1 1 240px; min-width: 200px;">
+                    <span style="color: #64748b; font-size: 13px;">🔍</span>
+                    <input type="text" id="searchAnggota" class="filter-input" placeholder="Cari nama mahasiswa atau NIM..." oninput="applyAnggotaFilters()">
+                </div>
+
+                <select id="filterKelompokAnggota" class="filter-select" onchange="applyAnggotaFilters()">
+                    <option value="">Semua Kelompok (6 Kelompok)</option>
+                    @foreach($daftarKelompok as $k)
+                        <option value="{{ $k->nama_kelompok }}">{{ $k->nama_kelompok }}</option>
+                    @endforeach
+                </select>
+
+                <select id="filterMapelAnggota" class="filter-select" onchange="applyAnggotaFilters()">
+                    <option value="">Semua Mata Pelajaran ({{ count($daftarMataPelajaran) }})</option>
+                    @foreach($daftarMataPelajaran as $mp)
+                        <option value="{{ $mp->id }}">{{ $mp->nama }}</option>
+                    @endforeach
+                </select>
+
+                <button type="button" class="btn-table-edit" style="height: 40px; padding: 0 14px;" onclick="resetAnggotaFilters()">
+                    Reset Filter
+                </button>
+            </div>
+
+            <!-- TABEL ANGGOTA KELOMPOK -->
             <div class="mp-table-wrap">
                 <table class="mp-table">
                     <thead>
                         <tr>
-                            <th>No</th>
-                            <th>Nama Pengajar</th>
-                            <th>Program Pembelajaran</th>
+                            <th style="width: 50px;">No</th>
+                            <th>Mahasiswa</th>
+                            <th>NIM</th>
+                            <th>Program Studi</th>
+                            <th>Mata Pelajaran</th>
                             <th>Kelompok Belajar</th>
-                            <th>Beban Mengajar</th>
-                            <th>Keterangan</th>
-                            <th>Aksi</th>
+                            <th>Status Pendaftaran</th>
+                            <th style="text-align: center; width: 180px;">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody id="tbodyKelompokPengajar">
-                        @forelse($daftarPengajar as $idx => $p)
-                            <tr>
-                                <td data-label="No">{{ $idx + 1 }}</td>
-                                <td style="text-align: left; font-weight: 600; padding-left: 16px;" data-label="Nama Pengajar">
-                                    {{ $p->nama_pengajar }}
+                    <tbody id="tbodyKelompokAnggota">
+                        @forelse($daftarAnggotaKelompok as $idx => $item)
+                            @php
+                                $mhsUser = $item->user;
+                                $pendaftaran = $mhsUser?->pendaftarans?->first();
+                                $mhsNim = $mhsUser?->nim ?? ($pendaftaran?->nim ?? '-');
+                                $mhsProdi = $pendaftaran?->program_studi ?? '-';
+                                $mhsFakultas = $pendaftaran?->fakultas ?? '-';
+                                $mapelNama = $item->mataPelajaran?->nama ?? '-';
+                                $kelompokNama = $item->kelompokBelajar?->nama_kelompok ?? '-';
+                            @endphp
+                            <tr class="row-anggota-kelompok"
+                                data-kelompok="{{ $kelompokNama }}"
+                                data-mapel-id="{{ $item->mata_pelajaran_id }}"
+                                data-search="{{ strtolower(($mhsUser?->name ?? '').' '.$mhsNim.' '.$mhsProdi) }}">
+                                <td data-label="No" class="row-num" style="text-align: center;">{{ $idx + 1 }}</td>
+                                <td data-label="Mahasiswa" style="text-align: left; font-weight: 600; padding-left: 14px;">
+                                    <div style="display: flex; align-items: center; gap: 9px;">
+                                        <div style="width: 32px; height: 32px; border-radius: 50%; background: #fbebee; color: #800d22; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; border: 1px solid #f2d4db;">
+                                            {{ strtoupper(substr($mhsUser?->name ?? 'M', 0, 1)) }}
+                                        </div>
+                                        <div>
+                                            <div style="color: #1e293b; font-weight: 600;">{{ $mhsUser?->name ?? 'Mahasiswa' }}</div>
+                                            <div style="font-size: 11px; color: #800d22; font-weight: 400;">{{ $mhsUser?->email ?? '' }}</div>
+                                        </div>
+                                    </div>
                                 </td>
-                                <td style="text-align: left; padding-left: 16px;" data-label="Program Pembelajaran">
-                                    {{ $p->program }}
+                                <td data-label="NIM" style="font-family: monospace; font-size: 12.5px; color: #334155; font-weight: 600;">
+                                    {{ $mhsNim }}
                                 </td>
-                                <td data-label="Kelompok Belajar">
-                                    <span class="badge-pill badge-blue" style="font-weight: 700;">
-                                        Kelompok {{ $p->kelompok_teks }}
+                                <td data-label="Program Studi">
+                                    <div style="color: #334155; font-weight: 500;">{{ $mhsProdi }}</div>
+                                    @if($mhsFakultas && $mhsFakultas !== '-')
+                                        <div style="font-size: 10.5px; color: #94a3b8;">{{ $mhsFakultas }}</div>
+                                    @endif
+                                </td>
+                                <td data-label="Mata Pelajaran">
+                                    <span class="badge-pill badge-blue" style="font-weight: 600; font-size: 11px;">
+                                        {{ $mapelNama }}
                                     </span>
                                 </td>
-                                <td style="font-weight: 600; color: #800d22;" data-label="Beban Mengajar">
-                                    {{ $p->jumlah_tm }}
+                                <td data-label="Kelompok Belajar">
+                                    <span class="badge-pill badge-yellow" style="font-weight: 700; font-size: 11.5px;">
+                                        {{ $kelompokNama }}
+                                    </span>
                                 </td>
-                                <td style="font-size: 12px; color: #64748b;" data-label="Keterangan">
-                                    {{ $p->keterangan ?? '-' }}
+                                <td data-label="Status Pendaftaran">
+                                    <span class="badge-pill badge-green" style="font-weight: 650; font-size: 11px;">
+                                        ✓ Disetujui
+                                    </span>
                                 </td>
-                                <td data-label="Aksi">
+                                <td data-label="Aksi" style="text-align: center;">
                                     <div style="display: flex; gap: 6px; justify-content: center;">
-                                        <button type="button" class="btn-table-edit" 
-                                                onclick="openModalEditKelompok({{ $p->id }}, '{{ addslashes($p->nama_pengajar) }}', '{{ addslashes($p->program) }}', '{{ addslashes($p->kelompok_teks) }}', '{{ addslashes($p->jumlah_tm) }}', '{{ addslashes($p->keterangan ?? '') }}')">
-                                            Ubah
+                                        <button type="button" class="btn-table-edit"
+                                                title="Pindahkan mahasiswa ke kelompok lain"
+                                                onclick="openModalPindahKelompok({{ $item->id }}, '{{ addslashes($mhsUser?->name ?? 'Mahasiswa') }}', '{{ addslashes($mhsNim) }}', '{{ addslashes($mapelNama) }}', {{ $item->kelompok_belajar_id }}, '{{ addslashes($kelompokNama) }}')">
+                                            Pindah
                                         </button>
-                                        <form action="{{ route('musyrifah.manajemen_pembelajaran.kelompok.destroy', $p->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengajar ini?')">
+                                        <form action="{{ route('musyrifah.manajemen_pembelajaran.anggota.destroy', $item->id) }}"
+                                              method="POST"
+                                              onsubmit="return confirm('Apakah Anda yakin ingin mengeluarkan mahasiswa {{ addslashes($mhsUser?->name ?? 'ini') }} dari {{ addslashes($kelompokNama) }} untuk {{ addslashes($mapelNama) }}?')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn-table-del">Hapus</button>
+                                            <button type="submit" class="btn-table-del" title="Keluarkan dari kelompok belajar">
+                                                Keluarkan
+                                            </button>
                                         </form>
                                     </div>
                                 </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="7" style="padding: 25px;">Belum ada data pengajar kelompok.</td>
+                            <tr id="emptyAnggotaDbRow">
+                                <td colspan="8" style="padding: 35px 20px; text-align: center; color: #64748b;">
+                                    <div style="font-size: 32px; margin-bottom: 8px;">👥</div>
+                                    <div style="font-weight: 600; font-size: 14px; color: #1e293b;">Belum ada anggota kelompok belajar yang ditambahkan</div>
+                                    <div style="font-size: 12px; margin-top: 4px;">Klik tombol <strong>+ Tambah Mahasiswa ke Kelompok</strong> untuk mendistribusikan mahasiswa yang telah disetujui.</div>
+                                </td>
                             </tr>
                         @endforelse
+                        <tr id="emptyAnggotaFilterRow" style="display: none;">
+                            <td colspan="8" style="padding: 35px 20px; text-align: center; color: #64748b;">
+                                <div style="font-size: 28px; margin-bottom: 6px;">🔍</div>
+                                <div style="font-weight: 600; font-size: 13.5px; color: #1e293b;">Tidak ada mahasiswa yang cocok dengan filter atau pencarian</div>
+                                <div style="font-size: 12px; margin-top: 4px;">Silakan sesuaikan pilihan filter kelompok, mata pelajaran, atau kata kunci pencarian.</div>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -924,46 +1026,118 @@
 </div>
 
 <!-- ======================================================== -->
-<!-- MODAL 1: TAMBAH / EDIT KELOMPOK PENGAJAR                 -->
+<!-- MODAL: TAMBAH ANGGOTA KELOMPOK BELAJAR                   -->
 <!-- ======================================================== -->
-<div class="modal-overlay" id="modalKelompok" onclick="closeModalOnBackdrop(event, 'modalKelompok')">
+<div class="modal-overlay" id="modalTambahAnggota" onclick="closeModalOnBackdrop(event, 'modalTambahAnggota')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-top">
-            <div class="modal-top-title" id="modalKelompokTitle">Tambah Pengajar Kelompok</div>
-            <button type="button" class="modal-close-btn" onclick="closeModal('modalKelompok')">&times;</button>
+            <div class="modal-top-title">Tambah Mahasiswa ke Kelompok Belajar</div>
+            <button type="button" class="modal-close-btn" onclick="closeModal('modalTambahAnggota')">&times;</button>
         </div>
-        <form id="formKelompok" method="POST" action="{{ route('musyrifah.manajemen_pembelajaran.kelompok.store') }}">
+        <form method="POST" action="{{ route('musyrifah.manajemen_pembelajaran.anggota.store') }}">
             @csrf
-            <div id="methodKelompokSpoof"></div>
             <div class="modal-inner">
-                <div class="form-group">
-                    <label class="form-label">Nama Pengajar / Dosen</label>
-                    <input type="text" name="nama_pengajar" id="inputNamaPengajar" class="form-control" required placeholder="Contoh: Dr. Zulkifli, M.A.">
+                <div style="padding: 11px 14px; margin-bottom: 16px; background: #eaf6ee; border: 1px solid #c2e8ce; border-radius: 9px; font-size: 12px; color: #166534; line-height: 1.55;">
+                    <strong>✓ Mahasiswa Terverifikasi:</strong> Daftar di bawah hanya memuat mahasiswa yang pendaftarannya telah <strong>disetujui</strong> oleh Musyrifah.
                 </div>
+
                 <div class="form-group">
-                    <label class="form-label">Program Pembelajaran</label>
-                    <select name="program" id="selectProgram" class="form-control" required>
-                        @foreach($daftarMataPelajaran as $mp)
-                            <option value="{{ $mp->nama }}">{{ $mp->nama }}</option>
+                    <label class="form-label">Pilih Mahasiswa Disetujui</label>
+                    <select name="user_id" id="selectTambahAnggotaUser" class="form-control" required>
+                        <option value="">-- Pilih Mahasiswa --</option>
+                        @foreach($mahasiswaDisetujui as $mhs)
+                            @php
+                                $p = $mhs->pendaftarans->first();
+                                $nim = $mhs->nim ?? ($p?->nim ?? '-');
+                                $prodi = $p?->program_studi ?? 'Mahasiswa';
+                            @endphp
+                            <option value="{{ $mhs->id }}">{{ $mhs->name }} (NIM: {{ $nim }}) — {{ $prodi }}</option>
                         @endforeach
                     </select>
                 </div>
+
                 <div class="form-group">
-                    <label class="form-label">Kelompok yang Diampu (Pilihan 6 Kelompok)</label>
-                    <input type="text" name="kelompok_teks" id="inputKelompokTeks" class="form-control" required placeholder="Contoh: 1 dan 2 atau 4 dan 5">
+                    <label class="form-label">Mata Pelajaran</label>
+                    <select name="mata_pelajaran_id" id="selectTambahAnggotaMapel" class="form-control" required>
+                        <option value="">-- Pilih Mata Pelajaran --</option>
+                        @foreach($daftarMataPelajaran as $mp)
+                            <option value="{{ $mp->id }}">{{ $mp->nama }}</option>
+                        @endforeach
+                    </select>
                 </div>
+
                 <div class="form-group">
-                    <label class="form-label">Jumlah Beban TM</label>
-                    <input type="text" name="jumlah_tm" id="inputJumlahTm" class="form-control" value="32 TM (2 kelas)" required>
+                    <label class="form-label">Kelompok Belajar</label>
+                    <select name="kelompok_belajar_id" id="selectTambahAnggotaKelompok" class="form-control" required>
+                        <option value="">-- Pilih Kelompok Belajar --</option>
+                        @foreach($daftarKelompok as $k)
+                            <option value="{{ $k->id }}">{{ $k->nama_kelompok }}</option>
+                        @endforeach
+                    </select>
                 </div>
+
                 <div class="form-group">
-                    <label class="form-label">Keterangan / Fokus Pembelajaran</label>
-                    <textarea name="keterangan" id="inputKeteranganKelompok" class="form-control" style="height: 70px; padding: 10px;" placeholder="Catatan bidang materi..."></textarea>
+                    <label class="form-label">Catatan / Keterangan (Opsional)</label>
+                    <input type="text" name="keterangan" class="form-control" placeholder="Contoh: Penempatan awal semester, kelompok minat...">
+                </div>
+
+                <div style="font-size: 11.5px; color: #800d22; background: #fff5f7; border: 1px solid #f9d8df; padding: 9px 13px; border-radius: 8px;">
+                    ⚠️ <strong>Aturan SIMAHAD:</strong> Satu mahasiswa hanya memiliki satu kelompok aktif untuk setiap mata pelajaran.
                 </div>
             </div>
             <div class="modal-footer-btns">
-                <button type="button" class="btn-modal-cancel" onclick="closeModal('modalKelompok')">Batal</button>
-                <button type="submit" class="btn-action-primary" id="btnSubmitKelompok">Simpan Pengajar</button>
+                <button type="button" class="btn-modal-cancel" onclick="closeModal('modalTambahAnggota')">Batal</button>
+                <button type="submit" class="btn-action-primary">Tambahkan ke Kelompok</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ======================================================== -->
+<!-- MODAL: PINDAH KELOMPOK BELAJAR MAHASISWA                 -->
+<!-- ======================================================== -->
+<div class="modal-overlay" id="modalPindahKelompok" onclick="closeModalOnBackdrop(event, 'modalPindahKelompok')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-top">
+            <div class="modal-top-title">Pindahkan Kelompok Belajar Mahasiswa</div>
+            <button type="button" class="modal-close-btn" onclick="closeModal('modalPindahKelompok')">&times;</button>
+        </div>
+        <form id="formPindahKelompok" method="POST" action="">
+            @csrf
+            @method('PUT')
+            <div class="modal-inner">
+                <div style="background: #faf5f7; border: 1px solid #f0dfe4; border-radius: 9px; padding: 14px 16px; margin-bottom: 16px;">
+                    <div style="font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: #800d22; font-weight: 700; margin-bottom: 8px;">
+                        Informasi Anggota Saat Ini
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12.5px;">
+                        <div><span style="color: #64748b;">Nama:</span> <strong id="pindahNamaMhs" style="color: #1e293b;">-</strong></div>
+                        <div><span style="color: #64748b;">NIM:</span> <strong id="pindahNimMhs" style="color: #1e293b;">-</strong></div>
+                        <div style="grid-column: 1 / -1;"><span style="color: #64748b;">Mata Pelajaran:</span> <strong id="pindahMapelMhs" style="color: #800d22;">-</strong></div>
+                        <div style="grid-column: 1 / -1; display: flex; align-items: center; gap: 8px;">
+                            <span style="color: #64748b;">Kelompok Saat Ini:</span>
+                            <span id="pindahKelompokSaatIni" class="badge-pill badge-yellow" style="font-weight: 700;">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Pilih Kelompok Belajar Baru</label>
+                    <select name="kelompok_belajar_id" id="selectPindahKelompokBaru" class="form-control" required>
+                        @foreach($daftarKelompok as $k)
+                            <option value="{{ $k->id }}">{{ $k->nama_kelompok }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Alasan / Catatan Perpindahan (Opsional)</label>
+                    <textarea name="keterangan" class="form-control" style="height: 65px; padding: 8px 12px;" placeholder="Contoh: Penyesuaian jadwal kuliah mahasiswa, pemerataan kapasitas kelompok..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer-btns">
+                <button type="button" class="btn-modal-cancel" onclick="closeModal('modalPindahKelompok')">Batal</button>
+                <button type="submit" class="btn-action-primary">Pindahkan Mahasiswa</button>
             </div>
         </form>
     </div>
@@ -1258,30 +1432,90 @@
         openModal('modalMapel');
     }
 
-    // 3. MODAL KELOMPOK PENGAJAR (CRUD)
-    function openModalTambahKelompok() {
-        document.getElementById('modalKelompokTitle').textContent = 'Tambah Pengajar Kelompok Belajar';
-        document.getElementById('formKelompok').action = "{{ route('musyrifah.manajemen_pembelajaran.kelompok.store') }}";
-        document.getElementById('methodKelompokSpoof').innerHTML = '';
-        document.getElementById('inputNamaPengajar').value = '';
-        document.getElementById('inputKelompokTeks').value = '';
-        document.getElementById('inputJumlahTm').value = '32 TM (2 kelas)';
-        document.getElementById('inputKeteranganKelompok').value = '';
-        document.getElementById('btnSubmitKelompok').textContent = 'Simpan Pengajar';
-        openModal('modalKelompok');
+    // 3. MODAL ANGGOTA KELOMPOK BELAJAR (TAMBAH & PINDAH)
+    function openModalTambahAnggota() {
+        const userSelect = document.getElementById('selectTambahAnggotaUser');
+        const mapelSelect = document.getElementById('selectTambahAnggotaMapel');
+        const kelompokSelect = document.getElementById('selectTambahAnggotaKelompok');
+        if (userSelect) userSelect.selectedIndex = 0;
+        if (mapelSelect) mapelSelect.selectedIndex = 0;
+        if (kelompokSelect) kelompokSelect.selectedIndex = 0;
+        openModal('modalTambahAnggota');
     }
 
-    function openModalEditKelompok(id, nama, program, kelompok, tm, ket) {
-        document.getElementById('modalKelompokTitle').textContent = 'Ubah Pengajar Kelompok Belajar';
-        document.getElementById('formKelompok').action = "{{ url('/musyrifah/manajemen-pembelajaran/kelompok') }}/" + id;
-        document.getElementById('methodKelompokSpoof').innerHTML = '@method("PUT")';
-        document.getElementById('inputNamaPengajar').value = nama;
-        document.getElementById('selectProgram').value = program;
-        document.getElementById('inputKelompokTeks').value = kelompok;
-        document.getElementById('inputJumlahTm').value = tm;
-        document.getElementById('inputKeteranganKelompok').value = ket;
-        document.getElementById('btnSubmitKelompok').textContent = 'Perbarui Pengajar';
-        openModal('modalKelompok');
+    function openModalPindahKelompok(id, nama, nim, mapel, currentKelompokId, currentKelompokNama) {
+        document.getElementById('formPindahKelompok').action = "{{ url('/musyrifah/manajemen-pembelajaran/anggota') }}/" + id + "/pindah";
+        document.getElementById('pindahNamaMhs').textContent = nama;
+        document.getElementById('pindahNimMhs').textContent = nim;
+        document.getElementById('pindahMapelMhs').textContent = mapel;
+        document.getElementById('pindahKelompokSaatIni').textContent = currentKelompokNama;
+        
+        const selectBaru = document.getElementById('selectPindahKelompokBaru');
+        if (selectBaru) {
+            selectBaru.value = currentKelompokId;
+        }
+        openModal('modalPindahKelompok');
+    }
+
+    // FILTER DAN PENCARIAN ANGGOTA KELOMPOK BELAJAR
+    function applyAnggotaFilters() {
+        const kelompok = (document.getElementById('filterKelompokAnggota')?.value || '').trim();
+        const mapelId = (document.getElementById('filterMapelAnggota')?.value || '').trim();
+        const search = (document.getElementById('searchAnggota')?.value || '').trim().toLowerCase();
+
+        const rows = document.querySelectorAll('.row-anggota-kelompok');
+        const emptyFilterRow = document.getElementById('emptyAnggotaFilterRow');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const rowKelompok = (row.dataset.kelompok || '').trim();
+            const rowMapelId = (row.dataset.mapelId || '').trim();
+            const rowSearch = (row.dataset.search || '').trim().toLowerCase();
+
+            const matchKelompok = !kelompok || rowKelompok === kelompok;
+            const matchMapel = !mapelId || rowMapelId === mapelId;
+            const matchSearch = !search || rowSearch.includes(search);
+
+            if (matchKelompok && matchMapel && matchSearch) {
+                row.style.display = '';
+                visibleCount++;
+                const numCell = row.querySelector('.row-num');
+                if (numCell) numCell.textContent = visibleCount;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        if (emptyFilterRow) {
+            const dbEmpty = document.getElementById('emptyAnggotaDbRow');
+            if (!dbEmpty) {
+                emptyFilterRow.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+            }
+        }
+    }
+
+    function resetAnggotaFilters() {
+        const selKelompok = document.getElementById('filterKelompokAnggota');
+        const selMapel = document.getElementById('filterMapelAnggota');
+        const inputSearch = document.getElementById('searchAnggota');
+
+        if (selKelompok) selKelompok.value = '';
+        if (selMapel) selMapel.value = '';
+        if (inputSearch) inputSearch.value = '';
+
+        applyAnggotaFilters();
+    }
+
+    function filterTableKelompok(kelompokNama) {
+        const selKelompok = document.getElementById('filterKelompokAnggota');
+        if (selKelompok) {
+            selKelompok.value = kelompokNama;
+            applyAnggotaFilters();
+            const tableElem = document.getElementById('tbodyKelompokAnggota');
+            if (tableElem) {
+                tableElem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
     }
 
     // 4. MODAL JADWAL (CRUD)
