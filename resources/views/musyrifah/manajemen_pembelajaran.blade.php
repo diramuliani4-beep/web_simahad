@@ -506,29 +506,6 @@
     <!-- TAB 2: KELOMPOK BELAJAR (ANGGOTA MAHASISWA) -->
     <!-- ========================================== -->
     <div class="mp-tab-panel" id="tab-kelompok">
-        <!-- RINGKASAN 6 KELOMPOK BELAJAR -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 22px;">
-            @foreach($daftarKelompok as $k)
-                <div style="background: #fff; border: 1px solid #eadbdf; border-radius: 12px; padding: 16px 18px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); display: flex; flex-direction: column; justify-content: space-between; transition: transform .15s, box-shadow .15s;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; background: #fdf2f4; color: #800d22; font-weight: 800; font-size: 13px; border: 1px solid #f2d4db;">
-                            K{{ $k->nomor_kelompok }}
-                        </span>
-                        <span class="badge-pill badge-blue" style="font-size: 10.5px; padding: 3px 8px;">
-                            {{ $k->anggotas_count ?? $k->anggotas->count() }} Mhs
-                        </span>
-                    </div>
-                    <div>
-                        <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #1e293b;">{{ $k->nama_kelompok }}</h4>
-                        <p style="margin: 3px 0 10px; font-size: 11px; color: #64748b;">Kelompok Belajar Aktif</p>
-                    </div>
-                    <button type="button" class="btn-table-edit" style="width: 100%; justify-content: center; font-size: 11px; padding: 5px 8px;" onclick="filterTableKelompok('{{ $k->nama_kelompok }}')">
-                        Filter Kelompok Ini 🔍
-                    </button>
-                </div>
-            @endforeach
-        </div>
-
         <div class="mp-card">
             <div class="mp-card-header">
                 <div>
