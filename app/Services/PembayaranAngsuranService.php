@@ -510,7 +510,11 @@ class PembayaranAngsuranService
             'tanggal_bayar' => $pembayaran->tanggal_bayar
                 ? $pembayaran->tanggal_bayar->locale('id')->translatedFormat('d F Y, H:i').' WIB'
                 : null,
-            'dapat_unggah' => $pembayaran->dapatDiunggahBukti(),
+            // Form yang sama dipakai untuk unggah pertama atau mengganti bukti
+            // selama belum diterima Musyrifah.
+            'bukti_sudah_diunggah' => filled($pembayaran->bukti_pembayaran),
+            'bukti_ditolak' => $pembayaran->buktiDitolak(),
+            'dapat_unggah' => $this->bolehUnggahAtauGantiBukti($pembayaran),
             'dapat_ajukan' => $pembayaran->dapatDiajukanKeterlambatan(),
             'terlambat' => $pembayaran->terlambat(),
             'pengajuan_menunggu' => $pengajuanTerakhir?->masihMenunggu() ?? false,
@@ -529,18 +533,27 @@ class PembayaranAngsuranService
             ]);
         }
 
+        // Ambil kondisi terbaru sebelum menimpa berkas lama. Pemeriksaan
+        // Musyrifah bisa terjadi setelah mahasiswa membuka formulir.
+        $tagihan->refresh();
         $this->pastikanPeriodeDibuka($tagihan);
 
-        if (! $tagihan->dapatDiunggahBukti()) {
+        if (! $this->bolehUnggahAtauGantiBukti($tagihan)) {
             throw ValidationException::withMessages([
-                'bukti' => 'Tagihan ini tidak dapat diunggah buktinya karena sudah lunas atau sedang menunggu konfirmasi Rektorat.',
+                'bukti' => 'Bukti tidak dapat diubah karena sudah diterima Musyrifah, menunggu konfirmasi Rektorat, atau tagihan sudah Lunas.',
             ]);
         }
 
         $berkasLama = $tagihan->bukti_pembayaran;
         $path = $berkas->store('pembayaran/bukti', 'public');
+        if (! is_string($path) || $path === '') {
+            throw ValidationException::withMessages([
+                'bukti' => 'Gagal menyimpan bukti transfer. Silakan coba kembali.',
+            ]);
+        }
 
-        $tagihan->update([
+        try {
+            $tagihan->update([
             'bukti_pembayaran' => $path,
             'status' => Pembayaran::STATUS_MENUNGGU_VERIFIKASI,
             'status_verifikasi' => Pembayaran::VERIFIKASI_MENUNGGU,
@@ -549,13 +562,38 @@ class PembayaranAngsuranService
             'tanggal_verifikasi' => null,
             'diverifikasi_oleh' => null,
             'tanggal_bayar' => null,
-        ]);
+            ]);
+        } catch (Throwable $exception) {
+            // File baru tidak boleh tertinggal jika update database gagal.
+            Storage::disk('public')->delete($path);
+            throw $exception;
+        }
 
+        // File lama baru dihapus sesudah pembaruan database berhasil.
         if (filled($berkasLama) && $berkasLama !== $path && Storage::disk('public')->exists($berkasLama)) {
             Storage::disk('public')->delete($berkasLama);
         }
 
         return $tagihan->fresh();
+    }
+
+    /**
+     * Hak mahasiswa untuk unggah/ganti bukti: belum disetujui Musyrifah.
+     * Saat status masih menunggu pemeriksaan, bukti boleh diperbaiki.
+     */
+    private function bolehUnggahAtauGantiBukti(Pembayaran $tagihan): bool
+    {
+        if ($tagihan->sudahLunas() || $tagihan->menungguKonfirmasiRektorat()) {
+            return false;
+        }
+
+        if (strtolower(trim((string) $tagihan->status_verifikasi)) === strtolower((string) Pembayaran::VERIFIKASI_DITERIMA)) {
+            return false;
+        }
+
+        return $tagihan->dapatDiunggahBukti()
+            || $tagihan->menungguVerifikasiBukti()
+            || $tagihan->buktiDitolak();
     }
 
     /**

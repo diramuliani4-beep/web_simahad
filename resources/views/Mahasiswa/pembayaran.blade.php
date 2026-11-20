@@ -5,362 +5,804 @@
 @section('content')
 
 <style>
+
 /* SIMAHAD · Pembayaran Mahasiswa
+
    Desain responsif saja — seluruh route, form, CSRF dan logika pembayaran tetap dipertahankan. */
+
 .bayar-page {
+
     --maroon:#800b22; --maroon-dark:#610719; --maroon-tint:#fff3f6;
+
     --ink:#251e26; --secondary:#574d56; --muted:#7b707b;
+
     --border:#eadce1; --line:#f0e5e9; --gold:#c89e50;
+
     display:block !important; clear:both; position:relative;
+
     width:100% !important; max-width:100% !important; min-width:0 !important;
+
     margin:0 !important; padding:0 0 28px !important;
+
     color:var(--ink); font:400 13.5px/1.58 'Plus Jakarta Sans',Poppins,Arial,sans-serif;
+
     container-type:inline-size;
+
 }
+
 .bayar-page *, .bayar-page *::before, .bayar-page *::after { box-sizing:border-box; }
+
 .bayar-page > *, .bayar-page div, .bayar-page article,
+
 .bayar-page section, .bayar-page form { min-width:0; }
+
 .bayar-page a { text-decoration:none; }
+
 .bayar-page button,.bayar-page input,.bayar-page textarea { font-family:inherit; }
+
 .bayar-page a:focus-visible,.bayar-page button:focus-visible,
+
 .bayar-page input:focus-visible,.bayar-page textarea:focus-visible {
+
     outline:3px solid rgba(180,111,131,.36);outline-offset:2px;
+
 }
+
 /* Navigasi: Dashboard yang aktif, tanpa tombol kembali duplikat */
+
 .bayar-page .bayar-breadcrumb {
+
     display:flex;align-items:center;flex-wrap:wrap;gap:8px;
+
     padding:0;margin:0 0 10px;color:#978b94;font-size:12px;
+
 }
+
 .bayar-page .bayar-breadcrumb a { color:var(--maroon);font-weight:750; }
+
 .bayar-page .bayar-breadcrumb a:hover { text-decoration:underline; }
+
 .bayar-page .page-head {
+
     display:flex;align-items:center;justify-content:space-between;
+
     gap:12px 18px;flex-wrap:wrap;margin:0 0 18px;
+
     padding:0 0 17px;border-bottom:1px solid #e8d7dc;
+
 }
+
 .bayar-page .page-head > div { flex:1 1 360px; }
+
 .bayar-page .page-head h1 {
+
     margin:0;color:#261a22;font-size:clamp(23px,2vw,28px);
+
     line-height:1.22;letter-spacing:-.035em;font-weight:800;
+
 }
+
 .bayar-page .page-head p {
+
     margin:6px 0 0;max-width:800px;color:var(--muted);
+
     font-size:12.5px;line-height:1.65;
+
 }
+
 .bayar-page .periode-chip {
+
     display:inline-flex;align-items:center;justify-content:center;gap:7px;
+
     max-width:100%;padding:7px 12px;border:1px solid #ead6dc;
+
     border-radius:9px;background:#fff;color:var(--maroon);
+
     font-size:11.5px;font-weight:750;line-height:1.45;
+
     white-space:normal;text-align:center;
+
 }
+
 .bayar-page .periode-chip svg { flex:0 0 14px; }
+
 .bayar-page .info-note {
+
     display:flex;align-items:flex-start;gap:11px;
+
     margin:0 0 16px;padding:12px 15px;
+
     border:1px solid #eddfbd;border-left:3px solid #cba457;
+
     border-radius:11px;background:#fffaf0;color:#735b2e;
+
     font-size:12px;line-height:1.75;
+
 }
+
 .bayar-page .info-note svg { flex:0 0 17px;margin-top:2px; }
+
 .bayar-page .info-note strong { color:#695022; }
+
 /* Ringkasan tagihan: empat kartu ringkas pada desktop */
+
 .bayar-page .ringkasan-grid {
+
     display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+
     gap:12px;margin:0 0 16px;
+
 }
+
 .bayar-page .stat-card {
+
     position:relative;min-width:0;overflow:hidden;
+
     display:flex;flex-direction:column;justify-content:flex-start;
+
     gap:5px;padding:15px 16px;
+
     border:1px solid var(--border);border-radius:13px;
+
     background:#fff;box-shadow:0 2px 12px rgba(50,16,30,.026);
+
 }
+
 .bayar-page .stat-card::after {
+
     content:"";position:absolute;right:15px;top:15px;
+
     width:9px;height:9px;border-radius:50%;background:#ead1d9;
+
 }
+
 .bayar-page .stat-card:nth-child(2)::after { background:#bed9f3; }
+
 .bayar-page .stat-card:nth-child(3)::after { background:#eed9a2; }
+
 .bayar-page .stat-card:nth-child(4)::after { background:#c9e7d2; }
+
 .bayar-page .stat-card--utama {
+
     border-color:#e6cbd3;background:linear-gradient(135deg,#fff,#fff5f7);
+
 }
+
 .bayar-page .stat-card .stat-label {
+
     display:block;max-width:calc(100% - 15px);
+
     color:#736771;font-size:11px;font-weight:750;line-height:1.5;
+
 }
+
 .bayar-page .stat-card .stat-nilai {
+
     display:block;margin-top:2px;color:#29212a;
+
     font-size:clamp(17px,1.45vw,21px);font-weight:800;letter-spacing:-.025em;
+
     line-height:1.25;overflow-wrap:anywhere;
+
 }
+
 .bayar-page .stat-card--utama .stat-nilai { color:var(--maroon); }
+
 .bayar-page .stat-card .stat-sub {
+
     display:block;margin-top:2px;color:#867a84;
+
     font-size:11.2px;line-height:1.55;overflow-wrap:anywhere;
+
 }
+
 .bayar-page .stat-card .stat-nilai.stat-status-value { font-size:17px !important; }
+
 .bayar-page .progres {
+
     height:5px;overflow:hidden;margin:6px 0 0;
+
     background:#f0e2e6;border-radius:99px;
+
 }
+
 .bayar-page .progres span {
+
     display:block;height:100%;border-radius:99px;
+
     background:linear-gradient(90deg,var(--maroon),#cc9860);
+
 }
+
 /* Informasi rekening */
+
 .bayar-page .rekening-card {
+
     display:flex;align-items:center;justify-content:space-between;
+
     flex-wrap:wrap;gap:15px 24px;
+
     margin:0 0 20px;padding:18px 20px;
+
     border:1px solid #ead1d8;border-radius:13px;
+
     background:#fff;box-shadow:0 2px 12px rgba(50,16,30,.02);
+
 }
+
 .bayar-page .rekening-info { flex:1 1 260px;min-width:0; }
+
 .bayar-page .rekening-bank {
+
     display:inline-flex;align-items:center;gap:6px;
+
     padding:4px 10px;background:#fff1f5;
+
     color:var(--maroon);border-radius:7px;
+
     font-size:11px;font-weight:800;line-height:1.4;
+
 }
+
 .bayar-page .rekening-nomor {
+
     margin:8px 0 3px;color:#2b1c23;
+
     font-size:clamp(20px,2vw,27px);font-weight:800;
+
     line-height:1.2;letter-spacing:.025em;overflow-wrap:anywhere;
+
 }
+
 .bayar-page .rekening-nama {
+
     color:var(--muted);font-size:12px;
+
     line-height:1.6;overflow-wrap:anywhere;
+
 }
+
 .bayar-page .rekening-nama strong {color:#30262d;}
+
 .bayar-page .btn-salin {
+
     display:inline-flex;align-items:center;justify-content:center;gap:8px;
+
     flex:0 1 auto;min-height:39px;padding:9px 14px;
+
     border:1px solid var(--maroon);border-radius:9px;
+
     background:var(--maroon);color:#fff;
+
     font-size:11.5px;font-weight:750;line-height:1.4;
+
     cursor:pointer;transition:background .16s,border-color .16s;
+
 }
+
 .bayar-page .btn-salin:hover {background:var(--maroon-dark);border-color:var(--maroon-dark);}
+
 .bayar-page .btn-salin.is-copied {background:#1c7c4f;border-color:#1c7c4f;}
+
 .bayar-page .btn-salin svg {flex:none;}
+
 /* Angsuran */
+
 .bayar-page .bagian-judul {
+
     display:flex;flex-wrap:wrap;align-items:center;
+
     justify-content:space-between;gap:7px 14px;
+
     margin:0 0 12px;
+
 }
+
 .bayar-page .bagian-judul h2 {
+
     margin:0;color:#261e27;font-size:16px;
+
     font-weight:800;line-height:1.4;
+
 }
+
 .bayar-page .bagian-judul span {
+
     color:#887c85;font-size:11.5px;
+
 }
+
 .bayar-page .angsuran-grid {
+
     display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+
     gap:14px;align-items:start;margin:0 0 19px;
+
 }
+
 .bayar-page .angsuran-card {
+
     display:flex;flex-direction:column;gap:0;min-width:0;
+
     padding:16px;border:1px solid var(--border);
+
     border-radius:13px;background:#fff;
+
     box-shadow:0 2px 12px rgba(50,16,30,.027);
+
 }
+
 .bayar-page .angsuran-card.is-lunas {border-color:#cfe8d8;background:#fdfffd;}
+
 .bayar-page .angsuran-card.is-terlambat {border-color:#f0cbd2;}
+
 .bayar-page .angsuran-head {
+
     display:flex;align-items:flex-start;justify-content:space-between;
+
     flex-wrap:wrap;gap:7px;
+
 }
+
 .bayar-page .angsuran-tahap {
+
     color:var(--maroon);font-size:12px;
+
     font-weight:800;letter-spacing:.015em;line-height:1.5;
+
 }
+
 .bayar-page .angsuran-nominal {
+
     margin:10px 0 2px;color:#261b24;
+
     font-size:clamp(19px,1.7vw,24px);
+
     font-weight:800;letter-spacing:-.025em;
+
     line-height:1.25;overflow-wrap:anywhere;
+
 }
+
 .bayar-page .angsuran-meta {
+
     display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+
     gap:12px 11px;margin:13px 0 0;padding:13px 0 0;
+
     border-top:1px solid var(--line);
+
 }
+
 .bayar-page .meta-label {
+
     display:block;color:#8b7f87;font-size:10.5px;
+
     font-weight:650;line-height:1.4;
+
 }
+
 .bayar-page .meta-nilai {
+
     display:block;margin:4px 0 0;color:#312831;
+
     font-size:12px;font-weight:700;line-height:1.45;
+
     overflow-wrap:anywhere;
+
 }
+
 .bayar-page .badge {
+
     display:inline-flex;align-items:center;justify-content:center;
+
     gap:4px;max-width:100%;padding:4px 9px;
+
     border-radius:99px;font-size:10.3px;
+
     line-height:1.4;font-weight:750;
+
     white-space:normal;text-align:center;
+
     background:#f2f2f4;color:#606673;
+
 }
+
 .bayar-page .badge.lunas,.bayar-page .badge.verifikasi-diterima {
+
     background:#e4f6eb;color:#18784d;
+
 }
+
 .bayar-page .badge.menunggu,.bayar-page .badge.verifikasi-menunggu {
+
     background:#e7f1fd;color:#275f9b;
+
 }
+
 .bayar-page .badge.rektorat {background:#f1ebfa;color:#7051a0;}
+
 .bayar-page .badge.ditolak,.bayar-page .badge.terlambat,
+
 .bayar-page .badge.verifikasi-ditolak {
+
     background:#feebed;color:#ae253a;
+
 }
+
 .bayar-page .badge.belum {background:#fff2d5;color:#946117;}
+
 .bayar-page .badge.verifikasi-kosong {background:#f2f3f5;color:#69717c;}
+
 .bayar-page .catatan-verifikasi {
+
     margin-top:12px;padding:10px 12px;
+
     border:1px solid #f1d5db;border-left:3px solid #c25b6d;
+
     border-radius:8px;background:#fff6f8;
+
     color:#8a283e;font-size:11.5px;line-height:1.7;
+
     overflow-wrap:anywhere;
+
 }
+
 .bayar-page .bukti-link {
+
     display:inline-flex;align-items:center;gap:6px;
+
     width:fit-content;max-width:100%;margin:10px 0 0;
+
     color:var(--maroon);font-size:11.7px;font-weight:750;
+
     line-height:1.5;overflow-wrap:anywhere;
+
 }
+
 .bayar-page .bukti-link:hover {text-decoration:underline;}
+
 .bayar-page .bukti-link svg {flex:none;}
+
 .bayar-page .aksi-baris {
+
     display:flex;flex-wrap:wrap;gap:8px;margin-top:15px;
+
 }
+
 .bayar-page .btn-aksi {
+
     display:inline-flex;align-items:center;justify-content:center;
+
     gap:6px;min-height:39px;padding:9px 13px;
+
     border:1px solid var(--maroon);border-radius:9px;
+
     background:var(--maroon);color:#fff;font-size:11.5px;
+
     font-weight:750;line-height:1.4;cursor:pointer;
+
     transition:background .16s,border-color .16s;
+
 }
+
 .bayar-page .btn-aksi:hover {background:var(--maroon-dark);border-color:var(--maroon-dark);}
+
 .bayar-page .btn-aksi--garis {background:#fff;color:var(--maroon);}
+
 .bayar-page .btn-aksi--garis:hover {background:#fff3f6;border-color:#bb7d8d;}
+
 .bayar-page .form-sembunyi {
+
     display:none;margin:13px 0 0;padding:15px 0 0;
+
     border-top:1px solid var(--line);
+
 }
+
+/* Form aslinya tetap berada dalam DOM, tetapi hanya ditampilkan di modal. */
 .bayar-page .form-sembunyi.terbuka {display:block;}
+
+/* Modal di luar container .bayar-page agar tidak terpotong sidebar/layout. */
+.bayar-modal[hidden] {display:none !important;}
+.bayar-modal {
+    position:fixed;inset:0;z-index:99999;
+    display:grid;place-items:center;padding:20px;
+    font-family:'Plus Jakarta Sans',Poppins,Arial,sans-serif;
+}
+.bayar-modal *, .bayar-modal *::before, .bayar-modal *::after {box-sizing:border-box;}
+.bayar-modal__backdrop {position:absolute;inset:0;background:rgba(26,18,26,.62);}
+.bayar-modal__dialog {
+    position:relative;z-index:1;width:min(100%,520px);max-height:min(90vh,760px);
+    overflow-y:auto;overscroll-behavior:contain;
+    background:#fff;border:1px solid #eadce1;border-radius:18px;
+    box-shadow:0 24px 70px rgba(37,18,28,.25);
+}
+.bayar-modal__header {
+    display:flex;align-items:flex-start;justify-content:space-between;gap:14px;
+    padding:21px 23px 17px;border-bottom:1px solid #f0e5e9;
+}
+.bayar-modal__eyebrow {margin:0 0 5px;color:#800b22;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;}
+.bayar-modal__title {margin:0;color:#251e26;font-size:20px;font-weight:800;line-height:1.35;}
+.bayar-modal__desc {margin:6px 0 0;color:#736771;font-size:12.5px;line-height:1.6;}
+.bayar-modal__close {
+    display:grid;place-items:center;flex:none;width:34px;height:34px;
+    border:1px solid #eadce1;border-radius:9px;background:#fff;color:#51424b;
+    font-size:23px;line-height:1;cursor:pointer;
+}
+.bayar-modal__close:hover {background:#fff3f6;color:#800b22;}
+.bayar-modal__body {padding:21px 23px 23px;}
+.bayar-modal__body .form-sembunyi {display:block !important;margin:0;padding:0;border:0;}
+.bayar-modal__body .form-field {margin:0 0 18px;}
+.bayar-modal__body .form-field label {display:block;margin:0 0 8px;color:#3e313b;font-size:12px;font-weight:750;}
+.bayar-modal__body .form-field input,
+.bayar-modal__body .form-field textarea {
+    display:block;width:100%;min-width:0;min-height:44px;
+    padding:11px 12px;border:1px solid #e4d5da;border-radius:10px;
+    background:#fff;color:#251e26;font-family:inherit;font-size:12.5px;line-height:1.55;
+}
+.bayar-modal__body .form-field textarea {min-height:112px;resize:vertical;}
+.bayar-modal__body .form-field input:focus,
+.bayar-modal__body .form-field textarea:focus {outline:none;border-color:#b46c81;box-shadow:0 0 0 3px rgba(128,11,34,.08);}
+.bayar-modal__body .form-field input[type=file] {
+    padding:13px;border:1px dashed #cda7b2;background:#fff9fb;
+    cursor:pointer;font-size:12px;
+}
+.bayar-modal__body .form-field input[type=file]::file-selector-button {
+    border:1px solid #e1c6cf;border-radius:7px;padding:7px 11px;
+    margin-right:12px;background:#fff;color:#800b22;font-weight:750;cursor:pointer;
+}
+.bayar-modal__body .hint {margin:8px 0 0;color:#81747d;font-size:11.5px;line-height:1.6;}
+.bayar-modal__body .bayar-bukti-notice {
+    margin-bottom:17px;padding:12px 13px;border-radius:10px;
+    background:#fff8eb;border:1px solid #edd9ad;
+    color:#6f5326;font-size:12px;line-height:1.65;
+}
+.bayar-modal__body .bayar-bukti-notice strong {display:block;margin-bottom:2px;}
+.bayar-modal__actions {
+    display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap;
+    margin-top:21px;padding-top:17px;border-top:1px solid #f0e5e9;
+}
+.bayar-modal__actions button {
+    display:inline-flex;align-items:center;justify-content:center;min-height:41px;
+    padding:10px 15px;border:1px solid #800b22;border-radius:9px;
+    font-family:inherit;font-weight:750;font-size:12px;line-height:1.4;cursor:pointer;
+}
+.bayar-modal__cancel {background:#fff !important;color:#800b22 !important;border-color:#d7bcc5 !important;}
+.bayar-modal__cancel:hover {background:#fff3f6 !important;}
+.bayar-modal__actions .btn-aksi {background:#800b22;color:#fff;}
+.bayar-modal__actions .btn-aksi:hover {background:#610719;}
+.bayar-modal__actions .btn-aksi:disabled {opacity:.7;cursor:wait;}
+.bayar-modal__errors {
+    margin:0 0 16px;padding:11px 13px;background:#fff1f2;
+    border:1px solid #fac4cc;border-radius:9px;color:#9d1732;font-size:12px;line-height:1.6;
+}
+.bayar-modal__errors ul {margin:5px 0 0;padding-left:18px;}
+@media (max-width:540px) {
+    .bayar-modal {padding:12px;align-items:center;}
+    .bayar-modal__dialog {max-height:calc(100dvh - 24px);border-radius:14px;}
+    .bayar-modal__header {padding:17px 17px 14px;}
+    .bayar-modal__body {padding:17px;}
+    .bayar-modal__title {font-size:18px;}
+    .bayar-modal__actions button {flex:1 1 auto;}
+}
+
 .bayar-page .form-field {margin:0 0 12px;}
+
 .bayar-page .form-field label {
+
     display:block;margin:0 0 6px;color:#554852;
+
     font-size:11.5px;font-weight:750;
+
 }
+
 .bayar-page .form-field input,.bayar-page .form-field textarea {
+
     display:block;width:100%;min-width:0;min-height:41px;
+
     padding:9px 11px;border:1px solid #e3d5da;
+
     border-radius:9px;background:#fff;color:#2c252c;
+
     font-size:12px;line-height:1.5;
+
 }
+
 .bayar-page .form-field input[type="file"] {height:auto;max-width:100%;font-size:11px;}
+
 .bayar-page .form-field textarea {min-height:85px;resize:vertical;}
+
 .bayar-page .form-field input:focus,.bayar-page .form-field textarea:focus {
+
     outline:none;border-color:#c38d9e;box-shadow:0 0 0 3px rgba(128,11,34,.075);
+
 }
+
 .bayar-page .hint {margin:6px 0 0;color:#847981;font-size:11px;line-height:1.6;}
+
 /* Riwayat dan panduan */
+
 .bayar-page .riwayat-grid {
+
     display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+
     gap:14px;align-items:start;
+
 }
+
 .bayar-page .panel {
+
     min-width:0;padding:17px 19px;
+
     border:1px solid var(--border);
+
     border-radius:13px;background:#fff;
+
     box-shadow:0 2px 10px rgba(50,16,30,.02);
+
 }
+
 .bayar-page .panel h2 {
+
     margin:0 0 13px;padding:0 0 11px;
+
     border-bottom:1px solid var(--line);
+
     color:#2b222a;font-size:14px;font-weight:800;
+
 }
+
 .bayar-page .riwayat-item {
+
     min-width:0;padding:12px 0;
+
     border-top:1px solid var(--line);
+
 }
+
 .bayar-page .riwayat-item:first-of-type {padding-top:0;border-top:none;}
+
 .bayar-page .riwayat-atas {
+
     display:flex;justify-content:space-between;align-items:flex-start;
+
     flex-wrap:wrap;gap:7px;
+
 }
+
 .bayar-page .riwayat-nama {
+
     color:#342832;font-size:12px;font-weight:750;
+
     line-height:1.5;overflow-wrap:anywhere;
+
 }
+
 .bayar-page .riwayat-sub {
+
     margin-top:5px;color:var(--muted);
+
     font-size:11.5px;line-height:1.65;overflow-wrap:anywhere;
+
 }
+
 .bayar-page .kosong {
+
     padding:20px 10px;color:#8b7e87;
+
     font-size:12px;line-height:1.65;text-align:center;
+
 }
+
 .bayar-page .langkah {
+
     margin:0;padding:0 0 0 20px;
+
     color:#62565f;font-size:12px;line-height:1.75;
+
 }
+
 .bayar-page .langkah li + li {margin-top:7px;}
+
 .bayar-page .langkah li::marker {color:var(--maroon);font-weight:800;}
+
 .bayar-page .mati {
+
     display:flex;flex-direction:column;align-items:center;
+
     justify-content:center;text-align:center;
+
     min-height:190px;padding:28px 20px;
+
     border:1px solid var(--border);border-radius:13px;
+
     background:#fff;
+
 }
+
 .bayar-page .mati::before {
+
     content:"";display:block;width:40px;height:40px;
+
     margin:0 0 12px;border-radius:12px;
+
     background:#fff0f4;border:1px solid #f0dce2;
+
 }
+
 .bayar-page .mati h2 {margin:0 0 6px;color:#3a2931;font-size:16px;font-weight:800;}
+
 .bayar-page .mati p {
+
     margin:3px auto;max-width:650px;
+
     color:var(--muted);font-size:12px;line-height:1.7;
+
 }
+
 /* Mengikuti lebar area konten, bukan hanya ukuran viewport; aman untuk sidebar */
+
 @container (max-width:1180px) {
+
     .bayar-page .ringkasan-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+
     .bayar-page .angsuran-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+
 }
+
 @container (max-width:860px) {
+
     .bayar-page .riwayat-grid {grid-template-columns:minmax(0,1fr);}
+
     .bayar-page .angsuran-grid {grid-template-columns:minmax(0,1fr);}
+
 }
+
 @container (max-width:520px) {
+
     .bayar-page .page-head {gap:10px;padding-bottom:15px;margin-bottom:14px;}
+
     .bayar-page .page-head h1 {font-size:23px;}
+
     .bayar-page .periode-chip {width:fit-content;}
+
     .bayar-page .ringkasan-grid {gap:9px;}
+
     .bayar-page .stat-card {padding:12px;}
+
     .bayar-page .stat-card .stat-nilai {font-size:17px;}
+
     .bayar-page .stat-card .stat-sub {font-size:10.5px;}
+
     .bayar-page .rekening-card {padding:15px;}
+
     .bayar-page .rekening-nomor {font-size:22px;}
+
     .bayar-page .btn-salin {width:100%;}
+
     .bayar-page .angsuran-card {padding:14px;}
+
     .bayar-page .panel {padding:15px;}
+
 }
+
 @container (max-width:340px) {
+
     .bayar-page .ringkasan-grid {grid-template-columns:minmax(0,1fr);}
+
     .bayar-page .angsuran-meta {gap:9px;}
+
     .bayar-page .aksi-baris .btn-aksi {flex:1 1 100%;}
+
 }
+
 @media (prefers-reduced-motion:reduce) {
+
     .bayar-page .btn-aksi,.bayar-page .btn-salin {transition:none;}
+
 }
+
 </style>
 
 @php
@@ -378,10 +820,15 @@
 @endphp
 
 <div class="bayar-page">
+
     <nav class="bayar-breadcrumb" aria-label="Navigasi halaman">
+
         <a href="{{ route('dashboard') }}">Dashboard</a>
+
         <span aria-hidden="true">/</span>
+
         <span aria-current="page">Pembayaran</span>
+
     </nav>
 
     <div class="page-head">
@@ -436,6 +883,17 @@
 
     </div>
 
+    @if ($errors->any() && !old('_bayar_modal_id'))
+        <div role="alert" style="margin:0 0 15px;padding:12px 15px;border:1px solid #f0bdc8;border-radius:10px;background:#fff3f5;color:#8f1935;font-size:12px;">
+            <strong>Form belum berhasil dikirim:</strong>
+            <ul style="margin:6px 0 0;padding-left:18px;">
+                @foreach ($errors->all() as $pesan)
+                    <li>{{ $pesan }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     @if (! $dibuka)
 
         <div class="mati">
@@ -480,7 +938,7 @@
 
                 <span class="stat-sub">{{ $ringkasan['progres'] }}% dari total tagihan</span>
 
-               <progress class="progres-bar" value="{{ $ringkasan['progres'] }}"max="100"></progress>
+               <progress class="progres-bar" value="{{ $ringkasan['progres'] }}" max="100"></progress>
 
             </div>
 
@@ -690,9 +1148,15 @@
 
                             @if ($angsuran['dapat_unggah'])
 
-                                <button type="button" class="btn-aksi" aria-expanded="false" data-toggle-form="form-bukti-{{ $angsuran['id'] }}">
+                                <button type="button" class="btn-aksi" aria-haspopup="dialog" data-toggle-form="form-bukti-{{ $angsuran['id'] }}">
 
-                                    Unggah Bukti
+                                    @if ($angsuran['bukti_ditolak'])
+                                        Unggah Ulang
+                                    @elseif ($angsuran['bukti_sudah_diunggah'])
+                                        Ganti Bukti
+                                    @else
+                                        Unggah Bukti
+                                    @endif
 
                                 </button>
 
@@ -700,7 +1164,7 @@
 
                             @if ($angsuran['dapat_ajukan'] && ! $angsuran['pengajuan_menunggu'])
 
-                                <button type="button" class="btn-aksi btn-aksi--garis" aria-expanded="false" data-toggle-form="form-tunda-{{ $angsuran['id'] }}">
+                                <button type="button" class="btn-aksi btn-aksi--garis" aria-haspopup="dialog" data-toggle-form="form-tunda-{{ $angsuran['id'] }}">
 
                                     Ajukan Keterlambatan
 
@@ -723,10 +1187,19 @@
                                 enctype="multipart/form-data">
 
                                 @csrf
+                                <input type="hidden" name="_bayar_modal_id" value="form-bukti-{{ $angsuran['id'] }}">
+
+                                @if ($angsuran['bukti_sudah_diunggah'])
+                                    <div class="bayar-bukti-notice">
+                                        <strong>Bukti sebelumnya sudah tersimpan.</strong>
+                                        Pilih file pengganti yang benar. Bukti terbaru akan diperiksa
+                                        oleh Musyrifah; bukti lama akan digantikan setelah berhasil disimpan.
+                                    </div>
+                                @endif
 
                                 <div class="form-field">
 
-                                    <label for="bukti-{{ $angsuran['id'] }}">Bukti transfer {{ $angsuran['label'] }}</label>
+                                    <label for="bukti-{{ $angsuran['id'] }}">{{ $angsuran['bukti_sudah_diunggah'] ? 'Bukti transfer pengganti' : 'Bukti transfer' }} {{ $angsuran['label'] }}</label>
 
                                     <input type="file" id="bukti-{{ $angsuran['id'] }}" name="bukti" accept=".pdf,.jpg,.jpeg,.png" required>
 
@@ -734,7 +1207,10 @@
 
                                 </div>
 
-                                <button type="submit" class="btn-aksi">Kirim Bukti</button>
+                                <div class="bayar-modal__actions">
+                                    <button type="button" class="bayar-modal__cancel" data-close-bayar-modal>Batal</button>
+                                    <button type="submit" class="btn-aksi">{{ $angsuran['bukti_sudah_diunggah'] ? 'Simpan Bukti Baru' : 'Kirim Bukti' }}</button>
+                                </div>
 
                             </form>
 
@@ -751,12 +1227,13 @@
                                 method="POST">
 
                                 @csrf
+                                <input type="hidden" name="_bayar_modal_id" value="form-tunda-{{ $angsuran['id'] }}">
 
                                 <div class="form-field">
 
                                     <label for="alasan-{{ $angsuran['id'] }}">Alasan keterlambatan</label>
 
-                                    <textarea id="alasan-{{ $angsuran['id'] }}" name="alasan" minlength="10" maxlength="1000" required placeholder="Contoh: dana kiriman orang tua baru masuk awal bulan depan."></textarea>
+                                    <textarea id="alasan-{{ $angsuran['id'] }}" name="alasan" minlength="10" maxlength="1000" required placeholder="Contoh: dana kiriman orang tua baru masuk awal bulan depan.">{{ old('alasan') }}</textarea>
 
                                 </div>
 
@@ -764,13 +1241,16 @@
 
                                     <label for="rencana-{{ $angsuran['id'] }}">Tanggal rencana pembayaran</label>
 
-                                    <input type="date" id="rencana-{{ $angsuran['id'] }}" name="tanggal_rencana_bayar" min="{{ now()->addDay()->toDateString() }}" max="{{ now()->addMonths(6)->toDateString() }}" required>
+                                    <input type="date" id="rencana-{{ $angsuran['id'] }}" name="tanggal_rencana_bayar" value="{{ old('tanggal_rencana_bayar') }}" min="{{ now()->addDay()->toDateString() }}" max="{{ now()->addMonths(6)->toDateString() }}" required>
 
                                     <div class="hint">Surat pengajuan PDF dibuat otomatis dan diperiksa Musyrifah. Persetujuan hanya memperbarui jadwal, status tetap belum Lunas.</div>
 
                                 </div>
 
-                                <button type="submit" class="btn-aksi">Kirim Pengajuan</button>
+                                <div class="bayar-modal__actions">
+                                    <button type="button" class="bayar-modal__cancel" data-close-bayar-modal>Batal</button>
+                                    <button type="submit" class="btn-aksi">Kirim Pengajuan</button>
+                                </div>
 
                             </form>
 
@@ -906,6 +1386,36 @@
 
 </div>
 
+<!-- Hanya satu modal aktif untuk semua angsuran. Form aslinya dipindahkan
+     sementara melalui JavaScript agar action, CSRF dan validasi tetap utuh. -->
+<div class="bayar-modal" id="bayarActionModal" role="dialog" aria-modal="true"
+     aria-labelledby="bayarModalTitle" aria-describedby="bayarModalDesc"
+     data-error-form="{{ $errors->any() ? old('_bayar_modal_id', '') : '' }}" hidden>
+    <div class="bayar-modal__backdrop" data-close-bayar-modal aria-hidden="true"></div>
+    <div class="bayar-modal__dialog" tabindex="-1">
+        <div class="bayar-modal__header">
+            <div>
+                <p class="bayar-modal__eyebrow">SIMAHAD · Pembayaran</p>
+                <h2 class="bayar-modal__title" id="bayarModalTitle">Form Pembayaran</h2>
+                <p class="bayar-modal__desc" id="bayarModalDesc"></p>
+            </div>
+            <button type="button" class="bayar-modal__close" data-close-bayar-modal aria-label="Tutup formulir">&times;</button>
+        </div>
+        <div class="bayar-modal__body" id="bayarModalBody">
+            @if ($errors->any() && old('_bayar_modal_id'))
+                <div class="bayar-modal__errors" role="alert">
+                    <strong>Periksa kembali isian formulir:</strong>
+                    <ul>
+                        @foreach ($errors->all() as $pesan)
+                            <li>{{ $pesan }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 
 <script>
@@ -978,37 +1488,92 @@
 
         }
 
+        // Satu modal terpusat: tidak ada dua form yang dapat terbuka bersamaan.
+        const modal = document.getElementById('bayarActionModal');
+        const modalBody = document.getElementById('bayarModalBody');
+        const modalTitle = document.getElementById('bayarModalTitle');
+        const modalDesc = document.getElementById('bayarModalDesc');
+        // Pastikan modal berada langsung di body, tidak tertutup stacking context sidebar.
+        if (modal && modal.parentNode !== document.body) document.body.appendChild(modal);
+        let formAktif = null;
+        let posisiAwal = null;
+        let pemicuAktif = null;
+        let overflowSebelumnya = '';
+
+        function tutupModal() {
+            if (!modal || modal.hidden || !formAktif) return;
+            // Pulangkan form ke kartu asal tanpa menghilangkan input atau CSRF.
+            if (posisiAwal && posisiAwal.parent) {
+                posisiAwal.parent.insertBefore(formAktif, posisiAwal.nextSibling);
+            }
+            modal.hidden = true;
+            document.body.style.overflow = overflowSebelumnya;
+            const tombolFokus = pemicuAktif;
+            if (tombolFokus) tombolFokus.setAttribute('aria-expanded', 'false');
+            formAktif = null;
+            posisiAwal = null;
+            pemicuAktif = null;
+            if (tombolFokus && tombolFokus.isConnected) tombolFokus.focus();
+        }
+
+        function bukaModal(tombol) {
+            if (!modal || !modalBody) return;
+            const form = document.getElementById(tombol.dataset.toggleForm || '');
+            if (!form) return;
+            if (formAktif) tutupModal();
+
+            const kartu = tombol.closest('.angsuran-card');
+            const tahap = kartu?.querySelector('.angsuran-tahap')?.textContent?.trim() || 'Angsuran';
+            const nominal = kartu?.querySelector('.angsuran-nominal')?.textContent?.trim() || '';
+            const unggah = form.id.startsWith('form-bukti-');
+            const labelUnggah = (tombol.textContent || '').trim();
+            modalTitle.textContent = unggah ? labelUnggah + ' Pembayaran' : 'Ajukan Keterlambatan';
+            modalDesc.textContent = [tahap, nominal].filter(Boolean).join(' · ');
+
+            posisiAwal = { parent: form.parentNode, nextSibling: form.nextSibling };
+            formAktif = form;
+            pemicuAktif = tombol;
+            tombol.setAttribute('aria-expanded', 'true');
+            modalBody.appendChild(form);
+            overflowSebelumnya = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+            modal.hidden = false;
+            const fokus = form.querySelector('input[type="file"], textarea, input[type="date"]');
+            (fokus || modal.querySelector('.bayar-modal__close'))?.focus({ preventScroll: true });
+        }
+
         document.querySelectorAll('[data-toggle-form]').forEach(function (tombol) {
-
-            tombol.addEventListener('click', function () {
-
-                const form = document.getElementById(tombol.dataset.toggleForm);
-
-                if (!form) {
-
-                    return;
-
-                }
-
-                const terbuka = form.classList.toggle('terbuka');
-
-                tombol.setAttribute('aria-expanded', terbuka ? 'true' : 'false');
-
-                if (terbuka) {
-
-                    const fokus = form.querySelector('input, textarea');
-
-                    if (fokus) {
-
-                        fokus.focus({ preventScroll: true });
-
-                    }
-
-                }
-
-            });
-
+            tombol.addEventListener('click', function () { bukaModal(tombol); });
         });
+        // Event delegation: tombol Batal berada di dalam form yang baru masuk modal saat diklik.
+        // Dengan delegation, tombol Batal, ikon X, dan backdrop semuanya berfungsi.
+        modal?.addEventListener('click', function (event) {
+            if (event.target.closest('[data-close-bayar-modal]')) {
+                tutupModal();
+            }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (!modal || modal.hidden) return;
+            if (e.key === 'Escape') { e.preventDefault(); tutupModal(); return; }
+            if (e.key === 'Tab') {
+                // Jaga fokus keyboard agar tidak berpindah ke halaman di balik modal.
+                const daftar = Array.from(modal.querySelectorAll('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), a[href]'));
+                const terlihat = daftar.filter(el => el.getClientRects().length > 0);
+                if (!terlihat.length) return;
+                const pertama = terlihat[0], terakhir = terlihat[terlihat.length - 1];
+                if (e.shiftKey && document.activeElement === pertama) { e.preventDefault(); terakhir.focus(); }
+                else if (!e.shiftKey && document.activeElement === terakhir) { e.preventDefault(); pertama.focus(); }
+            }
+        });
+
+        // Data validasi dikirim dari atribut HTML, supaya script tetap JavaScript murni.
+        // Tidak memakai sintaks Blade di dalam JavaScript supaya tetap kompatibel.
+        const idFormError = modal?.dataset.errorForm || '';
+        if (idFormError) {
+            const tombolError = Array.from(document.querySelectorAll('[data-toggle-form]'))
+                .find(el => el.dataset.toggleForm === idFormError);
+            if (tombolError) bukaModal(tombolError);
+        }
 
     })();
 
