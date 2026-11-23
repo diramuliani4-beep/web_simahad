@@ -13,24 +13,14 @@ class Tugas extends Model
 {
     use HasFactory;
 
-    /**
-     * Nama tabel ditulis eksplisit agar tidak bergantung pada pluralisasi
-     * otomatis Laravel untuk kata "tugas".
-     */
     protected $table = 'tugas';
 
     public const STATUS_DRAFT = 'draft';
-
     public const STATUS_DIPUBLIKASIKAN = 'dipublikasikan';
-
     public const STATUS_BELUM_DIKUMPULKAN = 'belum_dikumpulkan';
-
     public const STATUS_SUDAH_DIKUMPULKAN = 'sudah_dikumpulkan';
-
     public const STATUS_MENUNGGU_PENILAIAN = 'menunggu_penilaian';
-
     public const STATUS_SUDAH_DINILAI = 'sudah_dinilai';
-
     public const STATUS_TERLAMBAT = 'terlambat';
 
     protected $fillable = [
@@ -59,7 +49,6 @@ class Tugas extends Model
         ];
     }
 
-    /** Guru pembuat tugas. */
     public function guru(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -70,25 +59,21 @@ class Tugas extends Model
         return $this->belongsTo(MataPelajaran::class, 'mata_pelajaran_id');
     }
 
-    /** Pertemuan tempat tugas ini diberikan. */
     public function pertemuan(): BelongsTo
     {
         return $this->belongsTo(PertemuanPembelajaran::class, 'pertemuan_id');
     }
 
-    /** Seluruh pengumpulan mahasiswa untuk tugas ini. */
     public function pengumpulan(): HasMany
     {
         return $this->hasMany(PengumpulanTugas::class, 'tugas_id');
     }
 
-    /** Hanya tugas yang sudah dipublikasikan Guru. */
     public function scopeDipublikasikan(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_DIPUBLIKASIKAN);
     }
 
-    /** Pencarian judul tugas. */
     public function scopeCari(Builder $query, ?string $kataKunci): Builder
     {
         $kataKunci = trim((string) $kataKunci);
@@ -100,7 +85,6 @@ class Tugas extends Model
         return $query->where('judul', 'like', '%'.$kataKunci.'%');
     }
 
-    /** @return array<string, string> */
     public static function statusPilihan(): array
     {
         return [
@@ -109,7 +93,6 @@ class Tugas extends Model
         ];
     }
 
-    /** @return array<string, string> */
     public static function statusPengumpulanPilihan(): array
     {
         return [
@@ -152,14 +135,12 @@ class Tugas extends Model
         return $this->nama_guru ?: ($this->guru?->name ?? 'Pengajar Ma\'had');
     }
 
-    /** Batas pengumpulan sudah terlewati. */
     public function sudahMelewatiBatas(): bool
     {
         return $this->batas_pengumpulan !== null
             && $this->batas_pengumpulan->isPast();
     }
 
-    /** Mahasiswa masih boleh mengunggah atau mengganti berkas. */
     public function masihDapatDikumpulkan(): bool
     {
         return $this->isDipublikasikan() && ! $this->sudahMelewatiBatas();
@@ -179,7 +160,6 @@ class Tugas extends Model
             : '-';
     }
 
-    /** Sisa hari menuju batas pengumpulan (negatif jika terlewat). */
     public function sisaHari(): ?int
     {
         if (! $this->batas_pengumpulan) {
@@ -193,21 +173,37 @@ class Tugas extends Model
     }
 
     /**
-     * Daftar mahasiswa anggota kelompok tujuan tugas.
-     * Keanggotaan diambil dari data absensi pembelajaran yang sudah ada.
+     * Anggota aktif kelompok untuk mata pelajaran tugas ini.
+     * Keanggotaan ditentukan Musyrifah, bukan diduga dari catatan absensi.
      *
      * @return Collection<int, User>
      */
     public function anggotaKelompok(): Collection
     {
-        return User::mahasiswaKelompok($this->kelompok);
+        if (! $this->mata_pelajaran_id || blank($this->kelompok)) {
+            return collect();
+        }
+
+        return KelompokBelajarAnggota::query()
+            ->where('mata_pelajaran_id', $this->mata_pelajaran_id)
+            ->where('status', 'aktif')
+            ->whereHas('kelompokBelajar', function (Builder $query) {
+                $query->where('nama_kelompok', $this->kelompok);
+            })
+            ->whereHas('user', function (Builder $query) {
+                $query->whereRaw('LOWER(role) = ?', ['mahasiswa'])
+                    ->whereHas('pendaftarans', function (Builder $pendaftaran) {
+                        $pendaftaran->where('status', 'disetujui');
+                    });
+            })
+            ->with('user')
+            ->get()
+            ->pluck('user')
+            ->filter()
+            ->unique('id')
+            ->values();
     }
 
-    /**
-     * Status tugas untuk satu mahasiswa.
-     *
-     * @return array{status: string, label: string, kelas: string}
-     */
     public function statusUntuk(?PengumpulanTugas $pengumpulan): array
     {
         if ($pengumpulan) {
@@ -239,14 +235,37 @@ class Tugas extends Model
         ];
     }
 
-    /** Jumlah mahasiswa yang menjadi sasaran tugas. */
     public function jumlahAnggota(): int
     {
         return $this->anggotaKelompok()->count();
     }
 
     /**
-     * Tugas yang ditujukan kepada kelompok milik mahasiswa.
+     * Batasi tugas pada mata pelajaran + kelompok yang benar untuk mahasiswa.
+     * Gunakan scope ini untuk fitur baru, bukan filter nama kelompok umum.
+     */
+    public function scopeUntukAnggota(Builder $query, User $mahasiswa): Builder
+    {
+        if (strtolower(trim((string) $mahasiswa->role)) !== 'mahasiswa'
+            || ! $mahasiswa->pendaftarans()->where('status', 'disetujui')->exists()) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->whereExists(function ($subquery) use ($mahasiswa) {
+            $subquery->selectRaw('1')
+                ->from('kelompok_belajar_anggotas as anggota')
+                ->join('kelompok_belajars as kelompok', 'kelompok.id', '=', 'anggota.kelompok_belajar_id')
+                ->whereColumn('anggota.mata_pelajaran_id', 'tugas.mata_pelajaran_id')
+                ->whereColumn('kelompok.nama_kelompok', 'tugas.kelompok')
+                ->where('anggota.user_id', $mahasiswa->getKey())
+                ->where('anggota.status', 'aktif');
+        });
+    }
+
+    /**
+     * @deprecated Scope berbasis NAMA KELOMPOK saja tidak aman untuk otorisasi.
+     * Dipertahankan sementara demi kompatibilitas kode lama. Semua penggunaan
+     * untuk halaman mahasiswa HARUS dialihkan ke untukAnggota($mahasiswa).
      */
     public function scopeUntukMahasiswa(Builder $query, ?string $kelompok): Builder
     {

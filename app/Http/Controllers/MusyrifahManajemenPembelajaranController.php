@@ -16,12 +16,9 @@ use App\Models\Tugas;
 use App\Models\User;
 use App\Services\AuditTrailService;
 use Carbon\Carbon;
-use Database\Seeders\PembelajaranSeeder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -36,7 +33,8 @@ class MusyrifahManajemenPembelajaranController extends Controller
     public function index(Request $request): View
     {
         $this->pastikanPengelola($request);
-        $this->pastikanAdaData();
+
+        // Migrasi dan seeder hanya dijalankan secara terkontrol melalui Artisan.
 
         // 1. Data Ringkasan Atas
         $jumlahMataPelajaran = MataPelajaran::count();
@@ -71,11 +69,13 @@ class MusyrifahManajemenPembelajaranController extends Controller
             ->get();
 
         // Daftar anggota kelompok belajar aktif
-        $daftarAnggotaKelompok = KelompokBelajarAnggota::with([
-            'user.pendaftarans',
-            'kelompokBelajar',
-            'mataPelajaran',
-        ])->latest()->get();
+        $daftarAnggotaKelompok = KelompokBelajarAnggota::query()
+            ->where('status', 'aktif')
+            ->with([
+                'user.pendaftarans',
+                'kelompokBelajar',
+                'mataPelajaran',
+            ])->latest()->get();
 
         $totalAnggotaKelompok = $daftarAnggotaKelompok->count();
 
@@ -139,7 +139,13 @@ class MusyrifahManajemenPembelajaranController extends Controller
         $this->pastikanPengelola($request);
 
         $validated = $request->validate([
-            'user_id' => ['required', 'exists:users,id'],
+            'user_id' => [
+                'required',
+                'integer',
+                Rule::exists('users', 'id')->where(
+                    fn ($query) => $query->whereRaw('LOWER(role) = ?', ['mahasiswa'])
+                ),
+            ],
             'mata_pelajaran_id' => ['required', 'exists:mata_pelajarans,id'],
             'kelompok_belajar_id' => ['required', 'exists:kelompok_belajars,id'],
             'keterangan' => ['nullable', 'string', 'max:500'],
@@ -567,10 +573,10 @@ class MusyrifahManajemenPembelajaranController extends Controller
 
         $validated = $request->validate($this->aturanJadwal());
 
-        $mapel = MataPelajaran::where('nama', $validated['nama_mata_pelajaran'])->first();
+        $mapel = MataPelajaran::where('nama', $validated['nama_mata_pelajaran'])->firstOrFail();
 
         $jadwal = JadwalPembelajaran::create(array_merge($this->penugasanGuru($validated), [
-            'mata_pelajaran_id' => $mapel?->id,
+            'mata_pelajaran_id' => $mapel->id,
             'nama_mata_pelajaran' => $validated['nama_mata_pelajaran'],
             'kelompok' => $validated['kelompok'],
             'periode' => $validated['periode'] ?: 'Semester Ganjil 2026/2027',
@@ -611,11 +617,11 @@ class MusyrifahManajemenPembelajaranController extends Controller
         $validated = $request->validate($this->aturanJadwal());
 
         $jadwal = JadwalPembelajaran::findOrFail($id);
-        $mapel = MataPelajaran::where('nama', $validated['nama_mata_pelajaran'])->first();
+        $mapel = MataPelajaran::where('nama', $validated['nama_mata_pelajaran'])->firstOrFail();
         $sebelum = $jadwal->getAttributes();
 
         $jadwal->update(array_merge($validated, $this->penugasanGuru($validated), [
-            'mata_pelajaran_id' => $mapel?->id ?? $jadwal->mata_pelajaran_id,
+            'mata_pelajaran_id' => $mapel->id,
         ]));
 
         $this->kirimNotifikasiJadwal($jadwal, 'jadwal-ubah', 'Perubahan jadwal pembelajaran');
@@ -683,8 +689,8 @@ class MusyrifahManajemenPembelajaranController extends Controller
     private function aturanJadwal(): array
     {
         return [
-            'nama_mata_pelajaran' => ['required', 'string', 'max:255'],
-            'kelompok' => ['required', 'string', 'max:100'],
+            'nama_mata_pelajaran' => ['required', 'string', 'max:255', Rule::exists('mata_pelajarans', 'nama')],
+            'kelompok' => ['required', 'string', 'max:100', Rule::exists('kelompok_belajars', 'nama_kelompok')],
             'guru_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where(
                 fn ($query) => $query->whereRaw('LOWER(role) = ?', ['guru'])
             )],
@@ -761,7 +767,26 @@ class MusyrifahManajemenPembelajaranController extends Controller
             'tanggal' => $tanggal->format('Y-m-d'),
         ]);
 
-        foreach (User::mahasiswaKelompok((string) $jadwal->kelompok) as $mahasiswa) {
+        // Gunakan penempatan per mata pelajaran yang dikelola Musyrifah,
+        // bukan kelompok umum berdasarkan riwayat absensi.
+        $anggota = KelompokBelajarAnggota::query()
+            ->where('mata_pelajaran_id', $jadwal->mata_pelajaran_id)
+            ->where('status', 'aktif')
+            ->whereHas('kelompokBelajar', fn ($query) => $query->where('nama_kelompok', $jadwal->kelompok))
+            ->whereHas('user', function ($query) {
+                $query->whereRaw('LOWER(role) = ?', ['mahasiswa'])
+                    ->whereHas('pendaftarans', fn ($pendaftaran) => $pendaftaran->where('status', 'disetujui'));
+            })
+            ->with('user')
+            ->get();
+
+        foreach ($anggota as $keanggotaan) {
+            $mahasiswa = $keanggotaan->user;
+
+            if (! $mahasiswa) {
+                continue;
+            }
+
             Notifikasi::kirim(
                 $mahasiswa->id,
                 Notifikasi::TIPE_JADWAL_BERUBAH,
@@ -1109,26 +1134,6 @@ class MusyrifahManajemenPembelajaranController extends Controller
             'totalLulus' => $lulusCount,
             'totalBelumLulus' => $belumCount,
         ];
-    }
-
-    /**
-     * Memastikan data master mata pelajaran, kelompok, dan jadwal awal tersedia di database.
-     */
-    protected function pastikanAdaData(): void
-    {
-        try {
-            if (! Schema::hasTable('mata_pelajarans') || ! Schema::hasTable('kelompok_belajars') || ! Schema::hasTable('kelompok_pengajars') || ! Schema::hasTable('jadwal_pembelajarans') || ! Schema::hasTable('absensi_pembelajarans')) {
-                Artisan::call('migrate', ['--force' => true]);
-            }
-
-            if (Schema::hasTable('mata_pelajarans') && Schema::hasTable('kelompok_belajars')) {
-                if (MataPelajaran::count() === 0 || KelompokPengajar::count() === 0 || (Schema::hasTable('kelompok_belajar_anggotas') && KelompokBelajarAnggota::count() === 0)) {
-                    (new PembelajaranSeeder)->run();
-                }
-            }
-        } catch (\Throwable $e) {
-            report($e);
-        }
     }
 
     /**

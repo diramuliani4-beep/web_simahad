@@ -165,7 +165,7 @@ class GuruPembelajaranController extends Controller
 
         $pertemuan->load(['mataPelajaran', 'jadwal']);
 
-        $mahasiswa = $this->layanan->mahasiswa($pertemuan->kelompok);
+        $mahasiswa = $this->layanan->mahasiswaUntukPertemuan($pertemuan);
         $absensi = $pertemuan->absensis()->get()->keyBy('user_id');
         $tugas = $pertemuan->tugas()
             ->withCount([
@@ -213,7 +213,7 @@ class GuruPembelajaranController extends Controller
             'absensi.*.status.in' => 'Status absensi harus Hadir, Izin, Sakit, atau Alpa.',
         ]);
 
-        $anggota = $this->layanan->mahasiswa($pertemuan->kelompok)->keyBy('id');
+        $anggota = $this->layanan->mahasiswaUntukPertemuan($pertemuan)->keyBy('id');
         abort_if($anggota->isEmpty(), 422, 'Belum ada mahasiswa terdaftar pada kelompok ini.');
 
         $sebelumnya = $pertemuan->absensis()->get()->keyBy('user_id');
@@ -464,7 +464,10 @@ class GuruPembelajaranController extends Controller
         $tugas->save();
 
         if ($tugas->isDipublikasikan()) {
-            foreach ($this->layanan->mahasiswa($tugas->kelompok) as $mahasiswa) {
+            foreach ($this->layanan->mahasiswaPerMataPelajaran(
+                (int) $tugas->mata_pelajaran_id,
+                (string) $tugas->kelompok
+            ) as $mahasiswa) {
                 Notifikasi::kirim(
                     $mahasiswa,
                     Notifikasi::TIPE_TUGAS_BARU,

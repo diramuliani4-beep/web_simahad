@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notifikasi;
+use App\Models\Pendaftaran;
 use App\Models\PengumpulanTugas;
 use App\Models\Tugas;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -16,24 +18,28 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 class TugasMhsController extends Controller
 {
     /**
-     * Daftar tugas yang ditujukan kepada kelompok mahasiswa.
+     * Daftar tugas untuk kelompok aktif mahasiswa di masing-masing mata pelajaran.
+     * Sumber keanggotaan: penempatan oleh Musyrifah, BUKAN absensi lama.
      */
     public function index(Request $request): View
     {
         $mahasiswa = $this->mahasiswa($request);
-        $kelompok = $mahasiswa->kelompokPembelajaran();
 
         $filter = $request->validate([
             'cari' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', 'string', Rule::in(array_keys(Tugas::statusPengumpulanPilihan()))],
+            'mata_pelajaran_id' => ['nullable', 'integer', Rule::exists('mata_pelajarans', 'id')],
         ]);
 
-        $daftar = Tugas::query()
-            ->dipublikasikan()
-            ->untukMahasiswa($kelompok)
+        // Daftar tampil: pencarian dan filter tidak memengaruhi statistik keseluruhan.
+        $daftar = $this->tugasUntukMahasiswa($mahasiswa)
             ->with(['mataPelajaran', 'guru'])
             ->with(['pengumpulan' => fn ($query) => $query->where('user_id', $mahasiswa->id)])
             ->cari($filter['cari'] ?? null)
+            ->when(
+                filled($filter['mata_pelajaran_id'] ?? null),
+                fn (Builder $query) => $query->where('mata_pelajaran_id', $filter['mata_pelajaran_id'])
+            )
             ->orderByDesc('batas_pengumpulan')
             ->orderByDesc('id')
             ->get()
@@ -46,40 +52,54 @@ class TugasMhsController extends Controller
                     'status' => $tugas->statusUntuk($pengumpulan),
                 ];
             })
-            ->when(filled($filter['status'] ?? null), fn ($daftar) => $daftar->where('status.status', $filter['status']))
+            ->when(
+                filled($filter['status'] ?? null),
+                fn ($daftar) => $daftar->where('status.status', $filter['status'])
+            )
             ->values();
 
-        $semua = Tugas::query()
-            ->dipublikasikan()
-            ->untukMahasiswa($kelompok)
+        $semua = $this->tugasUntukMahasiswa($mahasiswa)
+            ->with('mataPelajaran')
             ->with(['pengumpulan' => fn ($query) => $query->where('user_id', $mahasiswa->id)])
             ->get();
 
         $statistik = [
             'total' => $semua->count(),
-            'belum' => $semua->filter(fn (Tugas $tugas) => $tugas->statusUntuk($tugas->pengumpulan->first())['status'] === Tugas::STATUS_BELUM_DIKUMPULKAN)->count(),
-            'dinilai' => $semua->filter(fn (Tugas $tugas) => $tugas->statusUntuk($tugas->pengumpulan->first())['status'] === Tugas::STATUS_SUDAH_DINILAI)->count(),
+            'belum' => $semua->filter(fn (Tugas $tugas) =>
+                $tugas->statusUntuk($tugas->pengumpulan->first())['status'] === Tugas::STATUS_BELUM_DIKUMPULKAN
+            )->count(),
+            'dinilai' => $semua->filter(fn (Tugas $tugas) =>
+                $tugas->statusUntuk($tugas->pengumpulan->first())['status'] === Tugas::STATUS_SUDAH_DINILAI
+            )->count(),
         ];
+
+        // Disediakan untuk filter mata pelajaran di Blade pada tahap berikutnya.
+        $pilihanMataPelajaran = $semua
+            ->filter(fn (Tugas $tugas) => $tugas->mata_pelajaran_id !== null)
+            ->mapWithKeys(fn (Tugas $tugas) => [
+                (int) $tugas->mata_pelajaran_id => $tugas->namaMataPelajaran(),
+            ])
+            ->sort()
+            ->all();
 
         return view('Mahasiswa.tugas_mhs', [
             'mahasiswa' => $mahasiswa,
-            'kelompok' => $kelompok,
+            // Kompatibilitas sementara dengan Blade lama; tidak ada kelompok global.
+            // Hapus badge kelompok umum saat Blade Tugas Mahasiswa diperbaiki.
+            'kelompok' => 'Sesuai mata pelajaran',
             'daftarTugas' => $daftar,
             'filter' => $filter,
             'statistik' => $statistik,
             'statusPilihan' => Tugas::statusPengumpulanPilihan(),
+            'pilihanMataPelajaran' => $pilihanMataPelajaran,
         ]);
     }
 
-    /**
-     * Detail tugas, instruksi, lampiran, dan nilai mahasiswa.
-     */
+    /** Detail tugas, instruksi, lampiran, dan nilai mahasiswa. */
     public function show(Request $request, Tugas $tugas): View
     {
         $mahasiswa = $this->mahasiswa($request);
-
-        abort_unless($tugas->isDipublikasikan(), 404);
-        abort_unless($tugas->kelompok === $mahasiswa->kelompokPembelajaran(), 404);
+        $this->pastikanBolehMengakses($mahasiswa, $tugas);
 
         $pengumpulan = $tugas->pengumpulan()
             ->where('user_id', $mahasiswa->id)
@@ -93,15 +113,11 @@ class TugasMhsController extends Controller
         ]);
     }
 
-    /**
-     * Mengunggah atau mengganti berkas pengumpulan tugas.
-     */
+    /** Mengunggah atau mengganti berkas pengumpulan tugas. */
     public function kumpulkan(Request $request, Tugas $tugas): RedirectResponse
     {
         $mahasiswa = $this->mahasiswa($request);
-
-        abort_unless($tugas->isDipublikasikan(), 404);
-        abort_unless($tugas->kelompok === $mahasiswa->kelompokPembelajaran(), 404);
+        $this->pastikanBolehMengakses($mahasiswa, $tugas);
 
         if (! $tugas->masihDapatDikumpulkan()) {
             return back()->withErrors([
@@ -124,7 +140,6 @@ class TugasMhsController extends Controller
         ]);
 
         $berkasLama = $pengumpulan->file_path;
-
         $berkas = $request->file('file');
         $pengumpulan->file_path = $berkas->store('tugas/pengumpulan', 'local');
         $pengumpulan->file_nama = $berkas->getClientOriginalName();
@@ -158,15 +173,12 @@ class TugasMhsController extends Controller
             ->with('success', 'Tugas berhasil dikumpulkan.');
     }
 
-    /**
-     * Mengunduh lampiran tugas dari Guru.
-     */
+    /** Mengunduh lampiran tugas dari Guru. */
     public function lampiran(Request $request, Tugas $tugas): BinaryFileResponse
     {
         $mahasiswa = $this->mahasiswa($request);
+        $this->pastikanBolehMengakses($mahasiswa, $tugas);
 
-        abort_unless($tugas->isDipublikasikan(), 404);
-        abort_unless($tugas->kelompok === $mahasiswa->kelompokPembelajaran(), 404);
         abort_unless(
             $tugas->punyaLampiran() && Storage::disk('local')->exists($tugas->lampiran_path),
             404
@@ -175,15 +187,11 @@ class TugasMhsController extends Controller
         return response()->file(Storage::disk('local')->path($tugas->lampiran_path));
     }
 
-    /**
-     * Mengunduh berkas pengumpulan milik mahasiswa sendiri.
-     */
+    /** Mengunduh berkas pengumpulan milik mahasiswa sendiri. */
     public function berkas(Request $request, Tugas $tugas): BinaryFileResponse
     {
         $mahasiswa = $this->mahasiswa($request);
-
-        abort_unless($tugas->isDipublikasikan(), 404);
-        abort_unless($tugas->kelompok === $mahasiswa->kelompokPembelajaran(), 404);
+        $this->pastikanBolehMengakses($mahasiswa, $tugas);
 
         $pengumpulan = $tugas->pengumpulan()->where('user_id', $mahasiswa->id)->first();
 
@@ -196,14 +204,56 @@ class TugasMhsController extends Controller
     }
 
     /**
-     * Memastikan pengguna adalah mahasiswa.
+     * Tugas diterbitkan yang ditujukan kepada kelompok AKTIF mahasiswa
+     * pada mata pelajaran tersebut.
+     *
+     * Cocokkan dengan kelompok_belajar_anggotas + kelompok_belajars yang
+     * dikelola Musyrifah. `whereExists` menghindari tugas duplikat bila
+     * terdapat lebih dari satu baris keanggotaan yang cocok.
+     *
+     * @return Builder<Tugas>
      */
+    private function tugasUntukMahasiswa(User $mahasiswa): Builder
+    {
+        return Tugas::query()
+            ->dipublikasikan()
+            ->whereExists(function ($query) use ($mahasiswa) {
+                $query->selectRaw('1')
+                    ->from('kelompok_belajar_anggotas as anggota')
+                    ->join('kelompok_belajars as kelompok', 'kelompok.id', '=', 'anggota.kelompok_belajar_id')
+                    ->whereColumn('anggota.mata_pelajaran_id', 'tugas.mata_pelajaran_id')
+                    ->whereColumn('kelompok.nama_kelompok', 'tugas.kelompok')
+                    ->where('anggota.user_id', $mahasiswa->id)
+                    ->where('anggota.status', 'aktif');
+            });
+    }
+
+    /** Penjagaan hak akses yang sama untuk detail, unggah, dan unduhan. */
+    private function pastikanBolehMengakses(User $mahasiswa, Tugas $tugas): void
+    {
+        abort_unless(
+            $tugas->isDipublikasikan()
+                && $this->tugasUntukMahasiswa($mahasiswa)->whereKey($tugas->getKey())->exists(),
+            404
+        );
+    }
+
+    /** Memastikan pengguna adalah mahasiswa dengan pendaftaran disetujui. */
     private function mahasiswa(Request $request): User
     {
         $user = $request->user();
         $role = strtolower(trim((string) $user?->role));
 
         abort_unless($user && $role === 'mahasiswa', 403);
+
+        abort_unless(
+            Pendaftaran::query()
+                ->where('user_id', $user->id)
+                ->where('status', 'disetujui')
+                ->exists(),
+            403,
+            'Pendaftaran Anda belum disetujui oleh Musyrifah.'
+        );
 
         return $user;
     }

@@ -4,11 +4,8 @@
 
 @section('content')
 <style>
-    /* =========================================================
-       SIMAHAD — TUGAS MAHASISWA
-       Hanya tampilan: variabel, route dan alur tugas tetap sama.
-       Semua aturan berada dalam .tugas-page agar tidak mengubah layout.
-       ========================================================= */
+    /* SIMAHAD — TUGAS MAHASISWA
+       Desain maroon dipertahankan. Seluruh CSS dibatasi ke .tugas-page. */
     .tugas-page {
         --tm-maroon: #800b22;
         --tm-maroon-dark: #64081b;
@@ -34,7 +31,7 @@
     .tugas-page > * { min-width: 0; }
     .tugas-page a { text-decoration: none; }
 
-    /* Breadcrumb seragam dengan navigasi Musyrifah. */
+    /* Breadcrumb dipertahankan; tombol 'Kembali ke Dashboard' dihapus. */
     .tugas-page .tm-breadcrumb {
         display: flex;
         flex-wrap: wrap;
@@ -45,17 +42,8 @@
         font-size: 12px;
         line-height: 1.5;
     }
-    .tugas-page .tm-breadcrumb a {
-        color: var(--tm-maroon);
-        font-weight: 600;
-        text-decoration: none;
-    }
+    .tugas-page .tm-breadcrumb a { color: var(--tm-maroon); font-weight: 600; }
     .tugas-page .tm-breadcrumb a:hover { text-decoration: underline; }
-    .tugas-page .tm-breadcrumb a:focus-visible {
-        outline: 3px solid rgba(128, 11, 34, .18);
-        outline-offset: 3px;
-    }
-    /* Header ringkas & identitas kelompok */
     .tugas-page .tm-head {
         display: flex;
         justify-content: space-between;
@@ -81,67 +69,8 @@
         font-size: 12.5px;
         line-height: 1.65;
     }
-    .tugas-page .tm-kelompok {
-        display: inline-flex;
-        align-items: center;
-        gap: 9px;
-        max-width: 100%;
-        min-height: 37px;
-        padding: 8px 12px;
-        border: 1px solid #e9cbd3;
-        border-radius: 10px;
-        background: #fff8fa;
-        color: #77152b;
-        font-size: 11.5px;
-        font-weight: 700;
-        overflow-wrap: anywhere;
-    }
-    .tugas-page .tm-kelompok svg { width: 17px; height: 17px; flex: 0 0 17px; }
 
-    /* Navigasi kembali — tampil jelas tanpa mengubah fitur tugas. */
-    .tugas-page .tm-head-actions {
-        display: flex;
-        flex: 0 1 auto;
-        justify-content: flex-end;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 9px;
-        min-width: 0;
-    }
-    .tugas-page .tm-back-dashboard {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        min-height: 37px;
-        padding: 8px 13px;
-        border: 1px solid #e4cdd3;
-        border-radius: 9px;
-        background: #fff;
-        color: var(--tm-maroon);
-        font-family: inherit;
-        font-size: 12px;
-        font-weight: 750;
-        white-space: nowrap;
-        text-decoration: none;
-        transition: border-color .15s ease, background-color .15s ease;
-    }
-    .tugas-page .tm-back-dashboard:hover {
-        border-color: #c99aa7;
-        background: #fff4f7;
-        color: var(--tm-maroon-dark);
-    }
-    .tugas-page .tm-back-dashboard:focus-visible {
-        outline: 3px solid rgba(128, 11, 34, .18);
-        outline-offset: 2px;
-    }
-    .tugas-page .tm-back-dashboard svg {
-        width: 16px;
-        height: 16px;
-        flex: 0 0 16px;
-    }
-
-    /* Statistik kompak seperti modul SIMAHAD lain */
+    /* Tiga kartu statistik tetap ditampilkan. */
     .tugas-page .tm-stat-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -192,7 +121,7 @@
     }
     .tugas-page .tm-stat--success .tm-stat-value { color: #176d42; }
 
-    /* Panel filter */
+    /* Filter: pencarian + mapel + status + tombol. */
     .tugas-page .tm-filter-panel {
         width: 100%;
         min-width: 0;
@@ -204,17 +133,13 @@
     }
     .tugas-page .tm-filter {
         display: grid;
-        grid-template-columns: minmax(190px, 1fr) minmax(160px, 230px) auto auto;
+        grid-template-columns: minmax(180px, 1fr) minmax(145px, 210px) minmax(145px, 210px) auto auto;
         gap: 9px;
         align-items: end;
         margin: 0;
     }
     .tugas-page .tm-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-    .tugas-page .tm-field label {
-        color: #62545c;
-        font-size: 11.5px;
-        font-weight: 700;
-    }
+    .tugas-page .tm-field label { color: #62545c; font-size: 11.5px; font-weight: 700; }
     .tugas-page .tm-field input, .tugas-page .tm-field select {
         display: block;
         width: 100%;
@@ -257,18 +182,15 @@
         transition: background-color .16s, border-color .16s;
     }
     .tugas-page .tm-btn:hover { background: var(--tm-maroon-dark); border-color: var(--tm-maroon-dark); color: #fff; }
-    .tugas-page .tm-btn--outline {
-        border-color: #e3cdd5;
-        background: #fff;
-        color: var(--tm-maroon);
-    }
+    .tugas-page .tm-btn--outline { border-color: #e3cdd5; background: #fff; color: var(--tm-maroon); }
     .tugas-page .tm-btn--outline:hover { border-color: #bd95a2; background: var(--tm-tint); color: var(--tm-maroon); }
-    .tugas-page a:focus-visible, .tugas-page button:focus-visible {
+    .tugas-page a:focus-visible, .tugas-page button:focus-visible,
+    .tugas-page input:focus-visible, .tugas-page select:focus-visible {
         outline: 3px solid rgba(193, 146, 69, .35);
         outline-offset: 2px;
     }
 
-    /* Panel daftar: memadukan heading dan kartu agar tidak berjauhan */
+    /* Panel dan kartu tugas tetap tiga kolom jika ruang cukup. */
     .tugas-page .tm-list-panel {
         width: 100%;
         max-width: 100%;
@@ -289,13 +211,7 @@
         padding: 17px 19px;
         border-bottom: 1px solid #f1e7e9;
     }
-    .tugas-page .tm-panel-head h2 {
-        margin: 0;
-        color: #2e222b;
-        font-size: 15.5px;
-        font-weight: 800;
-        letter-spacing: -.015em;
-    }
+    .tugas-page .tm-panel-head h2 { margin: 0; color: #2e222b; font-size: 15.5px; font-weight: 800; letter-spacing: -.015em; }
     .tugas-page .tm-count {
         display: inline-flex;
         align-items: center;
@@ -306,7 +222,6 @@
         font-size: 11px;
         font-weight: 700;
     }
-    /* Kartu mengalir kiri ke kanan, lalu baris berikutnya di bawah. */
     .tugas-page .tm-task-list {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -327,19 +242,9 @@
         background: #fff;
         transition: border-color .16s, box-shadow .16s, transform .16s;
     }
-    .tugas-page .tm-task-card:hover {
-        border-color: #d9b6c2;
-        box-shadow: 0 8px 22px rgba(100, 20, 43, .07);
-        transform: translateY(-1px);
-    }
+    .tugas-page .tm-task-card:hover { border-color: #d9b6c2; box-shadow: 0 8px 22px rgba(100, 20, 43, .07); transform: translateY(-1px); }
     .tugas-page .tm-task-card.tm-late { border-left-color: #c23746; }
-    .tugas-page .tm-task-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        flex-wrap: wrap;
-        gap: 8px 12px;
-    }
+    .tugas-page .tm-task-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px 12px; }
     .tugas-page .tm-task-heading { flex: 1 1 180px; min-width: 0; }
     .tugas-page .tm-mapel {
         display: block;
@@ -352,14 +257,22 @@
         text-transform: uppercase;
         overflow-wrap: anywhere;
     }
-    .tugas-page .tm-task-title {
-        margin: 0;
-        color: #2c2128;
-        font-size: 14.5px;
-        font-weight: 800;
-        line-height: 1.5;
+    /* Kelompok tampil per tugas, bukan sebagai identitas global mahasiswa. */
+    .tugas-page .tm-kelompok-mapel {
+        display: inline-flex;
+        align-items: center;
+        margin: 0 0 9px;
+        padding: 4px 8px;
+        border: 1px solid #ead3da;
+        border-radius: 7px;
+        background: #fff6f8;
+        color: #782138;
+        font-size: 10.5px;
+        font-weight: 750;
+        line-height: 1.4;
         overflow-wrap: anywhere;
     }
+    .tugas-page .tm-task-title { margin: 0; color: #2c2128; font-size: 14.5px; font-weight: 800; line-height: 1.5; overflow-wrap: anywhere; }
     .tugas-page .tm-task-title a { color: inherit; }
     .tugas-page .tm-task-title a:hover { color: var(--tm-maroon); }
     .tugas-page .tm-status {
@@ -394,104 +307,40 @@
         line-height: 1.6;
         overflow-wrap: anywhere;
     }
-    .tugas-page .tm-meta {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px 10px;
-        padding: 10px 11px;
-        border-radius: 9px;
-        background: #fbf7f8;
-    }
-    /* Baris guru tetap penuh; tanggal dan tenggat bersebelahan. */
+    .tugas-page .tm-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 10px; padding: 10px 11px; border-radius: 9px; background: #fbf7f8; }
     .tugas-page .tm-meta-item:first-child { grid-column: 1 / -1; }
     .tugas-page .tm-meta-item { min-width: 0; }
-    .tugas-page .tm-meta-label {
-        display: block;
-        margin: 0 0 3px;
-        color: #93838c;
-        font-size: 10px;
-        font-weight: 600;
-        line-height: 1.3;
-    }
-    .tugas-page .tm-meta-value {
-        display: block;
-        color: #493a43;
-        font-size: 11px;
-        font-weight: 700;
-        line-height: 1.5;
-        overflow-wrap: anywhere;
-    }
+    .tugas-page .tm-meta-label { display: block; margin: 0 0 3px; color: #93838c; font-size: 10px; font-weight: 600; line-height: 1.3; }
+    .tugas-page .tm-meta-value { display: block; color: #493a43; font-size: 11px; font-weight: 700; line-height: 1.5; overflow-wrap: anywhere; }
     .tugas-page .tm-meta-item:last-child .tm-meta-value { color: #7b2437; }
-    .tugas-page .tm-task-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-top: auto;
-        padding-top: 13px;
-    }
+    .tugas-page .tm-task-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: auto; padding-top: 13px; }
     .tugas-page .tm-task-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
     .tugas-page .tm-task-actions .tm-btn { min-height: 33px; padding: 7px 11px; font-size: 11px; }
-    .tugas-page .tm-score {
-        display: inline-flex;
-        align-items: baseline;
-        gap: 4px;
-        padding: 5px 10px;
-        border-radius: 8px;
-        background: #eaf7ef;
-        color: #176e43;
-        font-size: 10.5px;
-        font-weight: 700;
-        white-space: nowrap;
-    }
+    .tugas-page .tm-score { display: inline-flex; align-items: baseline; gap: 4px; padding: 5px 10px; border-radius: 8px; background: #eaf7ef; color: #176e43; font-size: 10.5px; font-weight: 700; white-space: nowrap; }
     .tugas-page .tm-score strong { font-size: 15px; font-weight: 800; }
-    .tugas-page .tm-submitted {
-        color: #7d7179;
-        font-size: 10.5px;
-        font-weight: 600;
-        line-height: 1.5;
-    }
+    .tugas-page .tm-submitted { color: #7d7179; font-size: 10.5px; font-weight: 600; line-height: 1.5; }
 
-    /* Halaman tanpa tugas */
-    .tugas-page .tm-empty {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 7px;
-        min-height: 195px;
-        justify-content: center;
-        padding: 34px 20px;
-        text-align: center;
-    }
-    .tugas-page .tm-empty-icon {
-        display: grid;
-        place-items: center;
-        width: 53px;
-        height: 53px;
-        margin-bottom: 2px;
-        border-radius: 15px;
-        background: #faf0f2;
-        color: var(--tm-maroon);
-    }
+    .tugas-page .tm-empty { display: flex; flex-direction: column; align-items: center; gap: 7px; min-height: 195px; justify-content: center; padding: 34px 20px; text-align: center; }
+    .tugas-page .tm-empty-icon { display: grid; place-items: center; width: 53px; height: 53px; margin-bottom: 2px; border-radius: 15px; background: #faf0f2; color: var(--tm-maroon); }
     .tugas-page .tm-empty-icon svg { width: 25px; height: 25px; }
     .tugas-page .tm-empty h3 { margin: 0; color: #382a33; font-size: 14px; font-weight: 800; }
     .tugas-page .tm-empty p { margin: 0; max-width: 460px; color: var(--tm-muted); font-size: 12px; line-height: 1.65; }
 
     /* Responsif pada lebar konten, termasuk saat sidebar terbuka. */
+    @container (max-width: 1150px) {
+        .tugas-page .tm-filter { grid-template-columns: minmax(180px, 1fr) minmax(145px, 1fr) minmax(145px, 1fr); }
+        .tugas-page .tm-filter .tm-btn { width: 100%; }
+    }
     @container (max-width: 1050px) {
-        /* Sidebar aktif: tetap menyamping 2 kolom, bukan langsung 1 kolom. */
         .tugas-page .tm-task-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .tugas-page .tm-task-card { min-height: auto; }
-    }
-    @container (max-width: 690px) {
-        /* Satu kolom hanya jika ruang benar-benar sempit. */
-        .tugas-page .tm-task-list { grid-template-columns: minmax(0, 1fr); }
     }
     @container (max-width: 800px) {
         .tugas-page .tm-filter { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .tugas-page .tm-field--search { grid-column: 1 / -1; }
-        .tugas-page .tm-filter .tm-btn { width: 100%; }
+    }
+    @container (max-width: 690px) {
+        .tugas-page .tm-task-list { grid-template-columns: minmax(0, 1fr); }
     }
     @container (max-width: 620px) {
         .tugas-page .tm-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
@@ -500,19 +349,12 @@
         .tugas-page .tm-stat-icon svg { width: 18px; height: 18px; }
         .tugas-page .tm-stat-value { font-size: 20px; }
         .tugas-page .tm-stat:last-child { grid-column: 1 / -1; }
-        .tugas-page .tm-head { align-items: flex-start; }
-        .tugas-page .tm-head-actions { width: 100%; justify-content: flex-start; }
-        .tugas-page .tm-kelompok { width: auto; }
         .tugas-page .tm-panel-head { padding: 14px; }
         .tugas-page .tm-task-list { padding: 12px; gap: 10px; }
         .tugas-page .tm-task-card { padding: 13px; }
-        .tugas-page .tm-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .tugas-page .tm-meta-item:first-child { grid-column: 1 / -1; }
         .tugas-page .tm-filter-panel { padding: 12px; }
     }
     @container (max-width: 420px) {
-        .tugas-page .tm-back-dashboard { width: 100%; }
-        .tugas-page .tm-kelompok { width: 100%; }
         .tugas-page .tm-filter { grid-template-columns: minmax(0, 1fr); }
         .tugas-page .tm-field--search { grid-column: auto; }
         .tugas-page .tm-task-footer { align-items: stretch; }
@@ -520,36 +362,25 @@
         .tugas-page .tm-task-actions .tm-btn { flex: 1 1 auto; }
         .tugas-page .tm-score, .tugas-page .tm-submitted { align-self: flex-start; }
     }
+    @media (prefers-reduced-motion: reduce) {
+        .tugas-page *, .tugas-page *::before, .tugas-page *::after { transition-duration: .01ms !important; }
+    }
 </style>
 
-@php
-    // Selaras dengan route yang digunakan Dashboard Mahasiswa sendiri
-    // (misalnya pada navigasi kalender: route('dashboard', [...])).
-    $urlDashboardMahasiswa = route('dashboard');
-@endphp
 <div class="tugas-page">
     <nav class="tm-breadcrumb" aria-label="Navigasi halaman">
-        <a href="{{ $urlDashboardMahasiswa }}">Dashboard</a>
+        <a href="{{ route('dashboard') }}">Dashboard</a>
         <span aria-hidden="true">/</span>
         <span aria-current="page">Tugas Mahasiswa</span>
     </nav>
+
     <header class="tm-head">
         <div class="tm-head-copy">
             <h1>Tugas Mahasiswa</h1>
-            <p>Daftar tugas dari Guru yang ditujukan kepada kelompok pembelajaran Anda.</p>
+            <p>Daftar tugas dari Guru sesuai mata pelajaran dan kelompok yang ditetapkan Musyrifah.</p>
         </div>
-        <div class="tm-head-actions">
-            <a class="tm-back-dashboard" href="{{ $urlDashboardMahasiswa }}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/><path d="M9 12h12"/></svg>
-                <span>Kembali ke Dashboard</span>
-            </a>
-            <div class="tm-kelompok" aria-label="Kelompok pembelajaran">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <circle cx="9" cy="8" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1M16 5a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 5v1"/>
-                </svg>
-                <span>Kelompok: {{ $kelompok }}</span>
-            </div>
-        </div>
+        {{-- Tidak ada tombol Dashboard atau badge kelompok global.
+             Kelompok ditampilkan pada setiap tugas karena bisa berbeda per mapel. --}}
     </header>
 
     <div class="tm-stat-grid" aria-label="Ringkasan tugas">
@@ -589,6 +420,15 @@
                 <input id="tmCariTugas" type="search" name="cari" value="{{ $filter['cari'] ?? '' }}" placeholder="Cari berdasarkan judul tugas..." autocomplete="off">
             </div>
             <div class="tm-field">
+                <label for="tmMapelTugas">Mata pelajaran</label>
+                <select id="tmMapelTugas" name="mata_pelajaran_id">
+                    <option value="">Semua Mata Pelajaran</option>
+                    @foreach (($pilihanMataPelajaran ?? []) as $mapelId => $namaMapel)
+                        <option value="{{ $mapelId }}" @selected((string) ($filter['mata_pelajaran_id'] ?? '') === (string) $mapelId)>{{ $namaMapel }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="tm-field">
                 <label for="tmStatusTugas">Status tugas</label>
                 <select id="tmStatusTugas" name="status">
                     <option value="">Semua Status</option>
@@ -598,7 +438,7 @@
                 </select>
             </div>
             <button type="submit" class="tm-btn">Terapkan</button>
-            @if (filled($filter['cari'] ?? null) || filled($filter['status'] ?? null))
+            @if (filled($filter['cari'] ?? null) || filled($filter['status'] ?? null) || filled($filter['mata_pelajaran_id'] ?? null))
                 <a href="{{ route('tugas.mhs.index') }}" class="tm-btn tm-btn--outline">Reset</a>
             @endif
         </form>
@@ -617,10 +457,10 @@
                 </span>
                 <h3>Belum ada tugas</h3>
                 <p>
-                    @if (filled($filter['cari'] ?? null) || filled($filter['status'] ?? null))
+                    @if (filled($filter['cari'] ?? null) || filled($filter['status'] ?? null) || filled($filter['mata_pelajaran_id'] ?? null))
                         Tidak ada tugas yang cocok dengan pencarian atau filter Anda.
                     @else
-                        Tugas dari Guru untuk kelompok {{ $kelompok }} akan tampil di halaman ini.
+                        Tugas dari Guru akan tampil di sini sesuai mata pelajaran dan kelompok belajar Anda yang aktif.
                     @endif
                 </p>
             </div>
@@ -632,10 +472,11 @@
                         $pengumpulan = $item['pengumpulan'];
                         $status = $item['status'];
                     @endphp
-                    <article class="tm-task-card {{ $status['kelas'] === 'terlambat' ? 'tm-late' : '' }}">
+                    <article class="tm-task-card {{ ($status['kelas'] ?? '') === 'terlambat' ? 'tm-late' : '' }}">
                         <div class="tm-task-top">
                             <div class="tm-task-heading">
                                 <span class="tm-mapel">{{ $tugas->namaMataPelajaran() }}</span>
+                                <span class="tm-kelompok-mapel">{{ $tugas->kelompok ?: 'Kelompok belum ditentukan' }}</span>
                                 <h3 class="tm-task-title">
                                     <a href="{{ route('tugas.mhs.show', $tugas) }}">{{ $tugas->judul }}</a>
                                 </h3>
