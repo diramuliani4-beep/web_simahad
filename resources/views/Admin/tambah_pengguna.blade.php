@@ -68,6 +68,7 @@
 .um-create .um-form-foot { position:relative; }
 @media(max-width:700px) { .um-create .um-linked { flex-direction:column; } }
 .um-create .um-placement[hidden] { display: none !important; }
+.um-create .um-pimpinan-nip[hidden] { display: none !important; }
 .um-create .um-placement { border-top: 1px solid #f0e6e9; padding-top: 20px; margin-top: 2px; }
 .um-create .um-placement-title { margin: 0 0 17px; color: var(--wine); font-size: 13px; font-weight: 700; }
 .um-create .um-placement .um-grid { margin-bottom: 22px; }
@@ -173,6 +174,14 @@
                         <p class="um-help">Role ditentukan Admin. Akun Admin atau Mahasiswa manual tidak otomatis menjadi Data Pegawai.</p>
                         @error('role')<span class="um-error">{{ $message }}</span>@enderror
                     </div>
+                    <div class="um-field um-pimpinan-nip" id="umPimpinanNip" hidden>
+                        <label class="um-label" for="nip">NIP Pimpinan <span class="um-required">*</span></label>
+                        <input id="nip" name="nip" type="text" maxlength="30"
+                            class="um-control @error('nip') is-invalid @enderror"
+                            placeholder="Nomor Induk Pegawai" value="{{ old('nip') }}" disabled>
+                        <p class="um-help">Otomatis tercantum pada Laporan Kehadiran dan Laporan Pembelajaran.</p>
+                        @error('nip')<span class="um-error">{{ $message }}</span>@enderror
+                    </div>
                 </div>
                 {{-- Lokasi tugas Musyrifah berasal dari data kamar, bukan daftar statis. --}}
                 <div class="um-placement" id="umMusyrifahPlacement"
@@ -234,6 +243,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const hpInput = document.getElementById('no_hp');
     const pegawaiIdInput = document.getElementById('pegawai_id');
     const roleInput = document.getElementById('role');
+    const nipWrapper = document.getElementById('umPimpinanNip');
+    const nipInput = document.getElementById('nip');
     const placement = document.getElementById('umMusyrifahPlacement');
     const gedungInput = document.getElementById('gedung_penempatan');
     const lantaiInput = document.getElementById('lantai_penempatan');
@@ -251,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const noticeEmail = document.getElementById('umEmailPegawaiNotice');
     const noticeEmailText = document.getElementById('umEmailPegawaiText');
     const gunakanPegawaiEmail = document.getElementById('umUsePegawaiEmail');
-    if (!form || !nameInput || !emailInput || !hpInput || !pegawaiIdInput || !roleInput || !suggestions || !searchBox || !emptyState || !linkedNote || !linkedName || !clearButton || !sourceNote || !submitButton) return;
+    if (!form || !nameInput || !emailInput || !hpInput || !pegawaiIdInput || !roleInput || !nipWrapper || !nipInput || !suggestions || !searchBox || !emptyState || !linkedNote || !linkedName || !clearButton || !sourceNote || !submitButton) return;
     let selectedPegawai = null;
     let manualDraft = null;
     let visibleOptions = [];
@@ -323,6 +334,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const aktif = roleInput.value === 'musyrifah';
         lantaiInput.disabled = !aktif || !gedung;
     }
+    function tampilkanNipPimpinan() {
+        const pimpinan = roleInput.value === 'pimpinan';
+        nipWrapper.hidden = !pimpinan;
+        nipInput.disabled = !pimpinan;
+        nipInput.required = pimpinan;
+    }
     function tampilkanPenempatan() {
         const musyrifah = roleInput.value === 'musyrifah';
         placement.hidden = !musyrifah;
@@ -330,6 +347,7 @@ document.addEventListener('DOMContentLoaded', function () {
         gedungInput.required = musyrifah;
         lantaiInput.required = musyrifah;
         isiPilihanLantai(false);
+        tampilkanNipPimpinan();
     }
     // Saat akun lama dihapus, biodata pegawai tetap ada. Tawarkan tautkan
     // pegawai yang belum memiliki akun, bukan membuat pegawai duplikat.

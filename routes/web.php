@@ -20,6 +20,7 @@ use App\Http\Controllers\GuruTugasController;
 use App\Http\Controllers\MusyrifahDataKamarController;
 use App\Http\Controllers\MusyrifahDetailPengumumanController;
 use App\Http\Controllers\MusyrifahLaporanController;
+use App\Http\Controllers\MusyrifahLaporanPembelajaranController;
 use App\Http\Controllers\MusyrifahManajemenPembelajaranController;
 use App\Http\Controllers\MusyrifahPembayaranController;
 use App\Http\Controllers\MusyrifahPendaftaranController;
@@ -1155,6 +1156,25 @@ Route::middleware('auth')->group(function () {
         MusyrifahLaporanController::class,
         'index',
     ])->name('musyrifah.laporan');
+
+    // Laporan Pembelajaran per mata pelajaran: rekap sinkron dan CRUD catatan.
+    Route::prefix('/musyrifah/laporan/pembelajaran')->name('musyrifah.laporan.pembelajaran.')->group(function () {
+        Route::get('/', [MusyrifahLaporanPembelajaranController::class, 'index'])->name('index');
+        Route::get('/cetak/{mataPelajaran}', [MusyrifahLaporanPembelajaranController::class, 'cetak'])
+            ->whereNumber('mataPelajaran')->name('cetak');
+        Route::get('/unduh/{mataPelajaran}', [MusyrifahLaporanPembelajaranController::class, 'unduh'])
+            ->whereNumber('mataPelajaran')->name('unduh');
+        Route::get('/{mataPelajaran}/buat', [MusyrifahLaporanPembelajaranController::class, 'create'])
+            ->whereNumber('mataPelajaran')->name('create');
+        Route::post('/{mataPelajaran}', [MusyrifahLaporanPembelajaranController::class, 'store'])
+            ->whereNumber('mataPelajaran')->name('store');
+        Route::get('/{mataPelajaran}/{laporan}/edit', [MusyrifahLaporanPembelajaranController::class, 'edit'])
+            ->whereNumber('mataPelajaran')->whereNumber('laporan')->name('edit');
+        Route::put('/{mataPelajaran}/{laporan}', [MusyrifahLaporanPembelajaranController::class, 'update'])
+            ->whereNumber('mataPelajaran')->whereNumber('laporan')->name('update');
+        Route::delete('/{mataPelajaran}/{laporan}', [MusyrifahLaporanPembelajaranController::class, 'destroy'])
+            ->whereNumber('mataPelajaran')->whereNumber('laporan')->name('destroy');
+    });
 
     // Register laporan Musyrifah: catat draft, terbitkan, arsipkan.
     Route::post('/musyrifah/laporan', [

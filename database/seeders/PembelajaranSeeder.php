@@ -18,7 +18,7 @@ class PembelajaranSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Data 5 Mata Pelajaran
+        // 1. Data 6 Mata Pelajaran
         $mapels = [
             [
                 'nama' => 'Pembelajaran Kitab Kuning',
@@ -54,6 +54,13 @@ class PembelajaranSeeder extends Seeder
                 'kategori' => 'Karakter & Pengabdian',
                 'target_pertemuan' => 16,
                 'deskripsi' => 'Pembinaan akhlak karimah, retorika dakwah, dan keterampilan sosial kemasyarakatan.',
+            ],
+            [
+                'nama' => 'Bahasa Arab',
+                'kode' => 'BA-01',
+                'kategori' => 'Bahasa & Komunikasi',
+                'target_pertemuan' => 16,
+                'deskripsi' => 'Penguatan kosa kata, qawaid, dan kemampuan membaca teks bahasa Arab.',
             ],
         ];
 

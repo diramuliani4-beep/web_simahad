@@ -19,6 +19,7 @@ use Illuminate\Support\Collection;
     'name',
     'email',
     'nim',
+    'nip',
     'kamar_id',
     'password',
     'password_set_at',

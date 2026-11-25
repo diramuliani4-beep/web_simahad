@@ -254,6 +254,7 @@
                 <label for="jenis">Jenis laporan</label>
                 <select name="jenis" id="jenis">
                     <option value="semua" @selected($jenis === 'semua')>Semua laporan</option>
+                    <option value="pembelajaran" @selected($jenis === 'pembelajaran')>Laporan Pembelajaran</option>
                     <option value="kehadiran" @selected($jenis === 'kehadiran')>Laporan Kehadiran</option>
                     <option value="pembayaran" @selected($jenis === 'pembayaran')>Laporan Pembayaran</option>
                     <option value="pendaftaran" @selected($jenis === 'pendaftaran')>Laporan Pendaftaran</option>
@@ -266,6 +267,18 @@
         </form>
         <div class="lap-kategori">
             @forelse ($laporan as $item)
+                @if ($item['jenis'] === 'pembelajaran')
+                    <a href="{{ route('musyrifah.laporan.pembelajaran.index', ['periode' => $periode]) }}" class="lap-kat">
+                        <span class="lap-kat-ikon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h6"/></svg>
+                        </span>
+                        <span class="lap-kat-isi">
+                            <span class="lap-kat-nama">{{ $item['judul'] }}</span>
+                            <span class="lap-kat-ket">{{ $item['deskripsi'] }}</span>
+                            <span class="lap-kat-go">Kelola per Mata Pelajaran &rsaquo;</span>
+                        </span>
+                    </a>
+                @else
                 <a href="{{ $item['url'] }}" class="lap-kat">
                     <span class="lap-kat-ikon" aria-hidden="true">
                         @if ($item['jenis'] === 'kehadiran')
@@ -284,6 +297,7 @@
                         <span class="lap-kat-go">Lihat Laporan &rsaquo;</span>
                     </span>
                 </a>
+                @endif
             @empty
                 <div class="lap-kosong lap-kosong--full">
                     Tidak ada jenis laporan yang tersedia.

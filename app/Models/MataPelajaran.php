@@ -38,4 +38,9 @@ class MataPelajaran extends Model
     {
         return $this->hasMany(Tugas::class, 'mata_pelajaran_id');
     }
+
+    public function laporanPembelajaran(): HasMany
+    {
+        return $this->hasMany(LaporanPembelajaran::class, 'mata_pelajaran_id');
+    }
 }

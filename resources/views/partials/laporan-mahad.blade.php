@@ -2,6 +2,8 @@
     /** @var array<string, mixed> $laporan */
     $modeMonitoring = $modeMonitoring ?? false;
     $jumlahKolom = count($laporan['kolom']);
+    $laporanKehadiran = ($laporan['jenis'] ?? '') === 'kehadiran';
+    $jumlahPertemuanKehadiran = (int) ($laporan['jumlah_pertemuan'] ?? 16);
 @endphp
 <style>
     .lap-page {
@@ -202,6 +204,29 @@
         min-width: 760px;
         border-collapse: collapse;
     }
+    .lap-table-kehadiran {
+        min-width: 1540px;
+        table-layout: fixed;
+    }
+    .lap-table-kehadiran .lap-col-no { width: 42px; }
+    .lap-table-kehadiran .lap-col-nim { width: 90px; }
+    .lap-table-kehadiran .lap-col-nama { width: 150px; }
+    .lap-table-kehadiran .lap-col-prodi { width: 130px; }
+    .lap-table-kehadiran .lap-col-mapel { width: 180px; }
+    .lap-table-kehadiran .lap-col-kelompok { width: 80px; }
+    .lap-table-kehadiran .lap-col-pertemuan { width: 40px; }
+    .lap-table-kehadiran .lap-col-rekap { width: 40px; }
+    .lap-table-kehadiran .lap-col-nama,
+    .lap-table-kehadiran .lap-col-prodi,
+    .lap-table-kehadiran .lap-col-mapel {
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+    .lap-table-kehadiran .lap-group-heading {
+        text-align: center;
+        letter-spacing: .02em;
+    }
+    .lap-table-kehadiran td { vertical-align: middle; }
     .lap-table thead {
         background: #f8f0f2;
     }
@@ -265,7 +290,22 @@
         color: #91858a !important;
         text-align: center;
     }
+    .lap-status { font-weight: 700; }
+    .lap-status-hadir { color: #26734d; background: #eef8f1; }
+    .lap-status-izin { color: #946515; background: #fff7e8; }
+    .lap-status-sakit { color: #356a9a; background: #eef5fc; }
+    .lap-status-alpa { color: #a13b3b; background: #fceeee; }
+    .lap-legend {
+        margin: 14px 0 0;
+        color: #6f6268;
+        font-size: 12px;
+        line-height: 1.7;
+    }
+    .lap-legend strong { color: #30272b; }
     .lap-print-head {
+        display: none;
+    }
+    .lap-ttd-cetak {
         display: none;
     }
     @media (max-width: 700px) {
@@ -435,6 +475,7 @@
         }
         /* Ringkasan berbentuk kartu bukan bagian dokumen formal. */
         #lap-area .lap-summary { display: none !important; }
+        #lap-area .lap-ttd-cetak { display: block !important; }
         #lap-area .lap-table-card,
         #lap-area .lap-table-wrap {
             display: block !important;
@@ -476,6 +517,36 @@
             overflow-wrap: break-word;
             color: #000 !important;
         }
+        #lap-area .lap-table-kehadiran {
+            table-layout: fixed;
+            font-size: 7.2pt;
+        }
+        #lap-area .lap-table-kehadiran th,
+        #lap-area .lap-table-kehadiran td {
+            padding: 3px 1.5px;
+            font-size: 7.2pt;
+            line-height: 1.08;
+        }
+        #lap-area .lap-table-kehadiran .lap-col-no { width: 5.5mm; }
+        #lap-area .lap-table-kehadiran .lap-col-nim { width: 19mm; }
+        #lap-area .lap-table-kehadiran .lap-col-nama { width: 29mm; }
+        #lap-area .lap-table-kehadiran .lap-col-prodi { width: 23mm; }
+        #lap-area .lap-table-kehadiran .lap-col-mapel { width: 34mm; }
+        #lap-area .lap-table-kehadiran .lap-col-kelompok { width: 13mm; }
+        #lap-area .lap-table-kehadiran .lap-col-pertemuan { width: 6.7mm; }
+        #lap-area .lap-table-kehadiran .lap-col-rekap { width: 6.4mm; }
+        #lap-area .lap-table-kehadiran .lap-group-heading { font-size: 7.2pt; padding: 3px 1.5px; }
+        #lap-area .lap-table-kehadiran .lap-status {
+            background: transparent !important;
+            color: #000 !important;
+            font-weight: 700;
+        }
+        #lap-area .lap-legend {
+            margin: 3mm 0 0;
+            font: 8pt/1.4 "Times New Roman", Times, serif;
+            color: #000 !important;
+        }
+        #lap-area .lap-legend strong { color: #000 !important; }
         #lap-area .lap-table th {
             background: #eee !important;
             text-align: center;
@@ -574,7 +645,7 @@
                 </div>
                 <div aria-hidden="true"></div>
             </div>
-            <h1 class="lap-print-judul">{{ $laporan['judul'] }}</h1>
+            <h1 class="lap-print-judul">{{ $laporan['judul_cetak'] ?? $laporan['judul'] }}</h1>
             <p class="lap-print-periode">Periode {{ $laporan['periode_label'] ?? '-' }} &middot; Dicetak {{ now()->format('d/m/Y H:i') }}</p>
             @foreach (($metaCetak ?? []) as $labelMeta => $nilaiMeta)
                 <p class="lap-print-meta">{{ $labelMeta }}: {{ $nilaiMeta }}</p>
@@ -606,27 +677,73 @@
                 </div>
             </div>
             <div class="lap-table-wrap">
-                <table class="lap-table">
-                    <thead>
-                        <tr>
-                            <th class="lap-center">No</th>
-                            @foreach ($laporan['kolom'] as $kolom)
-                                <th class="{{ ($kolom['align'] ?? '') === 'center' ? 'lap-center' : '' }}">
-                                    {{ $kolom['label'] }}
+                <table class="lap-table {{ $laporanKehadiran ? 'lap-table-kehadiran' : '' }}">
+                    @if ($laporanKehadiran)
+                        <colgroup>
+                            <col class="lap-col-no">
+                            <col class="lap-col-nim">
+                            <col class="lap-col-nama">
+                            <col class="lap-col-prodi">
+                            <col class="lap-col-mapel">
+                            <col class="lap-col-kelompok">
+                            @for ($pertemuan = 1; $pertemuan <= $jumlahPertemuanKehadiran; $pertemuan++)
+                                <col class="lap-col-pertemuan">
+                            @endfor
+                            <col class="lap-col-rekap">
+                            <col class="lap-col-rekap">
+                            <col class="lap-col-rekap">
+                            <col class="lap-col-rekap">
+                            <col class="lap-col-rekap">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th scope="col" rowspan="2" class="lap-center lap-col-no">No</th>
+                                <th scope="col" rowspan="2" class="lap-col-nim">NIM</th>
+                                <th scope="col" rowspan="2" class="lap-col-nama">Nama Mahasiswa</th>
+                                <th scope="col" rowspan="2" class="lap-col-prodi">PRODI</th>
+                                <th scope="col" rowspan="2" class="lap-col-mapel">Mata Pelajaran</th>
+                                <th scope="col" rowspan="2" class="lap-col-kelompok">Kelompok</th>
+                                <th scope="colgroup" colspan="{{ $jumlahPertemuanKehadiran }}" class="lap-group-heading">
+                                    Kehadiran per Pertemuan
                                 </th>
-                            @endforeach
-                        </tr>
-                    </thead>
+                                <th scope="colgroup" colspan="5" class="lap-group-heading">Keterangan</th>
+                            </tr>
+                            <tr>
+                                @for ($pertemuan = 1; $pertemuan <= $jumlahPertemuanKehadiran; $pertemuan++)
+                                    <th scope="col" class="lap-center lap-col-pertemuan">{{ $pertemuan }}</th>
+                                @endfor
+                                <th scope="col" class="lap-center lap-col-rekap">H</th>
+                                <th scope="col" class="lap-center lap-col-rekap">I</th>
+                                <th scope="col" class="lap-center lap-col-rekap">S</th>
+                                <th scope="col" class="lap-center lap-col-rekap">A</th>
+                                <th scope="col" class="lap-center lap-col-rekap">Jml</th>
+                            </tr>
+                        </thead>
+                    @else
+                        <thead>
+                            <tr>
+                                <th class="lap-center">No</th>
+                                @foreach ($laporan['kolom'] as $kolom)
+                                    <th class="{{ ($kolom['align'] ?? '') === 'center' ? 'lap-center' : '' }}">
+                                        {{ $kolom['label'] }}
+                                    </th>
+                                @endforeach
+                            </tr>
+                        </thead>
+                    @endif
                     <tbody>
                         @forelse ($laporan['baris'] as $index => $baris)
                             <tr>
-                                <td class="lap-center">{{ $index + 1 }}</td>
+                                <td class="lap-center lap-col-no">{{ $index + 1 }}</td>
                                 @foreach ($laporan['kolom'] as $kolom)
                                     @php
-                                        $nilai = $baris[$kolom['key']] ?? '-';
+                                        $nilai = $baris[$kolom['key']] ?? ($kolom['nilai_kosong'] ?? '-');
                                         $badge = $kolom['badge'][$nilai] ?? null;
+                                        $kelasStatus = ($kolom['status'] ?? false) && in_array($nilai, ['H', 'I', 'S', 'A'], true)
+                                            ? ' lap-status-'.strtolower($nilai)
+                                            : '';
                                     @endphp
-                                    <td class="{{ $kolom['class'] ?? '' }} {{ ($kolom['align'] ?? '') === 'center' ? 'lap-center' : '' }}">
+                                    <td class="{{ $kolom['class'] ?? '' }} {{ ($kolom['align'] ?? '') === 'center' ? 'lap-center' : '' }}{{ $kelasStatus }}">
                                         @if ($badge)
                                             <span class="lap-badge lap-badge-{{ $badge }}">{{ $nilai }}</span>
                                         @else
@@ -645,6 +762,17 @@
                     </tbody>
                 </table>
             </div>
+            @if ($laporanKehadiran)
+                <p class="lap-legend">
+                    <strong>Keterangan:</strong> H = Hadir &middot; I = Izin &middot; S = Sakit &middot; A = Alfa.
+                    Kolom kosong menunjukkan pertemuan yang belum memiliki data absensi.
+                </p>
+            @endif
         </div>
+        @if ($laporanKehadiran && ! $modeMonitoring && isset($pimpinan))
+            <div class="lap-ttd-cetak">
+                @include('partials.tanda-tangan-pimpinan', ['pimpinan' => $pimpinan])
+            </div>
+        @endif
     </div>
 </div>

@@ -84,6 +84,12 @@ class PertemuanPembelajaran extends Model
         return $this->hasMany(Tugas::class, 'pertemuan_id');
     }
 
+    /** Catatan laporan tambahan untuk pertemuan ini. */
+    public function laporanPembelajaran(): HasMany
+    {
+        return $this->hasMany(LaporanPembelajaran::class, 'pertemuan_id');
+    }
+
     public function dokumentasi(): HasMany
     {
         return $this->hasMany(DokumentasiKegiatan::class, 'pertemuan_id');

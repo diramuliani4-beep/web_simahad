@@ -57,6 +57,7 @@
 @media(max-width:720px){.um-card-top,.um-toolbar,.um-footer,.um-section,.um-form-foot{padding-left:16px;padding-right:16px}.um-grid{grid-template-columns:1fr}.um-wide{grid-column:auto}.um-head h1{font-size:22px}.um-dialog{padding:18px 16px 16px}.um-dialog-icon{width:46px;height:46px;margin-bottom:11px}.um-dialog-icon svg{width:22px;height:22px}.um-dialog h2{font-size:16px}.um-dialog p{font-size:12px}.um-dialog-actions{gap:8px}.um-dialog-actions .um-btn{min-height:36px;font-size:11.5px}}
 /* Lokasi tugas: field operasional khusus akun Musyrifah. */
 .um-page .um-placement[hidden]{display:none!important}
+.um-page .um-pimpinan-nip[hidden]{display:none!important}
 .um-page .um-placement .um-grid{margin-bottom:0}
 .um-page .um-placement select:disabled{background:#f7f4f5;color:#8d8388;cursor:not-allowed}
 </style>
@@ -91,6 +92,12 @@
           <p class="um-help" style="color:#a52540"><strong>Role lama terdeteksi:</strong> Pengelola. Pilih <strong>Musyrifah (Pengelola)</strong> sebelum menyimpan. Sistem tidak mengubah role akun lama secara diam-diam.</p>
         @endif
         @error('role')<span class="um-error">{{ $message }}</span>@enderror
+      </div>
+      <div class="um-field" id="umPimpinanNip" hidden>
+        <label class="um-label" for="nip">NIP Pimpinan <span class="um-required">*</span></label>
+        <input id="nip" name="nip" type="text" maxlength="30" class="um-control @error('nip') is-invalid @enderror" placeholder="Nomor Induk Pegawai" value="{{ old('nip', $akun->nip) }}" disabled>
+        <p class="um-help">Otomatis tercantum pada Laporan Kehadiran dan Laporan Pembelajaran.</p>
+        @error('nip')<span class="um-error">{{ $message }}</span>@enderror
       </div>
       <div class="um-field um-wide um-placement" id="umMusyrifahPlacement"
            data-lokasi="{{ json_encode((object) ($lokasiPenempatan ?? []), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) }}" hidden>
@@ -143,16 +150,24 @@ document.addEventListener('DOMContentLoaded',function(){
  const form=document.getElementById('umFormEdit');
  const button=document.getElementById('umSubmitEdit');
  const roleInput=document.getElementById('role');
+ const nipWrapper=document.getElementById('umPimpinanNip');
+ const nipInput=document.getElementById('nip');
  const placement=document.getElementById('umMusyrifahPlacement');
  const gedungInput=document.getElementById('gedung_penempatan');
  const lantaiInput=document.getElementById('lantai_penempatan');
- if(!form||!button||!roleInput||!placement||!gedungInput||!lantaiInput)return;
+ if(!form||!button||!roleInput||!nipWrapper||!nipInput||!placement||!gedungInput||!lantaiInput)return;
  let lokasi={};
  try {
    const parsed=JSON.parse(placement.dataset.lokasi||'{}');
    if(parsed && typeof parsed==='object' && !Array.isArray(parsed)) lokasi=parsed;
  } catch (_) {
    lokasi={};
+ }
+ function syncNipPimpinan(){
+   const pimpinan=roleInput.value==='pimpinan';
+   nipWrapper.hidden=!pimpinan;
+   nipInput.disabled=!pimpinan;
+   nipInput.required=pimpinan;
  }
  function syncPenempatan(resetLantai=false){
    const aktif=roleInput.value==='musyrifah';
@@ -174,6 +189,7 @@ document.addEventListener('DOMContentLoaded',function(){
    lantaiInput.dataset.old='';
    lantaiInput.disabled=!aktif||!gedungInput.value||!daftar.length;
    lantaiInput.required=aktif;
+   syncNipPimpinan();
  }
  roleInput.addEventListener('change',function(){syncPenempatan(true)});
  gedungInput.addEventListener('change',function(){syncPenempatan(true)});

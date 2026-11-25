@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\AbsensiPembelajaran;
 use App\Models\JadwalPembelajaran;
 use App\Models\Kamar;
+use App\Models\KelompokBelajarAnggota;
+use App\Models\MataPelajaran;
 use App\Models\Pembayaran;
 use App\Models\Pendaftaran;
 use App\Models\PengumpulanTugas;
@@ -55,6 +57,29 @@ class LaporanMahadService
     ];
 
     /**
+     * Identitas pimpinan aktif yang digunakan pada dokumen resmi.
+     *
+     * @return array{nama: string, nip: string}
+     */
+    public function identitasPimpinan(): array
+    {
+        $query = User::query()
+            ->where('role', 'pimpinan')
+            ->where('status', 'aktif');
+        $pimpinan = (clone $query)
+            ->whereNotNull('nip')
+            ->where('nip', '!=', '')
+            ->orderBy('id')
+            ->first(['name', 'nip'])
+            ?? $query->orderBy('id')->first(['name', 'nip']);
+
+        return [
+            'nama' => trim((string) $pimpinan?->name) ?: 'Pimpinan Ma’had Al-Jami’ah',
+            'nip' => trim((string) $pimpinan?->nip) ?: '-',
+        ];
+    }
+
+    /**
      * Kategori laporan yang ditampilkan pada menu Laporan Musyrifah.
      *
      * @return array<int, array{jenis: string, judul: string, deskripsi: string}>
@@ -66,6 +91,11 @@ class LaporanMahadService
                 'jenis' => 'kehadiran',
                 'judul' => 'Laporan Kehadiran',
                 'deskripsi' => 'Rekap absensi pembelajaran per mahasiswa pada periode terpilih.',
+            ],
+            [
+                'jenis' => 'pembelajaran',
+                'judul' => 'Laporan Pembelajaran',
+                'deskripsi' => 'Laporan terpisah per mata pelajaran, sinkron dengan materi, absensi, dan tugas.',
             ],
             [
                 'jenis' => 'pembayaran',
@@ -218,17 +248,78 @@ class LaporanMahadService
     }
 
     /**
+     * Mata pelajaran yang memiliki peserta aktif atau data absensi.
+     *
+     * @return array<int, array{value: string, label: string}>
+     */
+    public function opsiMataPelajaranKehadiran(): array
+    {
+        return MataPelajaran::query()
+            ->where(function ($query): void {
+                $query->whereHas('absensis')
+                    ->orWhereHas('kelompokAnggotas', fn ($anggota) => $anggota->whereRaw('LOWER(status) = ?', ['aktif']));
+            })
+            ->orderBy('nama')
+            ->get(['id', 'nama'])
+            ->map(fn (MataPelajaran $mapel): array => [
+                'value' => (string) $mapel->id,
+                'label' => $mapel->nama,
+            ])
+            ->all();
+    }
+
+    /**
+     * Kelompok yang memiliki peserta aktif atau data absensi.
+     *
+     * @return array<int, array{value: string, label: string}>
+     */
+    public function opsiKelompokKehadiran(?int $mataPelajaranId = null): array
+    {
+        $kelompokAktif = KelompokBelajarAnggota::query()
+            ->when($mataPelajaranId, fn ($query) => $query->where('mata_pelajaran_id', $mataPelajaranId))
+            ->whereRaw('LOWER(status) = ?', ['aktif'])
+            ->with('kelompokBelajar:id,nama_kelompok')
+            ->get()
+            ->pluck('kelompokBelajar.nama_kelompok');
+
+        $kelompokAbsensi = AbsensiPembelajaran::query()
+            ->when($mataPelajaranId, fn ($query) => $query->where('mata_pelajaran_id', $mataPelajaranId))
+            ->whereNotNull('kelompok')
+            ->where('kelompok', '<>', '')
+            ->distinct()
+            ->pluck('kelompok');
+
+        return $kelompokAktif
+            ->merge($kelompokAbsensi)
+            ->filter()
+            ->unique()
+            ->sortBy(fn (string $kelompok): string => $kelompok)
+            ->values()
+            ->map(fn (string $kelompok): array => [
+                'value' => $kelompok,
+                'label' => $kelompok,
+            ])
+            ->all();
+    }
+
+    /**
      * Menyusun satu laporan siap tampil.
      *
      * @return array<string, mixed>
      */
-    public function laporan(string $jenis, string $periode, string $keyword = ''): array
-    {
+    public function laporan(
+        string $jenis,
+        string $periode,
+        string $keyword = '',
+        ?int $mataPelajaranId = null,
+        string $kelompok = '',
+    ): array {
         $periode = $this->normalisasiPeriode($periode);
         $keyword = trim($keyword);
+        $kelompok = trim($kelompok);
 
         $laporan = match ($jenis) {
-            'kehadiran' => $this->laporanKehadiran($periode, $keyword),
+            'kehadiran' => $this->laporanKehadiran($periode, $keyword, $mataPelajaranId, $kelompok),
             'pembayaran' => $this->laporanPembayaran($periode, $keyword),
             'pendaftaran' => $this->laporanPendaftaran($periode, $keyword),
             'kamar' => $this->laporanKamar($keyword),
@@ -248,81 +339,209 @@ class LaporanMahadService
     /**
      * @return array<string, mixed>
      */
-    private function laporanKehadiran(string $periode, string $keyword): array
-    {
+    private function laporanKehadiran(
+        string $periode,
+        string $keyword,
+        ?int $mataPelajaranId,
+        string $kelompok,
+    ): array {
         [$mulai, $akhir] = $this->rentangBulan($periode);
 
         $absensi = AbsensiPembelajaran::query()
-            ->with(['user' => fn ($query) => $query->select('id', 'name', 'nim')])
+            ->with([
+                'user' => fn ($query) => $query->select('id', 'name', 'nim'),
+                'user.pendaftarans' => fn ($query) => $query
+                    ->where('status', 'disetujui')
+                    ->orderByDesc('id')
+                    ->select('id', 'user_id', 'program_studi'),
+                'mataPelajaran' => fn ($query) => $query->select('id', 'nama'),
+            ])
             ->whereBetween('tanggal', [$mulai->toDateString(), $akhir->toDateString()])
+            ->when($mataPelajaranId, fn ($query) => $query->where('mata_pelajaran_id', $mataPelajaranId))
+            ->when($kelompok !== '', fn ($query) => $query->where('kelompok', $kelompok))
             ->get();
 
-        $rekap = $absensi
-            ->groupBy('user_id')
-            ->map(function (Collection $items): array {
-                /** @var AbsensiPembelajaran|null $contoh */
+        $anggota = KelompokBelajarAnggota::query()
+            ->with([
+                'user' => fn ($query) => $query->select('id', 'name', 'nim'),
+                'user.pendaftarans' => fn ($query) => $query
+                    ->where('status', 'disetujui')
+                    ->orderByDesc('id')
+                    ->select('id', 'user_id', 'program_studi'),
+                'mataPelajaran' => fn ($query) => $query->select('id', 'nama'),
+                'kelompokBelajar:id,nama_kelompok',
+            ])
+            ->whereRaw('LOWER(status) = ?', ['aktif'])
+            ->when($mataPelajaranId, fn ($query) => $query->where('mata_pelajaran_id', $mataPelajaranId))
+            ->when($kelompok !== '', fn ($query) => $query->whereHas(
+                'kelompokBelajar',
+                fn ($kelompokQuery) => $kelompokQuery->where('nama_kelompok', $kelompok)
+            ))
+            ->whereHas('user', fn ($query) => $query
+                ->whereRaw('LOWER(role) = ?', ['mahasiswa'])
+                ->whereHas('pendaftarans', fn ($pendaftaran) => $pendaftaran->where('status', 'disetujui')))
+            ->get();
+
+        $peserta = $anggota->mapWithKeys(function (KelompokBelajarAnggota $item): array {
+            $key = $this->kunciPesertaKehadiran(
+                (int) $item->user_id,
+                (int) $item->mata_pelajaran_id,
+                $item->kelompokBelajar?->nama_kelompok,
+            );
+
+            return [$key => [
+                'user_id' => (int) $item->user_id,
+                'nim' => $item->user?->nim ?: '-',
+                'nama' => $item->user?->name ?? 'Mahasiswa',
+                'program_studi' => $this->programStudi($item->user),
+                'mata_pelajaran_id' => (int) $item->mata_pelajaran_id,
+                'mata_pelajaran' => $item->mataPelajaran?->nama ?: '-',
+                'kelompok' => $item->kelompokBelajar?->nama_kelompok ?: 'Tanpa Kelompok',
+                'absensi' => collect(),
+            ]];
+        });
+
+        foreach ($absensi->groupBy(fn (AbsensiPembelajaran $item): string => $this->kunciPesertaKehadiran(
+            (int) $item->user_id,
+            (int) $item->mata_pelajaran_id,
+            $item->kelompok,
+        )) as $key => $items) {
+            if (! $peserta->has($key)) {
+                /** @var AbsensiPembelajaran $contoh */
                 $contoh = $items->first();
-                $user = $contoh?->user;
+                $peserta->put($key, [
+                    'user_id' => (int) $contoh->user_id,
+                    'nim' => $contoh->user?->nim ?: '-',
+                    'nama' => $contoh->user?->name ?? 'Mahasiswa',
+                    'program_studi' => $this->programStudi($contoh->user),
+                    'mata_pelajaran_id' => (int) $contoh->mata_pelajaran_id,
+                    'mata_pelajaran' => $contoh->mataPelajaran?->nama ?: '-',
+                    'kelompok' => $contoh->kelompok ?: 'Tanpa Kelompok',
+                    'absensi' => collect(),
+                ]);
+            }
 
-                $jumlahStatus = $items->countBy(
-                    fn (AbsensiPembelajaran $absen): string => strtolower((string) $absen->status)
+            $data = $peserta->get($key);
+            $data['absensi'] = $items;
+            $peserta->put($key, $data);
+        }
+
+        $rekap = $peserta
+            ->map(function (array $data): array {
+                /** @var Collection<int, AbsensiPembelajaran> $daftarAbsensi */
+                $daftarAbsensi = $data['absensi']
+                    ->filter(function (AbsensiPembelajaran $item): bool {
+                        $pertemuan = (int) $item->pertemuan_ke;
+
+                        return $pertemuan >= 1
+                            && $pertemuan <= PertemuanPembelajaran::TARGET_PERTEMUAN
+                            && $this->statusKehadiran($item->status) !== null;
+                    });
+                $jumlahStatus = $daftarAbsensi->countBy(
+                    fn (AbsensiPembelajaran $item): string => (string) $this->statusKehadiran($item->status)
                 );
+                $statusPertemuan = [];
 
-                $total = $items->count();
-                $hadir = (int) ($jumlahStatus['hadir'] ?? 0);
+                foreach ($daftarAbsensi as $item) {
+                    $pertemuan = (int) $item->pertemuan_ke;
 
-                return [
-                    'nim' => $user?->nim ?: '-',
-                    'nama' => $user?->name ?? 'Mahasiswa',
-                    'total' => $total,
-                    'hadir' => $hadir,
+                    $status = $this->statusKehadiran($item->status);
+                    $statusPertemuan[$pertemuan][] = strtoupper($status[0]);
+                }
+
+                $baris = [
+                    'user_id' => $data['user_id'],
+                    'nim' => $data['nim'],
+                    'nama' => $data['nama'],
+                    'program_studi' => $data['program_studi'],
+                    'mata_pelajaran' => $data['mata_pelajaran'],
+                    'kelompok' => $data['kelompok'],
+                    'total' => $daftarAbsensi->count(),
+                    'hadir' => (int) ($jumlahStatus['hadir'] ?? 0),
                     'izin' => (int) ($jumlahStatus['izin'] ?? 0),
                     'sakit' => (int) ($jumlahStatus['sakit'] ?? 0),
                     'alpa' => (int) ($jumlahStatus['alpa'] ?? 0),
-                    'persentase' => $total > 0 ? (int) round($hadir / $total * 100) : 0,
                 ];
+
+                for ($pertemuan = 1; $pertemuan <= PertemuanPembelajaran::TARGET_PERTEMUAN; $pertemuan++) {
+                    $baris['pertemuan_'.$pertemuan] = implode('/', array_unique($statusPertemuan[$pertemuan] ?? []));
+                }
+
+                return $baris;
             })
             ->values();
 
-        $rekap = $this->saring($rekap, $keyword, ['nama', 'nim'])
-            ->sortBy('nama')
+        $rekap = $this->saring($rekap, $keyword, ['nama', 'nim', 'program_studi', 'mata_pelajaran', 'kelompok'])
+            ->sortBy(fn (array $item): string => $item['nama'].'|'.$item['mata_pelajaran'].'|'.$item['kelompok'])
             ->values();
 
-        $totalMahasiswa = $rekap->count();
-        $totalPertemuan = (int) $rekap->sum('total');
+        $totalMahasiswa = $rekap->pluck('user_id')->unique()->count();
+        $totalAbsensi = (int) $rekap->sum('total');
         $totalHadir = (int) $rekap->sum('hadir');
-        $rataKehadiran = $totalPertemuan > 0 ? (int) round($totalHadir / $totalPertemuan * 100) : 0;
+        $rataKehadiran = $totalAbsensi > 0 ? (int) round($totalHadir / $totalAbsensi * 100) : 0;
 
-        $baris = $rekap->map(function (array $item): array {
-            $item['persentase'] = $item['persentase'].'%';
+        $kolomPertemuan = [];
 
-            return $item;
-        })->all();
+        for ($pertemuan = 1; $pertemuan <= PertemuanPembelajaran::TARGET_PERTEMUAN; $pertemuan++) {
+            $kolomPertemuan[] = [
+                'key' => 'pertemuan_'.$pertemuan,
+                'label' => 'Pertemuan '.$pertemuan,
+                'label_singkat' => (string) $pertemuan,
+                'align' => 'center',
+                'class' => 'lap-col-pertemuan lap-status',
+                'status' => true,
+                'nilai_kosong' => '',
+            ];
+        }
 
         return [
             'judul' => 'Laporan Kehadiran',
-            'deskripsi' => 'Rekap absensi pembelajaran mahasiswa pada periode '.$this->labelPeriode($periode).'.',
+            'judul_cetak' => 'Daftar Hadir Mahasiswa',
+            'deskripsi' => 'Rekap status kehadiran per mahasiswa, mata pelajaran, dan kelompok pada periode '.$this->labelPeriode($periode).'.',
             'judul_tabel' => 'Rekap Kehadiran Mahasiswa',
-            'placeholder_cari' => 'Cari NIM atau nama mahasiswa...',
+            'jumlah_pertemuan' => PertemuanPembelajaran::TARGET_PERTEMUAN,
+            'placeholder_cari' => 'Cari NIM, nama, PRODI, mata pelajaran, atau kelompok...',
             'ringkasan' => [
                 ['label' => 'Total Mahasiswa', 'nilai' => $totalMahasiswa],
-                ['label' => 'Total Pertemuan', 'nilai' => $totalPertemuan],
+                ['label' => 'Total Absensi', 'nilai' => $totalAbsensi],
                 ['label' => 'Total Hadir', 'nilai' => $totalHadir],
                 ['label' => 'Rata-rata Kehadiran', 'nilai' => $rataKehadiran.'%'],
             ],
-            'kolom' => [
-                ['key' => 'nim', 'label' => 'NIM', 'class' => 'nim'],
-                ['key' => 'nama', 'label' => 'Nama Mahasiswa'],
-                ['key' => 'total', 'label' => 'Total Pertemuan', 'align' => 'center'],
-                ['key' => 'hadir', 'label' => 'Hadir', 'align' => 'center'],
-                ['key' => 'izin', 'label' => 'Izin', 'align' => 'center'],
-                ['key' => 'sakit', 'label' => 'Sakit', 'align' => 'center'],
-                ['key' => 'alpa', 'label' => 'Alpa', 'align' => 'center'],
-                ['key' => 'persentase', 'label' => 'Kehadiran', 'align' => 'center'],
-            ],
-            'baris' => $baris,
-            'total' => count($baris),
+            'kolom' => array_merge([
+                ['key' => 'nim', 'label' => 'NIM', 'class' => 'nim lap-col-nim'],
+                ['key' => 'nama', 'label' => 'Nama Mahasiswa', 'class' => 'lap-col-nama'],
+                ['key' => 'program_studi', 'label' => 'PRODI', 'class' => 'lap-col-prodi'],
+                ['key' => 'mata_pelajaran', 'label' => 'Mata Pelajaran', 'class' => 'lap-col-mapel'],
+                ['key' => 'kelompok', 'label' => 'Kelompok', 'class' => 'lap-col-kelompok'],
+            ], $kolomPertemuan, [
+                ['key' => 'hadir', 'label' => 'Hadir', 'label_singkat' => 'H', 'align' => 'center', 'class' => 'lap-col-rekap'],
+                ['key' => 'izin', 'label' => 'Izin', 'label_singkat' => 'I', 'align' => 'center', 'class' => 'lap-col-rekap'],
+                ['key' => 'sakit', 'label' => 'Sakit', 'label_singkat' => 'S', 'align' => 'center', 'class' => 'lap-col-rekap'],
+                ['key' => 'alpa', 'label' => 'Alfa', 'label_singkat' => 'A', 'align' => 'center', 'class' => 'lap-col-rekap'],
+                ['key' => 'total', 'label' => 'Jumlah', 'label_singkat' => 'Jml', 'align' => 'center', 'class' => 'lap-col-rekap'],
+            ]),
+            'baris' => $rekap->all(),
+            'total' => $rekap->count(),
         ];
+    }
+
+    private function kunciPesertaKehadiran(int $userId, int $mataPelajaranId, ?string $kelompok): string
+    {
+        return $userId.'|'.$mataPelajaranId.'|'.($kelompok ?? '');
+    }
+
+    private function statusKehadiran(?string $status): ?string
+    {
+        $status = strtolower(trim((string) $status));
+
+        return array_key_exists($status, PertemuanPembelajaran::STATUS_ABSENSI) ? $status : null;
+    }
+
+    private function programStudi(?User $user): string
+    {
+        $pendaftaran = $user?->pendaftarans->first();
+
+        return $pendaftaran?->program_studi ?: '-';
     }
 
     /**

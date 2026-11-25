@@ -113,8 +113,19 @@ class AdminManajemenPenggunaController extends Controller
             'name' => ['nullable', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'no_hp' => ['nullable', 'string', 'max:20'],
+            'nip' => ['nullable', 'string', 'max:30', Rule::unique('users', 'nip')],
             'role' => ['required', Rule::in(self::ROLES)],
+        ], [
+            'nip.unique' => 'NIP sudah digunakan akun lain.',
         ]);
+
+        if ($data['role'] === 'pimpinan') {
+            $request->validate([
+                'nip' => ['required', 'string', 'max:30'],
+            ], [
+                'nip.required' => 'NIP pimpinan wajib diisi.',
+            ]);
+        }
 
         // Hanya akun Musyrifah yang memerlukan penempatan. Kedua nilai harus
         // merupakan pasangan gedung/lantai yang sudah tercatat di Data Kamar.
@@ -196,6 +207,7 @@ class AdminManajemenPenggunaController extends Controller
                 'name' => $nama,
                 'email' => $email,
                 'no_hp' => $noHp,
+                'nip' => $data['role'] === 'pimpinan' ? ($data['nip'] ?? null) : null,
                 'role' => $data['role'],
                 'password' => Str::random(40),
                 'status' => 'menunggu aktivasi',
@@ -263,9 +275,20 @@ class AdminManajemenPenggunaController extends Controller
             'name' => ['required', 'string', 'min:2', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->getKey())],
             'no_hp' => ['nullable', 'string', 'max:20'],
+            'nip' => ['nullable', 'string', 'max:30', Rule::unique('users', 'nip')->ignore($user->getKey())],
             'role' => ['required', Rule::in(self::ROLES)],
             'status' => ['required', Rule::in(array_merge(self::STATUS_AKUN, self::STATUS_MENUNGGU))],
+        ], [
+            'nip.unique' => 'NIP sudah digunakan akun lain.',
         ]);
+
+        if ($data['role'] === 'pimpinan') {
+            $request->validate([
+                'nip' => ['required', 'string', 'max:30'],
+            ], [
+                'nip.required' => 'NIP pimpinan wajib diisi.',
+            ]);
+        }
 
         // Penempatan hanya untuk Musyrifah dan wajib cocok dengan Data Kamar.
         $penempatan = null;
@@ -344,6 +367,7 @@ class AdminManajemenPenggunaController extends Controller
             $akun->name = trim($data['name']);
             $akun->email = $data['email'];
             $akun->no_hp = $data['no_hp'] ?? null;
+            $akun->nip = $data['role'] === 'pimpinan' ? ($data['nip'] ?? null) : null;
             $akun->role = $data['role'];
             $akun->status = $data['status'];
             $akun->gedung_penempatan = $penempatan['gedung'] ?? null;
@@ -519,6 +543,9 @@ class AdminManajemenPenggunaController extends Controller
         }
         if (is_string($request->input('name'))) {
             $request->merge(['name' => trim($request->input('name'))]);
+        }
+        if (is_string($request->input('nip'))) {
+            $request->merge(['nip' => trim($request->input('nip'))]);
         }
     }
 }

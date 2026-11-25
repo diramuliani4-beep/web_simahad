@@ -51,6 +51,12 @@ class MusyrifahLaporanController extends Controller
         }
 
         $laporan = array_map(function (array $item) use ($periode): array {
+            if ($item['jenis'] === 'pembelajaran') {
+                $item['url'] = route('musyrifah.laporan.pembelajaran.index', ['periode' => $periode]);
+
+                return $item;
+            }
+
             $item['url'] = route('musyrifah.laporan.detail', [
                 'jenis' => $item['jenis'],
                 'periode' => $periode,
@@ -161,18 +167,51 @@ class MusyrifahLaporanController extends Controller
 
         $periode = $this->laporanMahad->normalisasiPeriode($request->query('periode'));
         $keyword = trim((string) $request->query('cari', ''));
+        $mataPelajaranId = null;
+        $kelompok = '';
+        $filterTambahan = [];
+        $parameterUnduhan = [
+            'jenis' => $jenis,
+            'periode' => $periode,
+            'cari' => $keyword,
+        ];
+
+        if ($jenis === 'kehadiran') {
+            [$mataPelajaranId, $kelompok, $opsiMapel, $opsiKelompok] = $this->filterKehadiran($request);
+            $filterTambahan = [
+                [
+                    'name' => 'mata_pelajaran',
+                    'label' => 'Mata Pelajaran',
+                    'options' => $opsiMapel,
+                    'nilai' => (string) ($mataPelajaranId ?? ''),
+                ],
+                [
+                    'name' => 'kelompok',
+                    'label' => 'Kelompok',
+                    'options' => $opsiKelompok,
+                    'nilai' => $kelompok,
+                ],
+            ];
+
+            if ($mataPelajaranId !== null) {
+                $parameterUnduhan['mata_pelajaran'] = $mataPelajaranId;
+            }
+
+            if ($kelompok !== '') {
+                $parameterUnduhan['kelompok'] = $kelompok;
+            }
+        }
 
         return view('musyrifah.laporan_detail', [
-            'laporan' => $this->laporanMahad->laporan($jenis, $periode, $keyword),
+            'laporan' => $this->laporanMahad->laporan($jenis, $periode, $keyword, $mataPelajaranId, $kelompok),
             'keyword' => $keyword,
             'opsiPeriode' => $this->laporanMahad->opsiPeriode(),
             'filterAction' => route('musyrifah.laporan.detail', ['jenis' => $jenis]),
-            'backUrl' => route('musyrifah.laporan', ['periode' => $periode,]),
-            'unduhUrl' => route('musyrifah.laporan.unduh', [
-                'jenis' => $jenis,
-                'periode' => $periode,
-                'cari' => $keyword,
-            ]),
+            'filterTambahan' => $filterTambahan,
+            'backUrl' => route('musyrifah.laporan', ['periode' => $periode]),
+            'unduhUrl' => route('musyrifah.laporan.unduh', $parameterUnduhan),
+            'resetUrl' => $jenis === 'kehadiran' ? route('musyrifah.laporan.detail', ['jenis' => $jenis, 'periode' => $periode]) : null,
+            'pimpinan' => $jenis === 'kehadiran' ? $this->laporanMahad->identitasPimpinan() : null,
             'modeMonitoring' => false,
         ]);
     }
@@ -187,8 +226,14 @@ class MusyrifahLaporanController extends Controller
 
         $periode = $this->laporanMahad->normalisasiPeriode($request->query('periode'));
         $keyword = trim((string) $request->query('cari', ''));
+        $mataPelajaranId = null;
+        $kelompok = '';
 
-        return $this->unduhCsv($this->laporanMahad->laporan($jenis, $periode, $keyword));
+        if ($jenis === 'kehadiran') {
+            [$mataPelajaranId, $kelompok] = $this->filterKehadiran($request);
+        }
+
+        return $this->unduhCsv($this->laporanMahad->laporan($jenis, $periode, $keyword, $mataPelajaranId, $kelompok));
     }
 
     /**
@@ -403,7 +448,7 @@ class MusyrifahLaporanController extends Controller
 
             foreach ($laporan['baris'] as $baris) {
                 fputcsv($berkas, array_map(
-                    fn (array $kolom): string => (string) ($baris[$kolom['key']] ?? '-'),
+                    fn (array $kolom): string => (string) ($baris[$kolom['key']] ?? $kolom['nilai_kosong'] ?? '-'),
                     $laporan['kolom']
                 ));
             }
@@ -521,6 +566,29 @@ class MusyrifahLaporanController extends Controller
         $periode = preg_replace('/[^0-9a-zA-Z\-]/', '-', (string) $laporan->periode) ?: 'periode';
 
         return 'laporan-'.$laporan->jenis.'-'.$periode.'-v'.(int) $laporan->versi.'.'.$ekstensi;
+    }
+
+    /**
+     * @return array{0: int|null, 1: string, 2: array<int, array{value: string, label: string}>, 3: array<int, array{value: string, label: string}>}
+     */
+    private function filterKehadiran(Request $request): array
+    {
+        $opsiMapel = $this->laporanMahad->opsiMataPelajaranKehadiran();
+        $mataPelajaranId = $request->integer('mata_pelajaran') ?: null;
+
+        if ($mataPelajaranId !== null
+            && ! in_array((string) $mataPelajaranId, array_column($opsiMapel, 'value'), true)) {
+            $mataPelajaranId = null;
+        }
+
+        $opsiKelompok = $this->laporanMahad->opsiKelompokKehadiran($mataPelajaranId);
+        $kelompok = trim((string) $request->query('kelompok', ''));
+
+        if ($kelompok !== '' && ! in_array($kelompok, array_column($opsiKelompok, 'value'), true)) {
+            $kelompok = '';
+        }
+
+        return [$mataPelajaranId, $kelompok, $opsiMapel, $opsiKelompok];
     }
 
     /**
