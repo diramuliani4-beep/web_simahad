@@ -1194,15 +1194,6 @@
                     Masukkan Email atau NIM terdaftar dan tentukan kata sandi baru.
                 </p>
 
-                @if (session('status'))
-                    <div class="alert-box alert-success" role="status">{{ session('status') }}</div>
-                @endif
-                @if (session('success'))
-                    <div class="alert-box alert-success" role="status">{{ session('success') }}</div>
-                @endif
-                @if (session('error'))
-                    <div class="alert-box alert-error" role="alert">{{ session('error') }}</div>
-                @endif
                 @if ($errors->any())
                     <div class="alert-box alert-error" role="alert">{{ $errors->first() }}</div>
                 @endif
@@ -1280,5 +1271,6 @@
         })();
     </script>
 
+    <x-simahad-ui />
 </body>
 </html>

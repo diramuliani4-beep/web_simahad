@@ -365,17 +365,6 @@
         </div>
     </div>
 
-    @if(session('success'))
-        <div style="background: #dcfce7; color: #15803d; border: 1px solid #86efac; padding: 12px 18px; border-radius: 10px; margin-bottom: 20px; font-weight: 500;">
-            ✓ {{ session('success') }}
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div style="background: #fdeef0; color: #8a1224; border: 1px solid #f2ccd2; padding: 12px 18px; border-radius: 10px; margin-bottom: 20px; font-weight: 500;">
-            ⚠ {{ session('error') }}
-        </div>
-    @endif
 
     <!-- RINGKASAN ATAS -->
     <div class="mp-summary-grid" aria-label="Ringkasan pembelajaran">
@@ -483,7 +472,12 @@
                                                 onclick="openModalEditMapel({{ $mapel->id }}, '{{ addslashes($mapel->kode ?? '') }}', '{{ addslashes($mapel->nama) }}', '{{ addslashes($mapel->kategori ?? '') }}', {{ (int) $mapel->target_pertemuan }}, '{{ addslashes($mapel->deskripsi ?? '') }}')">
                                             Ubah
                                         </button>
-                                        <form action="{{ route('musyrifah.manajemen_pembelajaran.mapel.destroy', $mapel->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus mata pelajaran ini?')">
+                                        <form action="{{ route('musyrifah.manajemen_pembelajaran.mapel.destroy', $mapel->id) }}"
+                                              method="POST"
+                                              data-sui-confirm="Apakah Anda yakin ingin menghapus mata pelajaran ini?"
+                                              data-sui-confirm-title="Hapus mata pelajaran?"
+                                              data-sui-confirm-label="Ya, Hapus"
+                                              data-sui-confirm-tone="danger">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn-table-del">Hapus</button>
@@ -624,7 +618,10 @@
                                         </button>
                                         <form action="{{ route('musyrifah.manajemen_pembelajaran.anggota.destroy', $item->id) }}"
                                               method="POST"
-                                              onsubmit="return confirm('Apakah Anda yakin ingin mengeluarkan mahasiswa {{ addslashes($mhsUser?->name ?? 'ini') }} dari {{ addslashes($kelompokNama) }} untuk {{ addslashes($mapelNama) }}?')">
+                                              data-sui-confirm="Apakah Anda yakin ingin mengeluarkan mahasiswa {{ $mhsUser?->name ?? 'ini' }} dari {{ $kelompokNama }} untuk {{ $mapelNama }}?"
+                                              data-sui-confirm-title="Keluarkan mahasiswa?"
+                                              data-sui-confirm-label="Ya, Keluarkan"
+                                              data-sui-confirm-tone="danger">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn-table-del" title="Keluarkan dari kelompok belajar">
@@ -718,7 +715,12 @@
                                                 onclick="openModalEditJadwal({{ $j->id }}, '{{ addslashes($j->nama_mata_pelajaran) }}', '{{ addslashes($j->kelompok) }}', {{ (int) $j->guru_id }}, '{{ addslashes($j->guru_pengampu) }}', '{{ addslashes($j->periode) }}', '{{ addslashes($j->hari) }}', '{{ addslashes($j->jam_mulai) }}', '{{ addslashes($j->jam_selesai) }}', '{{ addslashes($j->ruangan) }}')">
                                             Ubah
                                         </button>
-                                        <form action="{{ route('musyrifah.manajemen_pembelajaran.jadwal.destroy', $j->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus jadwal ini?')">
+                                        <form action="{{ route('musyrifah.manajemen_pembelajaran.jadwal.destroy', $j->id) }}"
+                                              method="POST"
+                                              data-sui-confirm="Apakah Anda yakin ingin menghapus jadwal ini?"
+                                              data-sui-confirm-title="Hapus jadwal?"
+                                              data-sui-confirm-label="Ya, Hapus"
+                                              data-sui-confirm-tone="danger">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn-table-del">Hapus</button>

@@ -720,13 +720,6 @@
     </header>
 
     <main class="container">
-        @if (session('success'))
-            <div class="notif notif--sukses">{{ session('success') }}</div>
-        @endif
-
-        @if (session('error'))
-            <div class="notif notif--gagal">{{ session('error') }}</div>
-        @endif
 
         @if ($errors->any())
             <div class="notif notif--gagal">

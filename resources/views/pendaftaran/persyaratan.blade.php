@@ -980,7 +980,7 @@
 
                 display.textContent = 'Unggah bukti pembayaran';
 
-                alert('Bukti pembayaran harus PDF, JPG, JPEG, atau PNG dengan ukuran maksimal 5 MB.');
+                window.SimahadUI.toast('Bukti pembayaran harus PDF, JPG, JPEG, atau PNG dengan ukuran maksimal 5 MB.', 'error');
 
                 return;
 

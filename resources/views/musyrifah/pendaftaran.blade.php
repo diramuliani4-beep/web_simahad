@@ -266,22 +266,14 @@
         <p>Kelola data pendaftaran, periksa dokumen, dan validasi pengajuan mahasiswa Ma'had.</p>
     </header>
 
-    @if (session('success'))
-        <div class="pd-alert pd-alert--success" role="status">{{ session('success') }}</div>
-    @endif
-    @if (session('error') || $errors->any())
+    @if ($errors->any())
         <div class="pd-alert pd-alert--error" role="alert">
-            @if (session('error'))
-                <div>{{ session('error') }}</div>
-            @endif
-            @if ($errors->any())
-                <strong>Periksa kembali data validasi:</strong>
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            @endif
+            <strong>Periksa kembali data validasi:</strong>
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
         </div>
     @endif
 
@@ -743,7 +735,9 @@
 
                             action="{{ route('musyrifah.pendaftaran.status', $pendaftaran->id) }}"
 
-                            onsubmit="return confirm('Yakin menyetujui pendaftaran ini? Pastikan dokumen dan pembayaran sudah diverifikasi.');">
+                            data-sui-confirm="Yakin menyetujui pendaftaran ini? Pastikan dokumen dan pembayaran sudah diverifikasi."
+                            data-sui-confirm-title="Setujui pendaftaran?"
+                            data-sui-confirm-label="Ya, Setujui">
 
                             @csrf
 
@@ -767,7 +761,9 @@
 
                             action="{{ route('musyrifah.pendaftaran.status', $pendaftaran->id) }}"
 
-                            onsubmit="return confirm('Yakin meminta perbaikan untuk pendaftaran ini? Tuliskan instruksi perbaikan dengan jelas.');">
+                            data-sui-confirm="Yakin meminta perbaikan untuk pendaftaran ini? Tuliskan instruksi perbaikan dengan jelas."
+                            data-sui-confirm-title="Minta perbaikan?"
+                            data-sui-confirm-label="Ya, Minta Perbaikan">
 
                             @csrf
 
@@ -791,7 +787,10 @@
 
                             action="{{ route('musyrifah.pendaftaran.status', $pendaftaran->id) }}"
 
-                            onsubmit="return confirm('Yakin menolak pendaftaran ini? Alasan penolakan akan dicatat.');">
+                            data-sui-confirm="Yakin menolak pendaftaran ini? Alasan penolakan akan dicatat."
+                            data-sui-confirm-title="Tolak pendaftaran?"
+                            data-sui-confirm-label="Ya, Tolak"
+                            data-sui-confirm-tone="danger">
 
                             @csrf
 

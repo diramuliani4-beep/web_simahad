@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!formats.includes(file.type) || file.size > 2 * 1024 * 1024) {
             fotoInput.value = '';
             preview.innerHTML = fotoAwal;
-            alert('Gunakan foto JPG, PNG, atau WEBP berukuran maksimal 2 MB.');
+            window.SimahadUI.toast('Gunakan foto JPG, PNG, atau WEBP berukuran maksimal 2 MB.', 'error');
             return;
         }
         previewUrl = URL.createObjectURL(file);

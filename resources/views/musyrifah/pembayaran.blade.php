@@ -421,9 +421,57 @@
         background: #dbeafe;
         color: #1d4ed8;
     }
-    .mp .badge.ditutup {
+    .mp .badge.ditutup,
+    .mp .badge.nonaktif,
+    .mp .badge.belum_dibuka {
         background: #f3f4f6;
         color: #4b5563;
+    }
+    .mp .cakupan-note {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        margin: -6px 0 14px;
+        padding: 10px 12px;
+        border: 1px solid #dbe8df;
+        border-radius: 10px;
+        background: #f5fbf7;
+        color: #27613d;
+        font-size: 0.75rem;
+        line-height: 1.6;
+    }
+    .mp .cakupan-note--peringatan {
+        border-color: #f0d7a8;
+        background: #fffaf0;
+        color: #7a5920;
+    }
+    .mp .jadwal-tahap-atas {
+        display: flex;
+        grid-column: 1 / -1;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .mp .jadwal-tahap-info {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 7px;
+        min-width: 0;
+    }
+    .mp .jadwal-tahap-info strong {
+        font-size: 0.8rem;
+    }
+    .mp .jadwal-tahap-aksi {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .mp .jadwal-tahap-aksi .btn {
+        min-height: 34px;
+        padding: 6px 11px;
+        font-size: 0.72rem;
     }
     /* Modal */
     .mp-modal {
@@ -1482,6 +1530,15 @@
         </div>
         <button type="button" class="btn btn--garis" id="btnMuatUlang" title="Ambil data pembayaran terbaru dari server" aria-label="Segarkan data pembayaran">Segarkan Data</button>
     </div>
+    @if ($bolehAturPeriode)
+        <div class="cakupan-note {{ $lantaiMusyrifah === null ? 'cakupan-note--peringatan' : '' }}" role="status">
+            @if ($lantaiMusyrifah !== null)
+                Cakupan verifikasi: <strong>Lantai {{ $lantaiMusyrifah }}</strong>. Hanya pembayaran mahasiswa yang tinggal di lantai ini yang dapat diperiksa.
+            @else
+                <strong>Lantai penempatan Musyrifah belum diatur.</strong> Daftar pembayaran dan verifikasi lintas lantai tidak dapat dibuka sampai lantai tanggung jawab ditetapkan.
+            @endif
+        </div>
+    @endif
     <div class="stat-grid">
         <div class="stat stat--maroon">
             <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="15" rx="2"/><path d="M3 10h18M7 3h10"/><path d="M16 16h2"/></svg></span>
@@ -1598,6 +1655,32 @@
                     </div>
                     @foreach ($jadwal as $indeks => $baris)
                         <div class="jadwal-baris">
+                            <div class="jadwal-tahap-atas">
+                                <div class="jadwal-tahap-info">
+                                    <strong>Tahap {{ $baris['angsuran_ke'] }}</strong>
+                                    <span class="badge {{ $baris['status_periode'] }}">{{ $baris['status_periode_label'] }}</span>
+                                    <span class="sub">{{ $baris['tanggal_mulai_teks'] }} &ndash; {{ $baris['jatuh_tempo_teks'] }}</span>
+                                </div>
+                                <div class="jadwal-tahap-aksi">
+                                    @if ($baris['bisa_tutup'])
+                                        <button type="submit"
+                                            class="btn btn--garis"
+                                            formaction="{{ route('musyrifah.pembayaran.tahap.tutup', $baris['id']) }}"
+                                            formmethod="POST"
+                                            formnovalidate>Tutup Tahap</button>
+                                    @elseif ($baris['bisa_buka'])
+                                        <button type="submit"
+                                            class="btn btn--hijau"
+                                            formaction="{{ route('musyrifah.pembayaran.tahap.buka', $baris['id']) }}"
+                                            formmethod="POST"
+                                            formnovalidate>Buka Tahap</button>
+                                    @else
+                                        <button type="button" class="btn btn--garis" disabled>
+                                            {{ $baris['status_periode'] === 'terjadwal' ? 'Menunggu Jadwal' : 'Belum Dapat Dibuka' }}
+                                        </button>
+                                    @endif
+                                </div>
+                            </div>
                             <input type="hidden" name="angsuran[{{ $indeks }}][angsuran_ke]" value="{{ $baris['angsuran_ke'] }}">
                             <div class="field">
                                 <label for="jadwal-nama-{{ $baris['angsuran_ke'] }}">Nama tahap {{ $baris['angsuran_ke'] }}</label>
@@ -1618,7 +1701,15 @@
                                     required>
                             </div>
                             <div class="field">
-                                <label for="jadwal-tempo-{{ $baris['angsuran_ke'] }}">Jatuh tempo</label>
+                                <label for="jadwal-mulai-{{ $baris['angsuran_ke'] }}">Tanggal mulai tahap</label>
+                                <input type="date"
+                                    id="jadwal-mulai-{{ $baris['angsuran_ke'] }}"
+                                    name="angsuran[{{ $indeks }}][tanggal_mulai]"
+                                    value="{{ $baris['tanggal_mulai'] }}"
+                                    required>
+                            </div>
+                            <div class="field">
+                                <label for="jadwal-tempo-{{ $baris['angsuran_ke'] }}">Tanggal berakhir / jatuh tempo</label>
                                 <input type="date"
                                     id="jadwal-tempo-{{ $baris['angsuran_ke'] }}"
                                     name="angsuran[{{ $indeks }}][jatuh_tempo]"
@@ -1639,7 +1730,8 @@
                     @endforeach
                     <div class="hint">
                         Angsuran pertama minimal Rp1.000.000. Total biaya umum Rp5.000.000 per tahun dan dapat berbeda sesuai kategori mahasiswa.
-                        Perubahan jadwal diterapkan pada tagihan yang belum dibayar.
+                        Setiap tahap dibuka atau ditutup terpisah. Mahasiswa tetap melihat rentang waktu tahap yang belum dibuka.
+                        Perubahan jadwal diterapkan pada tagihan yang belum dibayar; jatuh tempo hasil persetujuan surat keterlambatan tetap dipertahankan.
                     </div>
                     <div class="pengajuan-aksi" style="margin-top:10px;">
                         <button type="submit" class="btn">Simpan Periode &amp; Jadwal</button>
@@ -1648,9 +1740,15 @@
             @elseif (count($jadwal) > 0)
                 @foreach ($jadwal as $baris)
                     <div class="jadwal-baris" style="grid-template-columns: minmax(0, 1fr);">
+                        <div class="jadwal-tahap-atas">
+                            <div class="jadwal-tahap-info">
+                                <strong>{{ $baris['nama_tahap'] }}</strong>
+                                <span class="badge {{ $baris['status_periode'] }}">{{ $baris['status_periode_label'] }}</span>
+                            </div>
+                            <span class="sub">{{ $baris['tanggal_mulai_teks'] }} &ndash; {{ $baris['jatuh_tempo_teks'] }}</span>
+                        </div>
                         <div class="sub">
-                            <strong>{{ $baris['nama_tahap'] }}</strong> &middot; {{ $baris['nominal_rupiah'] }} &middot;
-                            jatuh tempo {{ $baris['jatuh_tempo_teks'] }} &middot; pengingat {{ $baris['reminder_hari'] }} hari
+                            {{ $baris['nominal_rupiah'] }} &middot; pengingat {{ $baris['reminder_hari'] }} hari
                         </div>
                     </div>
                 @endforeach
@@ -2032,11 +2130,16 @@
                 catatan: catatan,
             }, 'Bukti transfer ditolak.');
         });
-        document.getElementById('btnLunas').addEventListener('click', function () {
+        document.getElementById('btnLunas').addEventListener('click', async function () {
             if (!idAktif) {
                 return;
             }
-            if (!window.confirm("Tetapkan Lunas? Pastikan dana benar-benar sudah diterima dan diverifikasi oleh petugas pembayaran Ma'had.")) {
+            const disetujui = await window.SimahadUI.confirm({
+                title: 'Tetapkan status Lunas?',
+                message: "Pastikan dana benar-benar sudah diterima dan diverifikasi oleh petugas pembayaran Ma'had.",
+                confirmText: 'Ya, Tetapkan Lunas',
+            });
+            if (!disetujui) {
                 return;
             }
             aksiModal(urlStatus(idAktif), {
@@ -2068,13 +2171,35 @@
                 const keputusan = tombol.dataset.putuskan;
                 let catatan = '';
                 if (keputusan === 'tolak') {
-                    catatan = window.prompt('Alasan penolakan pengajuan keterlambatan:') || '';
+                    catatan = await window.SimahadUI.prompt({
+                        title: 'Tolak pengajuan keterlambatan',
+                        message: 'Masukkan alasan penolakan yang akan disimpan dan dapat dibaca mahasiswa.',
+                        label: 'Alasan penolakan',
+                        placeholder: 'Tuliskan alasan penolakan secara jelas.',
+                        required: true,
+                        minLength: 3,
+                        maxLength: 500,
+                        requiredMessage: 'Alasan penolakan wajib diisi.',
+                        minLengthMessage: 'Alasan penolakan minimal 3 karakter.',
+                        confirmText: 'Tolak Pengajuan',
+                        tone: 'danger',
+                    });
+                    if (catatan === null) {
+                        return;
+                    }
                     if (catatan.trim().length < 3) {
                         pesan('pesanPengajuan', 'Alasan penolakan wajib diisi.', false);
                         return;
                     }
-                } else if (!window.confirm('Setujui pengajuan? Jatuh tempo akan diperbarui dan status tagihan tetap belum Lunas.')) {
-                    return;
+                } else {
+                    const disetujui = await window.SimahadUI.confirm({
+                        title: 'Setujui pengajuan keterlambatan?',
+                        message: 'Jatuh tempo akan diperbarui dan status tagihan tetap belum Lunas.',
+                        confirmText: 'Ya, Setujui',
+                    });
+                    if (!disetujui) {
+                        return;
+                    }
                 }
                 try {
                     const hasil = await kirim("{{ url('/musyrifah/pembayaran/keterlambatan') }}/" + id, {

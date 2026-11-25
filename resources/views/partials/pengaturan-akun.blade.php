@@ -453,13 +453,6 @@
         </p>
     </header>
 
-    @if (session('success'))
-        <div class="pa-alert pa-alert--sukses" role="status">{{ session('success') }}</div>
-    @endif
-
-    @if (session('error'))
-        <div class="pa-alert pa-alert--gagal" role="alert">{{ session('error') }}</div>
-    @endif
 
     @if ($errors->any())
         <div class="pa-alert pa-alert--gagal" role="alert">

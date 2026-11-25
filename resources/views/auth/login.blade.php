@@ -1320,29 +1320,6 @@
                     Temukan kemudahan dalam mengakses layanan Ma'had melalui satu sistem.
                 </p>
 
-                <!-- Status Flash Message -->
-                @if (session('status'))
-                    <div class="alert-box alert-success">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        <span>{{ session('status') }}</span>
-                    </div>
-                @endif
-
-            {{-- Notifikasi berhasil --}}
-            @if (session('success'))
-                <div class="alert-box alert-success">
-                    <span>{{ session('success') }}</span>
-                </div>
-            @endif
-
-            {{-- Notifikasi kesalahan --}}
-            @if (session('error'))
-                <div class="alert-box alert-error">
-                    <span>{{ session('error') }}</span>
-                </div>
-            @endif
 
             {{-- Kesalahan validasi --}}
             @if ($errors->any())
@@ -1537,5 +1514,6 @@
         })();
     </script>
 
+    <x-simahad-ui />
 </body>
 </html>

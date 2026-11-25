@@ -367,37 +367,21 @@
 
 
 
-    @if (session('success'))
-
-        <div class="alert approved" style="margin-top:0;">
-
-            <div class="alert-title">{{ session('success') }}</div>
-
-        </div>
-
-    @endif
-
-
-
-    @if (session('error') || $errors->any())
+    @if ($errors->any())
 
         <div class="alert rejected" style="margin-top:0;">
 
-            <div class="alert-title">{{ session('error') ?: 'Terdapat kesalahan pada isian form:' }}</div>
+            <div class="alert-title">Terdapat kesalahan pada isian form:</div>
 
-            @if ($errors->any())
+            <ul style="margin: .5rem 0 0 1.2rem; font-size: .8rem;">
 
-                <ul style="margin: .5rem 0 0 1.2rem; font-size: .8rem;">
+                @foreach ($errors->all() as $err)
 
-                    @foreach ($errors->all() as $err)
+                    <li>{{ $err }}</li>
 
-                        <li>{{ $err }}</li>
+                @endforeach
 
-                    @endforeach
-
-                </ul>
-
-            @endif
+            </ul>
 
         </div>
 

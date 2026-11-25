@@ -323,25 +323,14 @@
             Tambah Kamar Baru
         </button>
     </header>
-    <!-- NOTIFIKASI -->
-    @if (session('success'))
-        <div class="data-kamar-alert data-kamar-alert--success" role="status">
-            {{ session('success') }}
-        </div>
-    @endif
-    @if (session('error') || $errors->any())
+    @if ($errors->any())
         <div class="data-kamar-alert data-kamar-alert--error" role="alert">
-            @if (session('error'))
-                <div>{{ session('error') }}</div>
-            @endif
-            @if ($errors->any())
-                <strong>Periksa kembali data formulir:</strong>
-                <ul style="margin: 6px 0 0 18px;">
-                    @foreach ($errors->all() as $err)
-                        <li>{{ $err }}</li>
-                    @endforeach
-                </ul>
-            @endif
+            <strong>Periksa kembali data formulir:</strong>
+            <ul style="margin: 6px 0 0 18px;">
+                @foreach ($errors->all() as $err)
+                    <li>{{ $err }}</li>
+                @endforeach
+            </ul>
         </div>
     @endif
     <!-- Ringkasan data kamar; setiap nilai tetap berasal dari controller. -->
@@ -527,7 +516,9 @@
                             <form
                                 action="{{ route('musyrifah.pengajuan_kamar.approve', $pengajuan['id']) }}"
                                 method="POST"
-                                onsubmit="return confirm('Setujui pengajuan kamar ini?');"
+                                data-sui-confirm="Setujui pengajuan kamar ini?"
+                                data-sui-confirm-title="Setujui pengajuan kamar?"
+                                data-sui-confirm-label="Ya, Setujui">
                             >
                                 @csrf
                                 <button type="submit" class="btn-pengajuan btn-pengajuan--setuju" style="width:100%;" @disabled($pengajuan['sisa_kamar'] <= 0)>
@@ -554,7 +545,10 @@
                                 class="pengajuan-tolak-form"
                                 action="{{ route('musyrifah.pengajuan_kamar.reject', $pengajuan['id']) }}"
                                 method="POST"
-                                onsubmit="return confirm('Tolak pengajuan kamar ini?');"
+                                data-sui-confirm="Tolak pengajuan kamar ini? Catatan penolakan akan disimpan dan dapat dibaca mahasiswa."
+                                data-sui-confirm-title="Tolak pengajuan kamar?"
+                                data-sui-confirm-label="Ya, Tolak"
+                                data-sui-confirm-tone="danger">
                             >
                                 @csrf
                                 <label class="form-label-kamar" for="catatan-{{ $pengajuan['id'] }}">
@@ -761,7 +755,10 @@
                         @endif
                         @if ($bolehKelola && (int) $kamar['terisi'] === 0)
                             <form action="{{ route('musyrifah.data_kamar.destroy', $kamar['id']) }}" method="POST"
-                                onsubmit="return confirm('Yakin ingin menghapus kamar ini?');">
+                                data-sui-confirm="Yakin ingin menghapus kamar ini?"
+                                data-sui-confirm-title="Hapus kamar?"
+                                data-sui-confirm-label="Ya, Hapus"
+                                data-sui-confirm-tone="danger">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn-card btn-card--delete" title="Hapus Kamar">
@@ -802,7 +799,11 @@
                                             <input type="file" name="foto" accept=".jpg,.jpeg,.png,.webp" required onchange="if (this.files.length) { this.form.submit(); }">
                                         </label>
                                     </form>
-                                    <form action="{{ route('musyrifah.data_kamar.foto.destroy', [$kamar['id'], $foto['id']]) }}" method="POST" onsubmit="return confirm('Hapus foto ini dari galeri kamar?');">
+                                    <form action="{{ route('musyrifah.data_kamar.foto.destroy', [$kamar['id'], $foto['id']]) }}" method="POST"
+                                          data-sui-confirm="Hapus foto ini dari galeri kamar?"
+                                          data-sui-confirm-title="Hapus foto kamar?"
+                                          data-sui-confirm-label="Ya, Hapus"
+                                          data-sui-confirm-tone="danger">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn-foto btn-foto--hapus">Hapus</button>

@@ -416,13 +416,6 @@
             <p>@yield('keterangan')</p>
         </header>
 
-        @if (session('success'))
-            <div class="sp-alert sp-alert--sukses" role="status">{{ session('success') }}</div>
-        @endif
-
-        @if (session('error'))
-            <div class="sp-alert sp-alert--gagal" role="alert">{{ session('error') }}</div>
-        @endif
 
         @if ($errors->any())
             <div class="sp-alert sp-alert--gagal" role="alert">

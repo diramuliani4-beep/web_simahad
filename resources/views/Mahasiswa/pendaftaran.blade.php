@@ -726,13 +726,13 @@
         const maxSize = 5 * 1024 * 1024;
 
         if (!allowedExtensions.includes(extension)) {
-            alert('Format file tidak diperbolehkan. Gunakan PDF, JPG, JPEG, atau PNG.');
+            window.SimahadUI.toast('Format file tidak diperbolehkan. Gunakan PDF, JPG, JPEG, atau PNG.', 'error');
             this.value = '';
             return;
         }
 
         if (file.size > maxSize) {
-            alert('Ukuran file maksimal adalah 5 MB.');
+            window.SimahadUI.toast('Ukuran file maksimal adalah 5 MB.', 'error');
             this.value = '';
             return;
         }

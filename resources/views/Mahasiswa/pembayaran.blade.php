@@ -430,7 +430,13 @@
 
 }
 
-.bayar-page .badge.belum {background:#fff2d5;color:#946117;}
+.bayar-page .badge.belum,.bayar-page .badge.belum_dibuka {background:#fff2d5;color:#946117;}
+
+.bayar-page .badge.dibuka {background:#e4f6eb;color:#18784d;}
+
+.bayar-page .badge.terjadwal {background:#e7f1fd;color:#275f9b;}
+
+.bayar-page .badge.ditutup,.bayar-page .badge.nonaktif {background:#f2f2f4;color:#606673;}
 
 .bayar-page .badge.verifikasi-kosong {background:#f2f3f5;color:#69717c;}
 
@@ -815,7 +821,7 @@
 
     $daftarAngsuran = $ringkasan['daftar_angsuran'];
 
-    $lunasRiwayat = collect($daftarAngsuran)->where('status', 'lunas');
+    $lunasRiwayat = collect($daftarAngsuran)->filter(fn (array $angsuran): bool => in_array($angsuran['status'], ['lunas', 'paid', 'terkonfirmasi'], true));
 
 @endphp
 
@@ -896,27 +902,35 @@
 
     @if (! $dibuka)
 
-        <div class="mati">
+        <div class="info-note">
 
-            <h2>Periode Pembayaran</h2>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 
-            <p>Belum ada periode pembayaran aktif. Silakan menunggu Musyrifah membuka periode pembayaran.</p>
+                <circle cx="12" cy="12" r="10"></circle>
 
-            @if ($pengaturan)
+                <line x1="12" y1="16" x2="12" y2="12"></line>
 
-                <p>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
 
-                    Periode <strong>{{ $pengaturan->periode }}</strong> akan dibuka pada
+            </svg>
 
-                    <strong>{{ $pengaturan->periodeDibukaTeks() }}</strong>. Tagihan dan rekening transfer tampil setelah periode dibuka.
+            <span>
 
-                </p>
+                @if ($pengaturan)
 
-            @endif
+                    Periode <strong>{{ $pengaturan->periode }}</strong> belum dibuka. Seluruh tahap dan rentang waktunya tetap dapat dilihat; unggah bukti tersedia setelah Musyrifah membuka periode dan tahap terkait.
+
+                @else
+
+                    Belum ada periode pembayaran aktif. Silakan menunggu Musyrifah membuka periode pembayaran.
+
+                @endif
+
+            </span>
 
         </div>
 
-    @else
+    @endif
 
         <div class="ringkasan-grid">
 
@@ -950,13 +964,11 @@
 
                 <span class="stat-sub">
 
+                    Belum perlu transfer: <strong>{{ $ringkasan['belum_dibayar_rupiah'] }}</strong>
+
                     @if ($ringkasan['menunggu'] > 0)
 
-                        {{ $ringkasan['menunggu_rupiah'] }} menunggu pemeriksaan/konfirmasi
-
-                    @else
-
-                        Belum termasuk tagihan yang menunggu konfirmasi
+                        &middot; {{ $ringkasan['menunggu_rupiah'] }} menunggu pemeriksaan/konfirmasi
 
                     @endif
 
@@ -970,7 +982,7 @@
 
                 <span class="stat-nilai stat-status-value">
 
-                    {{ $ringkasan['lunas'] ? 'Lunas' : 'Belum Lunas' }}
+                    {{ $ringkasan['lunas'] ? 'Lunas' : ($ringkasan['total'] > 0 ? 'Belum Lunas' : 'Belum Ada Periode') }}
 
                 </span>
 
@@ -1024,7 +1036,7 @@
 
             <h2>Rincian Angsuran</h2>
 
-            <span>Maksimal 3 angsuran per periode</span>
+            <span>Lunasi 1, 2, atau 3 kali &middot; {{ $ringkasan['tahap_dibuka'] }} tahap dibuka</span>
 
         </div>
 
@@ -1044,6 +1056,8 @@
 
                         <span class="angsuran-tahap">{{ $angsuran['label'] }}</span>
 
+                        <span class="badge {{ $angsuran['status_periode'] }}">{{ $angsuran['status_periode_label'] }}</span>
+
                         <span class="badge {{ $angsuran['kelas_status'] }}">{{ str_contains(mb_strtolower((string) $angsuran['status_label']), 'rektorat') ? 'Menunggu Konfirmasi Dana' : $angsuran['status_label'] }}</span>
 
                     </div>
@@ -1051,6 +1065,14 @@
                     <div class="angsuran-nominal">{{ $angsuran['nominal_rupiah'] }}</div>
 
                     <div class="angsuran-meta">
+
+                        <div style="grid-column:1 / -1;">
+
+                            <span class="meta-label">Rentang Periode</span>
+
+                            <span class="meta-nilai">{{ $angsuran['tanggal_mulai'] }} &ndash; {{ $angsuran['tanggal_berakhir'] }}</span>
+
+                        </div>
 
                         <div>
 
@@ -1132,6 +1154,12 @@
 
                     @endif
 
+                    @if (filled($angsuran['bukti_grup']))
+
+                        <div class="riwayat-sub">Bukti transfer bersama untuk satu atau beberapa tagihan dalam periode ini.</div>
+
+                    @endif
+
                     @if ($angsuran['pengajuan_menunggu'])
 
                         <div class="catatan-verifikasi" style="border-left-color:#93c5fd;background:#eff6ff;color:#1d4ed8;">
@@ -1206,6 +1234,28 @@
                                     <div class="hint">PDF/JPG/PNG maksimal 5 MB. Pastikan nominal {{ $angsuran['nominal_rupiah'] }} dan tujuan rekening terlihat jelas.</div>
 
                                 </div>
+
+                                @if ($ringkasan['belum_dibayar'] > $angsuran['nominal'])
+
+                                    <div class="bayar-bukti-notice">
+
+                                        <label style="display:flex;align-items:flex-start;gap:9px;cursor:pointer;">
+
+                                            <input type="checkbox" name="bayar_semua" value="1" style="width:17px;height:17px;margin-top:2px;flex:none;">
+
+                                            <span>
+
+                                                <strong>Lunasi seluruh sisa tagihan sekaligus</strong>
+
+                                                Satu bukti untuk semua tagihan yang belum ditransfer, total {{ $ringkasan['belum_dibayar_rupiah'] }}. Tahap yang belum dibuka juga dicakup.
+
+                                            </span>
+
+                                        </label>
+
+                                    </div>
+
+                                @endif
 
                                 <div class="bayar-modal__actions">
                                     <button type="button" class="bayar-modal__cancel" data-close-bayar-modal>Batal</button>
@@ -1372,13 +1422,23 @@
 
                 <li>Salin nomor rekening {{ $rekening['bank'] }} resmi kampus di atas.</li>
 
-                <li>Transfer sesuai nominal angsuran melalui ATM, mobile banking, atau teller {{ $rekening['bank'] }}.</li>
+                <li>Transfer sesuai nominal angsuran melalui ATM, mobile banking, atau teller {{ $rekening['bank'] }}. Anda dapat melunasi sekali, dua kali, atau tiga kali sesuai tahap yang dibuka.</li>
 
                 <li>Simpan bukti transfer, lalu unggah pada angsuran yang dibayar.</li>
 
                 <li>Tunggu pemeriksaan bukti oleh Musyrifah dan konfirmasi penerimaan dana sesuai prosedur pembayaran.</li>
 
             </ol>
+
+        </div>
+
+    @if ($daftarAngsuran->isEmpty())
+
+        <div class="mati" style="margin-bottom:14px;">
+
+            <h2>Jadwal Angsuran Belum Tersedia</h2>
+
+            <p>Seluruh tahap akan tampil di sini setelah Musyrifah membuat periode pembayaran.</p>
 
         </div>
 

@@ -24,10 +24,6 @@
     @endphp
 
     <div class="pr-page">
-        @if (session('success'))
-            <div class="pr-alert pr-alert--sukses" role="status">{{ session('success') }}</div>
-        @endif
-
         @if ($errors->any())
             <div class="pr-alert pr-alert--gagal" role="alert">
                 <strong>Periksa kembali data yang dimasukkan.</strong>

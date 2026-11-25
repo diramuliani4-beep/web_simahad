@@ -11,8 +11,10 @@ use App\Services\SuratKeterlambatanPdfService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PembayaranController extends Controller
 {
@@ -52,6 +54,7 @@ class PembayaranController extends Controller
 
         $validated = $request->validate([
             'bukti' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'bayar_semua' => ['sometimes', 'boolean'],
         ], [
             'bukti.required' => 'Berkas bukti transfer wajib dipilih.',
             'bukti.mimes' => 'Bukti transfer harus berformat PDF, JPG, JPEG, atau PNG.',
@@ -59,16 +62,30 @@ class PembayaranController extends Controller
         ]);
 
         try {
-            $this->layanan->unggahBukti($mahasiswa, $pembayaran, $validated['bukti']);
+            $pembayaran = $this->layanan->unggahBukti(
+                $mahasiswa,
+                $pembayaran,
+                $validated['bukti'],
+                (bool) ($validated['bayar_semua'] ?? false)
+            );
         } catch (ValidationException $exception) {
             return back()->withErrors($exception->errors());
         }
+
+        $grup = Pembayaran::query()
+            ->where('user_id', $mahasiswa->id)
+            ->where('bukti_grup', $pembayaran->bukti_grup)
+            ->get();
+        $totalGrup = (float) $grup->sum(fn (Pembayaran $item): float => (float) $item->nominal);
+        $keteranganGrup = $grup->count() > 1
+            ? ' untuk '.$grup->count().' tagihan total Rp '.number_format($totalGrup, 0, ',', '.')
+            : ' sebesar '.$pembayaran->nominal_rupiah;
 
         $this->catatAktivitas(
             $mahasiswa,
             'Unggah Bukti Pembayaran',
             'Mahasiswa '.$mahasiswa->name.' ('.$mahasiswa->nim.') mengunggah bukti transfer '.
-                $pembayaran->labelTahap().' sebesar '.$pembayaran->nominal_rupiah.'.',
+                $pembayaran->labelTahap().$keteranganGrup.'.',
             $request
         );
 
@@ -127,10 +144,15 @@ class PembayaranController extends Controller
         $pengguna = $request->user();
         $role = strtolower(trim((string) $pengguna?->role));
 
-        abort_unless(
-            $pengguna && ($pengajuan->user_id === $pengguna->id || in_array($role, ['musyrifah', 'pengelola', 'admin'], true)),
-            403
+        $bolehAkses = $pengguna && (
+            $pengajuan->user_id === $pengguna->id
+            || in_array($role, ['pengelola', 'admin'], true)
+            || ($role === 'musyrifah'
+                && $pengajuan->pembayaran
+                && $this->layanan->bolehAksesPembayaran($pengguna, $pengajuan->pembayaran))
         );
+
+        abort_unless($bolehAkses, 403);
 
         $pdf = app(SuratKeterlambatanPdfService::class)->render($pengajuan);
         $namaBerkas = 'surat-keterlambatan-'.str_replace('/', '-', $pengajuan->nomor_surat).'.pdf';
@@ -139,6 +161,34 @@ class PembayaranController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="'.$namaBerkas.'"',
         ]);
+    }
+
+    /**
+     * Tampilkan bukti melalui controller agar akses lintas lantai ditolak.
+     * Bukti lama pada disk public tetap didukung tanpa dipindahkan.
+     */
+    public function buktiPembayaran(Request $request, Pembayaran $pembayaran): StreamedResponse
+    {
+        $pengguna = $request->user();
+        $role = strtolower(trim((string) $pengguna?->role));
+        $bolehAkses = $pengguna && (
+            $pembayaran->user_id === $pengguna->id
+            || in_array($role, ['pengelola', 'admin'], true)
+            || ($role === 'musyrifah' && $this->layanan->bolehAksesPembayaran($pengguna, $pembayaran))
+        );
+
+        abort_unless($bolehAkses, 403);
+        abort_if(blank($pembayaran->bukti_pembayaran), 404);
+
+        $disk = Storage::disk('local')->exists($pembayaran->bukti_pembayaran) ? 'local' : 'public';
+        abort_unless(Storage::disk($disk)->exists($pembayaran->bukti_pembayaran), 404);
+
+        return Storage::disk($disk)->response(
+            $pembayaran->bukti_pembayaran,
+            $pembayaran->namaBerkasBukti(),
+            ['Content-Type' => 'application/octet-stream'],
+            'inline'
+        );
     }
 
     private function mahasiswa(Request $request): User

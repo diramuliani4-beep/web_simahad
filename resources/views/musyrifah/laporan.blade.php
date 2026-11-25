@@ -191,19 +191,13 @@
             </a>
         </div>
     </header>
-    @if (session('status') || session('success'))
-        <div class="lap-alert lap-alert--success" role="status">{{ session('status') ?: session('success') }}</div>
-    @endif
-    @if (session('error') || $errors->any())
+    @if ($errors->any())
         <div class="lap-alert lap-alert--error" role="alert">
-            @if (session('error')) <p>{{ session('error') }}</p> @endif
-            @if ($errors->any())
-                <ul>
-                    @foreach ($errors->all() as $pesan)
-                        <li>{{ $pesan }}</li>
-                    @endforeach
-                </ul>
-            @endif
+            <ul>
+                @foreach ($errors->all() as $pesan)
+                    <li>{{ $pesan }}</li>
+                @endforeach
+            </ul>
         </div>
     @endif
     {{-- Hanya memakai data yang sudah dikirim controller; bukan angka contoh. --}}

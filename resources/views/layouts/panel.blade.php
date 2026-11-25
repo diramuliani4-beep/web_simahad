@@ -337,18 +337,6 @@
 
     <main class="main-content" id="konten-utama">
 
-        @if (session('success'))
-
-            <div class="flash flash--sukses" role="status">{{ session('success') }}</div>
-
-        @endif
-
-        @if (session('error'))
-
-            <div class="flash flash--gagal" role="alert">{{ session('error') }}</div>
-
-        @endif
-
         @if ($errors->any())
 
             <div class="flash flash--gagal" role="alert">{{ $errors->first() }}</div>
@@ -358,6 +346,8 @@
         @yield('konten')
 
     </main>
+
+    <x-simahad-ui />
 
     @stack('scripts')
 

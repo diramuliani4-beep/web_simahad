@@ -486,16 +486,6 @@
         <h1>Manajemen Pengguna</h1>
         <p>Kelola akun login, hak akses, dan status aktif atau nonaktif pengguna SIMAHAD.</p>
     </header>
-    @if (session('success'))
-        <div class="um-alert" role="status">
-            {{ session('success') }}
-        </div>
-    @endif
-    @if (session('error'))
-        <div class="um-alert um-alert-error" role="alert">
-            {{ session('error') }}
-        </div>
-    @endif
     @if ($errors->any())
         <div class="um-alert um-alert-error" role="alert">
             {{ $errors->first() }}

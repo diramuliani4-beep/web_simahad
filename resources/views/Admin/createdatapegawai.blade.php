@@ -398,7 +398,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             preview.innerHTML = fotoAwal;
 
-            alert('Gunakan foto JPG, PNG, atau WEBP berukuran maksimal 2 MB.');
+            window.SimahadUI.toast('Gunakan foto JPG, PNG, atau WEBP berukuran maksimal 2 MB.', 'error');
 
             return;
 

@@ -271,11 +271,6 @@
         {{ $tugas->namaMataPelajaran() }} &middot; {{ $tugas->kelompok }} &middot;
         Batas pengumpulan {{ $tugas->batasTeks() }}
     </p>
-
-    @if (session('success'))
-        <div class="alert" style="margin-top:16px;">{{ session('success') }}</div>
-    @endif
-
     @if ($errors->any())
         <div class="alert" style="margin-top:16px;border-color:#fecaca;background:#fef2f2;color:#991b1b;">
             {{ $errors->first() }}

@@ -249,6 +249,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/pembayaran/detail', [PembayaranController::class, 'detail'])
         ->name('pembayaran.detail');
 
+    Route::get('/pembayaran/{pembayaran}/bukti', [PembayaranController::class, 'buktiPembayaran'])
+        ->name('pembayaran.bukti.lihat');
+
     Route::post('/pembayaran/{pembayaran}/bukti', [PembayaranController::class, 'unggahBukti'])
         ->name('pembayaran.bukti');
 
@@ -955,6 +958,16 @@ Route::middleware('auth')->group(function () {
         MusyrifahPembayaranController::class,
         'perbaruiNominal',
     ])->name('musyrifah.pembayaran.nominal');
+
+    Route::post('/musyrifah/pembayaran/jadwal/{jadwal}/buka', [
+        MusyrifahPembayaranController::class,
+        'bukaTahap',
+    ])->name('musyrifah.pembayaran.tahap.buka');
+
+    Route::post('/musyrifah/pembayaran/jadwal/{jadwal}/tutup', [
+        MusyrifahPembayaranController::class,
+        'tutupTahap',
+    ])->name('musyrifah.pembayaran.tahap.tutup');
 
     Route::post('/musyrifah/pembayaran/jadwal', [
         MusyrifahPembayaranController::class,

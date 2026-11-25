@@ -486,9 +486,6 @@
 
 <div class="dp{{ $modeLihat ? ' dp--baca' : '' }}">
 
-    @if (session('success'))
-        <div class="dp-alert" role="status">{{ session('success') }}</div>
-    @endif
 
     @if ($modeLihat)
         <a href="{{ route('musyrifah.pengumuman') }}" class="dp-back">&lsaquo; Kembali ke daftar pengumuman</a>
@@ -567,7 +564,10 @@
                 <form
                     method="POST"
                     action="{{ route('musyrifah.pengumuman.destroy', $pengumuman) }}"
-                    onsubmit="return confirm('Hapus pengumuman ini? Data yang dihapus tidak dapat dikembalikan.');"
+                    data-sui-confirm="Hapus pengumuman ini? Data yang dihapus tidak dapat dikembalikan."
+                    data-sui-confirm-title="Hapus pengumuman?"
+                    data-sui-confirm-label="Ya, Hapus"
+                    data-sui-confirm-tone="danger"
                 >
                     @csrf
                     @method('DELETE')

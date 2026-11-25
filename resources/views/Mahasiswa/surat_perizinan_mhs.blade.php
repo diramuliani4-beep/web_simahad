@@ -234,12 +234,6 @@
         </a>
     </header>
 
-    @if (session('success'))
-        <div class="spm-alert spm-alert--success" role="status">{{ session('success') }}</div>
-    @endif
-    @if (session('error'))
-        <div class="spm-alert spm-alert--error" role="alert">{{ session('error') }}</div>
-    @endif
     @if ($errors->any())
         <div class="spm-alert spm-alert--error" role="alert">
             <strong>Periksa kembali data pengajuan:</strong>
@@ -384,7 +378,12 @@
                                 <div class="spm-actions">
                                     <button type="button" class="spm-btn" data-spm-detail="{{ json_encode($rincian, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }}" aria-haspopup="dialog">Detail</button>
                                     @if (in_array($pengajuan->status, ['menunggu', 'perlu_perbaikan'], true))
-                                        <form method="POST" action="{{ route('surat.perizinan.mhs.batalkan', $pengajuan) }}" onsubmit="return confirm('Batalkan pengajuan ini? Slot kuota akan dikembalikan sesuai ketentuan.')">
+                                        <form method="POST"
+                                              action="{{ route('surat.perizinan.mhs.batalkan', $pengajuan) }}"
+                                              data-sui-confirm="Batalkan pengajuan ini? Slot kuota akan dikembalikan sesuai ketentuan."
+                                              data-sui-confirm-title="Batalkan pengajuan?"
+                                              data-sui-confirm-label="Ya, Batalkan"
+                                              data-sui-confirm-tone="danger">
                                             @csrf
                                             <button type="submit" class="spm-btn spm-btn--danger">Batalkan</button>
                                         </form>

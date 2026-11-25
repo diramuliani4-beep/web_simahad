@@ -300,7 +300,8 @@
         {{-- TOMBOL TAMBAH DOKUMENTASI --}}
         <button type="button"
             class="dokumentasi-add"
-            onclick="alert('Form tambah dokumentasi belum diaktifkan. Fitur ini dapat dihubungkan ke form dan database berikutnya.')">
+            data-sui-alert="Form tambah dokumentasi belum diaktifkan. Fitur ini dapat dihubungkan ke form dan database berikutnya."
+            data-sui-alert-title="Fitur belum diaktifkan">
             + Tambah Dokumentasi
         </button>
 

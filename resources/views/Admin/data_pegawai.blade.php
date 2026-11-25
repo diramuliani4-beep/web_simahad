@@ -282,17 +282,6 @@
 
 
 
-    @if (session('success'))
-
-        <div class="dp-alert" role="status">{{ session('success') }}</div>
-
-    @endif
-
-    @if (session('error'))
-
-        <div class="dp-alert error" role="alert">{{ session('error') }}</div>
-
-    @endif
 
 
 

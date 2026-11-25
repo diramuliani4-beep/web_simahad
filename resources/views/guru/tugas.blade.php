@@ -273,11 +273,6 @@
 
         <a href="{{ route('guru.tugas.create') }}" class="btn btn-primary">+ Buat Tugas</a>
     </div>
-
-    @if (session('success'))
-        <div class="alert">{{ session('success') }}</div>
-    @endif
-
     @if ($errors->any())
         <div class="alert" style="border-color:#fecaca;background:#fef2f2;color:#991b1b;">
             {{ $errors->first() }}
@@ -395,7 +390,10 @@
                                     <form
                                         method="POST"
                                         action="{{ route('guru.tugas.destroy', $item) }}"
-                                        onsubmit="return confirm('Hapus tugas {{ $item->judul }} beserta data pengumpulannya?')"
+                                        data-sui-confirm="Hapus tugas {{ $item->judul }} beserta data pengumpulannya?"
+                                        data-sui-confirm-title="Hapus tugas?"
+                                        data-sui-confirm-label="Ya, Hapus"
+                                        data-sui-confirm-tone="danger"
                                     >
                                         @csrf
                                         @method('DELETE')

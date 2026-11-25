@@ -225,11 +225,6 @@
             Tambah Pengumuman
         </a>
     </div>
-    @if (session('success'))
-        <div class="pm-alert" role="status">
-            {{ session('success') }}
-        </div>
-    @endif
     {{-- STATISTIK RINGKAS --}}
     <div class="pm-stat" aria-label="Ringkasan pengumuman">
         <div class="pm-stat-item">
@@ -351,7 +346,10 @@
                             <form
                                 method="POST"
                                 action="{{ route('musyrifah.pengumuman.destroy', $item) }}"
-                                onsubmit="return confirm('Hapus pengumuman ini? Data yang dihapus tidak dapat dikembalikan.');"
+                                data-sui-confirm="Hapus pengumuman ini? Data yang dihapus tidak dapat dikembalikan."
+                                data-sui-confirm-title="Hapus pengumuman?"
+                                data-sui-confirm-label="Ya, Hapus"
+                                data-sui-confirm-tone="danger"
                             >
                                 @csrf
                                 @method('DELETE')

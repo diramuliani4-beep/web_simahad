@@ -280,7 +280,11 @@ class PimpinanMonitoringTest extends TestCase
 
     public function test_payment_status_change_records_audit_trail(): void
     {
-        $musyrifah = User::factory()->create(['role' => 'musyrifah', 'name' => 'Ustadzah Rina']);
+        $musyrifah = User::factory()->create([
+            'role' => 'musyrifah',
+            'name' => 'Ustadzah Rina',
+            'lantai_penempatan' => 1,
+        ]);
         $pembayaran = Pembayaran::query()->firstOrFail();
 
         $this->actingAs($musyrifah)

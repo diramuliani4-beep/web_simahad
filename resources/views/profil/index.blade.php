@@ -9,10 +9,6 @@
          Perubahan data pribadi tetap dilakukan di Data Saya dan perubahan
          kata sandi/email di Pengaturan Akun agar ketiga halaman tidak tumpang tindih. --}}
     <div class="pr-page">
-        @if (session('success'))
-            <div class="pr-alert pr-alert--sukses" role="status">{{ session('success') }}</div>
-        @endif
-
         @if ($errors->any())
             <div class="pr-alert pr-alert--gagal" role="alert">
                 <strong>Foto profil gagal diperbarui.</strong>

@@ -356,9 +356,6 @@
             @endif
         </div>
 
-        @if (session('status'))
-            <div class="lp-alert">{{ session('status') }}</div>
-        @endif
 
         @if ($errors->any())
             <div class="lp-alert">

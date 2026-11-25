@@ -440,7 +440,12 @@
                                     <div class="lp-aksi">
                                         @if ($item['laporan_id'])
                                             <a href="{{ route('musyrifah.laporan.pembelajaran.edit', ['mataPelajaran' => $mataPelajaran->id, 'laporan' => $item['laporan_id']] + $parameterFilter) }}" class="lp-btn lp-btn--garis lp-btn--kecil">Edit</a>
-                                            <form method="POST" action="{{ route('musyrifah.laporan.pembelajaran.destroy', ['mataPelajaran' => $mataPelajaran->id, 'laporan' => $item['laporan_id']] + $parameterFilter) }}" onsubmit="return confirm('Hapus laporan ini? Data pembelajaran asli tidak akan dihapus.')">
+                                            <form method="POST"
+                                                  action="{{ route('musyrifah.laporan.pembelajaran.destroy', ['mataPelajaran' => $mataPelajaran->id, 'laporan' => $item['laporan_id']] + $parameterFilter) }}"
+                                                  data-sui-confirm="Hapus laporan ini? Data pembelajaran asli tidak akan dihapus."
+                                                  data-sui-confirm-title="Hapus laporan?"
+                                                  data-sui-confirm-label="Ya, Hapus"
+                                                  data-sui-confirm-tone="danger">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="lp-btn lp-btn--bahaya lp-btn--kecil">Hapus</button>

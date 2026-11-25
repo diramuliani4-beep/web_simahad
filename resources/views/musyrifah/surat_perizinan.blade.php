@@ -264,12 +264,6 @@
         </div>
     </header>
 
-    @if (session('success'))
-        <div class="sp-alert" role="status">{{ session('success') }}</div>
-    @endif
-    @if (session('error'))
-        <div class="sp-alert sp-alert--error" role="alert">{{ session('error') }}</div>
-    @endif
     @if ($errors->any())
         <div class="sp-alert sp-alert--error" role="alert">
             <strong>Periksa kembali data yang dimasukkan:</strong>

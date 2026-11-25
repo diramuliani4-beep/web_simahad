@@ -122,17 +122,6 @@
         </div>
     </header>
 
-    @if (session('success'))
-        <div class="pt-alert" role="status">{{ session('success') }}</div>
-    @endif
-
-    @if (session('info'))
-        <div class="pt-alert info" role="status">{{ session('info') }}</div>
-    @endif
-
-    @if (session('error'))
-        <div class="pt-alert error" role="alert">{{ session('error') }}</div>
-    @endif
 
     @if ($errors->any())
         <div class="pt-alert error" role="alert">

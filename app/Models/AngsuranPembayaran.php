@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Jadwal angsuran pembayaran Ma'had untuk satu periode.
@@ -35,6 +36,9 @@ class AngsuranPembayaran extends Model
         'nama_tahap',
         'nominal',
         'jatuh_tempo',
+        'tanggal_mulai',
+        'dibuka_pada',
+        'ditutup_pada',
         'reminder_hari',
         'is_aktif',
         'keterangan',
@@ -46,9 +50,17 @@ class AngsuranPembayaran extends Model
             'angsuran_ke' => 'integer',
             'nominal' => 'decimal:2',
             'jatuh_tempo' => 'date',
+            'tanggal_mulai' => 'date',
+            'dibuka_pada' => 'datetime',
+            'ditutup_pada' => 'datetime',
             'reminder_hari' => 'integer',
             'is_aktif' => 'boolean',
         ];
+    }
+
+    public function pengaturan(): BelongsTo
+    {
+        return $this->belongsTo(PengaturanPembayaran::class, 'periode', 'periode');
     }
 
     public function scopeAktif(Builder $query): Builder
@@ -71,6 +83,23 @@ class AngsuranPembayaran extends Model
         return $this->jatuh_tempo
             ? $this->jatuh_tempo->locale('id')->translatedFormat('d F Y')
             : '-';
+    }
+
+    public function tanggalMulaiTeks(): string
+    {
+        return $this->tanggal_mulai
+            ? $this->tanggal_mulai->locale('id')->translatedFormat('d F Y')
+            : '-';
+    }
+
+    public function sudahDibuka(): bool
+    {
+        return $this->dibuka_pada !== null && $this->ditutup_pada === null;
+    }
+
+    public function tanggalMulaiTelahTiba(): bool
+    {
+        return $this->tanggal_mulai === null || $this->tanggal_mulai->startOfDay()->lessThanOrEqualTo(now()->startOfDay());
     }
 
     public function label(): string

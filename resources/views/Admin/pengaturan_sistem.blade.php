@@ -138,13 +138,6 @@
         </p>
     </header>
 
-    @if (session('success'))
-        <div class="ps-alert" role="status">{{ session('success') }}</div>
-    @endif
-
-    @if (session('error'))
-        <div class="ps-alert error" role="alert">{{ session('error') }}</div>
-    @endif
 
     @if ($errors->any())
         <div class="ps-alert error" role="alert">
@@ -734,7 +727,10 @@
                                             </a>
                                             <form method="POST"
                                                 action="{{ route('admin.pengaturan-sistem.backup.hapus', ['berkas' => $berkas['nama']]) }}"
-                                                onsubmit="return confirm('Hapus berkas backup {{ $berkas['nama'] }}?');">
+                                                data-sui-confirm="Hapus berkas backup {{ $berkas['nama'] }}?"
+                                                data-sui-confirm-title="Hapus berkas backup?"
+                                                data-sui-confirm-label="Ya, Hapus"
+                                                data-sui-confirm-tone="danger">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="ps-btn danger ps-btn-sm">Hapus</button>

@@ -8,6 +8,7 @@ use App\Models\Notifikasi;
 use App\Models\Pembayaran;
 use App\Models\PengajuanKeterlambatanPembayaran;
 use App\Models\PengaturanPembayaran;
+use App\Models\User;
 use App\Services\AuditTrailService;
 use App\Services\PembayaranAngsuranService;
 use Illuminate\Http\JsonResponse;
@@ -27,15 +28,19 @@ class MusyrifahPembayaranController extends Controller
     public function index(Request $request): View
     {
         $this->pastikanPengelola($request);
-        $this->layanan->sinkronkanSemuaMahasiswa();
+        $pengelola = $request->user();
+        $this->layanan->sinkronkanSemuaMahasiswa($pengelola);
 
         $periodeKerja = $this->layanan->periodeKerja();
 
         return view('musyrifah.pembayaran', array_merge([
-            'daftarPembayaran' => $this->ambilDataPembayaran(),
-            'daftarPeriode' => $this->ambilPeriode(),
+            'daftarPembayaran' => $this->ambilDataPembayaran($pengelola),
+            'daftarPeriode' => $this->ambilPeriode($pengelola),
             'jadwal' => $this->ambilJadwal($periodeKerja),
-            'pengajuan' => $this->ambilPengajuan(),
+            'pengajuan' => $this->ambilPengajuan($pengelola),
+            'lantaiMusyrifah' => strtolower(trim((string) $pengelola->role)) === 'musyrifah'
+                ? $this->layanan->lantaiMusyrifah($pengelola)
+                : null,
             'pengaturan' => PengaturanPembayaran::aktif(),
             'periodeKerja' => $periodeKerja,
             'rekening' => [
@@ -43,7 +48,7 @@ class MusyrifahPembayaranController extends Controller
                 'nomor' => PengaturanPembayaran::REKENING_NOMOR_RESMI,
                 'nama' => PengaturanPembayaran::REKENING_NAMA_RESMI,
             ],
-        ], $this->hitungStatistik()));
+        ], $this->hitungStatistik($pengelola)));
     }
 
     /**
@@ -52,12 +57,13 @@ class MusyrifahPembayaranController extends Controller
     public function apiData(Request $request): JsonResponse
     {
         $this->pastikanPengelola($request);
-        $this->layanan->sinkronkanSemuaMahasiswa();
+        $pengelola = $request->user();
+        $this->layanan->sinkronkanSemuaMahasiswa($pengelola);
 
         return response()->json([
             'success' => true,
-            'data' => $this->ambilDataPembayaran(),
-            'summary' => $this->hitungStatistik(),
+            'data' => $this->ambilDataPembayaran($pengelola),
+            'summary' => $this->hitungStatistik($pengelola),
             'last_sync' => now()->format('H:i:s'),
         ]);
     }
@@ -69,7 +75,9 @@ class MusyrifahPembayaranController extends Controller
     {
         $this->pastikanPengelola($request);
 
-        $pembayaran = Pembayaran::with(['user', 'verifikator', 'pengajuanKeterlambatan'])->findOrFail($id);
+        $pembayaran = $this->layanan->queryPembayaran($request->user())
+            ->with(['user', 'verifikator', 'pengajuanKeterlambatan', 'jadwalPembayaran'])
+            ->findOrFail($id);
         $user = $pembayaran->user;
 
         return response()->json([
@@ -96,7 +104,7 @@ class MusyrifahPembayaranController extends Controller
                 ->map(fn (PengajuanKeterlambatanPembayaran $pengajuan): array => $this->petakanPengajuan($pengajuan))
                 ->all(),
             'riwayat_angsuran' => $user
-                ? Pembayaran::query()
+                ? $this->layanan->queryPembayaran($request->user())
                     ->where('user_id', $user->id)
                     ->where('periode', $pembayaran->periode)
                     ->orderBy('angsuran_ke')
@@ -119,7 +127,7 @@ class MusyrifahPembayaranController extends Controller
             'catatan' => ['nullable', 'string', 'max:500'],
         ]);
 
-        $pembayaran = Pembayaran::with('user')->findOrFail($id);
+        $pembayaran = $this->layanan->queryPembayaran($request->user())->with('user')->findOrFail($id);
         $petugas = $request->user();
         $statusSebelum = $pembayaran->status;
 
@@ -183,7 +191,7 @@ class MusyrifahPembayaranController extends Controller
             'catatan.required_if' => 'Alasan penolakan bukti transfer wajib diisi.',
         ]);
 
-        $pembayaran = Pembayaran::with('user')->findOrFail($id);
+        $pembayaran = $this->layanan->queryPembayaran($request->user())->with('user')->findOrFail($id);
         $petugas = $request->user();
 
         try {
@@ -247,7 +255,7 @@ class MusyrifahPembayaranController extends Controller
             'nominal.numeric' => 'Nominal tagihan harus berupa angka.',
         ]);
 
-        $pembayaran = Pembayaran::findOrFail($id);
+        $pembayaran = $this->layanan->queryPembayaran($request->user())->findOrFail($id);
 
         try {
             $pembayaran = $this->layanan->perbaruiNominal($pembayaran, (float) $validated['nominal'], $request->user());
@@ -276,9 +284,10 @@ class MusyrifahPembayaranController extends Controller
             'pengaturan_id' => ['nullable', 'integer', Rule::exists('pengaturan_pembayarans', 'id')],
             'tanggal_mulai' => ['nullable', 'date'],
             'angsuran' => ['required', 'array', 'min:1', 'max:3'],
-            'angsuran.*.angsuran_ke' => ['required', 'integer', Rule::in([1, 2, 3])],
+            'angsuran.*.angsuran_ke' => ['required', 'integer', 'distinct', Rule::in([1, 2, 3])],
             'angsuran.*.nama_tahap' => ['nullable', 'string', 'max:80'],
             'angsuran.*.nominal' => ['required', 'numeric', 'min:1'],
+            'angsuran.*.tanggal_mulai' => ['nullable', 'date'],
             'angsuran.*.jatuh_tempo' => ['required', 'date'],
             'angsuran.*.reminder_hari' => ['required', 'integer', 'min:0', 'max:30'],
         ], [
@@ -358,7 +367,7 @@ class MusyrifahPembayaranController extends Controller
         $this->pastikanMusyrifah($request);
 
         $periode = $this->layanan->bukaPeriode($periode);
-        $this->layanan->sinkronkanSemuaMahasiswa();
+        $this->layanan->sinkronkanSemuaMahasiswa($request->user());
 
         $this->catatAktivitasPeriode(
             $request,
@@ -367,7 +376,7 @@ class MusyrifahPembayaranController extends Controller
         );
 
         return back()->with('success', 'Periode pembayaran '.$periode->periode.' dibuka. '.
-            'Mahasiswa dapat melihat tagihan dan mengunggah bukti transfer.');
+            'Buka tahap pembayaran yang akan menerima unggahan bukti mahasiswa.');
     }
 
     /**
@@ -386,7 +395,40 @@ class MusyrifahPembayaranController extends Controller
         );
 
         return back()->with('success', 'Periode pembayaran '.$periode->periode.' ditutup. '.
-            'Mahasiswa tidak dapat melihat tagihan sampai periode dibuka kembali.');
+            'Mahasiswa tidak dapat mengunggah bukti sampai periode dibuka kembali. Data tagihan tetap tersimpan.');
+    }
+
+    public function bukaTahap(Request $request, AngsuranPembayaran $jadwal): RedirectResponse
+    {
+        $this->pastikanMusyrifah($request);
+
+        try {
+            $jadwal = $this->layanan->bukaTahap($jadwal);
+        } catch (ValidationException $exception) {
+            return back()->withErrors($exception->errors());
+        }
+
+        $this->catatAktivitasPeriode(
+            $request,
+            'Membuka Tahap Pembayaran',
+            'Musyrifah membuka '.$jadwal->label().' periode '.$jadwal->periode.'.'
+        );
+
+        return back()->with('success', $jadwal->label().' berhasil dibuka untuk mahasiswa.');
+    }
+
+    public function tutupTahap(Request $request, AngsuranPembayaran $jadwal): RedirectResponse
+    {
+        $this->pastikanMusyrifah($request);
+
+        $jadwal = $this->layanan->tutupTahap($jadwal);
+        $this->catatAktivitasPeriode(
+            $request,
+            'Menutup Tahap Pembayaran',
+            'Musyrifah menutup '.$jadwal->label().' periode '.$jadwal->periode.'. Data pembayaran tetap tersimpan.'
+        );
+
+        return back()->with('success', $jadwal->label().' ditutup. Data pembayaran tetap tersimpan.');
     }
 
     /**
@@ -403,7 +445,7 @@ class MusyrifahPembayaranController extends Controller
             'catatan.required_if' => 'Alasan penolakan pengajuan wajib diisi.',
         ]);
 
-        $pengajuan = PengajuanKeterlambatanPembayaran::with('pembayaran')->findOrFail($id);
+        $pengajuan = $this->layanan->queryPengajuan($request->user())->with('pembayaran')->findOrFail($id);
         $petugas = $request->user();
 
         try {
@@ -453,10 +495,10 @@ class MusyrifahPembayaranController extends Controller
      *
      * @return array<int, array<string, mixed>>
      */
-    protected function ambilDataPembayaran(): array
+    protected function ambilDataPembayaran(User $pengelola): array
     {
-        return Pembayaran::query()
-            ->with(['user', 'pengajuanKeterlambatan' => fn ($query) => $query->latest('id')])
+        return $this->layanan->queryPembayaran($pengelola)
+            ->with(['user', 'pengajuanKeterlambatan' => fn ($query) => $query->latest('id'), 'jadwalPembayaran'])
             ->orderByRaw("CASE
                 WHEN LOWER(status) = 'menunggu' THEN 1
                 WHEN LOWER(status) = 'menunggu_konfirmasi' THEN 2
@@ -477,14 +519,27 @@ class MusyrifahPembayaranController extends Controller
      */
     protected function ambilJadwal(?PengaturanPembayaran $pengaturan = null): array
     {
+        $pengaturan ??= $this->layanan->pengaturanAktif();
+
         return $this->layanan->jadwalAktif($pengaturan)
             ->map(fn (AngsuranPembayaran $jadwal): array => [
+                'id' => $jadwal->id,
                 'angsuran_ke' => $jadwal->angsuran_ke,
                 'nama_tahap' => $jadwal->nama_tahap,
                 'nominal' => (float) $jadwal->nominal,
                 'nominal_rupiah' => $jadwal->nominalRupiah(),
+                'tanggal_mulai' => $jadwal->tanggal_mulai?->toDateString(),
+                'tanggal_mulai_teks' => $jadwal->tanggalMulaiTeks(),
                 'jatuh_tempo' => $jadwal->jatuh_tempo?->toDateString(),
                 'jatuh_tempo_teks' => $jadwal->jatuhTempoTeks(),
+                'status_periode' => $this->layanan->statusTahap($jadwal),
+                'status_periode_label' => $this->labelStatusTahap($jadwal),
+                'dibuka' => $jadwal->sudahDibuka(),
+                'bisa_buka' => (bool) ($pengaturan?->is_aktif
+                    && $pengaturan?->sudahDibuka()
+                    && $jadwal->tanggalMulaiTelahTiba()
+                    && ! $jadwal->sudahDibuka()),
+                'bisa_tutup' => $jadwal->sudahDibuka(),
                 'reminder_hari' => $jadwal->reminder_hari,
             ])
             ->values()
@@ -496,10 +551,10 @@ class MusyrifahPembayaranController extends Controller
      *
      * @return array<int, array<string, mixed>>
      */
-    protected function ambilPeriode(): array
+    protected function ambilPeriode(User $pengelola): array
     {
         return $this->layanan->daftarPeriode()
-            ->map(function (PengaturanPembayaran $periode): array {
+            ->map(function (PengaturanPembayaran $periode) use ($pengelola): array {
                 $status = $this->statusPeriode($periode);
 
                 return [
@@ -518,11 +573,22 @@ class MusyrifahPembayaranController extends Controller
                     'kelas_status' => $status,
                     'aktif' => (bool) $periode->is_aktif,
                     'dibuka' => $periode->sudahDibuka(),
-                    'jumlah_tagihan' => Pembayaran::query()->where('periode', $periode->periode)->count(),
+                    'jumlah_tagihan' => $this->layanan->queryPembayaran($pengelola)->where('periode', $periode->periode)->count(),
                 ];
             })
             ->values()
             ->all();
+    }
+
+    private function labelStatusTahap(AngsuranPembayaran $jadwal): string
+    {
+        return match ($this->layanan->statusTahap($jadwal)) {
+            'dibuka' => 'Dibuka',
+            'ditutup' => 'Ditutup',
+            'terjadwal' => 'Terjadwal',
+            'nonaktif' => 'Nonaktif',
+            default => 'Belum Dibuka',
+        };
     }
 
     /**
@@ -542,9 +608,9 @@ class MusyrifahPembayaranController extends Controller
      *
      * @return array<int, array<string, mixed>>
      */
-    protected function ambilPengajuan(): array
+    protected function ambilPengajuan(User $pengelola): array
     {
-        return PengajuanKeterlambatanPembayaran::query()
+        return $this->layanan->queryPengajuan($pengelola)
             ->with(['user', 'pembayaran', 'pemroses'])
             ->latest('id')
             ->get()
@@ -586,9 +652,9 @@ class MusyrifahPembayaranController extends Controller
      *
      * @return array<string, mixed>
      */
-    protected function hitungStatistik(): array
+    protected function hitungStatistik(User $pengelola): array
     {
-        $semua = Pembayaran::query()->get();
+        $semua = $this->layanan->queryPembayaran($pengelola)->get();
         $lunas = $semua->filter(fn (Pembayaran $p): bool => $p->sudahLunas());
         $menungguVerifikasi = $semua->filter(fn (Pembayaran $p): bool => $p->menungguVerifikasiBukti());
         $menungguRektorat = $semua->filter(fn (Pembayaran $p): bool => $p->menungguKonfirmasiRektorat());
@@ -607,7 +673,7 @@ class MusyrifahPembayaranController extends Controller
             'totalMenungguVerifikasi' => $menungguVerifikasi->count(),
             'totalMenungguRektorat' => $menungguRektorat->count(),
             'totalBelumLunas' => $belumLunas->count(),
-            'totalPengajuan' => PengajuanKeterlambatanPembayaran::query()->menunggu()->count(),
+            'totalPengajuan' => $this->layanan->queryPengajuan($pengelola)->menunggu()->count(),
             'totalNominalTerkumpul' => $terkumpul,
             'totalNominalTerkumpulRupiah' => 'Rp '.number_format($terkumpul, 0, ',', '.'),
             'totalNominalTagihan' => $totalTagihan,
@@ -638,6 +704,11 @@ class MusyrifahPembayaranController extends Controller
             'nominal_rupiah' => $pembayaran->nominal_rupiah,
             'jatuh_tempo' => $pembayaran->jatuhTempoTeks(),
             'jatuh_tempo_iso' => $pembayaran->jatuh_tempo?->toDateString(),
+            'tanggal_mulai' => $rincian['tanggal_mulai'],
+            'tanggal_berakhir' => $rincian['tanggal_berakhir'],
+            'status_periode' => $rincian['status_periode'],
+            'status_periode_label' => $rincian['status_periode_label'],
+            'bukti_grup' => $pembayaran->bukti_grup,
             'status' => $pembayaran->status_label,
             'status_label' => $pembayaran->status_label,
             'raw_status' => strtolower((string) $pembayaran->status),

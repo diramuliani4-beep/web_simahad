@@ -71,8 +71,6 @@
 </style>
 <div class="um-page">
 <header class="um-head"><h1>Edit Pengguna</h1></header>
-@if (session('success'))<div class="um-alert" role="status">{{ session('success') }}</div>@endif
-@if (session('error'))<div class="um-alert um-alert-error" role="alert">{{ session('error') }}</div>@endif
 @if ($errors->any())<div class="um-alert um-alert-error" role="alert"><strong>Periksa kembali isian berikut:</strong><ul style="margin:8px 0 0;padding-left:20px">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 <form id="umFormEdit" method="POST" action="{{ route('admin.manajemen-pengguna.update', $akun->getKey()) }}" autocomplete="off">@csrf @method('PUT')
 <section class="um-card">

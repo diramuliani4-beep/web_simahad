@@ -53,6 +53,7 @@ class Pembayaran extends Model
         'tanggal_bayar',
         'keterangan',
         'bukti_pembayaran',
+        'bukti_grup',
     ];
 
     /**
@@ -83,6 +84,25 @@ class Pembayaran extends Model
     public function verifikator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'diverifikasi_oleh');
+    }
+
+    public function jadwalPembayaran(): HasMany
+    {
+        return $this->hasMany(AngsuranPembayaran::class, 'periode', 'periode');
+    }
+
+    public function jadwalAngsuran(): ?AngsuranPembayaran
+    {
+        $angsuranKe = (int) ($this->angsuran_ke ?? 1);
+
+        if ($this->relationLoaded('jadwalPembayaran')) {
+            return $this->jadwalPembayaran
+                ->first(fn (AngsuranPembayaran $jadwal): bool => $jadwal->angsuran_ke === $angsuranKe);
+        }
+
+        return $this->jadwalPembayaran()
+            ->where('angsuran_ke', $angsuranKe)
+            ->first();
     }
 
     /** Pengajuan keterlambatan untuk tagihan ini. */

@@ -293,11 +293,6 @@
                     Kata sandi yang Anda buat di sini tidak dapat dilihat oleh Admin Sistem.
                     Tautan berlaku <b>{{ $berlakuJam }} jam</b> sejak dikirim.
                 </div>
-
-                @if (session('error'))
-                    <div class="aktivasi-pesan" role="alert">{{ session('error') }}</div>
-                @endif
-
                 @if ($errors->any())
                     <div class="aktivasi-pesan" role="alert">{{ $errors->first() }}</div>
                 @endif
@@ -356,5 +351,6 @@
             });
         }
     </script>
+    <x-simahad-ui />
 </body>
 </html>

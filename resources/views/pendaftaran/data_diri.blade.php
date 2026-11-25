@@ -1872,7 +1872,7 @@
 
                     <label for="nama_ortu" class="form-label">
 
-                        Nama Orang Tua*
+                        Nama Orang Tua/Wali*
 
                     </label>
 

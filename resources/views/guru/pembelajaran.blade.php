@@ -100,17 +100,6 @@
         </p>
     </header>
 
-    @if (session('success'))
-        <div class="pl-alert" role="status">{{ session('success') }}</div>
-    @endif
-
-    @if (session('info'))
-        <div class="pl-alert info" role="status">{{ session('info') }}</div>
-    @endif
-
-    @if (session('error'))
-        <div class="pl-alert error" role="alert">{{ session('error') }}</div>
-    @endif
 
     @if ($errors->any())
         <div class="pl-alert error" role="alert">

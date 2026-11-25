@@ -376,12 +376,6 @@
         Detail ini hanya dapat diakses oleh Musyrifah yang memiliki kewenangan wilayah penempatan mahasiswa.
     </div>
 
-    @if (session('success'))
-        <div class="rincian-alert rincian-alert--sukses">{{ session('success') }}</div>
-    @endif
-    @if (session('error'))
-        <div class="rincian-alert rincian-alert--gagal">{{ session('error') }}</div>
-    @endif
     @if ($errors->any())
         <div class="rincian-alert rincian-alert--gagal">
             <strong>Periksa kembali data yang dimasukkan:</strong>

@@ -9,11 +9,14 @@ use App\Models\Pendaftaran;
 use App\Models\PengajuanKeterlambatanPembayaran;
 use App\Models\PengaturanPembayaran;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
@@ -114,10 +117,71 @@ class PembayaranAngsuranService
         return $periode->fresh();
     }
 
+    public function bukaTahap(AngsuranPembayaran $jadwal): AngsuranPembayaran
+    {
+        $pengaturan = PengaturanPembayaran::query()->where('periode', $jadwal->periode)->first();
+
+        if (! $pengaturan || ! $pengaturan->is_aktif || ! $pengaturan->sudahDibuka()) {
+            throw ValidationException::withMessages([
+                'periode' => 'Periode pembayaran harus aktif dan sudah dibuka sebelum tahap dapat dibuka.',
+            ]);
+        }
+
+        if (! $jadwal->tanggalMulaiTelahTiba()) {
+            throw ValidationException::withMessages([
+                'periode' => 'Tahap belum dapat dibuka karena tanggal mulainya belum tiba.',
+            ]);
+        }
+
+        $jadwal->update([
+            'dibuka_pada' => $jadwal->dibuka_pada ?? now(),
+            'ditutup_pada' => null,
+        ]);
+
+        return $jadwal->fresh();
+    }
+
+    public function tutupTahap(AngsuranPembayaran $jadwal): AngsuranPembayaran
+    {
+        if ($jadwal->sudahDibuka()) {
+            $jadwal->update(['ditutup_pada' => now()]);
+        }
+
+        return $jadwal->fresh();
+    }
+
+    public function statusTahap(AngsuranPembayaran $jadwal): string
+    {
+        $pengaturan = $jadwal->pengaturan;
+
+        if ($pengaturan && ! $pengaturan->is_aktif) {
+            return 'ditutup';
+        }
+
+        if (! $pengaturan) {
+            return 'nonaktif';
+        }
+
+        if (! $pengaturan->sudahDibuka() || $jadwal->ditutup_pada !== null) {
+            return $pengaturan->sudahDibuka() ? 'ditutup' : 'terjadwal';
+        }
+
+        if ($jadwal->sudahDibuka()) {
+            return 'dibuka';
+        }
+
+        if (! $jadwal->is_aktif) {
+            return 'nonaktif';
+        }
+
+        return $jadwal->tanggal_mulai?->isFuture() ? 'terjadwal' : 'belum_dibuka';
+    }
+
     /**
-     * Mahasiswa hanya dapat membayar saat periode aktif sudah dibuka.
+     * Periode utama harus aktif; pengajuan keterlambatan tetap tersedia
+     * untuk setiap tagihan meskipun tahap pembayarannya belum dibuka.
      */
-    public function pastikanPeriodeDibuka(Pembayaran $tagihan): PengaturanPembayaran
+    public function pastikanPeriodeAktif(Pembayaran $tagihan): PengaturanPembayaran
     {
         $pengaturan = PengaturanPembayaran::aktif();
 
@@ -130,6 +194,23 @@ class PembayaranAngsuranService
         if (filled($tagihan->periode) && $tagihan->periode !== $pengaturan->periode) {
             throw ValidationException::withMessages([
                 'periode' => 'Tagihan ini bukan bagian dari periode pembayaran yang sedang dibuka.',
+            ]);
+        }
+
+        return $pengaturan;
+    }
+
+    /**
+     * Mahasiswa hanya dapat mengunggah bukti pada tahap yang dibuka Musyrifah.
+     */
+    public function pastikanPeriodeDibuka(Pembayaran $tagihan): PengaturanPembayaran
+    {
+        $pengaturan = $this->pastikanPeriodeAktif($tagihan);
+        $jadwal = $tagihan->jadwalAngsuran();
+
+        if (! $jadwal || ! $jadwal->sudahDibuka()) {
+            throw ValidationException::withMessages([
+                'periode' => 'Tahap pembayaran ini belum dibuka atau sudah ditutup oleh Musyrifah.',
             ]);
         }
 
@@ -171,10 +252,19 @@ class PembayaranAngsuranService
                     'nama_tahap' => 'Tahap '.$angsuranKe,
                     'nominal' => AngsuranPembayaran::NOMINAL_BAWAAN[$angsuranKe],
                     'jatuh_tempo' => $dasar->copy()->addDays(AngsuranPembayaran::HARI_BAWAAN[$angsuranKe])->toDateString(),
+                    'tanggal_mulai' => $dasar->copy()->addDays($angsuranKe > 1 ? AngsuranPembayaran::HARI_BAWAAN[$angsuranKe - 1] : 0)->toDateString(),
                     'reminder_hari' => AngsuranPembayaran::REMINDER_BAWAAN[$angsuranKe],
                     'is_aktif' => true,
                 ]
             );
+
+            if ($jadwal->tanggal_mulai === null) {
+                $tanggalMulai = $dasar->copy()->addDays($angsuranKe > 1 ? AngsuranPembayaran::HARI_BAWAAN[$angsuranKe - 1] : 0);
+                if ($jadwal->jatuh_tempo && $tanggalMulai->greaterThan($jadwal->jatuh_tempo)) {
+                    $tanggalMulai = $jadwal->jatuh_tempo->copy()->startOfDay();
+                }
+                $jadwal->update(['tanggal_mulai' => $tanggalMulai->toDateString()]);
+            }
 
             // Tahap pertama wajib minimal Rp1.000.000 agar aturan tetap terjaga
             // meski jadwal dibuat sebelum aturan ini berlaku.
@@ -185,6 +275,7 @@ class PembayaranAngsuranService
 
         return AngsuranPembayaran::query()
             ->periode($pengaturan->periode)
+            ->with('pengaturan')
             ->orderBy('angsuran_ke')
             ->get();
     }
@@ -235,12 +326,24 @@ class PembayaranAngsuranService
                 continue;
             }
 
+            $tanggalMulai = filled($data['tanggal_mulai'] ?? null)
+                ? Carbon::parse($data['tanggal_mulai'])->startOfDay()
+                : ($jadwal->tanggal_mulai?->copy() ?? $pengaturan->periode_dibuka_pada?->copy() ?? now()->startOfDay());
+            $jatuhTempo = Carbon::parse($data['jatuh_tempo'])->startOfDay();
+
+            if ($jatuhTempo->lessThan($tanggalMulai)) {
+                throw ValidationException::withMessages([
+                    'angsuran' => 'Tanggal berakhir tahap '.$angsuranKe.' tidak boleh sebelum tanggal mulainya.',
+                ]);
+            }
+
             $jadwal->update([
                 'nama_tahap' => filled($data['nama_tahap'] ?? null)
                     ? (string) $data['nama_tahap']
                     : 'Tahap '.$angsuranKe,
                 'nominal' => $nominal,
-                'jatuh_tempo' => $data['jatuh_tempo'],
+                'tanggal_mulai' => $tanggalMulai->toDateString(),
+                'jatuh_tempo' => $jatuhTempo->toDateString(),
                 'reminder_hari' => (int) ($data['reminder_hari'] ?? 3),
                 'is_aktif' => true,
             ]);
@@ -263,7 +366,7 @@ class PembayaranAngsuranService
         $jumlah = 0;
 
         foreach ($jadwal as $baris) {
-            $jumlah += Pembayaran::query()
+            $query = Pembayaran::query()
                 ->where('periode', $periode)
                 ->where('angsuran_ke', $baris->angsuran_ke)
                 ->belumLunas()
@@ -273,14 +376,25 @@ class PembayaranAngsuranService
                 ->where(function ($query) {
                     $query->whereNull('status_verifikasi')
                         ->orWhere('status_verifikasi', '!=', Pembayaran::VERIFIKASI_MENUNGGU);
-                })
-                ->update([
-                    'nominal' => (float) $baris->nominal,
-                    'jatuh_tempo' => $baris->jatuh_tempo?->toDateString(),
-                    'nama_tagihan' => $baris->label(),
-                    'reminder_terakhir_pada' => null,
+                });
+
+            $jumlah += $query->clone()->update([
+                'nominal' => (float) $baris->nominal,
+                'nama_tagihan' => $baris->label(),
+                'reminder_terakhir_pada' => null,
+                'updated_at' => now(),
+            ]);
+
+            // Jatuh tempo hasil persetujuan surat keterlambatan tidak ditimpa
+            // oleh jadwal umum, baik saat disinkronkan maupun saat diubah.
+            if ($baris->jatuh_tempo) {
+                $query->whereDoesntHave('pengajuanKeterlambatan', function (Builder $pengajuan): void {
+                    $pengajuan->where('status', PengajuanKeterlambatanPembayaran::STATUS_DISETUJUI);
+                })->update([
+                    'jatuh_tempo' => $baris->jatuh_tempo->toDateString(),
                     'updated_at' => now(),
                 ]);
+            }
         }
 
         return $jumlah;
@@ -295,7 +409,7 @@ class PembayaranAngsuranService
     {
         $pengaturan ??= PengaturanPembayaran::aktif();
 
-        if (! $pengaturan || ! $pengaturan->sudahDibuka()) {
+        if (! $pengaturan) {
             return collect();
         }
 
@@ -330,7 +444,13 @@ class PembayaranAngsuranService
             $perubahan = [];
 
             if (! $tagihan->sudahLunas() && ! filled($tagihan->bukti_pembayaran)) {
-                if ($baris->jatuh_tempo && (! $tagihan->jatuh_tempo || ! $tagihan->jatuh_tempo->equalTo($baris->jatuh_tempo))) {
+                $punyaPersetujuan = $tagihan->pengajuanKeterlambatan()
+                    ->where('status', PengajuanKeterlambatanPembayaran::STATUS_DISETUJUI)
+                    ->exists();
+
+                if (! $punyaPersetujuan
+                    && $baris->jatuh_tempo
+                    && (! $tagihan->jatuh_tempo || ! $tagihan->jatuh_tempo->equalTo($baris->jatuh_tempo))) {
                     $perubahan['jatuh_tempo'] = $baris->jatuh_tempo->toDateString();
                 }
 
@@ -351,36 +471,92 @@ class PembayaranAngsuranService
         return Pembayaran::query()
             ->where('user_id', $user->id)
             ->where('periode', $pengaturan->periode)
-            ->with(['pengajuanKeterlambatan' => fn ($query) => $query->latest('id')])
+            ->with(['pengajuanKeterlambatan' => fn ($query) => $query->latest('id'), 'jadwalPembayaran.pengaturan'])
             ->orderBy('angsuran_ke')
             ->orderBy('id')
             ->get();
     }
 
     /**
-     * Sinkronkan tagihan seluruh mahasiswa (dipakai halaman Musyrifah).
+     * Sinkronkan tagihan mahasiswa dalam cakupan pengelola yang login.
      */
-    public function sinkronkanSemuaMahasiswa(): int
+    public function sinkronkanSemuaMahasiswa(?User $pengelola = null): int
     {
         $pengaturan = PengaturanPembayaran::aktif();
 
-        if (! $pengaturan || ! $pengaturan->sudahDibuka()) {
+        if (! $pengaturan) {
             return 0;
+        }
+
+        $query = User::query()->whereRaw('LOWER(role) = ?', ['mahasiswa']);
+
+        if ($pengelola && $this->peran($pengelola) === 'musyrifah') {
+            $lantai = $this->lantaiMusyrifah($pengelola);
+            if ($lantai === null) {
+                return 0;
+            }
+            $query->whereKey($this->queryMahasiswaLantai($lantai)->select('id'));
         }
 
         $jumlah = 0;
 
-        User::query()
-            ->whereRaw('LOWER(role) = ?', ['mahasiswa'])
-            ->select('id')
-            ->chunkById(200, function ($mahasiswas) use (&$jumlah, $pengaturan) {
-                foreach ($mahasiswas as $mahasiswa) {
-                    $this->sinkronkanTagihan($mahasiswa, $pengaturan);
-                    $jumlah++;
-                }
-            });
+        $query->select('id')->chunkById(200, function ($mahasiswas) use (&$jumlah, $pengaturan) {
+            foreach ($mahasiswas as $mahasiswa) {
+                $this->sinkronkanTagihan($mahasiswa, $pengaturan);
+                $jumlah++;
+            }
+        });
 
         return $jumlah;
+    }
+
+    public function lantaiMahasiswa(User $mahasiswa): ?int
+    {
+        return $mahasiswa->kamar?->lantai ?? $mahasiswa->lantai_penempatan;
+    }
+
+    public function lantaiMusyrifah(User $musyrifah): ?int
+    {
+        return $musyrifah->pegawai?->lantai_yang_dikelola ?? $musyrifah->lantai_penempatan;
+    }
+
+    public function queryMahasiswaLantai(int $lantai): Builder
+    {
+        return User::query()
+            ->whereRaw('LOWER(role) = ?', ['mahasiswa'])
+            ->where(function (Builder $query) use ($lantai): void {
+                $query->whereHas('kamar', fn (Builder $kamar) => $kamar->where('lantai', $lantai))
+                    ->orWhere(function (Builder $query) use ($lantai): void {
+                        $query->whereDoesntHave('kamar')->where('lantai_penempatan', $lantai);
+                    });
+            });
+    }
+
+    public function queryPembayaran(User $pengelola): Builder
+    {
+        $query = Pembayaran::query();
+
+        if ($this->peran($pengelola) !== 'musyrifah') {
+            return $query;
+        }
+
+        $lantai = $this->lantaiMusyrifah($pengelola);
+        if ($lantai === null) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->whereIn('user_id', $this->queryMahasiswaLantai($lantai)->select('id'));
+    }
+
+    public function queryPengajuan(User $pengelola): Builder
+    {
+        return PengajuanKeterlambatanPembayaran::query()
+            ->whereIn('pembayaran_id', $this->queryPembayaran($pengelola)->select('id'));
+    }
+
+    public function bolehAksesPembayaran(User $pengelola, Pembayaran $pembayaran): bool
+    {
+        return $this->queryPembayaran($pengelola)->whereKey($pembayaran->getKey())->exists();
     }
 
     /**
@@ -402,33 +578,8 @@ class PembayaranAngsuranService
             ->with('pembayaran')
             ->latest('id')
             ->get();
-
-        if (! $pengaturan) {
-            return [
-                'pengaturan' => null,
-                'dibuka' => false,
-                'rekening' => $rekening,
-                'kategori' => $kategori,
-                'daftar_angsuran' => collect(),
-                'tagihan' => collect(),
-                'total' => 0.0,
-                'total_rupiah' => 'Rp 0',
-                'dibayar' => 0.0,
-                'dibayar_rupiah' => 'Rp 0',
-                'menunggu' => 0.0,
-                'menunggu_rupiah' => 'Rp 0',
-                'sisa' => 0.0,
-                'sisa_rupiah' => 'Rp 0',
-                'progres' => 0,
-                'lunas' => false,
-                'jatuh_tempo_terdekat' => null,
-                'pengajuan' => $pengajuan,
-            ];
-        }
-
-        $dibuka = $pengaturan->sudahDibuka();
-        $tagihan = $dibuka ? $this->sinkronkanTagihan($user, $pengaturan) : collect();
-
+        $dibuka = (bool) ($pengaturan?->is_aktif && $pengaturan?->sudahDibuka());
+        $tagihan = $pengaturan ? $this->sinkronkanTagihan($user, $pengaturan) : collect();
         $daftar = $tagihan->map(fn (Pembayaran $p): array => $this->rincianTagihan($p))->values();
 
         $total = (float) $tagihan->sum(fn (Pembayaran $p): float => (float) $p->nominal);
@@ -439,10 +590,13 @@ class PembayaranAngsuranService
                 && in_array(strtolower((string) $p->status), [Pembayaran::STATUS_MENUNGGU_VERIFIKASI, Pembayaran::STATUS_MENUNGGU_REKTORAT], true))
             ->sum(fn (Pembayaran $p): float => (float) $p->nominal);
         $sisa = max(0.0, $total - $dibayar);
+        $belumDibayar = max(0.0, $sisa - $menunggu);
         $progres = $total > 0 ? (int) round($dibayar / $total * 100) : 0;
 
         $terdekat = $tagihan
-            ->reject(fn (Pembayaran $p): bool => $p->sudahLunas() || $p->menungguKonfirmasiRektorat())
+            ->reject(fn (Pembayaran $p): bool => $p->sudahLunas()
+                || $p->menungguVerifikasiBukti()
+                || $p->menungguKonfirmasiRektorat())
             ->filter(fn (Pembayaran $p): bool => $p->jatuh_tempo !== null)
             ->sortBy(fn (Pembayaran $p): int => $p->jatuh_tempo->timestamp)
             ->first();
@@ -462,6 +616,9 @@ class PembayaranAngsuranService
             'menunggu_rupiah' => $this->rupiah($menunggu),
             'sisa' => $sisa,
             'sisa_rupiah' => $this->rupiah($sisa),
+            'belum_dibayar' => $belumDibayar,
+            'belum_dibayar_rupiah' => $this->rupiah($belumDibayar),
+            'tahap_dibuka' => $daftar->where('status_periode', 'dibuka')->count(),
             'progres' => $progres,
             'lunas' => $total > 0 && $sisa <= 0.0,
             'jatuh_tempo_terdekat' => $terdekat ? $this->rincianTagihan($terdekat) : null,
@@ -479,6 +636,13 @@ class PembayaranAngsuranService
         $pengajuanTerakhir = $pembayaran->relationLoaded('pengajuanKeterlambatan')
             ? $pembayaran->pengajuanKeterlambatan->first()
             : $pembayaran->pengajuanKeterlambatan()->latest('id')->first();
+        $jadwal = $pembayaran->jadwalAngsuran();
+        $pengaturan = PengaturanPembayaran::aktif();
+        $periodeAktif = (bool) ($pengaturan?->is_aktif
+            && $pengaturan?->sudahDibuka()
+            && $pengaturan?->periode === $pembayaran->periode);
+        $tahapDibuka = $periodeAktif && (bool) $jadwal?->sudahDibuka();
+        $statusPeriode = $jadwal ? $this->statusTahap($jadwal) : 'belum_dibuka';
 
         return [
             'id' => $pembayaran->id,
@@ -489,6 +653,17 @@ class PembayaranAngsuranService
             'nominal_rupiah' => $pembayaran->nominal_rupiah,
             'jatuh_tempo' => $pembayaran->jatuhTempoTeks(),
             'jatuh_tempo_iso' => $pembayaran->jatuh_tempo?->toDateString(),
+            'tanggal_mulai' => $jadwal?->tanggalMulaiTeks() ?? '-',
+            'tanggal_mulai_iso' => $jadwal?->tanggal_mulai?->toDateString(),
+            'tanggal_berakhir' => $jadwal?->jatuhTempoTeks() ?? $pembayaran->jatuhTempoTeks(),
+            'status_periode' => $statusPeriode,
+            'status_periode_label' => match ($statusPeriode) {
+                'dibuka' => 'Dibuka',
+                'ditutup' => 'Ditutup',
+                'terjadwal' => 'Terjadwal',
+                'nonaktif' => 'Nonaktif',
+                default => 'Belum Dibuka',
+            },
             'sisa_hari' => $pembayaran->sisaHari(),
             'status' => strtolower((string) $pembayaran->status),
             'status_label' => $pembayaran->status_label,
@@ -498,8 +673,9 @@ class PembayaranAngsuranService
             'kelas_verifikasi' => $pembayaran->kelasVerifikasi(),
             'catatan_verifikasi' => $pembayaran->catatan_verifikasi,
             'bukti_url' => filled($pembayaran->bukti_pembayaran)
-                ? Storage::disk('public')->url($pembayaran->bukti_pembayaran)
+                ? route('pembayaran.bukti.lihat', $pembayaran->id)
                 : null,
+            'bukti_grup' => $pembayaran->bukti_grup,
             'bukti_nama' => $pembayaran->namaBerkasBukti(),
             'tanggal_upload' => $pembayaran->tanggal_upload_bukti
                 ? $pembayaran->tanggal_upload_bukti->locale('id')->translatedFormat('d F Y, H:i').' WIB'
@@ -514,8 +690,8 @@ class PembayaranAngsuranService
             // selama belum diterima Musyrifah.
             'bukti_sudah_diunggah' => filled($pembayaran->bukti_pembayaran),
             'bukti_ditolak' => $pembayaran->buktiDitolak(),
-            'dapat_unggah' => $this->bolehUnggahAtauGantiBukti($pembayaran),
-            'dapat_ajukan' => $pembayaran->dapatDiajukanKeterlambatan(),
+            'dapat_unggah' => $tahapDibuka && $this->bolehUnggahAtauGantiBukti($pembayaran),
+            'dapat_ajukan' => $periodeAktif && $pembayaran->dapatDiajukanKeterlambatan(),
             'terlambat' => $pembayaran->terlambat(),
             'pengajuan_menunggu' => $pengajuanTerakhir?->masihMenunggu() ?? false,
             'pengajuan_terakhir' => $pengajuanTerakhir,
@@ -523,9 +699,10 @@ class PembayaranAngsuranService
     }
 
     /**
-     * Unggah bukti transfer untuk satu angsuran. Status tidak menjadi Lunas.
+     * Unggah bukti untuk satu tahap atau seluruh sisa tagihan sekaligus.
+     * Satu bukti yang sama diperiksa dan dikonfirmasi sebagai satu grup.
      */
-    public function unggahBukti(User $user, Pembayaran $tagihan, UploadedFile $berkas): Pembayaran
+    public function unggahBukti(User $user, Pembayaran $tagihan, UploadedFile $berkas, bool $bayarSemua = false): Pembayaran
     {
         if ($tagihan->user_id !== $user->id) {
             throw ValidationException::withMessages([
@@ -533,48 +710,111 @@ class PembayaranAngsuranService
             ]);
         }
 
-        // Ambil kondisi terbaru sebelum menimpa berkas lama. Pemeriksaan
-        // Musyrifah bisa terjadi setelah mahasiswa membuka formulir.
-        $tagihan->refresh();
-        $this->pastikanPeriodeDibuka($tagihan);
-
-        if (! $this->bolehUnggahAtauGantiBukti($tagihan)) {
-            throw ValidationException::withMessages([
-                'bukti' => 'Bukti tidak dapat diubah karena sudah diterima Musyrifah, menunggu konfirmasi Rektorat, atau tagihan sudah Lunas.',
-            ]);
-        }
-
-        $berkasLama = $tagihan->bukti_pembayaran;
-        $path = $berkas->store('pembayaran/bukti', 'public');
-        if (! is_string($path) || $path === '') {
-            throw ValidationException::withMessages([
-                'bukti' => 'Gagal menyimpan bukti transfer. Silakan coba kembali.',
-            ]);
-        }
+        $path = null;
 
         try {
-            $tagihan->update([
-            'bukti_pembayaran' => $path,
-            'status' => Pembayaran::STATUS_MENUNGGU_VERIFIKASI,
-            'status_verifikasi' => Pembayaran::VERIFIKASI_MENUNGGU,
-            'catatan_verifikasi' => null,
-            'tanggal_upload_bukti' => now(),
-            'tanggal_verifikasi' => null,
-            'diverifikasi_oleh' => null,
-            'tanggal_bayar' => null,
-            ]);
+            $hasil = DB::transaction(function () use ($user, $tagihan, $berkas, $bayarSemua, &$path): Pembayaran {
+                $tagihan = Pembayaran::query()->whereKey($tagihan->getKey())->lockForUpdate()->firstOrFail();
+                $pengaturan = $this->pastikanPeriodeDibuka($tagihan);
+
+                if (! $this->bolehUnggahAtauGantiBukti($tagihan)) {
+                    throw ValidationException::withMessages([
+                        'bukti' => 'Bukti tidak dapat diubah karena sudah diterima Musyrifah, menunggu konfirmasi Rektorat, atau tagihan sudah Lunas.',
+                    ]);
+                }
+
+                $query = Pembayaran::query()
+                    ->where('user_id', $user->id)
+                    ->where('periode', $pengaturan->periode)
+                    ->lockForUpdate();
+
+                if ($bayarSemua) {
+                    $query->where(function (Builder $query) use ($tagihan): void {
+                        $query->where('status', Pembayaran::STATUS_BELUM_LUNAS)
+                            ->orWhereKey($tagihan->id);
+                        if (filled($tagihan->bukti_grup)) {
+                            $query->orWhere('bukti_grup', $tagihan->bukti_grup);
+                        }
+                    });
+                } elseif (filled($tagihan->bukti_grup)) {
+                    $query->where('bukti_grup', $tagihan->bukti_grup);
+                } else {
+                    $query->whereKey($tagihan->id);
+                }
+
+                $target = $query->get()->filter(fn (Pembayaran $item): bool => ! $item->sudahLunas()
+                    && ! $item->menungguKonfirmasiRektorat()
+                    && ($item->status === Pembayaran::STATUS_BELUM_LUNAS
+                        || $item->id === $tagihan->id
+                        || (filled($tagihan->bukti_grup) && $item->bukti_grup === $tagihan->bukti_grup)));
+
+                if ($target->doesntContain('id', $tagihan->id)) {
+                    throw ValidationException::withMessages([
+                        'bukti' => 'Tagihan ini sudah tidak memerlukan pembayaran.',
+                    ]);
+                }
+
+                $path = $berkas->store('pembayaran/bukti', 'local');
+                if (! is_string($path) || $path === '') {
+                    throw ValidationException::withMessages([
+                        'bukti' => 'Gagal menyimpan bukti transfer. Silakan coba kembali.',
+                    ]);
+                }
+
+                $grup = $tagihan->bukti_grup ?: (string) Str::uuid();
+                $target->each->update([
+                    'bukti_pembayaran' => $path,
+                    'bukti_grup' => $grup,
+                    'status' => Pembayaran::STATUS_MENUNGGU_VERIFIKASI,
+                    'status_verifikasi' => Pembayaran::VERIFIKASI_MENUNGGU,
+                    'catatan_verifikasi' => null,
+                    'tanggal_upload_bukti' => now(),
+                    'tanggal_verifikasi' => null,
+                    'diverifikasi_oleh' => null,
+                    'tanggal_bayar' => null,
+                    'tanggal_konfirmasi_rektorat' => null,
+                ]);
+
+                return $tagihan->fresh();
+            });
         } catch (Throwable $exception) {
-            // File baru tidak boleh tertinggal jika update database gagal.
-            Storage::disk('public')->delete($path);
+            // Hanya berkas baru yang dibuang; bukti lama tetap disimpan.
+            if (filled($path)) {
+                Storage::disk('local')->delete($path);
+            }
             throw $exception;
         }
 
-        // File lama baru dihapus sesudah pembaruan database berhasil.
-        if (filled($berkasLama) && $berkasLama !== $path && Storage::disk('public')->exists($berkasLama)) {
-            Storage::disk('public')->delete($berkasLama);
+        $this->kirimNotifikasiMusyrifah(
+            'Bukti pembayaran '.$hasil->labelTahap(),
+            $user->name.' mengunggah bukti transfer untuk '.$hasil->labelTahap().'. Bukti menunggu pemeriksaan Musyrifah.',
+            'pembayaran:'.$hasil->id,
+            $user
+        );
+
+        return $hasil;
+    }
+
+    /**
+     * @return Collection<int, Pembayaran>
+     */
+    private function grupTagihan(Pembayaran $tagihan, bool $kunci = false): Collection
+    {
+        $query = Pembayaran::query()
+            ->where('user_id', $tagihan->user_id)
+            ->where('periode', $tagihan->periode);
+
+        if (filled($tagihan->bukti_grup)) {
+            $query->where('bukti_grup', $tagihan->bukti_grup);
+        } else {
+            $query->whereKey($tagihan->id);
         }
 
-        return $tagihan->fresh();
+        if ($kunci) {
+            $query->lockForUpdate();
+        }
+
+        return $query->orderBy('angsuran_ke')->get();
     }
 
     /**
@@ -601,27 +841,32 @@ class PembayaranAngsuranService
      */
     public function terimaBukti(Pembayaran $tagihan, User $petugas, ?string $catatan = null): Pembayaran
     {
-        if ($tagihan->sudahLunas()) {
-            throw ValidationException::withMessages([
-                'status' => 'Tagihan ini sudah Lunas.',
+        return DB::transaction(function () use ($tagihan, $petugas, $catatan): Pembayaran {
+            $tagihan = Pembayaran::query()->whereKey($tagihan->id)->lockForUpdate()->firstOrFail();
+
+            if ($tagihan->sudahLunas() || $tagihan->menungguKonfirmasiRektorat()) {
+                throw ValidationException::withMessages([
+                    'status' => 'Tagihan ini sudah Lunas atau buktinya sudah diterima.',
+                ]);
+            }
+
+            $grup = $this->grupTagihan($tagihan, true)->reject(fn (Pembayaran $item): bool => $item->sudahLunas());
+            if ($grup->isEmpty() || $grup->contains(fn (Pembayaran $item): bool => blank($item->bukti_pembayaran))) {
+                throw ValidationException::withMessages([
+                    'status' => 'Belum ada bukti transfer yang dapat diperiksa.',
+                ]);
+            }
+
+            $grup->each->update([
+                'status' => Pembayaran::STATUS_MENUNGGU_REKTORAT,
+                'status_verifikasi' => Pembayaran::VERIFIKASI_DITERIMA,
+                'catatan_verifikasi' => $catatan,
+                'diverifikasi_oleh' => $petugas->id,
+                'tanggal_verifikasi' => now(),
             ]);
-        }
 
-        if (! filled($tagihan->bukti_pembayaran)) {
-            throw ValidationException::withMessages([
-                'status' => 'Belum ada bukti transfer yang dapat diperiksa.',
-            ]);
-        }
-
-        $tagihan->update([
-            'status' => Pembayaran::STATUS_MENUNGGU_REKTORAT,
-            'status_verifikasi' => Pembayaran::VERIFIKASI_DITERIMA,
-            'catatan_verifikasi' => $catatan,
-            'diverifikasi_oleh' => $petugas->id,
-            'tanggal_verifikasi' => now(),
-        ]);
-
-        return $tagihan->fresh();
+            return $tagihan->fresh();
+        });
     }
 
     /**
@@ -629,22 +874,33 @@ class PembayaranAngsuranService
      */
     public function tolakBukti(Pembayaran $tagihan, User $petugas, string $catatan): Pembayaran
     {
-        if ($tagihan->sudahLunas()) {
-            throw ValidationException::withMessages([
-                'status' => 'Tagihan yang sudah Lunas tidak dapat ditolak buktinya.',
+        return DB::transaction(function () use ($tagihan, $petugas, $catatan): Pembayaran {
+            $tagihan = Pembayaran::query()->whereKey($tagihan->id)->lockForUpdate()->firstOrFail();
+
+            if ($tagihan->sudahLunas()) {
+                throw ValidationException::withMessages([
+                    'status' => 'Tagihan yang sudah Lunas tidak dapat ditolak buktinya.',
+                ]);
+            }
+
+            if (blank($tagihan->bukti_pembayaran)) {
+                throw ValidationException::withMessages([
+                    'status' => 'Belum ada bukti transfer yang dapat ditolak.',
+                ]);
+            }
+
+            $this->grupTagihan($tagihan, true)->reject(fn (Pembayaran $item): bool => $item->sudahLunas())->each->update([
+                'status' => Pembayaran::STATUS_BELUM_LUNAS,
+                'status_verifikasi' => Pembayaran::VERIFIKASI_DITOLAK,
+                'catatan_verifikasi' => $catatan,
+                'diverifikasi_oleh' => $petugas->id,
+                'tanggal_verifikasi' => now(),
+                'tanggal_bayar' => null,
+                'tanggal_konfirmasi_rektorat' => null,
             ]);
-        }
 
-        $tagihan->update([
-            'status' => Pembayaran::STATUS_BELUM_LUNAS,
-            'status_verifikasi' => Pembayaran::VERIFIKASI_DITOLAK,
-            'catatan_verifikasi' => $catatan,
-            'diverifikasi_oleh' => $petugas->id,
-            'tanggal_verifikasi' => now(),
-            'tanggal_bayar' => null,
-        ]);
-
-        return $tagihan->fresh();
+            return $tagihan->fresh();
+        });
     }
 
     /**
@@ -652,34 +908,42 @@ class PembayaranAngsuranService
      */
     public function konfirmasiLunas(Pembayaran $tagihan, User $petugas, ?string $catatan = null): Pembayaran
     {
-        if ($tagihan->sudahLunas()) {
-            throw ValidationException::withMessages([
-                'status' => 'Tagihan ini sudah berstatus Lunas.',
-            ]);
-        }
+        return DB::transaction(function () use ($tagihan, $catatan): Pembayaran {
+            $tagihan = Pembayaran::query()->whereKey($tagihan->id)->lockForUpdate()->firstOrFail();
 
-        if ($tagihan->menungguVerifikasiBukti()) {
-            throw ValidationException::withMessages([
-                'status' => 'Periksa dan terima bukti transfer terlebih dahulu sebelum menetapkan Lunas.',
-            ]);
-        }
+            if ($tagihan->sudahLunas()) {
+                throw ValidationException::withMessages([
+                    'status' => 'Tagihan ini sudah berstatus Lunas.',
+                ]);
+            }
 
-        if ($tagihan->buktiDitolak()) {
-            throw ValidationException::withMessages([
-                'status' => 'Bukti transfer sudah ditolak. Minta mahasiswa mengunggah bukti yang benar.',
-            ]);
-        }
+            $grup = $this->grupTagihan($tagihan, true)->reject(fn (Pembayaran $item): bool => $item->sudahLunas());
 
-        $tagihan->update([
-            'status' => Pembayaran::STATUS_LUNAS,
-            'status_verifikasi' => $tagihan->status_verifikasi ?: Pembayaran::VERIFIKASI_DITERIMA,
-            'catatan_verifikasi' => filled($catatan) ? $catatan : $tagihan->catatan_verifikasi,
-            'tanggal_bayar' => $tagihan->tanggal_bayar ?? now(),
-            'tanggal_konfirmasi_rektorat' => now(),
-            'metode_pembayaran' => 'Transfer '.PengaturanPembayaran::REKENING_BANK.' (konfirmasi Rektorat)',
-        ]);
+            if ($grup->contains(fn (Pembayaran $item): bool => $item->menungguVerifikasiBukti())) {
+                throw ValidationException::withMessages([
+                    'status' => 'Periksa dan terima bukti transfer terlebih dahulu sebelum menetapkan Lunas.',
+                ]);
+            }
 
-        return $tagihan->fresh();
+            if ($grup->contains(fn (Pembayaran $item): bool => $item->buktiDitolak())) {
+                throw ValidationException::withMessages([
+                    'status' => 'Bukti transfer sudah ditolak. Minta mahasiswa mengunggah bukti yang benar.',
+                ]);
+            }
+
+            $grup->each(function (Pembayaran $item) use ($catatan): void {
+                $item->update([
+                    'status' => Pembayaran::STATUS_LUNAS,
+                    'status_verifikasi' => $item->status_verifikasi ?: Pembayaran::VERIFIKASI_DITERIMA,
+                    'catatan_verifikasi' => filled($catatan) ? $catatan : $item->catatan_verifikasi,
+                    'tanggal_bayar' => $item->tanggal_bayar ?? now(),
+                    'tanggal_konfirmasi_rektorat' => now(),
+                    'metode_pembayaran' => 'Transfer '.PengaturanPembayaran::REKENING_BANK.' (konfirmasi Rektorat)',
+                ]);
+            });
+
+            return $tagihan->fresh();
+        });
     }
 
     /**
@@ -687,14 +951,20 @@ class PembayaranAngsuranService
      */
     public function tandaiBelumLunas(Pembayaran $tagihan, User $petugas, ?string $catatan = null): Pembayaran
     {
-        $tagihan->update([
-            'status' => Pembayaran::STATUS_BELUM_LUNAS,
-            'tanggal_bayar' => null,
-            'tanggal_konfirmasi_rektorat' => null,
-            'catatan_verifikasi' => filled($catatan) ? $catatan : $tagihan->catatan_verifikasi,
-        ]);
+        return DB::transaction(function () use ($tagihan, $catatan): Pembayaran {
+            $tagihan = Pembayaran::query()->whereKey($tagihan->id)->lockForUpdate()->firstOrFail();
 
-        return $tagihan->fresh();
+            $this->grupTagihan($tagihan, true)->each(function (Pembayaran $item) use ($catatan): void {
+                $item->update([
+                    'status' => Pembayaran::STATUS_BELUM_LUNAS,
+                    'tanggal_bayar' => null,
+                    'tanggal_konfirmasi_rektorat' => null,
+                    'catatan_verifikasi' => filled($catatan) ? $catatan : $item->catatan_verifikasi,
+                ]);
+            });
+
+            return $tagihan->fresh();
+        });
     }
 
     /**
@@ -702,30 +972,44 @@ class PembayaranAngsuranService
      */
     public function perbaruiNominal(Pembayaran $tagihan, float $nominal, User $petugas): Pembayaran
     {
-        if ($tagihan->sudahLunas()) {
-            throw ValidationException::withMessages([
-                'nominal' => 'Nominal tagihan yang sudah Lunas tidak dapat diubah.',
+        return DB::transaction(function () use ($tagihan, $nominal): Pembayaran {
+            $tagihan = Pembayaran::query()->whereKey($tagihan->id)->lockForUpdate()->firstOrFail();
+
+            if ($tagihan->sudahLunas()) {
+                throw ValidationException::withMessages([
+                    'nominal' => 'Nominal tagihan yang sudah Lunas tidak dapat diubah.',
+                ]);
+            }
+
+            $grup = $this->grupTagihan($tagihan, true);
+            if ($grup->contains(fn (Pembayaran $item): bool => $item->menungguVerifikasiBukti()
+                || $item->menungguKonfirmasiRektorat()
+                || $item->buktiDiterima()
+                || (filled($item->bukti_pembayaran) && ! $item->buktiDitolak()))) {
+                throw ValidationException::withMessages([
+                    'nominal' => 'Nominal tidak dapat diubah selama bukti transfer sedang diperiksa atau menunggu konfirmasi Rektorat.',
+                ]);
+            }
+
+            if ($nominal <= 0) {
+                throw ValidationException::withMessages([
+                    'nominal' => 'Nominal tagihan harus lebih dari nol.',
+                ]);
+            }
+
+            if ((int) ($tagihan->angsuran_ke ?? 1) === 1 && $nominal < AngsuranPembayaran::ANGSURAN_PERTAMA_MINIMAL) {
+                throw ValidationException::withMessages([
+                    'nominal' => 'Angsuran pertama minimal Rp1.000.000.',
+                ]);
+            }
+
+            $tagihan->update([
+                'nominal' => $nominal,
+                'reminder_terakhir_pada' => null,
             ]);
-        }
 
-        if ($nominal <= 0) {
-            throw ValidationException::withMessages([
-                'nominal' => 'Nominal tagihan harus lebih dari nol.',
-            ]);
-        }
-
-        if ((int) ($tagihan->angsuran_ke ?? 1) === 1 && $nominal < AngsuranPembayaran::ANGSURAN_PERTAMA_MINIMAL) {
-            throw ValidationException::withMessages([
-                'nominal' => 'Angsuran pertama minimal Rp1.000.000.',
-            ]);
-        }
-
-        $tagihan->update([
-            'nominal' => $nominal,
-            'reminder_terakhir_pada' => null,
-        ]);
-
-        return $tagihan->fresh();
+            return $tagihan->fresh();
+        });
     }
 
     /**
@@ -743,7 +1027,7 @@ class PembayaranAngsuranService
             ]);
         }
 
-        $this->pastikanPeriodeDibuka($tagihan);
+        $this->pastikanPeriodeAktif($tagihan);
 
         if ($tagihan->sudahLunas()) {
             throw ValidationException::withMessages([
@@ -777,7 +1061,8 @@ class PembayaranAngsuranService
             'Pengajuan keterlambatan '.$tagihan->labelTahap(),
             $user->name.' mengajukan keterlambatan pembayaran '.$tagihan->labelTahap().
                 ' dengan rencana bayar '.$pengajuan->tanggalRencanaTeks().'.',
-            'keterlambatan:'.$pengajuan->id
+            'keterlambatan:'.$pengajuan->id,
+            $user
         );
 
         return $pengajuan;
@@ -857,7 +1142,7 @@ class PembayaranAngsuranService
         Pembayaran::query()
             ->belumLunas()
             ->whereNotNull('jatuh_tempo')
-            ->with('user')
+            ->with(['user', 'jadwalPembayaran'])
             ->chunkById(200, function ($daftar) use (&$dikirim, &$diperiksa, $hariIni, $periodeTerbuka) {
                 foreach ($daftar as $tagihan) {
                     $diperiksa++;
@@ -867,7 +1152,10 @@ class PembayaranAngsuranService
                         continue;
                     }
 
-                    if (! $tagihan->user || $tagihan->menungguVerifikasiBukti() || $tagihan->menungguKonfirmasiRektorat()) {
+                    if (! $tagihan->user
+                        || ! $tagihan->jadwalAngsuran()?->sudahDibuka()
+                        || $tagihan->menungguVerifikasiBukti()
+                        || $tagihan->menungguKonfirmasiRektorat()) {
                         continue;
                     }
 
@@ -952,10 +1240,22 @@ class PembayaranAngsuranService
         }
     }
 
-    private function kirimNotifikasiMusyrifah(string $judul, string $pesan, string $kunci): void
+    private function kirimNotifikasiMusyrifah(string $judul, string $pesan, string $kunci, User $mahasiswa): void
     {
+        $lantai = $this->lantaiMahasiswa($mahasiswa);
+        if ($lantai === null) {
+            return;
+        }
+
         User::query()
             ->whereRaw('LOWER(role) = ?', ['musyrifah'])
+            ->where(function (Builder $query) use ($lantai): void {
+                $query->whereHas('pegawai', fn (Builder $pegawai) => $pegawai->where('lantai_yang_dikelola', $lantai))
+                    ->orWhere(function (Builder $query) use ($lantai): void {
+                        $query->whereDoesntHave('pegawai', fn (Builder $pegawai) => $pegawai->whereNotNull('lantai_yang_dikelola'))
+                            ->where('lantai_penempatan', $lantai);
+                    });
+            })
             ->select('id')
             ->chunkById(200, function ($musyrifahs) use ($judul, $pesan, $kunci) {
                 foreach ($musyrifahs as $musyrifah) {
@@ -969,6 +1269,11 @@ class PembayaranAngsuranService
                     );
                 }
             });
+    }
+
+    private function peran(User $user): string
+    {
+        return strtolower(trim((string) $user->role));
     }
 
     /**

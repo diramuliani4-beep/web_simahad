@@ -26,7 +26,12 @@
                 <div class="dk-actions">
                     <a class="dk-link" href="{{ route('dokumentasi.foto', $foto) }}" target="_blank" rel="noopener">Lihat foto penuh</a>
                     @if (($bolehKelola ?? false) && (int) $foto->guru_id === (int) auth()->id())
-                        <form method="POST" action="{{ route('guru.pembelajaran.dokumentasi.destroy', [$pertemuan, $foto]) }}" onsubmit="return confirm('Hapus foto dokumentasi ini? Foto lain dan data pertemuan tetap tersimpan.');">
+                        <form method="POST"
+                              action="{{ route('guru.pembelajaran.dokumentasi.destroy', [$pertemuan, $foto]) }}"
+                              data-sui-confirm="Hapus foto dokumentasi ini? Foto lain dan data pertemuan tetap tersimpan."
+                              data-sui-confirm-title="Hapus foto dokumentasi?"
+                              data-sui-confirm-label="Ya, Hapus"
+                              data-sui-confirm-tone="danger">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="dk-delete">Hapus foto</button>
