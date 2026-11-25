@@ -36,7 +36,6 @@ use App\Http\Controllers\PimpinanAuditController;
 use App\Http\Controllers\PimpinanDataPenghuniController;
 use App\Http\Controllers\PimpinanLaporanMahadController;
 use App\Http\Controllers\PimpinanLaporanRegisterController;
-use App\Http\Controllers\PimpinanMonitoringController;
 use App\Http\Controllers\PimpinanPembelajaranController;
 use App\Http\Controllers\ProfilAkunController;
 use App\Http\Controllers\ProfilMhsController;
@@ -44,7 +43,6 @@ use App\Http\Controllers\SuratPerizinanMhsController;
 use App\Http\Controllers\TugasMhsController;
 use App\Http\Middleware\PastikanPendaftaranDisetujui;
 use App\Services\LaporanMahadService;
-use App\Services\PimpinanMonitoringService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -768,11 +766,6 @@ Route::middleware('auth')->group(function () {
         'index',
     ])->name('pimpinan.data-penghuni');
 
-    Route::get('/pimpinan/laporan-mahad', [
-        PimpinanLaporanMahadController::class,
-        'index',
-    ])->name('pimpinan.laporan-mahad');
-
     Route::get('/pimpinan/pembelajaran', [
         PimpinanPembelajaranController::class,
         'index',
@@ -826,54 +819,12 @@ Route::middleware('auth')->group(function () {
         'perizinan',
     ])->name('pimpinan.laporan-perizinan');
 
-    // Unduh laporan monitoring (hanya baca)
+    // Unduh laporan (hanya baca)
     Route::get('/pimpinan/laporan/unduh/{jenis}', [
         PimpinanLaporanMahadController::class,
         'unduh',
     ])->whereIn('jenis', LaporanMahadService::JENIS_PIMPINAN)
         ->name('pimpinan.laporan.unduh');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Monitoring Pimpinan (hanya lihat, tanpa aksi operasional)
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get('/pimpinan/monitoring', [
-        PimpinanMonitoringController::class,
-        'index',
-    ])->name('pimpinan.monitoring');
-
-    Route::get('/pimpinan/monitoring/mahasiswa', [
-        PimpinanMonitoringController::class,
-        'mahasiswa',
-    ])->name('pimpinan.monitoring.mahasiswa');
-
-    Route::get('/pimpinan/monitoring/kamar', [
-        PimpinanMonitoringController::class,
-        'kamar',
-    ])->name('pimpinan.monitoring.kamar');
-
-    Route::get('/pimpinan/monitoring/pembayaran', [
-        PimpinanMonitoringController::class,
-        'pembayaran',
-    ])->name('pimpinan.monitoring.pembayaran');
-
-    Route::get('/pimpinan/monitoring/pembelajaran', [
-        PimpinanMonitoringController::class,
-        'pembelajaran',
-    ])->name('pimpinan.monitoring.pembelajaran');
-
-    Route::get('/pimpinan/monitoring/perizinan', [
-        PimpinanMonitoringController::class,
-        'perizinan',
-    ])->name('pimpinan.monitoring.perizinan');
-
-    Route::get('/pimpinan/monitoring/{jenis}/unduh', [
-        PimpinanMonitoringController::class,
-        'unduh',
-    ])->whereIn('jenis', PimpinanMonitoringService::KATEGORI)
-        ->name('pimpinan.monitoring.unduh');
 
     // Detail register laporan + cetak (hanya baca)
     Route::get('/pimpinan/laporan/{laporan}', [

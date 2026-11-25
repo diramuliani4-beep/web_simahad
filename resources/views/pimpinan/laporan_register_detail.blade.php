@@ -19,19 +19,29 @@
             margin-bottom: 20px;
         }
 
-        .lreg-back {
-            display: inline-flex;
+        .lreg-breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
             align-items: center;
             gap: 6px;
             margin-bottom: 10px;
-            color: #6B0D1B;
+            color: #81777d;
             font-size: 13px;
+        }
+
+        .lreg-breadcrumb a {
+            color: #6B0D1B;
             font-weight: 600;
             text-decoration: none;
         }
 
-        .lreg-back:hover {
+        .lreg-breadcrumb a:hover {
             text-decoration: underline;
+        }
+
+        .lreg-breadcrumb-sep {
+            color: #b4a7ac;
+            font-weight: 500;
         }
 
         .lreg-head h1 {
@@ -246,7 +256,11 @@
     <div class="lreg">
         <div class="lreg-head">
             <div>
-                <a href="{{ route('pimpinan.laporan-mahad') }}" class="lreg-back">← Kembali ke daftar laporan</a>
+                <nav class="lreg-breadcrumb lreg-no-print" aria-label="Breadcrumb">
+                    <a href="{{ route('pimpinan.dashboard') }}">Dashboard</a>
+                    <span class="lreg-breadcrumb-sep" aria-hidden="true">/</span>
+                    <a href="{{ route('pimpinan.laporan.detail', $register) }}" aria-current="page">{{ $register->judul }}</a>
+                </nav>
                 <h1>{{ $register->judul }}</h1>
                 <p>
                     {{ $register->labelPeriode() }} · {{ $register->labelUnit() }} ·
@@ -272,10 +286,6 @@
                 @if ($unduhUrl)
                     <a href="{{ $unduhUrl }}" class="lreg-btn lreg-btn-outline">Unduh CSV</a>
                 @endif
-
-                <a href="{{ route('pimpinan.laporan-mahad') }}" class="lreg-btn lreg-btn-outline">
-                    Daftar Laporan
-                </a>
             </div>
         </div>
 

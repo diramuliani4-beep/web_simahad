@@ -65,7 +65,7 @@ class PengaturanAkunController extends Controller
             'tampilan' => 'pimpinan.pengaturan_akun',
             'halaman' => 'pengaturan-akun.index',
             'akses' => ['Data Penghuni', 'Laporan Ma’had', 'Pembelajaran'],
-            'tautan' => ['label' => 'Buka Laporan Ma’had', 'route' => 'pimpinan.laporan-mahad'],
+            'tautan' => ['label' => 'Buka Laporan Ma’had', 'route' => 'pimpinan.laporan-penghuni'],
         ],
         'admin' => [
             'label' => 'Admin',

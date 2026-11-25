@@ -5,12 +5,28 @@
 ])
 
 @php
+
     // Tetap memakai sumber menu, route, dan profil yang sudah ada di SIMAHAD.
     $penggunaSidebar = auth()->user();
+
     $menuUtamaSidebar = \App\Support\MenuPeran::utama($penggunaSidebar);
+
+    // Menghilangkan menu Monitoring khusus Pimpinan.
+    if ($penggunaSidebar?->role === 'pimpinan') {
+        $menuUtamaSidebar = array_values(array_filter(
+            $menuUtamaSidebar,
+            function ($menu) {
+                return strtolower(trim($menu['label'] ?? '')) !== 'monitoring';
+            }
+        ));
+    }
+
     $menuBawahSidebar = \App\Support\MenuPeran::bawah($penggunaSidebar);
+
     $labelPeranSidebar = \App\Support\MenuPeran::labelPeran($penggunaSidebar);
+
     $gambarSidebar = asset('images/mahad.jpeg');
+
 @endphp
 
 @once

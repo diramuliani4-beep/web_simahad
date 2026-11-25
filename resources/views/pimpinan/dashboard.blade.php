@@ -41,7 +41,7 @@
                     .number_format($pembelajaran['jadwal'], 0, ',', '.').' jadwal',
                 'ikon' => 'pembelajaran',
                 'nada' => 'is-blue',
-                'rute' => route('pimpinan.monitoring.pembelajaran'),
+                'rute' => route('pimpinan.laporan-pembelajaran'),
             ],
             [
                 'judul' => 'Penyelesaian Tugas',
@@ -54,7 +54,7 @@
                     : 'Belum ada tugas yang dipublikasikan',
                 'ikon' => 'tugas',
                 'nada' => 'is-amber',
-                'rute' => route('pimpinan.monitoring.pembelajaran'),
+                'rute' => route('pimpinan.laporan-pembelajaran'),
             ],
             [
                 'judul' => 'Perizinan Diproses',
@@ -63,18 +63,16 @@
                     .number_format($perizinan['disetujui'], 0, ',', '.').' disetujui',
                 'ikon' => 'surat',
                 'nada' => 'is-green',
-                'rute' => route('pimpinan.monitoring.perizinan'),
+                'rute' => route('pimpinan.laporan-perizinan'),
             ],
         ];
 
         $akses = [
-            ['label' => 'Mahasiswa', 'ikon' => 'mahasiswa', 'rute' => route('pimpinan.monitoring.mahasiswa')],
-            ['label' => 'Kamar', 'ikon' => 'kamar', 'rute' => route('pimpinan.monitoring.kamar')],
-            ['label' => 'Pembayaran', 'ikon' => 'pembayaran', 'rute' => route('pimpinan.monitoring.pembayaran')],
-            ['label' => 'Pembelajaran', 'ikon' => 'pembelajaran', 'rute' => route('pimpinan.monitoring.pembelajaran')],
-            ['label' => 'Perizinan', 'ikon' => 'surat', 'rute' => route('pimpinan.monitoring.perizinan')],
-            ['label' => 'Laporan', 'ikon' => 'laporan', 'rute' => route('pimpinan.laporan-mahad')],
-            
+            ['label' => 'Laporan Mahasiswa', 'ikon' => 'mahasiswa', 'rute' => route('pimpinan.laporan-penghuni')],
+            ['label' => 'Laporan Kamar', 'ikon' => 'kamar', 'rute' => route('pimpinan.laporan-kamar')],
+            ['label' => 'Laporan Pembayaran', 'ikon' => 'pembayaran', 'rute' => route('pimpinan.laporan-pembayaran')],
+            ['label' => 'Laporan Pembelajaran', 'ikon' => 'pembelajaran', 'rute' => route('pimpinan.laporan-pembelajaran')],
+            ['label' => 'Laporan Perizinan', 'ikon' => 'surat', 'rute' => route('pimpinan.laporan-perizinan')],
         ];
     @endphp
 
@@ -811,7 +809,7 @@
             </div>
         </header>
 
-        <nav class="sd-quick" aria-label="Akses monitoring dan laporan">
+        <nav class="sd-quick" aria-label="Akses laporan">
             @foreach ($akses as $item)
                 <a class="sd-quick-link" href="{{ $item['rute'] }}">
                     <span class="sd-quick-icon"><x-panel.ikon nama="{{ $item['ikon'] }}" /></span>
@@ -824,9 +822,7 @@
             <div class="sd-section-head">
                 <div>
                     <h2 id="sd-kinerja-heading">Ringkasan Kinerja</h2>
-                    
                 </div>
-                <a class="sd-link" href="{{ route('pimpinan.laporan-mahad') }}">Register laporan</a>
             </div>
             <div class="sd-kpis">
                 @foreach ($kpi as $item)
@@ -892,7 +888,7 @@
                             <p>Status tagihan periode aktif</p>
                         </div>
                     </div>
-                    <a class="sd-card-link" href="{{ route('pimpinan.monitoring.pembayaran') }}">Monitoring</a>
+                    <a class="sd-card-link" href="{{ route('pimpinan.laporan-pembayaran') }}">Laporan</a>
                 </div>
                 <div class="sd-card-body">
                     @if ($pembayaran['periode'])
@@ -941,7 +937,7 @@
                             <p>{{ $kamar['jumlah'] }} kamar terdaftar</p>
                         </div>
                     </div>
-                    <a class="sd-card-link" href="{{ route('pimpinan.monitoring.kamar') }}">Monitoring</a>
+                    <a class="sd-card-link" href="{{ route('pimpinan.laporan-kamar') }}">Laporan</a>
                 </div>
                 <div class="sd-card-body">
                     @if ($kamar['per_lantai']->isNotEmpty())
@@ -987,7 +983,7 @@
                             <p>Pengajuan surat mahasiswa</p>
                         </div>
                     </div>
-                    <a class="sd-card-link" href="{{ route('pimpinan.monitoring.perizinan') }}">Monitoring</a>
+                    <a class="sd-card-link" href="{{ route('pimpinan.laporan-perizinan') }}">Laporan</a>
                 </div>
                 <div class="sd-card-body">
                     <div class="sd-pay-rows" style="margin-top: 0;">
@@ -998,7 +994,7 @@
                     </div>
 
                     <p class="sd-footnote">
-                        Pimpinan berfokus pada monitoring dan evaluasi; keputusan operasional dijalankan Musyrifah.
+                        Pimpinan berfokus pada evaluasi laporan; keputusan operasional dijalankan Musyrifah.
                     </p>
                 </div>
             </article>
