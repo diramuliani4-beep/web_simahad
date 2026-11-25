@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Notifikasi;
 use App\Models\Pengumuman;
 use App\Models\User;
+use App\Services\PengumumanEmailService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -14,6 +15,10 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class MusyrifahPengumumanController extends Controller
 {
+    public function __construct(
+        private readonly PengumumanEmailService $emailPengumuman,
+    ) {}
+
     /**
      * Daftar pengumuman beserta pencarian judul dan filter kategori/status.
      */
@@ -91,6 +96,7 @@ class MusyrifahPengumumanController extends Controller
 
         if ($pengumuman->isDipublikasikan()) {
             $this->kirimNotifikasiPengumuman($pengumuman);
+            $this->emailPengumuman->kirim($pengumuman);
         }
 
         return redirect()
@@ -121,6 +127,7 @@ class MusyrifahPengumumanController extends Controller
         $this->pastikanPengelola($request);
 
         $data = $this->validasiPengumuman($request);
+        $statusSebelumnya = $pengumuman->status;
 
         $atribut = [
             'judul' => $data['judul'],
@@ -159,6 +166,12 @@ class MusyrifahPengumumanController extends Controller
 
         if ($pengumuman->isDipublikasikan()) {
             $this->kirimNotifikasiPengumuman($pengumuman);
+
+            // Email hanya dikirim saat pengumuman beralih menjadi terbit,
+            // bukan setiap kali isi pengumuman yang sudah terbit disunting.
+            if ($statusSebelumnya !== Pengumuman::STATUS_DIPUBLIKASIKAN) {
+                $this->emailPengumuman->kirim($pengumuman);
+            }
         }
 
         return redirect()
@@ -199,6 +212,8 @@ class MusyrifahPengumumanController extends Controller
             'status.in' => 'Status pengumuman tidak valid.',
         ]);
 
+        $statusSebelumnya = $pengumuman->status;
+
         $pengumuman->update([
             'status' => $validated['status'],
             'dipublikasikan_pada' => $this->waktuPublikasi($pengumuman, $validated['status']),
@@ -206,6 +221,10 @@ class MusyrifahPengumumanController extends Controller
 
         if ($pengumuman->isDipublikasikan()) {
             $this->kirimNotifikasiPengumuman($pengumuman);
+
+            if ($statusSebelumnya !== Pengumuman::STATUS_DIPUBLIKASIKAN) {
+                $this->emailPengumuman->kirim($pengumuman);
+            }
         }
 
         return redirect()

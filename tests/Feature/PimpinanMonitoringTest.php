@@ -10,10 +10,8 @@ use App\Models\Pembayaran;
 use App\Models\Pendaftaran;
 use App\Models\SuratPerizinan;
 use App\Models\User;
-use App\Services\DashboardRingkasanService;
 use App\Services\LaporanMahadService;
 use App\Services\LaporanRegisterService;
-use App\Services\PimpinanMonitoringService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -28,108 +26,39 @@ class PimpinanMonitoringTest extends TestCase
         $this->buatDataOperasional();
     }
 
-    public function test_pimpinan_can_open_every_monitoring_page(): void
+    public function test_pimpinan_monitoring_routes_are_removed(): void
     {
         $pimpinan = User::factory()->create(['role' => 'pimpinan']);
+
+        $this->actingAs($pimpinan)
+            ->get('/pimpinan/monitoring')
+            ->assertNotFound();
 
         foreach (['mahasiswa', 'kamar', 'pembayaran', 'pembelajaran', 'perizinan'] as $kategori) {
             $this->actingAs($pimpinan)
                 ->get('/pimpinan/monitoring/'.$kategori)
-                ->assertOk()
-                ->assertSee('Mode Monitoring · Hanya Lihat');
+                ->assertNotFound();
         }
 
         $this->actingAs($pimpinan)
-            ->get('/pimpinan/monitoring')
-            ->assertRedirect('/pimpinan/monitoring/mahasiswa');
+            ->get('/pimpinan/monitoring/kamar/unduh')
+            ->assertNotFound();
     }
 
-    public function test_monitoring_uses_real_data_from_database(): void
-    {
-        $pimpinan = User::factory()->create(['role' => 'pimpinan']);
-
-        $this->actingAs($pimpinan)
-            ->get('/pimpinan/monitoring/mahasiswa')
-            ->assertOk()
-            ->assertSee('Nadia Putri')
-            ->assertSee('2317000001');
-
-        $this->actingAs($pimpinan)
-            ->get('/pimpinan/monitoring/kamar')
-            ->assertOk()
-            ->assertSee('TEST-01')
-            ->assertSee('Gedung Uji');
-
-        $this->actingAs($pimpinan)
-            ->get('/pimpinan/monitoring/pembayaran')
-            ->assertOk()
-            ->assertSee('Nadia Putri');
-    }
-
-    public function test_pimpinan_dashboard_links_to_monitoring_pages(): void
+    public function test_pimpinan_dashboard_shows_laporan_links_without_monitoring(): void
     {
         $pimpinan = User::factory()->create(['role' => 'pimpinan']);
 
         $response = $this->actingAs($pimpinan)->get('/pimpinan/dashboard');
 
         $response->assertOk();
-
-        foreach (['mahasiswa', 'kamar', 'pembayaran', 'pembelajaran', 'perizinan'] as $kategori) {
-            $response->assertSee(route('pimpinan.monitoring.'.$kategori), false);
-        }
-    }
-
-    public function test_dashboard_and_monitoring_share_the_same_numbers(): void
-    {
-        $pimpinan = User::factory()->create(['role' => 'pimpinan']);
-
-        // Data tambahan agar angka ringkasan tidak kebetulan bernilai nol semua.
-        Kamar::factory()->create(['nomor_kamar' => 'TEST-02', 'lantai' => 2, 'kapasitas' => 6, 'status' => 'Tersedia']);
-        User::factory()->create(['role' => 'mahasiswa', 'status' => 'aktif', 'kamar_id' => null]);
-
-        $dashboard = app(DashboardRingkasanService::class)->pimpinan();
-        $monitoring = app(PimpinanMonitoringService::class)->ringkasanMaad();
-
-        // Dashboard dan Monitoring membaca satu sumber yang sama.
-        $this->assertSame($dashboard['totalMahasiswa'], $monitoring['totalMahasiswa']);
-        $this->assertEquals($dashboard['kamar'], $monitoring['kamar']);
-        $this->assertEquals($dashboard['pembayaran'], $monitoring['pembayaran']);
-        $this->assertEquals($dashboard['pembelajaran'], $monitoring['pembelajaran']);
-        $this->assertEquals($dashboard['absensi'], $monitoring['absensi']);
-        $this->assertEquals($dashboard['perizinan'], $monitoring['perizinan']);
-
-        // Angka kartu ringkasan pada halaman Monitoring berasal dari sumber tersebut.
-        foreach (['mahasiswa', 'kamar', 'pembayaran', 'pembelajaran', 'perizinan'] as $kategori) {
-            $data = app(PimpinanMonitoringService::class)->untuk($kategori);
-
-            $response = $this->actingAs($pimpinan)->get('/pimpinan/monitoring/'.$kategori);
-            $response->assertOk();
-
-            foreach ($data['ringkasan'] as $kartu) {
-                $response->assertSee((string) $kartu['nilai']);
-            }
-        }
-    }
-
-    public function test_pimpinan_cannot_use_operational_learning_routes(): void
-    {
-        $pimpinan = User::factory()->create(['role' => 'pimpinan']);
-
-        // Monitoring pembelajaran hanya membaca.
-        $this->actingAs($pimpinan)
-            ->get('/pimpinan/monitoring/pembelajaran')
-            ->assertOk()
-            ->assertDontSee('Tambah Jadwal');
-    }
-
-    public function test_monitoring_export_downloads_csv(): void
-    {
-        $pimpinan = User::factory()->create(['role' => 'pimpinan']);
-
-        $response = $this->actingAs($pimpinan)->get('/pimpinan/monitoring/kamar/unduh');
-
-        $response->assertOk();
-        $response->assertDownload('monitoring-kamar-'.now()->format('Ymd').'.csv');
+        $response->assertSee(route('pimpinan.laporan-penghuni'), false);
+        $response->assertSee(route('pimpinan.laporan-kamar'), false);
+        $response->assertSee(route('pimpinan.laporan-pembayaran'), false);
+        $response->assertSee(route('pimpinan.laporan-pembelajaran'), false);
+        $response->assertSee(route('pimpinan.laporan-perizinan'), false);
+        $response->assertDontSee('/pimpinan/laporan-mahad', false);
+        $response->assertDontSee('/pimpinan/monitoring', false);
     }
 
     public function test_pimpinan_can_download_monitoring_report_for_new_categories(): void
@@ -149,12 +78,10 @@ class PimpinanMonitoringTest extends TestCase
     {
         $pimpinan = User::factory()->create(['role' => 'pimpinan']);
 
-        $response = $this->actingAs($pimpinan)->get('/pimpinan/laporan-mahad');
+        $response = $this->actingAs($pimpinan)
+            ->get('/pimpinan/laporan-kamar?periode='.$this->periode());
 
         $response->assertOk();
-        $response->assertSee('Register Laporan');
-        $response->assertSee('Rekap otomatis sistem');
-        $response->assertSee('Diterbitkan');
 
         $this->assertSame(
             count(LaporanRegisterService::JENIS_SISTEM),
@@ -171,7 +98,9 @@ class PimpinanMonitoringTest extends TestCase
     {
         $pimpinan = User::factory()->create(['role' => 'pimpinan']);
 
-        $this->actingAs($pimpinan)->get('/pimpinan/laporan-mahad')->assertOk();
+        $this->actingAs($pimpinan)
+            ->get('/pimpinan/laporan-kamar?periode='.$this->periode())
+            ->assertOk();
 
         $laporan = LaporanMahad::query()->where('jenis', 'kamar')->firstOrFail();
 
@@ -189,7 +118,8 @@ class PimpinanMonitoringTest extends TestCase
     public function test_report_audit_history_is_append_only(): void
     {
         $pimpinan = User::factory()->create(['role' => 'pimpinan']);
-        $this->actingAs($pimpinan)->get('/pimpinan/laporan-mahad');
+        $this->actingAs($pimpinan)
+            ->get('/pimpinan/laporan-kamar?periode='.$this->periode());
 
         $jejak = LaporanAudit::query()->firstOrFail();
 
@@ -230,17 +160,54 @@ class PimpinanMonitoringTest extends TestCase
         }
     }
 
-    public function test_musyrifah_and_mahasiswa_cannot_open_monitoring_pages(): void
+    public function test_pimpinan_sidebar_shows_only_dashboard_and_laporan_and_hides_monitoring(): void
     {
-        foreach (['mahasiswa', 'guru', 'musyrifah'] as $role) {
-            $pengguna = User::factory()->create(['role' => $role]);
+        $pimpinan = User::factory()->create(['role' => 'pimpinan']);
 
-            foreach (['mahasiswa', 'kamar', 'pembayaran', 'pembelajaran', 'perizinan'] as $kategori) {
-                $this->actingAs($pengguna)
-                    ->get('/pimpinan/monitoring/'.$kategori)
-                    ->assertForbidden();
-            }
-        }
+        $response = $this->actingAs($pimpinan)->get('/pimpinan/dashboard');
+
+        $response->assertOk();
+        $response->assertSee('data-menu-grup', false);
+        $response->assertSee('sb-grup-toggle', false);
+        $response->assertSee('aria-expanded', false);
+
+        // Hanya menu utama Dashboard dan Laporan yang tampil pada sidebar Pimpinan.
+        $response->assertSee('Dashboard');
+        $response->assertSee('Laporan');
+        $response->assertDontSee('Monitoring Mahasiswa');
+        $response->assertDontSee('Monitoring Kamar');
+        $response->assertDontSee('Monitoring Pembayaran');
+        $response->assertDontSee('Monitoring Pembelajaran');
+        $response->assertDontSee('Monitoring Perizinan');
+
+        // Pengaturan Akun tidak lagi muncul di sidebar Pimpinan.
+        $response->assertDontSee(route('pimpinan.pengaturan-akun'), false);
+
+        // Tetap dapat diakses melalui dropdown profil.
+        $response->assertSee(route('pengaturan-akun.index'), false);
+    }
+
+    public function test_active_submenu_keeps_parent_group_open(): void
+    {
+        $pimpinan = User::factory()->create(['role' => 'pimpinan']);
+
+        $response = $this->actingAs($pimpinan)->get('/pimpinan/laporan-kamar');
+
+        $response->assertOk();
+        $response->assertSee('is-active is-open', false);
+        $response->assertSee('Dashboard', false);
+        $response->assertSee('Laporan', false);
+        $response->assertSee('Laporan Kehadiran', false);
+        $response->assertSee('Laporan Pendaftaran', false);
+        $response->assertSee('Data Kamar', false);
+        $response->assertSee(route('pimpinan.dashboard'), false);
+        $response->assertSee(route('pimpinan.laporan-kamar'), false);
+        $response->assertDontSee('/pimpinan/laporan-mahad', false);
+        $response->assertDontSee('Kembali ke daftar laporan');
+
+        // Breadcrumb halaman laporan hanya Dashboard / Nama Laporan.
+        $response->assertSee('<a href="'.route('pimpinan.dashboard').'">Dashboard</a>', false);
+        $response->assertDontSee('<a href="'.route('pimpinan.laporan-kamar').'">Laporan</a>', false);
     }
 
     public function test_musyrifah_can_create_publish_and_archive_report(): void
@@ -365,39 +332,6 @@ class PimpinanMonitoringTest extends TestCase
         $this->assertSame('musyrifah', $log->user_role);
         $this->assertSame(SuratPerizinan::STATUS_MENUNGGU, $log->data_sebelum['status'] ?? null);
         $this->assertSame(SuratPerizinan::STATUS_DISETUJUI, $log->data_sesudah['status'] ?? null);
-    }
-
-    public function test_pimpinan_sidebar_uses_click_expand_collapse_and_hides_pengaturan_akun(): void
-    {
-        $pimpinan = User::factory()->create(['role' => 'pimpinan']);
-
-        $response = $this->actingAs($pimpinan)->get('/pimpinan/dashboard');
-
-        $response->assertOk();
-        $response->assertSee('data-menu-grup', false);
-        $response->assertSee('menu-grup-toggle', false);
-        $response->assertSee('menu-chevron', false);
-        $response->assertSee('aria-expanded', false);
-
-        // Menu induk Monitoring dan Laporan harus ada pada sidebar.
-        $response->assertSee('Monitoring');
-        $response->assertSee('Laporan');
-
-        // Pengaturan Akun tidak lagi muncul di sidebar Pimpinan.
-        $response->assertDontSee(route('pimpinan.pengaturan-akun'), false);
-
-        // Tetap dapat diakses melalui dropdown profil.
-        $response->assertSee(route('pengaturan-akun.index'), false);
-    }
-
-    public function test_active_submenu_keeps_parent_group_open(): void
-    {
-        $pimpinan = User::factory()->create(['role' => 'pimpinan']);
-
-        $response = $this->actingAs($pimpinan)->get('/pimpinan/monitoring/kamar');
-
-        $response->assertOk();
-        $response->assertSee('is-active is-open', false);
     }
 
     private function periode(): string

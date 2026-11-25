@@ -194,7 +194,7 @@ class GuruKegiatanDokumentasiController extends Controller
         $role = strtolower(trim((string) $request->user()->role));
         $kembali = match ($role) {
             'guru' => route('guru.pembelajaran.pertemuan', $pertemuan).'#dokumentasi',
-            'pimpinan' => route('pimpinan.monitoring.pembelajaran', ['periode' => $pertemuan->tanggal->format('Y-m')]),
+            'pimpinan' => route('pimpinan.laporan-pembelajaran', ['periode' => $pertemuan->tanggal->format('Y-m')]),
             default => route('musyrifah.manajemen_pembelajaran', ['tab' => 'pemantauan']),
         };
 

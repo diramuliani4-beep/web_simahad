@@ -500,7 +500,7 @@
                 Unduh Laporan
             </button>
 
-            <a href="{{ route('pimpinan.laporan-mahad') }}"
+            <a href="{{ route('pimpinan.dashboard') }}"
                class="btn-aksi btn-kembali">
                 <i class="fas fa-arrow-left"></i>
                 Kembali

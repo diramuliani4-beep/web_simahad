@@ -1,9 +1,26 @@
 @php
     /** @var array<string, mixed> $laporan */
-    $modeMonitoring = $modeMonitoring ?? false;
     $jumlahKolom = count($laporan['kolom']);
+
     $laporanKehadiran = ($laporan['jenis'] ?? '') === 'kehadiran';
+
     $jumlahPertemuanKehadiran = (int) ($laporan['jumlah_pertemuan'] ?? 16);
+
+    $peranPengguna = strtolower((string) auth()->user()?->role);
+
+    $dashboardUrl = match ($peranPengguna) {
+        'musyrifah', 'pengelola' => route('musyrifah.dashboard'),
+        'admin' => route('admin.dashboard'),
+        default => route('pimpinan.dashboard'),
+    };
+
+    $judulLaporan = $laporan['judul'] ?? 'Detail';
+
+    // Halaman Pimpinan memakai breadcrumb Dashboard / Nama Laporan,
+    // sedangkan halaman yang masih memiliki daftar laporan tetap menampilkan tautannya.
+    $judulBreadcrumb = ! empty($backUrl) && \Illuminate\Support\Str::startsWith($judulLaporan, 'Laporan ')
+        ? trim(\Illuminate\Support\Str::after($judulLaporan, 'Laporan '))
+        : $judulLaporan;
 @endphp
 <style>
     .lap-page {
@@ -19,18 +36,26 @@
         gap: 16px;
         margin-bottom: 22px;
     }
-    .lap-back {
-        display: inline-flex;
+    .lap-breadcrumb {
+        display: flex;
+        flex-wrap: wrap;
         align-items: center;
         gap: 6px;
         margin-bottom: 10px;
-        color: #780d20;
+        color: #81777d;
         font-size: 13px;
+    }
+    .lap-breadcrumb a {
+        color: #780d20;
         font-weight: 600;
         text-decoration: none;
     }
-    .lap-back:hover {
+    .lap-breadcrumb a:hover {
         text-decoration: underline;
+    }
+    .lap-breadcrumb-sep {
+        color: #b4a7ac;
+        font-weight: 500;
     }
     .lap-head h1 {
         margin: 0 0 7px;
@@ -49,18 +74,6 @@
         align-items: center;
         gap: 10px;
         flex-wrap: wrap;
-    }
-    .lap-monitor {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 12px;
-        border: 1px solid #e3cfd4;
-        border-radius: 20px;
-        background: #fff6f8;
-        color: #780d20;
-        font-size: 12px;
-        font-weight: 600;
     }
     .lap-date {
         padding: 10px 14px;
@@ -567,14 +580,19 @@
 <div class="lap-page">
     <div class="lap-head">
         <div>
-            <a href="{{ $backUrl }}" class="lap-back lap-no-print">← Kembali ke daftar laporan</a>
+            <nav class="lap-breadcrumb lap-no-print" aria-label="Breadcrumb">
+                <a href="{{ $dashboardUrl }}">Dashboard</a>
+                @if (! empty($backUrl))
+                    <span class="lap-breadcrumb-sep" aria-hidden="true">/</span>
+                    <a href="{{ $backUrl }}">Laporan</a>
+                @endif
+                <span class="lap-breadcrumb-sep" aria-hidden="true">/</span>
+                <a href="{{ $filterAction ?? request()->url() }}" aria-current="page">{{ $judulBreadcrumb }}</a>
+            </nav>
             <h1>{{ $laporan['judul'] }}</h1>
             <p>{{ $laporan['deskripsi'] }}</p>
         </div>
         <div class="lap-head-meta">
-            @if ($modeMonitoring)
-                <span class="lap-monitor">Mode Monitoring · Hanya Lihat</span>
-            @endif
             <span class="lap-date">{{ now()->format('d/m/Y') }}</span>
         </div>
     </div>

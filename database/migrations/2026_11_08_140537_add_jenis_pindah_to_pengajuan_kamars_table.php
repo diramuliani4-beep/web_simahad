@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -7,41 +8,72 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Menambahkan data pendukung pengajuan pindah kamar pada tabel pengajuan
-     * yang sudah ada (tanpa membuat tabel baru).
+     * Menambahkan data pendukung pengajuan pindah kamar.
      */
     public function up(): void
     {
         if (! Schema::hasColumn('pengajuan_kamars', 'jenis')) {
             Schema::table('pengajuan_kamars', function (Blueprint $table) {
                 $table->string('jenis', 20)->default('penempatan')->after('status');
+            });
+        }
+
+        if (! Schema::hasColumn('pengajuan_kamars', 'kamar_asal_id')) {
+            Schema::table('pengajuan_kamars', function (Blueprint $table) {
                 $table->foreignId('kamar_asal_id')->nullable()->after('kamar_id');
+            });
+        }
+
+        if (! Schema::hasColumn('pengajuan_kamars', 'alasan')) {
+            Schema::table('pengajuan_kamars', function (Blueprint $table) {
                 $table->text('alasan')->nullable()->after('kamar_asal_id');
+            });
+        }
+
+        if (! Schema::hasColumn('pengajuan_kamars', 'catatan')) {
+            Schema::table('pengajuan_kamars', function (Blueprint $table) {
                 $table->text('catatan')->nullable()->after('alasan');
+            });
+        }
+
+        if (! Schema::hasColumn('pengajuan_kamars', 'diverifikasi_oleh')) {
+            Schema::table('pengajuan_kamars', function (Blueprint $table) {
                 $table->foreignId('diverifikasi_oleh')->nullable()->after('catatan');
+            });
+        }
+
+        // Menambahkan index jika belum tersedia.
+        $indexes = collect(Schema::getIndexes('pengajuan_kamars'))
+            ->pluck('name')
+            ->toArray();
+
+        if (! in_array('pengajuan_kamars_user_id_jenis_status_index', $indexes)) {
+            Schema::table('pengajuan_kamars', function (Blueprint $table) {
                 $table->index(['user_id', 'jenis', 'status']);
             });
         }
 
-        // Satu mahasiswa kini boleh memiliki riwayat pengajuan lebih dari satu
-        // (penempatan awal dan pindah kamar), sehingga unique(user_id) dilepas.
-        try {
-            Schema::table('pengajuan_kamars', function (Blueprint $table) {
-                $table->dropUnique(['user_id']);
-            });
-        } catch (Throwable) {
-            // Indeks unik memang sudah tidak ada pada basis data ini.
+        // Melepas unique user_id jika masih tersedia.
+        $uniqueIndexes = collect(Schema::getIndexes('pengajuan_kamars'))
+            ->where('unique', true)
+            ->pluck('name')
+            ->toArray();
+
+        foreach ($uniqueIndexes as $index) {
+            $indexColumns = collect(Schema::getIndexes('pengajuan_kamars'))
+                ->firstWhere('name', $index)['columns'] ?? [];
+
+            if ($indexColumns === ['user_id']) {
+                Schema::table('pengajuan_kamars', function (Blueprint $table) use ($index) {
+                    $table->dropUnique($index);
+                });
+                break;
+            }
         }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::table('pengajuan_kamars', function (Blueprint $table) {
-            $table->dropIndex(['user_id', 'jenis', 'status']);
-            $table->dropColumn(['jenis', 'kamar_asal_id', 'alasan', 'catatan', 'diverifikasi_oleh']);
-        });
+        // Tidak menghapus kolom secara otomatis agar data tetap aman.
     }
 };

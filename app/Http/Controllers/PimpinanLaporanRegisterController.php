@@ -95,15 +95,12 @@ class PimpinanLaporanRegisterController extends Controller
             ],
             'keyword' => '',
             'opsiPeriode' => [],
-            'filterAction' => route('pimpinan.laporan-mahad'),
-            'backUrl' => route('pimpinan.laporan-mahad'),
             'unduhUrl' => (! $periodik && $bisaPratinjau)
                 ? route('pimpinan.laporan.unduh', [
                     'jenis' => $laporan->jenis,
                     'periode' => $laporan->periode,
                 ])
                 : null,
-            'modeMonitoring' => true,
             'sembunyikanFilter' => true,
         ]);
     }

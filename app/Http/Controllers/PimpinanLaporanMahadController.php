@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Services\LaporanMahadService;
 use App\Services\LaporanRegisterService;
-use App\Services\PimpinanMonitoringService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -14,49 +13,7 @@ class PimpinanLaporanMahadController extends Controller
     public function __construct(
         private readonly LaporanMahadService $laporanMahad,
         private readonly LaporanRegisterService $register,
-        private readonly PimpinanMonitoringService $monitoring,
     ) {}
-
-    /**
-     * Halaman Laporan Ma'had untuk Pimpinan (monitoring, hanya lihat).
-     */
-    public function index(Request $request): View
-    {
-        $this->pastikanPimpinan($request);
-
-        $filter = [
-            'jenis' => trim((string) $request->query('jenis', '')),
-            'periode' => trim((string) $request->query('periode', '')),
-            'lantai' => trim((string) $request->query('lantai', '')),
-            'sumber' => trim((string) $request->query('sumber', '')),
-            'status' => trim((string) $request->query('status', '')),
-            'cari' => trim((string) $request->query('cari', '')),
-        ];
-
-        // Rekap otomatis sistem dipastikan tercatat untuk periode terpilih.
-        $this->register->pastikanRekapSistem($filter['periode']);
-
-        return view('pimpinan.laporan_mahad', [
-            'laporan' => $this->laporanMahad->kategoriSistem(),
-            'daftar' => $this->register->daftar($filter),
-            'filter' => $filter,
-            'opsiPeriode' => $this->laporanMahad->opsiPeriode(),
-            'opsiJenis' => collect(LaporanRegisterService::JUDUL)
-                ->map(fn (string $judul, string $jenis): array => ['value' => $jenis, 'label' => $judul])
-                ->values()
-                ->all(),
-            'opsiLantai' => $this->monitoring->opsiLantai(),
-            'opsiStatus' => [
-                ['value' => 'draft', 'label' => 'Draft'],
-                ['value' => 'diterbitkan', 'label' => 'Diterbitkan'],
-                ['value' => 'diarsipkan', 'label' => 'Diarsipkan'],
-            ],
-            'opsiSumber' => [
-                ['value' => 'sistem', 'label' => 'Rekap Sistem'],
-                ['value' => 'musyrifah', 'label' => 'Musyrifah'],
-            ],
-        ]);
-    }
 
     public function penghuni(Request $request): View
     {
@@ -133,7 +90,7 @@ class PimpinanLaporanMahadController extends Controller
     }
 
     /**
-     * Menampilkan satu laporan dalam mode monitoring (tanpa aksi ubah data).
+     * Menampilkan satu laporan untuk Pimpinan (hanya lihat, tanpa aksi ubah data).
      */
     private function tampilkan(string $jenis, Request $request): View
     {
@@ -143,18 +100,19 @@ class PimpinanLaporanMahadController extends Controller
         $periode = $this->laporanMahad->normalisasiPeriode($request->query('periode'));
         $keyword = trim((string) $request->query('cari', ''));
 
+        // Rekap otomatis sistem dipastikan tercatat untuk periode terpilih.
+        $this->register->pastikanRekapSistem($periode);
+
         return view('pimpinan.laporan_detail', [
             'laporan' => $this->laporanMahad->laporan($jenis, $periode, $keyword),
             'keyword' => $keyword,
             'opsiPeriode' => $this->laporanMahad->opsiPeriode(),
             'filterAction' => route($this->namaRoute($jenis)),
-            'backUrl' => route('pimpinan.laporan-mahad'),
             'unduhUrl' => route('pimpinan.laporan.unduh', [
                 'jenis' => $jenis,
                 'periode' => $periode,
                 'cari' => $keyword,
             ]),
-            'modeMonitoring' => true,
         ]);
     }
 

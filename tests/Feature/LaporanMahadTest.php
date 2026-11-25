@@ -370,19 +370,19 @@ class LaporanMahadTest extends TestCase
             ->assertNotFound();
     }
 
-    public function test_pimpinan_can_view_laporan_monitoring_index(): void
+    public function test_pimpinan_has_no_laporan_summary_page(): void
     {
         $pimpinan = User::factory()->create(['role' => 'pimpinan']);
 
-        $response = $this->actingAs($pimpinan)->get('/pimpinan/laporan-mahad');
+        $this->actingAs($pimpinan)
+            ->get('/pimpinan/laporan-mahad')
+            ->assertNotFound();
 
-        $response->assertOk();
-        $response->assertSee('Mode Monitoring');
-        $response->assertSee('Laporan Penghuni');
-        $response->assertSee('Laporan Kamar');
-        $response->assertSee('Laporan Kehadiran');
-        $response->assertSee('Laporan Pembayaran');
-        $response->assertSee('Laporan Pendaftaran');
+        $this->actingAs($pimpinan)
+            ->get('/pimpinan/laporan-penghuni')
+            ->assertOk()
+            ->assertSee('Laporan Penghuni')
+            ->assertDontSee('Register Laporan');
     }
 
     public function test_pimpinan_can_view_all_monitoring_reports(): void
@@ -438,14 +438,17 @@ class LaporanMahadTest extends TestCase
             ->assertDontSee('aria-label="Tanda tangan pimpinan"', false);
     }
 
-    public function test_pimpinan_report_detail_shows_monitoring_mode(): void
+    public function test_pimpinan_report_detail_shows_dashboard_breadcrumb_without_monitoring_badge(): void
     {
         $pimpinan = User::factory()->create(['role' => 'pimpinan']);
 
         $this->actingAs($pimpinan)
             ->get('/pimpinan/laporan-kamar?periode='.$this->periode())
             ->assertOk()
-            ->assertSee('Mode Monitoring · Hanya Lihat');
+            ->assertSee('aria-label="Breadcrumb"', false)
+            ->assertSee(route('pimpinan.dashboard'), false)
+            ->assertSee('Laporan Data Kamar')
+            ->assertDontSee('Mode Monitoring');
     }
 
     public function test_pimpinan_can_download_monitoring_report(): void
@@ -464,7 +467,7 @@ class LaporanMahadTest extends TestCase
         $mahasiswa = User::factory()->create(['role' => 'mahasiswa']);
 
         $this->actingAs($mahasiswa)->get('/musyrifah/laporan')->assertForbidden();
-        $this->actingAs($mahasiswa)->get('/pimpinan/laporan-mahad')->assertForbidden();
+        $this->actingAs($mahasiswa)->get('/pimpinan/laporan-penghuni')->assertForbidden();
         $this->actingAs($mahasiswa)->get('/pimpinan/laporan-kamar')->assertForbidden();
     }
 

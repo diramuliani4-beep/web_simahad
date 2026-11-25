@@ -52,20 +52,15 @@ class MenuPeran
 
             'pimpinan' => [
                 self::item('Dashboard', 'pimpinan.dashboard', ['pimpinan.dashboard'], 'dashboard'),
-                self::grup('Monitoring', 'monitoring', [
-                    self::item('Monitoring Mahasiswa', 'pimpinan.monitoring.mahasiswa', ['pimpinan.monitoring.mahasiswa*'], 'mahasiswa'),
-                    self::item('Monitoring Kamar', 'pimpinan.monitoring.kamar', ['pimpinan.monitoring.kamar*'], 'kamar'),
-                    self::item('Monitoring Pembayaran', 'pimpinan.monitoring.pembayaran', ['pimpinan.monitoring.pembayaran*'], 'pembayaran'),
-                    self::item('Monitoring Pembelajaran', 'pimpinan.monitoring.pembelajaran', ['pimpinan.monitoring.pembelajaran*'], 'pembelajaran'),
-                    self::item('Monitoring Perizinan', 'pimpinan.monitoring.perizinan', ['pimpinan.monitoring.perizinan*'], 'surat'),
-                ], ['pimpinan.monitoring.*']),
                 self::grup('Laporan', 'laporan', [
                     self::item('Laporan Mahasiswa', 'pimpinan.laporan-penghuni', ['pimpinan.laporan-penghuni*'], 'penghuni'),
                     self::item('Laporan Kamar', 'pimpinan.laporan-kamar', ['pimpinan.laporan-kamar*'], 'kamar'),
+                    self::item('Laporan Kehadiran', 'pimpinan.laporan-kehadiran', ['pimpinan.laporan-kehadiran*'], 'absensi'),
                     self::item('Laporan Pembayaran', 'pimpinan.laporan-pembayaran', ['pimpinan.laporan-pembayaran*'], 'pembayaran'),
+                    self::item('Laporan Pendaftaran', 'pimpinan.laporan-pendaftaran', ['pimpinan.laporan-pendaftaran*'], 'pendaftaran'),
                     self::item('Laporan Pembelajaran', 'pimpinan.laporan-pembelajaran', ['pimpinan.laporan-pembelajaran*'], 'pembelajaran'),
                     self::item('Laporan Perizinan', 'pimpinan.laporan-perizinan', ['pimpinan.laporan-perizinan*'], 'surat'),
-                ], ['pimpinan.laporan-mahad', 'pimpinan.laporan.detail*', 'pimpinan.laporan*', 'pimpinan.audit*']),
+                ], ['pimpinan.laporan.detail*', 'pimpinan.laporan*', 'pimpinan.audit*']),
             ],
 
             'admin' => [
