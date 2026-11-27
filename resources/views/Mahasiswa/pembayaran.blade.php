@@ -713,6 +713,26 @@
 
 .bayar-page .langkah li::marker {color:var(--maroon);font-weight:800;}
 
+.bayar-page .surat-unggah {
+
+    display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px;
+
+}
+
+.bayar-page .surat-unggah input[type="file"] {
+
+    flex:1 1 220px;min-width:0;font-size:11px;color:var(--muted);
+
+}
+
+.bayar-page .surat-unggah .btn-aksi {white-space:nowrap;}
+
+.bayar-page .surat-detail {margin-top:8px;font-size:11.5px;color:var(--muted);}
+
+.bayar-page .surat-detail summary {cursor:pointer;color:var(--maroon);font-weight:750;}
+
+.bayar-page .surat-detail ul {margin:7px 0 0;padding-left:18px;line-height:1.7;}
+
 .bayar-page .mati {
 
     display:flex;flex-direction:column;align-items:center;
@@ -1293,7 +1313,7 @@
 
                                     <input type="date" id="rencana-{{ $angsuran['id'] }}" name="tanggal_rencana_bayar" value="{{ old('tanggal_rencana_bayar') }}" min="{{ now()->addDay()->toDateString() }}" max="{{ now()->addMonths(6)->toDateString() }}" required>
 
-                                    <div class="hint">Surat pengajuan PDF dibuat otomatis dan diperiksa Musyrifah. Persetujuan hanya memperbarui jadwal, status tetap belum Lunas.</div>
+                                    <div class="hint">PDF dibuat otomatis. Cetak A4, tanda tangani, bubuhkan materai, lalu unggah scan/foto pada riwayat pengajuan. Persetujuan hanya memperbarui jadwal, status tetap belum Lunas.</div>
 
                                 </div>
 
@@ -1382,25 +1402,139 @@
 
                         </div>
 
-                        @if (filled($pengajuan->catatan_musyrifah))
+                        @if ($pengajuan->menungguDokumen())
 
-                            <div class="riwayat-sub">Catatan Musyrifah: {{ $pengajuan->catatan_musyrifah }}</div>
+                            <div class="catatan-verifikasi" style="border-left-color:#93c5fd;background:#eff6ff;color:#1d4ed8;">
+
+                                Unduh PDF asli, cetak pada kertas A4, tanda tangani, bubuhkan materai, kemudian unggah scan/foto dokumen di bawah.
+
+                            </div>
 
                         @endif
 
-                        <a class="bukti-link" href="{{ route('pembayaran.keterlambatan.surat', $pengajuan->id) }}" target="_blank" rel="noopener">
+                        @if (filled($pengajuan->catatan_musyrifah))
 
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <div class="catatan-verifikasi" style="border-left-color:#f0bdc8;background:#fff3f5;color:#8f1935;">
 
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                Alasan/catatan Musyrifah: {{ $pengajuan->catatan_musyrifah }}
 
-                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </div>
 
-                            </svg>
+                        @endif
 
-                            Lihat Surat PDF
+                        <div class="aksi-baris">
 
-                        </a>
+                            <a class="bukti-link" href="{{ route('pembayaran.keterlambatan.surat', $pengajuan->id) }}" target="_blank" rel="noopener">
+
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+
+                                </svg>
+
+                                Unduh Surat Pernyataan
+
+                            </a>
+
+                            @if ($pengajuan->dokumenTerakhir)
+
+                                <a class="bukti-link" href="{{ route('pembayaran.keterlambatan.dokumen.lihat', [$pengajuan->id, $pengajuan->dokumenTerakhir->id]) }}" target="_blank" rel="noopener">
+
+                                    Lihat Dokumen Ttd &amp; Materai (Versi {{ $pengajuan->dokumenTerakhir->versi }})
+
+                                </a>
+
+                            @endif
+
+                        </div>
+
+                        @if ($pengajuan->bisaUnggahDokumen())
+
+                            <form class="surat-unggah" method="POST" action="{{ route('pembayaran.keterlambatan.dokumen', $pengajuan->id) }}" enctype="multipart/form-data">
+
+                                @csrf
+
+                                <input type="file" name="dokumen" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" required aria-label="Unggah dokumen surat untuk {{ $pengajuan->nomor_surat }}">
+
+                                <button type="submit" class="btn-aksi">
+
+                                    {{ $pengajuan->ditolak() || $pengajuan->dokumens->isNotEmpty() ? 'Unggah Ulang Dokumen' : 'Unggah Dokumen' }}
+
+                                </button>
+
+                            </form>
+
+                            <div class="riwayat-sub">PDF, JPG, JPEG, atau PNG, maksimal 5 MB. Unggahan baru menjadi versi berikutnya pada pengajuan yang sama.</div>
+
+                        @endif
+
+                        @if ($pengajuan->dokumens->isNotEmpty())
+
+                            <details class="surat-detail">
+
+                                <summary>Riwayat dokumen ({{ $pengajuan->dokumens->count() }} versi)</summary>
+
+                                <ul>
+
+                                    @foreach ($pengajuan->dokumens as $dokumen)
+
+                                        <li>
+
+                                            <a href="{{ route('pembayaran.keterlambatan.dokumen.lihat', [$pengajuan->id, $dokumen->id]) }}" target="_blank" rel="noopener">Versi {{ $dokumen->versi }} &middot; {{ $dokumen->nama_asli }}</a>
+
+                                            &middot; {{ number_format($dokumen->ukuran / 1024, 0, ',', '.') }} KB
+
+                                            &middot; {{ $dokumen->created_at?->locale('id')->translatedFormat('d F Y, H:i') }}
+
+                                        </li>
+
+                                    @endforeach
+
+                                </ul>
+
+                            </details>
+
+                        @endif
+
+                        @if ($pengajuan->riwayats->isNotEmpty())
+
+                            <details class="surat-detail">
+
+                                <summary>Riwayat status pengajuan</summary>
+
+                                <ul>
+
+                                    @foreach ($pengajuan->riwayats as $riwayat)
+
+                                        <li>
+
+                                            <strong>{{ \App\Models\PengajuanKeterlambatanPembayaran::labelStatus($riwayat->status_sesudah) }}</strong>
+
+                                            &middot; {{ $riwayat->created_at?->locale('id')->translatedFormat('d F Y, H:i') }}
+
+                                            @if ($riwayat->pengubah)
+
+                                                &middot; {{ $riwayat->pengubah->name }}
+
+                                            @endif
+
+                                            @if (filled($riwayat->catatan))
+
+                                                <br>{{ $riwayat->catatan }}
+
+                                            @endif
+
+                                        </li>
+
+                                    @endforeach
+
+                                </ul>
+
+                            </details>
+
+                        @endif
 
                     </div>
 
@@ -1411,6 +1545,30 @@
                 @endforelse
 
             </div>
+
+        </div>
+
+        <div class="panel" style="margin-top:14px;">
+
+            <h2>Alur Surat Pernyataan Pembayaran Ma'had</h2>
+
+            <ol class="langkah">
+
+                <li>Ajukan keterlambatan melalui tagihan yang belum lunas dan isi alasan serta tanggal rencana pembayaran.</li>
+
+                <li>Unduh <strong>Surat Pernyataan</strong> pada riwayat pengajuan. Nama, NIM, program studi, fakultas, nomor HP, dan isi surat terisi otomatis.</li>
+
+                <li>Cetak PDF pada kertas <strong>A4</strong>, baca kembali isinya, lalu tanda tangani pada bagian yang tersedia.</li>
+
+                <li>Bubuhkan materai pada kolom yang disediakan dan pastikan tanda tangan serta materai terlihat jelas.</li>
+
+                <li>Scan atau foto surat, kemudian unggah sebagai PDF, JPG, JPEG, atau PNG maksimal 5 MB pada pengajuan yang sama.</li>
+
+                <li>Pantau status pada riwayat pengajuan. Jika ditolak, baca alasan Musyrifah, perbaiki dokumen, lalu unggah ulang tanpa membuat pengajuan baru.</li>
+
+            </ol>
+
+            <div class="riwayat-sub">Persetujuan surat hanya memperbarui jatuh tempo. Tagihan menjadi Lunas setelah penerimaan dana dikonfirmasi melalui prosedur pembayaran.</div>
 
         </div>
 

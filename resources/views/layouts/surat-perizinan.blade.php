@@ -1,12 +1,12 @@
 {{--
     SIMAHAD | Layout formulir Surat & Perizinan Mahasiswa.
     Mengikuti header + sidebar global lewat layouts.mahasiswa.
-    Kontrak untuk view anak tetap: title, judul, keterangan, konten.
+    Kontrak untuk view anak tetap: title, judul, keterangan, konten-form.
     Jangan menambahkan <html>, <body>, atau <x-panel.sidebar> di sini.
 --}}
 @extends('layouts.mahasiswa')
 
-@section('content')
+@push('styles')
 <style>
     .sp-perizinan-page {
         --maroon: #800b22;
@@ -19,7 +19,9 @@
         --text: #111827;
         width: 100%;
         min-width: 0;
+        max-width: 100%;
         color: var(--text);
+        container: surat-perizinan / inline-size;
         font-family: 'Plus Jakarta Sans', 'Poppins', Arial, sans-serif;
         font-size: 13px;
         line-height: 1.6;
@@ -33,21 +35,11 @@
     .sp-perizinan-page input,
     .sp-perizinan-page select,
     .sp-perizinan-page textarea { font: inherit; }
-    .sp-perizinan-page .sp-wrap { max-width: 1100px; margin: 0 auto; padding: 6px 0 32px; }
+    .sp-perizinan-page .sp-wrap { width: 100%; max-width: 1280px; margin: 0 auto; padding: 8px 0 40px; }
     .sp-perizinan-page .sp-head { padding-bottom: 19px; border-bottom: 1px solid #e8cfd6; }
-    .sp-perizinan-page .sp-head h1 { font-size: clamp(22px, 2.5vw, 27px); }
-    .sp-perizinan-page .sp-head p { font-size: 12.5px; }
     .sp-perizinan-page .sp-breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin-bottom: 11px; color: #93858c; font-size: 12px; }
     .sp-perizinan-page .sp-breadcrumb a { color: var(--maroon); font-weight: 600; }
     .sp-perizinan-page .sp-breadcrumb a:hover { text-decoration: underline; }
-    @container (max-width: 600px) { .sp-perizinan-page .sp-wrap { padding: 0 0 24px; } }
-    @media (max-width: 600px) { .sp-perizinan-page .sp-wrap { padding: 0 0 24px; } }
-
-.sp-perizinan-page .sp-wrap {
-        max-width: 1080px;
-        margin: 0 auto;
-        padding: 26px 20px 60px;
-}
 
 .sp-perizinan-page .sp-head {
         margin-bottom: 22px;
@@ -68,10 +60,15 @@
 }
 
 .sp-perizinan-page .sp-alert {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
         margin-bottom: 18px;
         padding: 12px 16px;
+        border: 1px solid;
         border-radius: 10px;
         font-size: 13.5px;
+        overflow-wrap: anywhere;
         line-height: 1.55;
 }
 
@@ -96,7 +93,7 @@
         flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
-        gap: 14px;
+        gap: 14px 20px;
         margin-bottom: 22px;
         padding: 18px 22px;
         border-radius: 16px;
@@ -106,10 +103,12 @@
         box-shadow: 0 4px 12px rgba(107, 13, 27, .22);
 }
 
+.sp-perizinan-page .sp-kuota > div:first-child { min-width: 0; flex: 1 1 320px; }
 .sp-perizinan-page .sp-kuota__judul {
         display: inline-flex;
         align-items: center;
-        gap: 9px;
+        flex-wrap: wrap;
+        gap: 7px 9px;
         font-size: 16px;
         font-weight: 700;
         color: var(--gold-soft);
@@ -123,6 +122,7 @@
 
 .sp-perizinan-page .sp-kuota__angka {
         display: flex;
+        flex: 0 0 auto;
         flex-direction: column;
         align-items: flex-end;
         gap: 2px;
@@ -140,31 +140,40 @@
 }
 
 .sp-perizinan-page .sp-card {
-        margin-bottom: 22px;
-        padding: 24px;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        margin-bottom: 24px;
+        padding: 26px;
         border: 1px solid var(--border);
         border-radius: 16px;
         background: #fff;
         box-shadow: 0 2px 8px rgba(107, 13, 27, .06);
-}
+    }
 
 .sp-perizinan-page .sp-card h2 {
-        margin-bottom: 16px;
-        font-size: 17px;
+        margin-bottom: 20px;
+        font-size: 18px;
         font-weight: 800;
+        line-height: 1.4;
         color: var(--maroon);
 }
 
 .sp-perizinan-page .sp-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 16px;
+        align-items: start;
+        gap: 22px 24px;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
 }
 
 .sp-perizinan-page .sp-field {
         display: flex;
         flex-direction: column;
-        gap: 7px;
+        gap: 8px;
+        min-width: 0;
 }
 
 .sp-perizinan-page .sp-field--full {
@@ -172,8 +181,10 @@
 }
 
 .sp-perizinan-page .sp-field label {
-        font-size: 13px;
+        display: block;
+        font-size: 14px;
         font-weight: 600;
+        line-height: 1.45;
         color: #374151;
 }
 
@@ -181,16 +192,40 @@
         color: #b00020;
 }
 
-.sp-perizinan-page .sp-field input,
-.sp-perizinan-page .sp-field select,
-.sp-perizinan-page .sp-field textarea {
+.sp-perizinan-page .sp-field :is(input, select, textarea) {
+        display: block;
         width: 100%;
-        padding: 11px 14px;
+        max-width: 100%;
+        min-width: 0;
+        min-height: 48px;
+        padding: 12px 14px;
         border: 1px solid #cdb4ba;
         border-radius: 10px;
-        font-size: 14px;
+        font-size: 15px;
+        line-height: 1.5;
         background: #fff;
         color: var(--text);
+}
+
+.sp-perizinan-page .sp-field input[type="file"] {
+        min-height: 52px;
+        padding: 10px 12px;
+        background: #fcf9fa;
+        font-size: 14px;
+        cursor: pointer;
+}
+
+.sp-perizinan-page .sp-field input[type="file"]::file-selector-button {
+        margin-right: 10px;
+        padding: 8px 12px;
+        border: 0;
+        border-radius: 7px;
+        background: var(--tint);
+        color: var(--maroon);
+        font: inherit;
+        font-size: 12.5px;
+        font-weight: 700;
+        cursor: pointer;
 }
 
 .sp-perizinan-page .sp-field input:focus,
@@ -202,13 +237,15 @@
 }
 
 .sp-perizinan-page .sp-field textarea {
-        min-height: 96px;
+        min-height: 144px;
         resize: vertical;
 }
 
 .sp-perizinan-page .sp-hint {
-        font-size: 12px;
+        font-size: 12.5px;
+        line-height: 1.55;
         color: var(--muted);
+        overflow-wrap: anywhere;
 }
 
 .sp-perizinan-page .sp-error {
@@ -220,18 +257,24 @@
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        gap: 12px;
-        margin-top: 20px;
+        gap: 10px 12px;
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid #f0e2e6;
 }
 
 .sp-perizinan-page .sp-btn {
         display: inline-flex;
+        justify-content: center;
         align-items: center;
         gap: 8px;
-        padding: 11px 20px;
+        min-height: 48px;
+        padding: 12px 22px;
+        line-height: 1.4;
+        text-align: center;
         border: 1px solid var(--maroon);
         border-radius: 10px;
-        font-size: 14px;
+        font-size: 14.5px;
         font-weight: 700;
         cursor: pointer;
         background: #fff;
@@ -260,15 +303,20 @@
 }
 
 .sp-perizinan-page .sp-table-wrap {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
         overflow-x: auto;
+        overscroll-behavior-inline: contain;
         border: 1px solid var(--border);
         border-radius: 14px;
 }
 
 .sp-perizinan-page .sp-table {
         width: 100%;
-        min-width: 720px;
+        min-width: 760px;
         border-collapse: collapse;
+        table-layout: auto;
 }
 
 .sp-perizinan-page .sp-table thead {
@@ -278,8 +326,10 @@
 
 .sp-perizinan-page .sp-table th,
 .sp-perizinan-page .sp-table td {
-        padding: 11px 13px;
+        padding: 14px 16px;
         font-size: 13.5px;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
         text-align: left;
         border-bottom: 1px solid #eddde1;
         vertical-align: middle;
@@ -300,9 +350,9 @@
 
 .sp-perizinan-page .sp-badge {
         display: inline-block;
-        padding: 4px 11px;
+        padding: 5px 11px;
         border-radius: 999px;
-        font-size: 12px;
+        font-size: 12.5px;
         font-weight: 700;
         white-space: nowrap;
 }
@@ -342,17 +392,39 @@
         flex-wrap: wrap;
         align-items: center;
         gap: 8px;
+        min-width: 0;
+        max-width: 100%;
 }
 
 .sp-perizinan-page .sp-inline-form input[type="file"] {
+        width: auto;
+        max-width: 100%;
+        min-width: 0;
         font-size: 12px;
-        max-width: 210px;
+}
+
+.sp-perizinan-page .sp-inline-form input[type="file"]::file-selector-button {
+        margin-right: 8px;
+        padding: 6px 9px;
+        border: 0;
+        border-radius: 6px;
+        background: var(--tint);
+        color: var(--maroon);
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
 }
 
 .sp-perizinan-page .sp-mini {
-        padding: 7px 12px;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 40px;
+        padding: 8px 13px;
+        line-height: 1.4;
+        text-align: center;
         border-radius: 8px;
-        font-size: 12.5px;
+        font-size: 13px;
         font-weight: 700;
         border: 1px solid var(--maroon);
         background: #fff;
@@ -372,36 +444,68 @@
         color: #a01c2c;
 }
 
-@media (max-width: 760px) {
-        .sp-perizinan-page .sp-grid {
-            grid-template-columns: 1fr;
+    @container surat-perizinan (max-width: 760px) {
+        .sp-perizinan-page .sp-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+        .sp-perizinan-page .sp-card { padding: 20px; }
+        .sp-perizinan-page .sp-alert { padding: 11px 14px; font-size: 13px; }
+        .sp-perizinan-page .sp-kuota__angka { align-items: flex-start; }
     }
 
-        .sp-perizinan-page .sp-kuota__angka {
-            align-items: flex-start;
+    @container surat-perizinan (max-width: 700px) {
+        .sp-perizinan-page .sp-head h1 { font-size: 23px; }
+        .sp-perizinan-page .sp-head p { font-size: 13px; }
+        .sp-perizinan-page .sp-card h2 { font-size: 16px; }
+        .sp-perizinan-page .sp-table-wrap { overflow: visible; }
+        .sp-perizinan-page .sp-table, .sp-perizinan-page .sp-table tbody { display: block; width: 100%; min-width: 0; }
+        .sp-perizinan-page .sp-table thead { display: none; }
+        .sp-perizinan-page .sp-table tbody tr:not(.sp-empty-row) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 14px; margin: 12px; padding: 14px; border: 1px solid #eadce0; border-radius: 11px; background: #fff !important; }
+        .sp-perizinan-page .sp-table tbody tr:not(.sp-empty-row):hover { background: #fff !important; }
+        .sp-perizinan-page .sp-table tbody tr:not(.sp-empty-row) td { display: block; width: auto; min-width: 0; padding: 0; border: 0; }
+        .sp-perizinan-page .sp-table tbody tr:not(.sp-empty-row) td::before { display: block; margin-bottom: 4px; color: #93858c; font-size: 10.5px; font-weight: 700; content: attr(data-label); }
+        .sp-perizinan-page .sp-table tbody tr.sp-empty-row { display: block; }
+        .sp-perizinan-page .sp-table tbody tr.sp-empty-row td::before { content: none; }
+        .sp-perizinan-page .sp-table--kegiatan tbody td:last-child,
+        .sp-perizinan-page .sp-table--pulang tbody td:nth-child(2),
+        .sp-perizinan-page .sp-table--pulang tbody td:nth-child(5),
+        .sp-perizinan-page .sp-table--pulang tbody td:last-child,
+        .sp-perizinan-page .sp-table--semester tbody td:nth-child(2),
+        .sp-perizinan-page .sp-table--semester tbody td:nth-child(3),
+        .sp-perizinan-page .sp-table--semester tbody td:nth-child(4),
+        .sp-perizinan-page .sp-table--semester tbody td:nth-child(5),
+        .sp-perizinan-page .sp-table--semester tbody td:last-child { grid-column: 1 / -1; }
+        .sp-perizinan-page .sp-table--semester .sp-inline-form input[type="file"] { flex: 1 1 100%; }
     }
 
-        .sp-perizinan-page .sp-wrap {
-            padding: 20px 14px 44px;
+    @container surat-perizinan (max-width: 480px) {
+        .sp-perizinan-page .sp-wrap { padding: 4px 0 28px; }
+        .sp-perizinan-page .sp-head { margin-bottom: 18px; padding-bottom: 16px; }
+        .sp-perizinan-page .sp-card { padding: 17px; }
+        .sp-perizinan-page .sp-card h2 { margin-bottom: 16px; }
+        .sp-perizinan-page .sp-field :is(input, select, textarea) { padding-right: 12px; padding-left: 12px; font-size: 16px; }
+        .sp-perizinan-page .sp-field input[type="file"] { padding: 9px; font-size: 13px; }
+        .sp-perizinan-page .sp-field input[type="file"]::file-selector-button { margin-right: 7px; padding: 7px 9px; }
+        .sp-perizinan-page .sp-kuota { padding: 16px; }
+        .sp-perizinan-page .sp-kuota__judul { font-size: 14.5px; }
+        .sp-perizinan-page .sp-kuota__angka span { font-size: 22px; }
+        .sp-perizinan-page .sp-actions > * { flex: 1 1 0; }
+        .sp-perizinan-page .sp-table tbody tr:not(.sp-empty-row) { grid-template-columns: minmax(0, 1fr); margin: 10px; padding: 13px; }
+        .sp-perizinan-page .sp-table tbody tr:not(.sp-empty-row) td { grid-column: 1 / -1; }
+        .sp-perizinan-page .sp-inline-form input[type="file"] { flex: 1 1 100%; }
+        .sp-perizinan-page .sp-inline-form .sp-mini { flex: 1 1 0; }
     }
-}
 
-@media print {
+    @media print {
         .sp-perizinan-page .sp-actions {
             display: none !important;
-    }
+        }
 }
 
-    /* Pastikan ukuran konten mengikuti panel Mahasiswa, bukan layout mandiri lama. */
-    .sp-perizinan-page .sp-wrap { width: 100%; max-width: 1100px; margin: 0 auto; padding: 6px 0 32px; }
-    .sp-perizinan-page .sp-card { border-radius: 13px; }
+    /* Konten mengikuti panel Mahasiswa; layout mandiri lama tidak dipakai lagi. */
     .sp-perizinan-page :is(input, select, textarea, button, a):focus-visible { outline: 2px solid rgba(128,11,34,.7); outline-offset: 2px; }
-    @media (max-width: 760px) {
-        .sp-perizinan-page .sp-wrap { padding: 0 0 26px; }
-        .sp-perizinan-page .sp-card { padding: 16px; }
-    }
 </style>
+@endpush
 
+@section('content')
 <div class="sp-perizinan-page">
     <div class="sp-wrap">
         <header class="sp-head">
@@ -428,11 +532,8 @@
             </div>
         @endif
 
-        @yield('konten')
+        @yield('konten-form')
     </div>
 </div>
 
-{{-- Slot lama tetap tersedia untuk view surat lain yang memakai @push. --}}
-@stack('styles')
-@stack('scripts')
 @endsection

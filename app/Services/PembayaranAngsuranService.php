@@ -268,7 +268,7 @@ class PembayaranAngsuranService
 
             // Tahap pertama wajib minimal Rp1.000.000 agar aturan tetap terjaga
             // meski jadwal dibuat sebelum aturan ini berlaku.
-            if ($angsuranKe === 1 && (float) $jadwal->nominal < AngsuranPembayaran::ANGSURAN_PERTAMA_MINIMAL) {
+            if ($angsuranKe === 1 && $jadwal->nominal < AngsuranPembayaran::ANGSURAN_PERTAMA_MINIMAL) {
                 $jadwal->update(['nominal' => AngsuranPembayaran::ANGSURAN_PERTAMA_MINIMAL]);
             }
         }
@@ -309,7 +309,7 @@ class PembayaranAngsuranService
                 continue;
             }
 
-            $nominal = (float) ($data['nominal'] ?? 0);
+            $nominal = (int) ($data['nominal'] ?? 0);
 
             if ($angsuranKe === 1 && $nominal < AngsuranPembayaran::ANGSURAN_PERTAMA_MINIMAL) {
                 throw ValidationException::withMessages([
@@ -379,7 +379,7 @@ class PembayaranAngsuranService
                 });
 
             $jumlah += $query->clone()->update([
-                'nominal' => (float) $baris->nominal,
+                'nominal' => (int) $baris->nominal,
                 'nama_tagihan' => $baris->label(),
                 'reminder_terakhir_pada' => null,
                 'updated_at' => now(),
@@ -426,7 +426,7 @@ class PembayaranAngsuranService
                 [
                     'kode_transaksi' => $this->kodeTransaksi($user, $baris->angsuran_ke, $pengaturan->periode),
                     'nama_tagihan' => $baris->label(),
-                    'nominal' => (float) $baris->nominal,
+                    'nominal' => (int) $baris->nominal,
                     'jatuh_tempo' => $baris->jatuh_tempo?->toDateString(),
                     'kategori_biaya' => $kategori,
                     'metode_pembayaran' => 'Transfer '.PengaturanPembayaran::REKENING_BANK,
@@ -559,6 +559,11 @@ class PembayaranAngsuranService
         return $this->queryPembayaran($pengelola)->whereKey($pembayaran->getKey())->exists();
     }
 
+    public function bolehAksesPengajuan(User $pengelola, PengajuanKeterlambatanPembayaran $pengajuan): bool
+    {
+        return $this->queryPengajuan($pengelola)->whereKey($pengajuan->getKey())->exists();
+    }
+
     /**
      * Ringkasan pembayaran satu mahasiswa untuk halaman pembayaran.
      *
@@ -575,7 +580,12 @@ class PembayaranAngsuranService
         $kategori = $this->kategoriMahasiswa($user);
         $pengajuan = PengajuanKeterlambatanPembayaran::query()
             ->where('user_id', $user->id)
-            ->with('pembayaran')
+            ->with([
+                'pembayaran',
+                'dokumenTerakhir',
+                'dokumens' => fn ($query) => $query->orderBy('versi'),
+                'riwayats' => fn ($query) => $query->with('pengubah')->orderBy('id'),
+            ])
             ->latest('id')
             ->get();
         $dibuka = (bool) ($pengaturan?->is_aktif && $pengaturan?->sudahDibuka());
@@ -693,7 +703,9 @@ class PembayaranAngsuranService
             'dapat_unggah' => $tahapDibuka && $this->bolehUnggahAtauGantiBukti($pembayaran),
             'dapat_ajukan' => $periodeAktif && $pembayaran->dapatDiajukanKeterlambatan(),
             'terlambat' => $pembayaran->terlambat(),
-            'pengajuan_menunggu' => $pengajuanTerakhir?->masihMenunggu() ?? false,
+            'pengajuan_menunggu' => $pengajuanTerakhir
+                ? ($pengajuanTerakhir->masihMenunggu() || $pengajuanTerakhir->perluUnggahDokumen())
+                : false,
             'pengajuan_terakhir' => $pengajuanTerakhir,
         ];
     }
@@ -970,7 +982,7 @@ class PembayaranAngsuranService
     /**
      * Sesuaikan nominal satu tagihan untuk kategori mahasiswa tertentu.
      */
-    public function perbaruiNominal(Pembayaran $tagihan, float $nominal, User $petugas): Pembayaran
+    public function perbaruiNominal(Pembayaran $tagihan, int $nominal, User $petugas): Pembayaran
     {
         return DB::transaction(function () use ($tagihan, $nominal): Pembayaran {
             $tagihan = Pembayaran::query()->whereKey($tagihan->id)->lockForUpdate()->firstOrFail();
@@ -1021,41 +1033,56 @@ class PembayaranAngsuranService
         string $alasan,
         string $tanggalRencanaBayar
     ): PengajuanKeterlambatanPembayaran {
-        if ($tagihan->user_id !== $user->id) {
-            throw ValidationException::withMessages([
-                'alasan' => 'Tagihan ini bukan milik Anda.',
+        $pengajuan = DB::transaction(function () use ($user, $tagihan, $alasan, $tanggalRencanaBayar): PengajuanKeterlambatanPembayaran {
+            $tagihan = Pembayaran::query()->whereKey($tagihan->getKey())->lockForUpdate()->firstOrFail();
+
+            if ($tagihan->user_id !== $user->id) {
+                throw ValidationException::withMessages([
+                    'alasan' => 'Tagihan ini bukan milik Anda.',
+                ]);
+            }
+
+            $this->pastikanPeriodeAktif($tagihan);
+
+            if ($tagihan->sudahLunas()) {
+                throw ValidationException::withMessages([
+                    'alasan' => 'Tagihan ini sudah Lunas sehingga tidak perlu diajukan keterlambatan.',
+                ]);
+            }
+
+            if ($tagihan->pengajuanKeterlambatan()->menunggu()->exists()
+                || $tagihan->pengajuanKeterlambatan()->menungguDokumen()->exists()) {
+                throw ValidationException::withMessages([
+                    'alasan' => 'Masih ada pengajuan keterlambatan yang menunggu pemeriksaan Musyrifah.',
+                ]);
+            }
+
+            $nomorSurat = sprintf(
+                'SKP/%s/%04d-%02d/MAHAD',
+                now()->format('Ymd'),
+                $tagihan->id,
+                $tagihan->pengajuanKeterlambatan()->count() + 1
+            );
+
+            $pengajuan = PengajuanKeterlambatanPembayaran::query()->create([
+                'user_id' => $user->id,
+                'pembayaran_id' => $tagihan->id,
+                'nomor_surat' => $nomorSurat,
+                'alasan' => $alasan,
+                'tanggal_rencana_bayar' => $tanggalRencanaBayar,
+                'status' => PengajuanKeterlambatanPembayaran::STATUS_MENUNGGU_DOKUMEN,
+                'dokumen_wajib' => true,
             ]);
-        }
 
-        $this->pastikanPeriodeAktif($tagihan);
-
-        if ($tagihan->sudahLunas()) {
-            throw ValidationException::withMessages([
-                'alasan' => 'Tagihan ini sudah Lunas sehingga tidak perlu diajukan keterlambatan.',
+            $pengajuan->riwayats()->create([
+                'status_sebelum' => null,
+                'status_sesudah' => $pengajuan->status,
+                'catatan' => 'Pengajuan dibuat. Menunggu mahasiswa mengunggah surat yang telah ditandatangani dan dibubuhkan materai.',
+                'diubah_oleh' => $user->id,
             ]);
-        }
 
-        if ($tagihan->pengajuanKeterlambatan()->menunggu()->exists()) {
-            throw ValidationException::withMessages([
-                'alasan' => 'Masih ada pengajuan keterlambatan yang menunggu pemeriksaan Musyrifah.',
-            ]);
-        }
-
-        $nomorSurat = sprintf(
-            'SKP/%s/%04d-%02d/MAHAD',
-            now()->format('Ymd'),
-            $tagihan->id,
-            $tagihan->pengajuanKeterlambatan()->count() + 1
-        );
-
-        $pengajuan = PengajuanKeterlambatanPembayaran::query()->create([
-            'user_id' => $user->id,
-            'pembayaran_id' => $tagihan->id,
-            'nomor_surat' => $nomorSurat,
-            'alasan' => $alasan,
-            'tanggal_rencana_bayar' => $tanggalRencanaBayar,
-            'status' => PengajuanKeterlambatanPembayaran::STATUS_MENUNGGU,
-        ]);
+            return $pengajuan;
+        });
 
         $this->kirimNotifikasiMusyrifah(
             'Pengajuan keterlambatan '.$tagihan->labelTahap(),
@@ -1069,6 +1096,90 @@ class PembayaranAngsuranService
     }
 
     /**
+     * Simpan scan/foto surat sebagai versi baru pada pengajuan yang sama.
+     */
+    public function unggahDokumenKeterlambatan(
+        User $user,
+        PengajuanKeterlambatanPembayaran $pengajuan,
+        UploadedFile $berkas
+    ): PengajuanKeterlambatanPembayaran {
+        if ($pengajuan->user_id !== $user->id) {
+            throw ValidationException::withMessages([
+                'dokumen' => 'Pengajuan ini bukan milik Anda.',
+            ]);
+        }
+
+        $path = null;
+
+        try {
+            $hasil = DB::transaction(function () use ($user, $pengajuan, $berkas, &$path): PengajuanKeterlambatanPembayaran {
+                $pengajuan = PengajuanKeterlambatanPembayaran::query()
+                    ->whereKey($pengajuan->getKey())
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                if (! $pengajuan->bisaUnggahDokumen()) {
+                    throw ValidationException::withMessages([
+                        'dokumen' => 'Dokumen hanya dapat diunggah saat pengajuan menunggu unggahan atau setelah penolakan Musyrifah.',
+                    ]);
+                }
+
+                $versi = (int) $pengajuan->dokumens()->max('versi') + 1;
+                $path = $berkas->store('keterlambatan/dokumen/'.$pengajuan->id, 'local');
+
+                if (! is_string($path) || $path === '') {
+                    throw ValidationException::withMessages([
+                        'dokumen' => 'Gagal menyimpan dokumen surat. Silakan coba kembali.',
+                    ]);
+                }
+
+                $dokumen = $pengajuan->dokumens()->create([
+                    'diunggah_oleh' => $user->id,
+                    'path' => $path,
+                    'nama_asli' => Str::limit(basename($berkas->getClientOriginalName()), 250, ''),
+                    'mime_type' => $berkas->getMimeType() ?: 'application/octet-stream',
+                    'ukuran' => (int) $berkas->getSize(),
+                    'versi' => $versi,
+                ]);
+
+                $statusSebelum = $pengajuan->status;
+                $pengajuan->update([
+                    'status' => PengajuanKeterlambatanPembayaran::STATUS_MENUNGGU,
+                    'dokumen_wajib' => true,
+                    'catatan_musyrifah' => null,
+                    'diproses_oleh' => null,
+                    'diproses_pada' => null,
+                ]);
+
+                $pengajuan->riwayats()->create([
+                    'dokumen_id' => $dokumen->id,
+                    'status_sebelum' => $statusSebelum,
+                    'status_sesudah' => $pengajuan->status,
+                    'catatan' => 'Mahasiswa mengunggah dokumen surat versi '.$versi.'.',
+                    'diubah_oleh' => $user->id,
+                ]);
+
+                return $pengajuan->fresh();
+            });
+        } catch (Throwable $exception) {
+            if (filled($path)) {
+                Storage::disk('local')->delete($path);
+            }
+
+            throw $exception;
+        }
+
+        $this->kirimNotifikasiMusyrifah(
+            'Dokumen surat keterlambatan diunggah',
+            $user->name.' mengunggah dokumen surat untuk pengajuan '.$hasil->nomor_surat.'.',
+            'keterlambatan:dokumen:'.$hasil->id,
+            $user
+        );
+
+        return $hasil;
+    }
+
+    /**
      * Musyrifah menyetujui atau menolak pengajuan keterlambatan.
      */
     public function putuskanKeterlambatan(
@@ -1077,51 +1188,85 @@ class PembayaranAngsuranService
         bool $setuju,
         ?string $catatan = null
     ): PengajuanKeterlambatanPembayaran {
-        if (! $pengajuan->masihMenunggu()) {
-            throw ValidationException::withMessages([
-                'keputusan' => 'Pengajuan ini sudah diproses sebelumnya.',
+        $catatan = filled($catatan) ? trim((string) $catatan) : null;
+
+        $hasil = DB::transaction(function () use ($pengajuan, $petugas, $setuju, $catatan): PengajuanKeterlambatanPembayaran {
+            $pengajuan = PengajuanKeterlambatanPembayaran::query()
+                ->whereKey($pengajuan->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($pengajuan->menungguDokumen()) {
+                throw ValidationException::withMessages([
+                    'keputusan' => 'Dokumen surat yang ditandatangani dan dibubuhkan materai belum diunggah mahasiswa.',
+                ]);
+            }
+
+            if (! $pengajuan->masihMenunggu()) {
+                throw ValidationException::withMessages([
+                    'keputusan' => 'Pengajuan ini sudah diproses sebelumnya.',
+                ]);
+            }
+
+            if (! $setuju && ($catatan === null || mb_strlen($catatan) < 3)) {
+                throw ValidationException::withMessages([
+                    'catatan' => 'Alasan penolakan wajib diisi minimal 3 karakter.',
+                ]);
+            }
+
+            if (! $pengajuan->siapDiputuskan()) {
+                throw ValidationException::withMessages([
+                    'keputusan' => 'Dokumen surat yang ditandatangani dan dibubuhkan materai belum diunggah mahasiswa.',
+                ]);
+            }
+
+            $statusSebelum = $pengajuan->status;
+            $pengajuan->update([
+                'status' => $setuju
+                    ? PengajuanKeterlambatanPembayaran::STATUS_DISETUJUI
+                    : PengajuanKeterlambatanPembayaran::STATUS_DITOLAK,
+                'catatan_musyrifah' => $catatan,
+                'diproses_oleh' => $petugas->id,
+                'diproses_pada' => now(),
             ]);
-        }
 
-        if (! $setuju && blank($catatan)) {
-            throw ValidationException::withMessages([
-                'catatan' => 'Alasan penolakan wajib diisi.',
+            $pengajuan->riwayats()->create([
+                'dokumen_id' => $pengajuan->dokumenTerakhir?->id,
+                'status_sebelum' => $statusSebelum,
+                'status_sesudah' => $pengajuan->status,
+                'catatan' => $catatan ?? 'Pengajuan disetujui Musyrifah.',
+                'diubah_oleh' => $petugas->id,
             ]);
-        }
 
-        $pengajuan->update([
-            'status' => $setuju
-                ? PengajuanKeterlambatanPembayaran::STATUS_DISETUJUI
-                : PengajuanKeterlambatanPembayaran::STATUS_DITOLAK,
-            'catatan_musyrifah' => $catatan,
-            'diproses_oleh' => $petugas->id,
-            'diproses_pada' => now(),
-        ]);
+            $tagihan = $pengajuan->pembayaran;
 
-        $tagihan = $pengajuan->pembayaran;
+            // Persetujuan hanya memperbarui jadwal dan pengingat, bukan status Lunas.
+            if ($setuju && $tagihan) {
+                $tagihan->update([
+                    'jatuh_tempo' => $pengajuan->tanggal_rencana_bayar?->toDateString(),
+                    'reminder_terakhir_pada' => null,
+                ]);
+            }
 
-        // Persetujuan hanya memperbarui jadwal dan pengingat, bukan status Lunas.
-        if ($setuju && $tagihan) {
-            $tagihan->update([
-                'jatuh_tempo' => $pengajuan->tanggal_rencana_bayar?->toDateString(),
-                'reminder_terakhir_pada' => null,
-            ]);
-        }
+            return $pengajuan->fresh();
+        });
+
+        $tagihan = $hasil->pembayaran;
 
         Notifikasi::kirim(
-            $pengajuan->user_id,
+            $hasil->user_id,
             Notifikasi::TIPE_PEMBAYARAN,
             $setuju ? 'Pengajuan keterlambatan disetujui' : 'Pengajuan keterlambatan ditolak',
             $setuju
                 ? 'Jadwal pembayaran '.($tagihan?->labelTahap() ?? 'tagihan').' diperbarui menjadi '.
-                    $pengajuan->tanggalRencanaTeks().'. Status tagihan belum Lunas sampai dana dikonfirmasi Rektorat.'
+                    $hasil->tanggalRencanaTeks().'. Status tagihan belum Lunas sampai dana dikonfirmasi Rektorat.'
                 : 'Pengajuan keterlambatan '.($tagihan?->labelTahap() ?? 'tagihan').' ditolak. '.
-                    trim((string) $catatan),
+                    ($catatan ?? ''),
             route('pembayaran'),
-            'keterlambatan:'.$pengajuan->id
+            'keterlambatan:'.$hasil->id
         );
 
-        return $pengajuan->fresh();
+        return $hasil;
     }
 
     /**

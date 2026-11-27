@@ -18,12 +18,14 @@ class AngsuranPembayaran extends Model
 {
     public const JUMLAH_ANGSURAN = 3;
 
-    public const ANGSURAN_PERTAMA_MINIMAL = 1000000.0;
+    public const ANGSURAN_PERTAMA_MINIMAL = 1000000;
 
-    public const TOTAL_BIAYA_UMUM = 5000000.0;
+    public const TOTAL_BIAYA_UMUM = 5000000;
+
+    public const NOMINAL_MAKSIMUM = 9999999999999;
 
     /** Nominal bawaan angsuran 1, 2, dan 3 (total Rp5.000.000). */
-    public const NOMINAL_BAWAAN = [1 => 1000000.0, 2 => 2000000.0, 3 => 2000000.0];
+    public const NOMINAL_BAWAAN = [1 => 1000000, 2 => 2000000, 3 => 2000000];
 
     /** Hari jatuh tempo bawaan dihitung dari tanggal periode dibuka. */
     public const HARI_BAWAAN = [1 => 30, 2 => 90, 3 => 150];
@@ -48,7 +50,7 @@ class AngsuranPembayaran extends Model
     {
         return [
             'angsuran_ke' => 'integer',
-            'nominal' => 'decimal:2',
+            'nominal' => 'integer',
             'jatuh_tempo' => 'date',
             'tanggal_mulai' => 'date',
             'dibuka_pada' => 'datetime',

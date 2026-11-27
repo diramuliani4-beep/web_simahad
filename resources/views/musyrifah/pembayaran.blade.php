@@ -353,6 +353,31 @@
         padding: 6px 11px;
         font-size: 0.72rem;
     }
+    .mp .pengajuan-detail {
+        margin-top: 7px;
+        font-size: 0.72rem;
+        color: var(--muted);
+    }
+    .mp .pengajuan-detail summary {
+        cursor: pointer;
+        color: var(--maroon);
+        font-weight: 750;
+    }
+    .mp .pengajuan-detail ul {
+        margin: 6px 0 0;
+        padding-left: 18px;
+        line-height: 1.65;
+    }
+    .mp .pengajuan-peringatan {
+        margin-top: 7px;
+        padding: 8px 10px;
+        border-left: 3px solid #d97706;
+        border-radius: 7px;
+        background: #fffbeb;
+        color: #92400e;
+        font-size: 0.72rem;
+        line-height: 1.6;
+    }
     .mp .kosong {
         padding: 16px 4px;
         text-align: center;
@@ -1692,12 +1717,19 @@
                             </div>
                             <div class="field">
                                 <label for="jadwal-nominal-{{ $baris['angsuran_ke'] }}">Nominal (Rp)</label>
-                                <input type="number"
+                                <input type="text"
                                     id="jadwal-nominal-{{ $baris['angsuran_ke'] }}"
                                     name="angsuran[{{ $indeks }}][nominal]"
-                                    value="{{ (int) $baris['nominal'] }}"
-                                    min="{{ $baris['angsuran_ke'] === 1 ? 1000000 : 1 }}"
-                                    step="1000"
+                                    value="{{ number_format((int) $baris['nominal'], 0, ',', '.') }}"
+                                    inputmode="numeric"
+                                    autocomplete="off"
+                                    pattern="[0-9]+([.][0-9]{3})*"
+                                    maxlength="16"
+                                    data-nominal-rupiah
+                                    data-min="{{ $baris['angsuran_ke'] === 1 ? 1000000 : 1 }}"
+                                    data-max="{{ \App\Models\AngsuranPembayaran::NOMINAL_MAKSIMUM }}"
+                                    data-step="1"
+                                    aria-describedby="bantuanNominalJadwal"
                                     required>
                             </div>
                             <div class="field">
@@ -1728,8 +1760,8 @@
                             </div>
                         </div>
                     @endforeach
-                    <div class="hint">
-                        Angsuran pertama minimal Rp1.000.000. Total biaya umum Rp5.000.000 per tahun dan dapat berbeda sesuai kategori mahasiswa.
+                    <div class="hint" id="bantuanNominalJadwal">
+                        Nominal harus berupa bilangan bulat tanpa desimal; pemisah ribuan hanya untuk tampilan. Angsuran pertama minimal Rp1.000.000. Total biaya umum Rp5.000.000 per tahun dan dapat berbeda sesuai kategori mahasiswa.
                         Setiap tahap dibuka atau ditutup terpisah. Mahasiswa tetap melihat rentang waktu tahap yang belum dibuka.
                         Perubahan jadwal diterapkan pada tagihan yang belum dibayar; jatuh tempo hasil persetujuan surat keterlambatan tetap dipertahankan.
                     </div>
@@ -1776,15 +1808,58 @@
                         Rencana bayar <strong>{{ $item['tanggal_rencana'] }}</strong> &middot; {{ $item['alasan'] }}
                     </div>
                     @if (filled($item['catatan_musyrifah']))
-                        <div class="pengajuan-teks">Catatan: {{ $item['catatan_musyrifah'] }}</div>
+                        <div class="pengajuan-teks">Catatan/alasan penolakan: {{ $item['catatan_musyrifah'] }}</div>
+                    @endif
+                    @if ($item['dokumen_wajib'] && ! $item['dokumen_terakhir_url'])
+                        <div class="pengajuan-peringatan">Menunggu mahasiswa mengunggah scan/foto surat yang telah ditandatangani dan dibubuhkan materai.</div>
                     @endif
                     <div class="pengajuan-aksi">
-                        <a class="btn btn--garis" href="{{ $item['surat_url'] }}" target="_blank" rel="noopener">Surat PDF</a>
-                        @if ($item['menunggu'])
+                        <a class="btn btn--garis" href="{{ $item['surat_url'] }}" target="_blank" rel="noopener">Lihat Surat Pernyataan</a>
+                        @if ($item['dokumen_terakhir_url'])
+                            <a class="btn btn--garis" href="{{ $item['dokumen_terakhir_url'] }}" target="_blank" rel="noopener">Lihat Surat Bertanda Tangan (Versi {{ $item['dokumen_terakhir_versi'] }})</a>
+                        @endif
+                        @if ($item['menunggu'] && $item['siap_diputuskan'])
                             <button type="button" class="btn btn--hijau" data-putuskan="setuju" data-id="{{ $item['id'] }}">Setujui</button>
                             <button type="button" class="btn btn--merah" data-putuskan="tolak" data-id="{{ $item['id'] }}">Tolak</button>
                         @endif
                     </div>
+                    @if (count($item['dokumens']) > 0)
+                        <details class="pengajuan-detail">
+                            <summary>Riwayat dokumen ({{ count($item['dokumens']) }} versi)</summary>
+                            <ul>
+                                @foreach ($item['dokumens'] as $dokumen)
+                                    <li>
+                                        <a href="{{ $dokumen['url'] }}" target="_blank" rel="noopener">Versi {{ $dokumen['versi'] }} &middot; {{ $dokumen['nama_asli'] }}</a>
+                                        &middot; {{ $dokumen['ukuran_kb'] }} KB
+                                        @if ($dokumen['diunggah_pada'])
+                                            &middot; {{ $dokumen['diunggah_pada'] }}
+                                        @endif
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </details>
+                    @endif
+                    @if (count($item['riwayats']) > 0)
+                        <details class="pengajuan-detail">
+                            <summary>Riwayat status pengajuan</summary>
+                            <ul>
+                                @foreach ($item['riwayats'] as $riwayat)
+                                    <li>
+                                        <strong>{{ $riwayat['status_sesudah_label'] }}</strong>
+                                        @if ($riwayat['diubah_pada'])
+                                            &middot; {{ $riwayat['diubah_pada'] }}
+                                        @endif
+                                        @if ($riwayat['pengubah'])
+                                            &middot; {{ $riwayat['pengubah'] }}
+                                        @endif
+                                        @if (filled($riwayat['catatan']))
+                                            <br>{{ $riwayat['catatan'] }}
+                                        @endif
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </details>
+                    @endif
                 </div>
             @empty
                 <div class="kosong">Belum ada pengajuan keterlambatan.</div>
@@ -1905,7 +1980,7 @@
             <h4>Nominal &amp; Bukti Transfer</h4>
             <div class="field" style="margin-bottom:8px;">
                 <label for="mdNominal">Nominal tagihan (Rp)</label>
-                <input type="number" id="mdNominal" min="1" step="1000">
+                <input type="number" id="mdNominal" min="1" max="{{ \App\Models\AngsuranPembayaran::NOMINAL_MAKSIMUM }}" step="1">
                 <div class="hint">Gunakan untuk menyesuaikan nominal sesuai kategori mahasiswa. Angsuran pertama minimal Rp1.000.000.</div>
             </div>
             <div id="mdBuktiBaris" style="margin-bottom:8px;"></div>
@@ -1944,6 +2019,68 @@
         const token = document.querySelector('meta[name="csrf-token"]');
         let idAktif = null;
         const rupiah = (nilai) => 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(Number(nilai) || 0));
+        const formatRibuan = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 });
+
+        function nominalSebagaiAngka(input) {
+            const nilai = input.value.trim();
+
+            if (/^\d+$/.test(nilai)) {
+                return Number(nilai);
+            }
+
+            if (/^\d{1,3}(?:\.\d{3})+$/.test(nilai)) {
+                return Number(nilai.replace(/\./g, ''));
+            }
+
+            return null;
+        }
+
+        function validasiNominal(input) {
+            const nilai = input.value.trim();
+            const angka = nominalSebagaiAngka(input);
+            const minimal = Number(input.dataset.min || 1);
+            const maksimal = Number(input.dataset.max);
+
+            if (!nilai) {
+                input.setCustomValidity('Nominal (Rp) wajib diisi.');
+            } else if (angka === null || !Number.isSafeInteger(angka)) {
+                input.setCustomValidity('Nominal harus berupa bilangan bulat, misalnya 200000 atau 2.000.000.');
+            } else if (angka < minimal) {
+                input.setCustomValidity('Nominal minimal Rp' + formatRibuan.format(minimal) + '.');
+            } else if (angka > maksimal) {
+                input.setCustomValidity('Nominal terlalu besar.');
+            } else {
+                input.setCustomValidity('');
+            }
+
+            return input.validity.valid && angka !== null ? angka : null;
+        }
+
+        function formatInputNominal(input) {
+            const angka = validasiNominal(input);
+
+            if (angka !== null) {
+                input.value = formatRibuan.format(angka);
+            }
+        }
+
+        document.querySelectorAll('[data-nominal-rupiah]').forEach(function (input) {
+            input.addEventListener('focus', function () {
+                const angka = nominalSebagaiAngka(input);
+
+                if (angka !== null) {
+                    input.value = String(angka);
+                }
+
+                validasiNominal(input);
+            });
+            input.addEventListener('input', function () {
+                validasiNominal(input);
+            });
+            input.addEventListener('blur', formatInputNominal);
+            validasiNominal(input);
+        });
+
         function pesan(sel, teks, sukses) {
             const kotak = document.getElementById(sel);
             if (!kotak) {
@@ -2157,7 +2294,7 @@
             }, 'Status tagihan dikembalikan menjadi Belum Lunas.');
         });
         document.getElementById('mdNominal').addEventListener('change', function () {
-            if (!idAktif) {
+            if (!idAktif || !this.reportValidity()) {
                 return;
             }
             aksiModal(urlNominal(idAktif), {

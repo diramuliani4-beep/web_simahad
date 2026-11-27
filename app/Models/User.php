@@ -5,7 +5,6 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -69,32 +68,25 @@ class User extends Authenticatable
         return $this->hasMany(SuratPerizinan::class);
     }
 
-    /** Keanggotaan kelompok belajar mahasiswa pada mata pelajaran. */
+    /** Riwayat keanggotaan legacy per mata pelajaran. */
     public function kelompokBelajarAnggotas(): HasMany
     {
         return $this->hasMany(KelompokBelajarAnggota::class, 'user_id');
     }
 
-    /**
-     * Penempatan kelompok belajar per mata pelajaran yang ditetapkan Musyrifah.
-     *
-     * Hanya keanggotaan berstatus aktif yang dihitung agar mahasiswa tidak
-     * pernah melihat data kelompok lain atau penempatan yang sudah dicabut.
-     *
-     * @return Collection<int, KelompokBelajarAnggota>
-     */
-    public function penempatanKelompokBelajar(): Collection
+    /** Global group placement history for the student. */
+    public function riwayatPenempatanKelompokBelajar(): HasMany
     {
-        return $this->kelompokBelajarAnggotas()
-            ->with(['kelompokBelajar', 'mataPelajaran'])
-            ->where(function (Builder $query) {
-                $query->whereNull('status')
-                    ->orWhereRaw('LOWER(status) = ?', ['aktif']);
-            })
-            ->get()
-            ->filter(fn (KelompokBelajarAnggota $anggota) => $anggota->kelompokBelajar !== null
-                && $anggota->mataPelajaran !== null)
-            ->values();
+        return $this->hasMany(PenempatanKelompokBelajar::class, 'user_id');
+    }
+
+    /** The student's single active group for every subject. */
+    public function penempatanKelompokBelajarAktif(): HasOne
+    {
+        return $this->hasOne(PenempatanKelompokBelajar::class, 'user_id')
+            ->aktif()
+            ->mahasiswaDisetujui()
+            ->with('kelompokBelajar');
     }
 
     /** Pengumuman Ma'had yang ditulis oleh Musyrifah. */
@@ -122,36 +114,18 @@ class User extends Authenticatable
     }
 
     /**
-     * Kelompok belajar mahasiswa, diambil dari data absensi pembelajaran
-     * yang sudah ada (sumber yang sama dengan halaman Pembelajaran).
-     */
-    public function kelompokPembelajaran(): string
-    {
-        return AbsensiPembelajaran::query()
-            ->where('user_id', $this->id)
-            ->value('kelompok') ?: 'Kelompok 1';
-    }
-
-    /**
-     * Daftar mahasiswa anggota satu kelompok belajar.
-     * Keanggotaan diambil dari absensi pembelajaran yang sudah ada.
+     * Daftar mahasiswa anggota satu kelompok berdasarkan penempatan aktif.
      *
      * @return Collection<int, self>
      */
     public static function mahasiswaKelompok(string $kelompok): Collection
     {
-        $ids = AbsensiPembelajaran::query()
-            ->where('kelompok', $kelompok)
-            ->distinct()
-            ->pluck('user_id');
-
-        if ($ids->isEmpty()) {
-            return collect();
-        }
-
         return static::query()
-            ->whereIn('id', $ids)
+            ->whereHas('penempatanKelompokBelajarAktif', function ($query) use ($kelompok) {
+                $query->untukKelompok($kelompok);
+            })
             ->whereRaw('LOWER(role) = ?', ['mahasiswa'])
+            ->whereHas('pendaftarans', fn ($query) => $query->where('status', 'disetujui'))
             ->orderBy('name')
             ->get();
     }

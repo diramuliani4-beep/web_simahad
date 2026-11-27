@@ -28,6 +28,8 @@ class Notifikasi extends Model
 
     public const TIPE_PEMBAYARAN = 'pembayaran';
 
+    public const TIPE_SURAT_PERIZINAN = 'surat_perizinan';
+
     protected $fillable = [
         'user_id',
         'tipe',
@@ -76,6 +78,7 @@ class Notifikasi extends Model
             self::TIPE_PENGUMUMAN_BARU => '📢',
             self::TIPE_JADWAL_BERUBAH => '🗓',
             self::TIPE_PEMBAYARAN => '💳',
+            self::TIPE_SURAT_PERIZINAN => '📄',
             default => '🔔',
         };
     }

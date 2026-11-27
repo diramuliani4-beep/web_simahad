@@ -5,6 +5,9 @@
 @section('content')
 @php
     // Semua angka dan riwayat tetap menggunakan data asli dari controller.
+    $formatWaktuWib = static fn ($waktu, string $format = 'd M Y H:i'): string => $waktu
+        ? $waktu->copy()->timezone('Asia/Jakarta')->locale('id')->translatedFormat($format).' WIB'
+        : '-';
     $kuotaMaksimal = max(0, (int) ($kuotaPulang['maksimal'] ?? 0));
     $kuotaTerpakai = max(0, (int) ($kuotaPulang['terpakai'] ?? 0));
     $kuotaSisa = max(0, (int) ($kuotaPulang['sisa'] ?? 0));
@@ -122,7 +125,7 @@
     .spm-page .spm-request-text { margin: 0 0 14px; color: #82777d; font-size: 11.5px; line-height: 1.65; }
     .spm-page .spm-request-link {
         display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-        margin-top: auto; min-height: 35px; padding: 8px 11px; border: 1px solid #e0cfd4;
+        margin-top: auto; min-height: 40px; padding: 9px 12px; border: 1px solid #e0cfd4;
         border-radius: 8px; color: var(--spm-wine); background: #fff; font-size: 11.5px; font-weight: 700;
     }
     .spm-page .spm-request-link:hover { color: #fff; border-color: var(--spm-wine); background: var(--spm-wine); }
@@ -131,8 +134,8 @@
     /* Tabel riwayat identik dengan tabel pengajuan Data Kamar. */
     .spm-page .spm-table-wrap { width: 100%; max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
     .spm-page .spm-table { width: 100%; min-width: 850px; border-collapse: collapse; background: #fff; }
-    .spm-page .spm-table thead th { padding: 14px 15px; background: var(--spm-wine); color: #fff; font-size: 11px; font-weight: 700; text-align: left; white-space: nowrap; }
-    .spm-page .spm-table tbody td { padding: 14px 15px; border-bottom: 1px solid #f1e8eb; vertical-align: middle; color: #534c50; font-size: 11.5px; line-height: 1.6; overflow-wrap: anywhere; }
+    .spm-page .spm-table thead th { padding: 14px 15px; background: var(--spm-wine); color: #fff; font-size: 12px; font-weight: 700; text-align: left; white-space: nowrap; }
+    .spm-page .spm-table tbody td { padding: 14px 15px; border-bottom: 1px solid #f1e8eb; vertical-align: middle; color: #534c50; font-size: 12.5px; line-height: 1.6; overflow-wrap: anywhere; }
     .spm-page .spm-table tbody tr:nth-child(even) { background: #fdfafb; }
     .spm-page .spm-table tbody tr:hover { background: #fcf4f6; }
     .spm-page .spm-table tbody tr:last-child td { border-bottom: 0; }
@@ -147,7 +150,7 @@
     .spm-page .spm-status--dibatalkan { background: #f0f1f3; color: #62646d; }
     .spm-page .spm-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
     .spm-page .spm-actions form { margin: 0; }
-    .spm-page .spm-btn { display: inline-flex; justify-content: center; align-items: center; min-height: 34px; padding: 7px 12px; border: 1px solid #dfcfd4; border-radius: 8px; background: #fff; color: var(--spm-wine); font-size: 11px; font-weight: 700; line-height: 1.4; white-space: nowrap; }
+    .spm-page .spm-btn { display: inline-flex; justify-content: center; align-items: center; min-height: 44px; padding: 9px 13px; border: 1px solid #dfcfd4; border-radius: 8px; background: #fff; color: var(--spm-wine); font-size: 12.5px; font-weight: 700; line-height: 1.4; white-space: nowrap; }
     .spm-page .spm-btn:hover { background: #fdf4f6; }
     .spm-page .spm-btn--danger { color: #a52443; border-color: #ecccd4; background: #fff8f9; }
     .spm-page .spm-btn--danger:hover { background: #ffeaf0; }
@@ -161,13 +164,14 @@
     @container (max-width: 730px) {
         .spm-page .spm-panel-header { padding: 17px 16px; }
         .spm-page .spm-requests { padding: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-        .spm-page .spm-quota { padding: 16px; }
+        .spm-page .spm-request { min-height: 174px; padding: 14px; }
+        .spm-page .spm-quota { padding: 16px; gap: 16px; }
         .spm-page .spm-table-wrap { overflow: visible; }
         .spm-page .spm-table, .spm-page .spm-table tbody { display: block; width: 100%; min-width: 0; }
         .spm-page .spm-table thead { display: none; }
-        .spm-page .spm-table tbody tr { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px 12px; margin: 12px 16px; padding: 13px; border: 1px solid #ebdfe3; border-radius: 10px; background: #fff !important; }
+        .spm-page .spm-table tbody tr { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px 14px; margin: 12px 16px; padding: 14px; border: 1px solid #ebdfe3; border-radius: 10px; background: #fff !important; }
         .spm-page .spm-table tbody td { display: block; padding: 0 !important; width: auto; min-width: 0; border: 0 !important; }
-        .spm-page .spm-table tbody td::before { display: block; content: attr(data-label); margin-bottom: 4px; color: #96878e; font-size: 10px; font-weight: 700; }
+        .spm-page .spm-table tbody td::before { display: block; content: attr(data-label); margin-bottom: 4px; color: #96878e; font-size: 11px; font-weight: 700; }
         .spm-page .spm-table tbody td:nth-child(2), .spm-page .spm-table tbody td:nth-child(4), .spm-page .spm-table tbody td:last-child { grid-column: 1 / -1; }
         .spm-page .spm-table tbody tr.spm-empty-row { display: block; }
         .spm-page .spm-table tbody tr.spm-empty-row td::before { content: none; }
@@ -181,7 +185,7 @@
         .spm-page .spm-stats { grid-template-columns: minmax(0,1fr); }
         .spm-page .spm-stat { min-height: 82px; padding: 13px; }
         .spm-page .spm-stat-icon { width: 38px; height: 38px; flex-basis: 38px; }
-        .spm-page .spm-table tbody tr { grid-template-columns: minmax(0,1fr); }
+        .spm-page .spm-table tbody tr { grid-template-columns: minmax(0,1fr); margin: 10px; }
         .spm-page .spm-table tbody td { grid-column: 1 / -1; }
     }
     @media (prefers-reduced-motion: reduce) { .spm-page .spm-request { transition: none; } }
@@ -196,24 +200,24 @@
     .spm-modal::backdrop { background: rgba(17,13,20,.62); backdrop-filter: blur(3px); }
     .spm-modal .spm-modal-header { position: sticky; top: 0; z-index: 1; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 17px 21px; background: #800b22; color: #fff; }
     .spm-modal .spm-modal-title { margin: 0; font-size: 16px; font-weight: 750; }
-    .spm-modal .spm-modal-close { display: grid; place-items: center; flex: 0 0 auto; width: 32px; height: 32px; border: 1px solid rgba(255,255,255,.5); border-radius: 50%; background: none; color: #fff; font-size: 22px; line-height: 1; }
+    .spm-modal .spm-modal-close { display: grid; place-items: center; flex: 0 0 auto; width: 40px; height: 40px; border: 1px solid rgba(255,255,255,.5); border-radius: 50%; background: none; color: #fff; font-size: 22px; line-height: 1; }
     .spm-modal .spm-modal-close:hover { background: rgba(255,255,255,.13); }
     .spm-modal .spm-modal-content { padding: 20px 22px 24px; }
     .spm-modal .spm-detail-group { margin-bottom: 17px; padding-bottom: 13px; border-bottom: 1px solid #eee3e6; }
     .spm-modal .spm-detail-group:last-child { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
     .spm-modal .spm-detail-group h3 { margin: 0 0 9px; color: #800b22; font-size: 12.5px; font-weight: 750; }
-    .spm-modal .spm-detail-row { display: grid; grid-template-columns: minmax(130px, 38%) minmax(0,1fr); gap: 10px; padding: 9px 0; border-bottom: 1px solid #f6f0f2; font-size: 11.5px; line-height: 1.6; }
+    .spm-modal .spm-detail-row { display: grid; grid-template-columns: minmax(140px, 38%) minmax(0,1fr); gap: 12px; padding: 10px 0; border-bottom: 1px solid #f6f0f2; font-size: 12px; line-height: 1.6; }
     .spm-modal .spm-detail-row:last-child { border-bottom: 0; }
     .spm-modal .spm-detail-label { color: #82777d; }
     .spm-modal .spm-detail-value { color: #392e33; font-weight: 650; overflow-wrap: anywhere; white-space: pre-wrap; }
     .spm-modal .spm-document-links { display: flex; flex-wrap: wrap; gap: 8px; }
-    .spm-modal .spm-document-link { display: inline-flex; justify-content: center; align-items: center; min-height: 35px; padding: 8px 11px; border: 1px solid #ddcbd1; border-radius: 8px; background: #fff; color: #800b22; font-size: 11.5px; font-weight: 700; text-decoration: none; }
+    .spm-modal .spm-document-link { display: inline-flex; justify-content: center; align-items: center; min-height: 40px; padding: 9px 12px; border: 1px solid #ddcbd1; border-radius: 8px; background: #fff; color: #800b22; font-size: 12px; font-weight: 700; text-decoration: none; }
     .spm-modal .spm-document-link:hover { background: #fbf1f4; }
     @media (max-width: 640px) {
         .spm-modal { width: calc(100% - 16px); max-height: calc(100dvh - 16px); }
         .spm-modal .spm-modal-header { padding: 15px 17px; }
         .spm-modal .spm-modal-content { padding: 15px 17px 20px; }
-        .spm-modal .spm-detail-row { grid-template-columns: minmax(0,1fr); gap: 4px; }
+        .spm-modal .spm-detail-row { grid-template-columns: minmax(0,1fr); gap: 4px; padding: 9px 0; }
     }
 </style>
 
@@ -275,7 +279,7 @@
         <div class="spm-quota">
             <div class="spm-quota-copy">
                 <h3 class="spm-quota-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7M5 9v12h14V9M9 21v-7h6v7"/></svg> Pemakaian Kuota</h3>
-                <p class="spm-quota-description">Pengajuan izin pulang menggunakan kuota yang ditetapkan Ma’had. Kamu bisa memantau sisa slot sebelum mengajukan izin.</p>
+                <p class="spm-quota-description">Kuota hanya berkurang setelah izin pulang mingguan disetujui atau selesai. Pengajuan yang menunggu tidak mengurangi kuota. Jarak minimum antarizin mingguan adalah 14 hari; izin darurat/khusus diproses khusus dan tidak mengurangi kuota.</p>
             </div>
             <div class="spm-quota-meter" aria-label="{{ $kuotaTerpakai }} dari {{ $kuotaMaksimal }} kuota telah digunakan">
                 <div class="spm-quota-meter-head"><strong>{{ $kuotaTerpakai }} / {{ $kuotaMaksimal }}</strong><span>Sisa {{ $kuotaSisa }} slot</span></div>
@@ -299,28 +303,22 @@
                 <a class="spm-request-link" href="{{ route('surat.perizinan.mhs.kegiatan', ['jenis' => 'kegiatan_fakultas']) }}">Buat Pengajuan <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
             </article>
             <article class="spm-request">
-                <span class="spm-request-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18m-13 5 2 2 4-5"/></svg></span>
-                <h3 class="spm-request-title">Izin Kegiatan Kampus</h3>
-                <p class="spm-request-text">Ajukan izin kegiatan kampus dengan surat resmi dari pihak penyelenggara.</p>
-                <a class="spm-request-link" href="{{ route('surat.perizinan.mhs.kegiatan', ['jenis' => 'kegiatan_kampus']) }}">Buat Pengajuan <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-            </article>
-            <article class="spm-request">
-                <span class="spm-request-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6zM15 3v5h4M9 12h7M9 16h7"/><path d="m9 8 1 1 2-2"/></svg></span>
-                <h3 class="spm-request-title">Surat Pulang Semester</h3>
-                <p class="spm-request-text">Unduh surat semester, minta tanda tangan orang tua, lalu unggah kembali.</p>
-                <a class="spm-request-link" href="{{ route('surat.perizinan.mhs.semester') }}">Buka Surat Semester <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-            </article>
-            <article class="spm-request">
                 <span class="spm-request-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7M5 9v12h14V9M9 21v-7h6v7"/></svg></span>
-                <h3 class="spm-request-title">Izin Pulang</h3>
-                <p class="spm-request-text">Isi rencana keberangkatan dan kepulangan untuk mengajukan izin pulang.</p>
+                <h3 class="spm-request-title">Izin Pulang Mingguan</h3>
+                <p class="spm-request-text">Maksimal 2 kali per bulan dengan jarak minimum 14 hari. Kuota digunakan setelah disetujui.</p>
                 <a class="spm-request-link" href="{{ route('surat.perizinan.mhs.pengajuan') }}">Buat Pengajuan <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
             </article>
             <article class="spm-request">
-                <span class="spm-request-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M4 10h16M4 15h10M4 20h8"/><path d="m16 18 2 2 3-4"/></svg></span>
-                <h3 class="spm-request-title">Riwayat Pengajuan</h3>
-                <p class="spm-request-text">Lihat kembali pengajuan, status, dokumen, dan catatan keputusan Musyrifah.</p>
-                <a class="spm-request-link" href="#riwayat-pengajuan">Lihat Riwayat <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+                <span class="spm-request-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2.8 19h18.4L12 3Z"/><path d="M12 9v4m0 3h.01"/></svg></span>
+                <h3 class="spm-request-title">Izin Pulang Darurat/Khusus</h3>
+                <p class="spm-request-text">Untuk keadaan mendesak seperti kemalangan keluarga. Tetap tersedia saat kuota habis dan tidak mengurangi kuota reguler.</p>
+                <a class="spm-request-link" href="{{ route('surat.perizinan.mhs.pengajuan.darurat') }}">Ajukan Izin Darurat <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+            </article>
+            <article class="spm-request">
+                <span class="spm-request-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6zM15 3v5h4M9 12h7M9 16h7"/><path d="m9 8 1 1 2-2"/></svg></span>
+                <h3 class="spm-request-title">Izin Pulang Semester</h3>
+                <p class="spm-request-text">Buat surat resmi, unduh atau cetak, minta tanda tangan orang tua, lalu unggah kembali.</p>
+                <a class="spm-request-link" href="{{ route('surat.perizinan.mhs.semester') }}">Buka Surat Semester <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
             </article>
         </div>
     </section>
@@ -351,7 +349,7 @@
                             $rincian = [
                                 'jenis' => $pengajuan->labelJenis(),
                                 'status' => $pengajuan->labelStatus(),
-                                'diajukan' => $pengajuan->created_at?->locale('id')->translatedFormat('d M Y H:i') ?? '-',
+                                'diajukan' => $formatWaktuWib($pengajuan->created_at),
                                 'periode' => $pengajuan->periodeTeks(),
                                 'durasi' => $pengajuan->durasi_hari ? $pengajuan->durasi_hari.' hari' : '-',
                                 'lokasi' => $pengajuan->tujuanTeks(),
@@ -359,13 +357,25 @@
                                 'penyelenggara' => $pengajuan->penyelenggara ?: '-',
                                 'waktu' => $pengajuan->waktuTeks(),
                                 'alasan' => $pengajuan->alasan ?: '-',
+                                'keterangan' => $pengajuan->keterangan ?: '-',
+                                'transportasi' => $pengajuan->transportasi ?: '-',
+                                'penanggung_jawab' => $pengajuan->musyrifah?->name ?: '-',
+                                'waktu_keluar' => $formatWaktuWib($pengajuan->waktu_keluar),
+                                'waktu_kembali' => $formatWaktuWib($pengajuan->waktu_kembali),
                                 'verifikator' => $pengajuan->keputusan_nama ?: '-',
-                                'diverifikasi' => $pengajuan->keputusan_pada?->locale('id')->translatedFormat('d M Y H:i') ?? '-',
+                                'diverifikasi' => $formatWaktuWib($pengajuan->keputusan_pada),
                                 'catatan' => $pengajuan->catatan_musyrifah ?: '-',
                                 'nomor_surat' => $pengajuan->nomor_surat ?: '-',
                                 'dokumen' => $pengajuan->punyaDokumen() ? route('surat.perizinan.mhs.dokumen', [$pengajuan, 'pendukung']) : null,
                                 'tertanda' => $pengajuan->punyaSuratTertanda() ? route('surat.perizinan.mhs.dokumen', [$pengajuan, 'tertanda']) : null,
                                 'cetak' => $pengajuan->suratSemester() && $pengajuan->nomor_surat ? route('surat.perizinan.mhs.semester.cetak', $pengajuan) : null,
+                                'pdf' => $pengajuan->suratSemester() ? route('surat.perizinan.mhs.semester.pdf', $pengajuan) : null,
+                                'riwayat' => $pengajuan->riwayats->map(fn ($riwayat): array => [
+                                    'status' => $riwayat->labelStatus(),
+                                    'waktu' => $formatWaktuWib($riwayat->created_at),
+                                    'oleh' => $riwayat->nama_pengubah ?: '-',
+                                    'catatan' => $riwayat->catatan ?: '-',
+                                ])->values()->all(),
                             ];
                         @endphp
                         <tr>
@@ -377,10 +387,13 @@
                             <td data-label="Aksi">
                                 <div class="spm-actions">
                                     <button type="button" class="spm-btn" data-spm-detail="{{ json_encode($rincian, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }}" aria-haspopup="dialog">Detail</button>
+                                    @if ($pengajuan->suratSemester())
+                                        <a class="spm-btn" href="{{ route('surat.perizinan.mhs.semester.pdf', $pengajuan) }}">Unduh PDF</a>
+                                    @endif
                                     @if (in_array($pengajuan->status, ['menunggu', 'perlu_perbaikan'], true))
                                         <form method="POST"
                                               action="{{ route('surat.perizinan.mhs.batalkan', $pengajuan) }}"
-                                              data-sui-confirm="Batalkan pengajuan ini? Slot kuota akan dikembalikan sesuai ketentuan."
+                                              data-sui-confirm="Batalkan pengajuan ini? Pengajuan yang belum disetujui tidak menggunakan kuota izin pulang mingguan."
                                               data-sui-confirm-title="Batalkan pengajuan?"
                                               data-sui-confirm-label="Ya, Batalkan"
                                               data-sui-confirm-tone="danger">
@@ -423,12 +436,13 @@
         ] },
         { title: 'Rincian', rows: [
             ['Nama Kegiatan', 'kegiatan'], ['Penyelenggara', 'penyelenggara'],
-            ['Waktu Kegiatan', 'waktu'], ['Tujuan / Lokasi', 'lokasi'],
-            ['Nomor Surat', 'nomor_surat'], ['Alasan', 'alasan']
+            ['Waktu Kegiatan', 'waktu'], ['Tujuan / Lokasi', 'lokasi'], ['Keterangan', 'keterangan'],
+            ['Transportasi', 'transportasi'], ['Nomor Surat', 'nomor_surat'], ['Alasan', 'alasan'],
+            ['Waktu Keluar Ma’had', 'waktu_keluar'], ['Waktu Kembali ke Ma’had', 'waktu_kembali']
         ] },
-        { title: 'Keputusan Musyrifah', rows: [
-            ['Diverifikasi Oleh', 'verifikator'], ['Waktu Verifikasi', 'diverifikasi'],
-            ['Catatan', 'catatan']
+        { title: 'Musyrifah & Keputusan', rows: [
+            ['Musyrifah Penanggung Jawab', 'penanggung_jawab'], ['Diputuskan Oleh', 'verifikator'],
+            ['Waktu Keputusan', 'diverifikasi'], ['Catatan', 'catatan']
         ] },
     ];
 
@@ -467,6 +481,7 @@
         const documents = [
             ['Surat Pendukung', data.dokumen],
             ['Surat Bertanda Tangan', data.tertanda],
+            ['Unduh PDF Surat Semester', data.pdf],
             ['Cetak Surat Semester', data.cetak]
         ].filter(function (item) { return Boolean(item[1]); });
 
@@ -485,6 +500,18 @@
             });
             group.appendChild(links);
         }
+
+        const history = Array.isArray(data.riwayat) ? data.riwayat : [];
+        const historyGroup = addGroup('Riwayat Status');
+        if (!history.length) {
+            addTextRow(historyGroup, 'Riwayat', '-');
+        }
+        history.forEach(function (item) {
+            addTextRow(historyGroup, item.waktu || '-', item.status + ' · oleh ' + (item.oleh || '-'));
+            if (item.catatan && item.catatan !== '-') {
+                addTextRow(historyGroup, 'Catatan', item.catatan);
+            }
+        });
 
         if (typeof modal.showModal === 'function') {
             modal.showModal();

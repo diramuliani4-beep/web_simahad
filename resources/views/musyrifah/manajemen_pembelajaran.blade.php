@@ -183,6 +183,42 @@
 .musyrifah-pembelajaran .btn-table-detail {background: var(--mp-maroon); color: #fff; border: 1px solid var(--mp-maroon);}
 .musyrifah-pembelajaran .btn-table-detail:hover {background: var(--mp-maroon-hover);}
 
+/* GLOBAL GROUP MEMBERSHIP */
+.musyrifah-pembelajaran .mp-group-grid {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px; padding: 20px 22px; border-bottom: 1px solid #f0e5e8; background: #faf7f8;
+}
+.musyrifah-pembelajaran .mp-group-card {
+    min-width: 0; padding: 15px; background: #fff; border: 1px solid #eadcdf; border-radius: 12px;
+}
+.musyrifah-pembelajaran .mp-group-card-head {display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;}
+.musyrifah-pembelajaran .mp-group-card-title {margin: 0; color: #742036; font-size: 14px; font-weight: 700;}
+.musyrifah-pembelajaran .mp-group-count {flex-shrink: 0; padding: 4px 8px; border-radius: 999px; background: #f8e9ee; color: #800b22; font-size: 10.5px; font-weight: 700;}
+.musyrifah-pembelajaran .mp-group-members {display: grid; gap: 9px; max-height: 250px; margin: 13px 0; padding: 0; overflow-y: auto; list-style: none;}
+.musyrifah-pembelajaran .mp-group-member {display: flex; align-items: center; gap: 9px; min-width: 0;}
+.musyrifah-pembelajaran .mp-group-avatar {
+    display: inline-flex; align-items: center; justify-content: center; flex: 0 0 30px; width: 30px; height: 30px;
+    border: 1px solid #f0d7dd; border-radius: 50%; background: #fbebee; color: #800d22; font-size: 11px; font-weight: 700;
+}
+.musyrifah-pembelajaran .mp-group-member-text {min-width: 0;}
+.musyrifah-pembelajaran .mp-group-member-name {display: block; overflow: hidden; color: #293241; font-size: 11.5px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap;}
+.musyrifah-pembelajaran .mp-group-member-nim {display: block; margin-top: 2px; color: #7b8290; font-family: monospace; font-size: 10.5px;}
+.musyrifah-pembelajaran .mp-group-empty {margin: 12px 0; color: #7b8290; font-size: 11.5px; line-height: 1.6;}
+.musyrifah-pembelajaran .mp-group-link {padding: 0; border: 0; background: transparent; color: #800b22; font-family: inherit; font-size: 11.5px; font-weight: 650; cursor: pointer;}
+.musyrifah-pembelajaran .mp-group-link:hover {text-decoration: underline;}
+.modal-overlay .pilihan-mahasiswa-tools {display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0 0 10px;}
+.modal-overlay .pilihan-mahasiswa-tools label {display: inline-flex; align-items: center; gap: 7px; color: #4b4751; font-size: 12px; font-weight: 600; cursor: pointer;}
+.modal-overlay .pilihan-mahasiswa-count {color: #800b22; font-size: 11.5px; font-weight: 650;}
+.modal-overlay .pilihan-mahasiswa-list {display: grid; gap: 8px; max-height: 310px; padding: 10px; overflow-y: auto; border: 1px solid #e7d8de; border-radius: 9px; background: #fdfafb;}
+.modal-overlay .pilihan-mahasiswa-item {display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #eee2e6; border-radius: 8px; background: #fff; cursor: pointer;}
+.modal-overlay .pilihan-mahasiswa-item:hover {border-color: #dcb9c4; background: #fff8fa;}
+.modal-overlay .pilihan-mahasiswa-item input {flex: 0 0 auto; width: 16px; height: 16px; accent-color: #800b22;}
+.modal-overlay .pilihan-mahasiswa-info {min-width: 0;}
+.modal-overlay .pilihan-mahasiswa-name {display: block; color: #293241; font-size: 12px; font-weight: 650;}
+.modal-overlay .pilihan-mahasiswa-meta {display: block; margin-top: 3px; color: #7b8290; font-size: 10.5px;}
+.modal-overlay .pilihan-mahasiswa-empty {padding: 20px 10px; color: #7b8290; font-size: 12px; text-align: center;}
+.modal-overlay .btn-action-primary:disabled {opacity: .5; cursor: not-allowed;}
+
 /* FILTER BAR & PROGRESS */
 .musyrifah-pembelajaran .filter-bar {
     display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
@@ -319,6 +355,7 @@
 .musyrifah-pembelajaran #tab-kelulusan .mp-kpi-grid {grid-template-columns: 1fr !important;}
 .musyrifah-pembelajaran .filter-bar {padding: 14px 16px;}
 .musyrifah-pembelajaran .filter-input, .musyrifah-pembelajaran .filter-select {flex: 1 1 100%; width: 100%; min-width: 0;}
+.musyrifah-pembelajaran .mp-group-grid {grid-template-columns: 1fr; padding: 16px;}
 }
 @container (max-width: 460px) {
 .musyrifah-pembelajaran .mp-title {font-size: 21px;}
@@ -507,7 +544,7 @@
                         <span>👥</span> Manajemen Anggota Kelompok Belajar
                     </h2>
                     <p style="margin: 4px 0 0; color: #64748b; font-size: 13px;">
-                        Kelola distribusi mahasiswa (pendaftaran diverifikasi &amp; disetujui) pada kelompok belajar Ma'had Al-Jami'ah. Setiap mahasiswa hanya memiliki 1 kelompok aktif per mata pelajaran.
+                        Kelola keanggotaan mahasiswa dengan pendaftaran yang sudah disetujui. Satu kelompok aktif berlaku untuk seluruh mata pelajaran, jadwal, materi, dan tugas.
                     </p>
                 </div>
 
@@ -517,24 +554,45 @@
                 </button>
             </div>
 
-            <!-- FILTER BAR TABEL ANGGOTA -->
-            <div class="filter-bar" style="background: #faf7f8;">
-                <div style="display: flex; align-items: center; gap: 8px; flex: 1 1 240px; min-width: 200px;">
-                    <span style="color: #64748b; font-size: 13px;">🔍</span>
-                    <input type="text" id="searchAnggota" class="filter-input" placeholder="Cari nama mahasiswa atau NIM..." oninput="applyAnggotaFilters()">
-                </div>
+            <div class="mp-group-grid" aria-label="Daftar kelompok dan seluruh anggotanya">
+                @foreach($daftarKelompok as $kelompok)
+                    <article class="mp-group-card">
+                        <div class="mp-group-card-head">
+                            <h3 class="mp-group-card-title">{{ $kelompok->nama_kelompok }}</h3>
+                            <span class="mp-group-count">{{ $kelompok->penempatan_aktif_count }} mahasiswa</span>
+                        </div>
+                        @if($kelompok->penempatanAktif->isEmpty())
+                            <p class="mp-group-empty">Belum ada mahasiswa pada kelompok ini.</p>
+                        @else
+                            <ul class="mp-group-members">
+                                @foreach($kelompok->penempatanAktif as $penempatan)
+                                    @php
+                                        $member = $penempatan->user;
+                                        $registration = $member?->pendaftarans?->first();
+                                        $memberNim = $member?->nim ?? ($registration?->nim ?? '-');
+                                    @endphp
+                                    <li class="mp-group-member">
+                                        <span class="mp-group-avatar" aria-hidden="true">{{ $member?->inisial() ?? '?' }}</span>
+                                        <span class="mp-group-member-text">
+                                            <span class="mp-group-member-name">{{ $member?->name ?? 'Mahasiswa' }}</span>
+                                            <span class="mp-group-member-nim">NIM: {{ $memberNim }}</span>
+                                        </span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                        <button type="button" class="mp-group-link" onclick="filterTableKelompok('{{ addslashes($kelompok->nama_kelompok) }}')">Lihat anggota di tabel</button>
+                    </article>
+                @endforeach
+            </div>
 
-                <select id="filterKelompokAnggota" class="filter-select" onchange="applyAnggotaFilters()">
-                    <option value="">Semua Kelompok (6 Kelompok)</option>
-                    @foreach($daftarKelompok as $k)
-                        <option value="{{ $k->nama_kelompok }}">{{ $k->nama_kelompok }}</option>
-                    @endforeach
-                </select>
+            <div class="filter-bar" style="background: #fff;">
+                <input type="search" id="searchAnggota" class="filter-input" aria-label="Cari anggota" placeholder="Cari nama mahasiswa atau NIM..." oninput="applyAnggotaFilters()">
 
-                <select id="filterMapelAnggota" class="filter-select" onchange="applyAnggotaFilters()">
-                    <option value="">Semua Mata Pelajaran ({{ count($daftarMataPelajaran) }})</option>
-                    @foreach($daftarMataPelajaran as $mp)
-                        <option value="{{ $mp->id }}">{{ $mp->nama }}</option>
+                <select id="filterKelompokAnggota" class="filter-select" aria-label="Filter kelompok" onchange="applyAnggotaFilters()">
+                    <option value="">Semua Kelompok ({{ count($daftarKelompok) }} Kelompok)</option>
+                    @foreach($daftarKelompok as $kelompok)
+                        <option value="{{ $kelompok->nama_kelompok }}">{{ $kelompok->nama_kelompok }}</option>
                     @endforeach
                 </select>
 
@@ -543,16 +601,14 @@
                 </button>
             </div>
 
-            <!-- TABEL ANGGOTA KELOMPOK -->
             <div class="mp-table-wrap">
-                <table class="mp-table">
+                <table class="mp-table" aria-label="Anggota kelompok belajar">
                     <thead>
                         <tr>
                             <th style="width: 50px;">No</th>
                             <th>Mahasiswa</th>
                             <th>NIM</th>
                             <th>Program Studi</th>
-                            <th>Mata Pelajaran</th>
                             <th>Kelompok Belajar</th>
                             <th>Status Pendaftaran</th>
                             <th style="text-align: center; width: 180px;">Aksi</th>
@@ -566,18 +622,16 @@
                                 $mhsNim = $mhsUser?->nim ?? ($pendaftaran?->nim ?? '-');
                                 $mhsProdi = $pendaftaran?->program_studi ?? '-';
                                 $mhsFakultas = $pendaftaran?->fakultas ?? '-';
-                                $mapelNama = $item->mataPelajaran?->nama ?? '-';
                                 $kelompokNama = $item->kelompokBelajar?->nama_kelompok ?? '-';
                             @endphp
                             <tr class="row-anggota-kelompok"
                                 data-kelompok="{{ $kelompokNama }}"
-                                data-mapel-id="{{ $item->mata_pelajaran_id }}"
                                 data-search="{{ strtolower(($mhsUser?->name ?? '').' '.$mhsNim.' '.$mhsProdi) }}">
                                 <td data-label="No" class="row-num" style="text-align: center;">{{ $idx + 1 }}</td>
                                 <td data-label="Mahasiswa" style="text-align: left; font-weight: 600; padding-left: 14px;">
                                     <div style="display: flex; align-items: center; gap: 9px;">
                                         <div style="width: 32px; height: 32px; border-radius: 50%; background: #fbebee; color: #800d22; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; border: 1px solid #f2d4db;">
-                                            {{ strtoupper(substr($mhsUser?->name ?? 'M', 0, 1)) }}
+                                            {{ $mhsUser?->inisial() ?? 'M' }}
                                         </div>
                                         <div>
                                             <div style="color: #1e293b; font-weight: 600;">{{ $mhsUser?->name ?? 'Mahasiswa' }}</div>
@@ -594,11 +648,6 @@
                                         <div style="font-size: 10.5px; color: #94a3b8;">{{ $mhsFakultas }}</div>
                                     @endif
                                 </td>
-                                <td data-label="Mata Pelajaran">
-                                    <span class="badge-pill badge-blue" style="font-weight: 600; font-size: 11px;">
-                                        {{ $mapelNama }}
-                                    </span>
-                                </td>
                                 <td data-label="Kelompok Belajar">
                                     <span class="badge-pill badge-yellow" style="font-weight: 700; font-size: 11.5px;">
                                         {{ $kelompokNama }}
@@ -613,12 +662,12 @@
                                     <div style="display: flex; gap: 6px; justify-content: center;">
                                         <button type="button" class="btn-table-edit"
                                                 title="Pindahkan mahasiswa ke kelompok lain"
-                                                onclick="openModalPindahKelompok({{ $item->id }}, '{{ addslashes($mhsUser?->name ?? 'Mahasiswa') }}', '{{ addslashes($mhsNim) }}', '{{ addslashes($mapelNama) }}', {{ $item->kelompok_belajar_id }}, '{{ addslashes($kelompokNama) }}')">
+                                                onclick="openModalPindahKelompok({{ $item->id }}, '{{ addslashes($mhsUser?->name ?? 'Mahasiswa') }}', '{{ addslashes($mhsNim) }}', {{ $item->kelompok_belajar_id }}, '{{ addslashes($kelompokNama) }}')">
                                             Pindah
                                         </button>
                                         <form action="{{ route('musyrifah.manajemen_pembelajaran.anggota.destroy', $item->id) }}"
                                               method="POST"
-                                              data-sui-confirm="Apakah Anda yakin ingin mengeluarkan mahasiswa {{ $mhsUser?->name ?? 'ini' }} dari {{ $kelompokNama }} untuk {{ $mapelNama }}?"
+                                              data-sui-confirm="Apakah Anda yakin ingin mengeluarkan mahasiswa {{ $mhsUser?->name ?? 'ini' }} dari {{ $kelompokNama }}? Penempatan untuk seluruh mata pelajaran akan dicabut."
                                               data-sui-confirm-title="Keluarkan mahasiswa?"
                                               data-sui-confirm-label="Ya, Keluarkan"
                                               data-sui-confirm-tone="danger">
@@ -633,19 +682,19 @@
                             </tr>
                         @empty
                             <tr id="emptyAnggotaDbRow">
-                                <td colspan="8" style="padding: 35px 20px; text-align: center; color: #64748b;">
+                                <td colspan="7" style="padding: 35px 20px; text-align: center; color: #64748b;">
                                     <div style="font-size: 32px; margin-bottom: 8px;">👥</div>
                                     <div style="font-weight: 600; font-size: 14px; color: #1e293b;">Belum ada anggota kelompok belajar yang ditambahkan</div>
-                                    <div style="font-size: 12px; margin-top: 4px;">Klik tombol <strong>+ Tambah Mahasiswa ke Kelompok</strong> untuk mendistribusikan mahasiswa yang telah disetujui.</div>
+                                    <div style="font-size: 12px; margin-top: 4px;">Klik tombol <strong>+ Tambah Mahasiswa ke Kelompok</strong> untuk menambahkan mahasiswa yang telah disetujui.</div>
                                 </td>
                             </tr>
                         @endforelse
                         <tr id="emptyAnggotaFilterRow" style="display: none;">
-                            <td colspan="8" style="padding: 35px 20px; text-align: center; color: #64748b;">
+                            <td colspan="7" style="padding: 35px 20px; text-align: center; color: #64748b;">
                                 <div style="font-size: 28px; margin-bottom: 6px;">🔍</div>
                                 <div style="font-weight: 600; font-size: 13.5px; color: #1e293b;">Tidak ada mahasiswa yang cocok dengan filter atau pencarian</div>
-                                <div style="font-size: 12px; margin-top: 4px;">Silakan sesuaikan pilihan filter kelompok, mata pelajaran, atau kata kunci pencarian.</div>
-                            </td>
+                                <div style="font-size: 12px; margin-top: 4px;">Silakan sesuaikan pilihan kelompok atau kata kunci nama/NIM.</div>
+                            </tr>
                         </tr>
                     </tbody>
                 </table>
@@ -1013,46 +1062,54 @@
             <div class="modal-top-title">Tambah Mahasiswa ke Kelompok Belajar</div>
             <button type="button" class="modal-close-btn" onclick="closeModal('modalTambahAnggota')">&times;</button>
         </div>
-        <form method="POST" action="{{ route('musyrifah.manajemen_pembelajaran.anggota.store') }}">
+        <form id="formTambahAnggota" method="POST" action="{{ route('musyrifah.manajemen_pembelajaran.anggota.store') }}">
             @csrf
             <div class="modal-inner">
                 <div style="padding: 11px 14px; margin-bottom: 16px; background: #eaf6ee; border: 1px solid #c2e8ce; border-radius: 9px; font-size: 12px; color: #166534; line-height: 1.55;">
-                    <strong>✓ Mahasiswa Terverifikasi:</strong> Daftar di bawah hanya memuat mahasiswa yang pendaftarannya telah <strong>disetujui</strong> oleh Musyrifah.
+                    <strong>Mahasiswa terverifikasi:</strong> Daftar di bawah hanya memuat mahasiswa dengan pendaftaran <strong>disetujui</strong> yang belum memiliki kelompok aktif.
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Pilih Mahasiswa Disetujui</label>
-                    <select name="user_id" id="selectTambahAnggotaUser" class="form-control" required>
-                        <option value="">-- Pilih Mahasiswa --</option>
-                        @foreach($mahasiswaDisetujui as $mhs)
-                            @php
-                                $p = $mhs->pendaftarans->first();
-                                $nim = $mhs->nim ?? ($p?->nim ?? '-');
-                                $prodi = $p?->program_studi ?? 'Mahasiswa';
-                            @endphp
-                            <option value="{{ $mhs->id }}">{{ $mhs->name }} (NIM: {{ $nim }}) — {{ $prodi }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Mata Pelajaran</label>
-                    <select name="mata_pelajaran_id" id="selectTambahAnggotaMapel" class="form-control" required>
-                        <option value="">-- Pilih Mata Pelajaran --</option>
-                        @foreach($daftarMataPelajaran as $mp)
-                            <option value="{{ $mp->id }}">{{ $mp->nama }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Kelompok Belajar</label>
+                    <label class="form-label" for="selectTambahAnggotaKelompok">Kelompok Belajar</label>
                     <select name="kelompok_belajar_id" id="selectTambahAnggotaKelompok" class="form-control" required>
                         <option value="">-- Pilih Kelompok Belajar --</option>
-                        @foreach($daftarKelompok as $k)
-                            <option value="{{ $k->id }}">{{ $k->nama_kelompok }}</option>
+                        @foreach($daftarKelompok as $kelompok)
+                            <option value="{{ $kelompok->id }}">{{ $kelompok->nama_kelompok }}</option>
                         @endforeach
                     </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="searchPilihanMahasiswa">Pilih Mahasiswa</label>
+                    <input type="search" id="searchPilihanMahasiswa" class="form-control" placeholder="Cari nama atau NIM..." autocomplete="off" oninput="filterPilihanMahasiswa()">
+
+                    <div class="pilihan-mahasiswa-tools" style="margin-top: 12px;">
+                        <label>
+                            <input type="checkbox" id="pilihSemuaMahasiswa" onchange="togglePilihSemuaMahasiswa()">
+                            Pilih semua yang tampil
+                        </label>
+                        <span class="pilihan-mahasiswa-count" id="jumlahMahasiswaDipilih" aria-live="polite">0 dipilih</span>
+                    </div>
+
+                    <div class="pilihan-mahasiswa-list" id="daftarPilihanMahasiswa">
+                        @forelse($mahasiswaDisetujui as $mhs)
+                            @php
+                                $registration = $mhs->pendaftarans->first();
+                                $nim = $mhs->nim ?? ($registration?->nim ?? '-');
+                                $prodi = $registration?->program_studi ?? 'Mahasiswa';
+                            @endphp
+                            <label class="pilihan-mahasiswa-item" data-search="{{ strtolower($mhs->name.' '.$nim.' '.$prodi) }}">
+                                <input type="checkbox" class="pilihan-mahasiswa-checkbox" name="user_ids[]" value="{{ $mhs->id }}" onchange="updatePilihanMahasiswa()">
+                                <span class="pilihan-mahasiswa-info">
+                                    <span class="pilihan-mahasiswa-name">{{ $mhs->name }}</span>
+                                    <span class="pilihan-mahasiswa-meta">NIM: {{ $nim }} · {{ $prodi }}</span>
+                                </span>
+                            </label>
+                        @empty
+                            <div class="pilihan-mahasiswa-empty" id="emptyPilihanMahasiswa">Tidak ada mahasiswa dengan pendaftaran disetujui yang belum memiliki kelompok aktif.</div>
+                        @endforelse
+                        <div class="pilihan-mahasiswa-empty" id="emptyHasilPencarianMahasiswa" style="display: none;">Tidak ada mahasiswa yang cocok dengan pencarian.</div>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -1061,12 +1118,12 @@
                 </div>
 
                 <div style="font-size: 11.5px; color: #800d22; background: #fff5f7; border: 1px solid #f9d8df; padding: 9px 13px; border-radius: 8px;">
-                    ⚠️ <strong>Aturan SIMAHAD:</strong> Satu mahasiswa hanya memiliki satu kelompok aktif untuk setiap mata pelajaran.
+                    <strong>Aturan SIMAHAD:</strong> Satu mahasiswa hanya memiliki satu kelompok aktif. Penempatan ini langsung berlaku untuk seluruh mata pelajaran.
                 </div>
             </div>
             <div class="modal-footer-btns">
                 <button type="button" class="btn-modal-cancel" onclick="closeModal('modalTambahAnggota')">Batal</button>
-                <button type="submit" class="btn-action-primary">Tambahkan ke Kelompok</button>
+                <button type="submit" class="btn-action-primary" id="btnSubmitAnggotaBaru" disabled>Tambahkan ke Kelompok</button>
             </div>
         </form>
     </div>
@@ -1092,7 +1149,6 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12.5px;">
                         <div><span style="color: #64748b;">Nama:</span> <strong id="pindahNamaMhs" style="color: #1e293b;">-</strong></div>
                         <div><span style="color: #64748b;">NIM:</span> <strong id="pindahNimMhs" style="color: #1e293b;">-</strong></div>
-                        <div style="grid-column: 1 / -1;"><span style="color: #64748b;">Mata Pelajaran:</span> <strong id="pindahMapelMhs" style="color: #800d22;">-</strong></div>
                         <div style="grid-column: 1 / -1; display: flex; align-items: center; gap: 8px;">
                             <span style="color: #64748b;">Kelompok Saat Ini:</span>
                             <span id="pindahKelompokSaatIni" class="badge-pill badge-yellow" style="font-weight: 700;">-</span>
@@ -1413,33 +1469,81 @@
 
     // 3. MODAL ANGGOTA KELOMPOK BELAJAR (TAMBAH & PINDAH)
     function openModalTambahAnggota() {
-        const userSelect = document.getElementById('selectTambahAnggotaUser');
-        const mapelSelect = document.getElementById('selectTambahAnggotaMapel');
-        const kelompokSelect = document.getElementById('selectTambahAnggotaKelompok');
-        if (userSelect) userSelect.selectedIndex = 0;
-        if (mapelSelect) mapelSelect.selectedIndex = 0;
-        if (kelompokSelect) kelompokSelect.selectedIndex = 0;
+        const form = document.getElementById('formTambahAnggota');
+        if (form) form.reset();
+
+        const search = document.getElementById('searchPilihanMahasiswa');
+        if (search) search.value = '';
+
+        filterPilihanMahasiswa();
         openModal('modalTambahAnggota');
     }
 
-    function openModalPindahKelompok(id, nama, nim, mapel, currentKelompokId, currentKelompokNama) {
+    function filterPilihanMahasiswa() {
+        const search = (document.getElementById('searchPilihanMahasiswa')?.value || '').trim().toLowerCase();
+        const items = document.querySelectorAll('.pilihan-mahasiswa-item');
+        let visibleCount = 0;
+
+        items.forEach(item => {
+            const match = !search || (item.dataset.search || '').includes(search);
+            item.style.display = match ? '' : 'none';
+            if (match) visibleCount++;
+        });
+
+        const emptySearch = document.getElementById('emptyHasilPencarianMahasiswa');
+        if (emptySearch) emptySearch.style.display = (visibleCount === 0 && items.length > 0) ? '' : 'none';
+
+        updatePilihanMahasiswa();
+    }
+
+    function togglePilihSemuaMahasiswa() {
+        const selectAll = document.getElementById('pilihSemuaMahasiswa');
+        if (!selectAll) return;
+
+        document.querySelectorAll('.pilihan-mahasiswa-item').forEach(item => {
+            if (item.style.display !== 'none') {
+                item.querySelector('.pilihan-mahasiswa-checkbox').checked = selectAll.checked;
+            }
+        });
+
+        updatePilihanMahasiswa();
+    }
+
+    function updatePilihanMahasiswa() {
+        const checkboxes = Array.from(document.querySelectorAll('.pilihan-mahasiswa-checkbox'));
+        const visibleCheckboxes = checkboxes.filter(checkbox => checkbox.closest('.pilihan-mahasiswa-item').style.display !== 'none');
+        const selectedCount = checkboxes.filter(checkbox => checkbox.checked).length;
+        const selectAll = document.getElementById('pilihSemuaMahasiswa');
+        const countLabel = document.getElementById('jumlahMahasiswaDipilih');
+        const submitButton = document.getElementById('btnSubmitAnggotaBaru');
+
+        if (selectAll) {
+            selectAll.checked = visibleCheckboxes.length > 0 && visibleCheckboxes.every(checkbox => checkbox.checked);
+            selectAll.indeterminate = visibleCheckboxes.some(checkbox => checkbox.checked) && !selectAll.checked;
+            selectAll.disabled = visibleCheckboxes.length === 0;
+        }
+        if (countLabel) countLabel.textContent = selectedCount + ' dipilih';
+        if (submitButton) submitButton.disabled = selectedCount === 0;
+    }
+
+    function openModalPindahKelompok(id, nama, nim, currentKelompokId, currentKelompokNama) {
         document.getElementById('formPindahKelompok').action = "{{ url('/musyrifah/manajemen-pembelajaran/anggota') }}/" + id + "/pindah";
         document.getElementById('pindahNamaMhs').textContent = nama;
         document.getElementById('pindahNimMhs').textContent = nim;
-        document.getElementById('pindahMapelMhs').textContent = mapel;
         document.getElementById('pindahKelompokSaatIni').textContent = currentKelompokNama;
-        
+
         const selectBaru = document.getElementById('selectPindahKelompokBaru');
-        if (selectBaru) {
-            selectBaru.value = currentKelompokId;
-        }
+        if (selectBaru) selectBaru.value = currentKelompokId;
+
+        const note = document.querySelector('#formPindahKelompok textarea[name="keterangan"]');
+        if (note) note.value = '';
+
         openModal('modalPindahKelompok');
     }
 
     // FILTER DAN PENCARIAN ANGGOTA KELOMPOK BELAJAR
     function applyAnggotaFilters() {
         const kelompok = (document.getElementById('filterKelompokAnggota')?.value || '').trim();
-        const mapelId = (document.getElementById('filterMapelAnggota')?.value || '').trim();
         const search = (document.getElementById('searchAnggota')?.value || '').trim().toLowerCase();
 
         const rows = document.querySelectorAll('.row-anggota-kelompok');
@@ -1448,14 +1552,10 @@
 
         rows.forEach(row => {
             const rowKelompok = (row.dataset.kelompok || '').trim();
-            const rowMapelId = (row.dataset.mapelId || '').trim();
             const rowSearch = (row.dataset.search || '').trim().toLowerCase();
+            const match = (!kelompok || rowKelompok === kelompok) && (!search || rowSearch.includes(search));
 
-            const matchKelompok = !kelompok || rowKelompok === kelompok;
-            const matchMapel = !mapelId || rowMapelId === mapelId;
-            const matchSearch = !search || rowSearch.includes(search);
-
-            if (matchKelompok && matchMapel && matchSearch) {
+            if (match) {
                 row.style.display = '';
                 visibleCount++;
                 const numCell = row.querySelector('.row-num');
@@ -1467,34 +1567,34 @@
 
         if (emptyFilterRow) {
             const dbEmpty = document.getElementById('emptyAnggotaDbRow');
-            if (!dbEmpty) {
-                emptyFilterRow.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
-            }
+            if (!dbEmpty) emptyFilterRow.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
         }
     }
 
     function resetAnggotaFilters() {
         const selKelompok = document.getElementById('filterKelompokAnggota');
-        const selMapel = document.getElementById('filterMapelAnggota');
         const inputSearch = document.getElementById('searchAnggota');
 
         if (selKelompok) selKelompok.value = '';
-        if (selMapel) selMapel.value = '';
         if (inputSearch) inputSearch.value = '';
 
         applyAnggotaFilters();
     }
 
     function filterTableKelompok(kelompokNama) {
+        const tabButton = document.querySelector('[data-tab="tab-kelompok"]');
+        if (tabButton) switchTab('tab-kelompok', tabButton);
+
         const selKelompok = document.getElementById('filterKelompokAnggota');
-        if (selKelompok) {
-            selKelompok.value = kelompokNama;
-            applyAnggotaFilters();
-            const tableElem = document.getElementById('tbodyKelompokAnggota');
-            if (tableElem) {
-                tableElem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-        }
+        if (selKelompok) selKelompok.value = kelompokNama;
+
+        const inputSearch = document.getElementById('searchAnggota');
+        if (inputSearch) inputSearch.value = '';
+
+        applyAnggotaFilters();
+
+        const tableWrap = document.querySelector('#tab-kelompok .mp-table-wrap');
+        if (tableWrap) tableWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     // 4. MODAL JADWAL (CRUD)

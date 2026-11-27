@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\SuratPerizinanDicatat;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,6 +19,8 @@ class SuratPerizinan extends Model
     public const JENIS_KEGIATAN_KAMPUS = 'kegiatan_kampus';
 
     public const JENIS_PULANG = 'pulang_mingguan';
+
+    public const JENIS_DARURAT = 'pulang_darurat';
 
     public const JENIS_SEMESTER = 'surat_pulang_semester';
 
@@ -39,19 +42,27 @@ class SuratPerizinan extends Model
     /** Durasi maksimal satu pengajuan izin pulang (dalam hari, termasuk hari pertama). */
     public const MAKS_DURASI_PULANG_HARI = 14;
 
+    /** Jarak minimum antarizin pulang mingguan. */
+    public const JARAK_PULANG_HARI = 14;
+
     protected $fillable = [
         'user_id',
+        'musyrifah_id',
         'jenis',
         'status',
         'nama_kegiatan',
         'penyelenggara',
         'lokasi',
+        'transportasi',
         'waktu_mulai',
         'waktu_selesai',
         'tanggal_mulai',
         'tanggal_selesai',
         'durasi_hari',
+        'waktu_keluar',
+        'waktu_kembali',
         'alasan',
+        'keterangan',
         'dokumen_path',
         'dokumen_nama',
         'nomor_surat',
@@ -71,6 +82,8 @@ class SuratPerizinan extends Model
         return [
             'tanggal_mulai' => 'date',
             'tanggal_selesai' => 'date',
+            'waktu_keluar' => 'datetime',
+            'waktu_kembali' => 'datetime',
             'surat_diunggah_pada' => 'datetime',
             'keputusan_pada' => 'datetime',
             'dibatalkan_pada' => 'datetime',
@@ -81,6 +94,11 @@ class SuratPerizinan extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function musyrifah(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'musyrifah_id');
     }
 
     public function keputusanOleh(): BelongsTo
@@ -94,20 +112,34 @@ class SuratPerizinan extends Model
     }
 
     /**
-     * Status yang masih menahan satu slot kuota izin pulang.
+     * Status yang mengurangi kuota izin pulang mingguan.
      *
-     * Pengajuan yang menunggu tetap menahan slot sementara agar mahasiswa
-     * tidak dapat mengirim pengajuan berulang melebihi batas.
+     * Pengajuan yang menunggu, ditolak, perlu diperbaiki, atau dibatalkan
+     * belum menggunakan kuota. Kuota dipakai setelah Musyrifah menyetujui.
      *
      * @return array<int, string>
      */
-    public static function statusMenahanKuota(): array
+    public static function statusMenggunakanKuota(): array
     {
         return [
-            self::STATUS_MENUNGGU,
             self::STATUS_DISETUJUI,
-            self::STATUS_PERLU_PERBAIKAN,
             self::STATUS_SELESAI,
+        ];
+    }
+
+    /**
+     * Empat jenis pengajuan yang tersedia untuk pengiriman baru.
+     * Jenis kegiatan kampus lama tetap ditampilkan pada riwayat, tetapi tidak lagi diajukan.
+     *
+     * @return array<int, string>
+     */
+    public static function jenisPengajuanAktif(): array
+    {
+        return [
+            self::JENIS_KEGIATAN_FAKULTAS,
+            self::JENIS_PULANG,
+            self::JENIS_DARURAT,
+            self::JENIS_SEMESTER,
         ];
     }
 
@@ -126,7 +158,7 @@ class SuratPerizinan extends Model
         $terpakai = static::query()
             ->where('user_id', $user->id)
             ->where('jenis', self::JENIS_PULANG)
-            ->whereIn('status', self::statusMenahanKuota())
+            ->whereIn('status', self::statusMenggunakanKuota())
             ->whereBetween('tanggal_mulai', [$awal, $akhir])
             ->count();
 
@@ -144,10 +176,22 @@ class SuratPerizinan extends Model
         return in_array($this->jenis, [self::JENIS_KEGIATAN_FAKULTAS, self::JENIS_KEGIATAN_KAMPUS], true);
     }
 
-    /** Apakah pengajuan merupakan izin pulang mingguan. */
-    public function izinPulang(): bool
+    /** Apakah pengajuan merupakan izin pulang mingguan reguler. */
+    public function izinPulangMingguan(): bool
     {
         return $this->jenis === self::JENIS_PULANG;
+    }
+
+    /** Apakah pengajuan merupakan izin pulang darurat/khusus. */
+    public function izinDarurat(): bool
+    {
+        return $this->jenis === self::JENIS_DARURAT;
+    }
+
+    /** Apakah pengajuan merupakan izin pulang mingguan atau darurat. */
+    public function izinPulang(): bool
+    {
+        return in_array($this->jenis, [self::JENIS_PULANG, self::JENIS_DARURAT], true);
     }
 
     /** Apakah pengajuan merupakan surat pulang semester. */
@@ -168,7 +212,8 @@ class SuratPerizinan extends Model
             self::JENIS_KEGIATAN_FAKULTAS => 'Izin Kegiatan Fakultas/Prodi',
             self::JENIS_KEGIATAN_KAMPUS => 'Izin Kegiatan Kampus',
             self::JENIS_PULANG => 'Izin Pulang Mingguan',
-            self::JENIS_SEMESTER => 'Surat Pulang Semester',
+            self::JENIS_DARURAT => 'Izin Pulang Darurat/Khusus',
+            self::JENIS_SEMESTER => 'Izin Pulang Semester',
             default => ucfirst(str_replace('_', ' ', (string) $this->jenis)),
         };
     }
@@ -249,13 +294,21 @@ class SuratPerizinan extends Model
     /**
      * Mencatat satu perubahan status ke riwayat pengajuan.
      */
-    public function catatRiwayat(string $status, ?string $catatan = null, ?User $oleh = null): SuratPerizinanRiwayat
-    {
-        return $this->riwayats()->create([
+    public function catatRiwayat(
+        string $status,
+        ?string $catatan = null,
+        ?User $oleh = null,
+        ?string $peristiwa = null,
+    ): SuratPerizinanRiwayat {
+        $riwayat = $this->riwayats()->create([
             'status' => $status,
             'catatan' => $catatan,
             'diubah_oleh' => $oleh?->id,
             'nama_pengubah' => $oleh?->name,
         ]);
+
+        SuratPerizinanDicatat::dispatch($this, $riwayat, $peristiwa);
+
+        return $riwayat;
     }
 }

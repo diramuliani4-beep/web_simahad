@@ -5,10 +5,12 @@ namespace Tests\Feature;
 use App\Models\AbsensiPembelajaran;
 use App\Models\JadwalPembelajaran;
 use App\Models\Kamar;
+use App\Models\KelompokBelajar;
 use App\Models\MataPelajaran;
 use App\Models\Notifikasi;
 use App\Models\Pembayaran;
 use App\Models\Pendaftaran;
+use App\Models\PenempatanKelompokBelajar;
 use App\Models\PengaturanPembayaran;
 use App\Models\PengumpulanTugas;
 use App\Models\Pengumuman;
@@ -32,22 +34,21 @@ class MahasiswaDashboardTest extends TestCase
             'lantai' => 2,
         ]);
 
-        [$mahasiswa] = $this->mahasiswa(['kamar_id' => $kamar->id]);
-
-        Pendaftaran::query()->create([
-            'user_id' => $mahasiswa->id,
-            'nama_lengkap' => $mahasiswa->name,
-            'nim' => $mahasiswa->nim,
-            'tempat_lahir' => 'Padang',
-            'tanggal_lahir' => '2005-04-12',
-            'jenis_kelamin' => 'Perempuan',
-            'no_hp' => '081234567890',
-            'fakultas' => 'Tarbiyah dan Keguruan',
-            'semester' => 4,
-            'program_studi' => 'Pendidikan Agama Islam',
-            'tahun_angkatan' => '2024',
-            'status' => 'disetujui',
+        [$mahasiswa] = $this->mahasiswa([
+            'kamar_id' => $kamar->id,
+            'gedung_penempatan' => 'Gedung Lama',
+            'lantai_penempatan' => 9,
         ]);
+
+        Pendaftaran::query()
+            ->where('user_id', $mahasiswa->id)
+            ->firstOrFail()
+            ->update([
+                'tanggal_lahir' => '2005-04-12',
+                'fakultas' => 'Tarbiyah dan Keguruan',
+                'semester' => 4,
+                'program_studi' => 'Pendidikan Agama Islam',
+            ]);
 
         $this->actingAs($mahasiswa)
             ->get(route('dashboard'))
@@ -57,8 +58,67 @@ class MahasiswaDashboardTest extends TestCase
             ->assertSee('Kelompok 1')
             ->assertSee('Kamar 214')
             ->assertSee('Lantai 2')
+            ->assertDontSee('Gedung Lama')
+            ->assertDontSee('Lantai 9')
             ->assertSee('Disetujui')
             ->assertSee('Pendidikan Agama Islam');
+    }
+
+    public function test_akun_baru_tanpa_penempatan_melihat_kondisi_kosong(): void
+    {
+        $mahasiswa = User::factory()->create([
+            'name' => 'Mahasiswa Baru',
+            'role' => 'mahasiswa',
+            'status' => 'aktif',
+            'gedung_penempatan' => 'Gedung Lama',
+            'lantai_penempatan' => 9,
+        ]);
+        $mapel = $this->mapel('Mata Pelajaran Tidak Ditugaskan', 'TL-01');
+        $guru = $this->guru();
+
+        $this->jadwal($mapel, 'Kelompok 1', 'Ruang Tidak Ditugaskan');
+        $this->tugas($guru, $mapel, 'Tugas Tidak Ditugaskan');
+        $this->absensi($mahasiswa, $mapel, 'hadir', 1);
+
+        $this->actingAs($mahasiswa)
+            ->get(route('dashboard', [
+                'bulan' => now()->format('Y-m'),
+                'tanggal' => now()->toDateString(),
+            ]))
+            ->assertOk()
+            ->assertSee('Belum memiliki kelompok belajar')
+            ->assertSee('Belum Mendapatkan Kamar')
+            ->assertSee('Belum Mendaftar')
+            ->assertSee('Aktif')
+            ->assertDontSee('Mata Pelajaran Tidak Ditugaskan')
+            ->assertDontSee('Ruang Tidak Ditugaskan')
+            ->assertDontSee('Tugas Tidak Ditugaskan')
+            ->assertDontSee('Total pertemuan: 1 kali')
+            ->assertDontSee('Gedung Lama')
+            ->assertDontSee('Lantai 9');
+    }
+
+    public function test_keanggotaan_nonaktif_tidak_menampilkan_data_kelompok(): void
+    {
+        [$mahasiswa, $mapel] = $this->mahasiswa();
+        $guru = $this->guru();
+
+        $mahasiswa->riwayatPenempatanKelompokBelajar()
+            ->firstOrFail()
+            ->update(['status' => 'nonaktif', 'dicabut_pada' => now()]);
+        $this->jadwal($mapel, 'Kelompok 1', 'Ruang Nonaktif');
+        $this->tugas($guru, $mapel, 'Tugas Nonaktif');
+
+        $this->actingAs($mahasiswa)
+            ->get(route('dashboard', [
+                'bulan' => now()->format('Y-m'),
+                'tanggal' => now()->toDateString(),
+            ]))
+            ->assertOk()
+            ->assertSee('Belum memiliki kelompok belajar')
+            ->assertDontSee('Ruang Nonaktif')
+            ->assertDontSee('Tugas Nonaktif')
+            ->assertDontSee('Total pertemuan: 1 kali');
     }
 
     public function test_dashboard_menghitung_absensi_dari_data_pembelajaran(): void
@@ -117,6 +177,61 @@ class MahasiswaDashboardTest extends TestCase
             ->assertSee('Jadwal '.now()->locale('id')->translatedFormat('l, d F Y'));
     }
 
+    public function test_jadwal_dan_tugas_mengikuti_kelompok_global_saat_mahasiswa_dipindahkan(): void
+    {
+        [$mahasiswa, $mapelArab] = $this->mahasiswa();
+        $mapelFiqih = $this->mapel('Fiqih Ibadah', 'FI-02');
+        $guru = $this->guru();
+        $hariIni = JadwalPembelajaran::HARI[now()->dayOfWeekIso];
+        $kelompok2 = $this->kelompok(2);
+
+        $this->jadwal($mapelArab, 'Kelompok 1', 'Ruang Arab Satu', $hariIni, 'Jadwal Arab Satu');
+        $this->jadwal($mapelArab, 'Kelompok 2', 'Ruang Arab Dua', $hariIni, 'Jadwal Arab Dua');
+        $this->jadwal($mapelFiqih, 'Kelompok 2', 'Ruang Fiqih Dua', $hariIni, 'Jadwal Fiqih Dua');
+        $this->jadwal($mapelFiqih, 'Kelompok 1', 'Ruang Fiqih Satu', $hariIni, 'Jadwal Fiqih Satu');
+        $this->tugas($guru, $mapelArab, 'Tugas Arab Kelompok Satu');
+        $this->tugas($guru, $mapelArab, 'Tugas Arab Kelompok Dua', kelompok: 'Kelompok 2');
+        $this->tugas($guru, $mapelFiqih, 'Tugas Fiqih Kelompok Dua', kelompok: 'Kelompok 2');
+        $this->tugas($guru, $mapelFiqih, 'Tugas Fiqih Kelompok Satu');
+
+        $this->actingAs($mahasiswa)
+            ->get(route('dashboard', [
+                'bulan' => now()->format('Y-m'),
+                'tanggal' => now()->toDateString(),
+            ]))
+            ->assertOk()
+            ->assertViewHas('kelompok', 'Kelompok 1')
+            ->assertSee('Jadwal Arab Satu')
+            ->assertSee('Jadwal Fiqih Satu')
+            ->assertSee('Tugas Arab Kelompok Satu')
+            ->assertSee('Tugas Fiqih Kelompok Satu')
+            ->assertDontSee('Jadwal Arab Dua')
+            ->assertDontSee('Jadwal Fiqih Dua')
+            ->assertDontSee('Tugas Arab Kelompok Dua')
+            ->assertDontSee('Tugas Fiqih Kelompok Dua');
+
+        $mahasiswa->riwayatPenempatanKelompokBelajar()->firstOrFail()->update([
+            'kelompok_belajar_id' => $kelompok2->id,
+        ]);
+        $mahasiswa->unsetRelation('penempatanKelompokBelajarAktif');
+
+        $this->actingAs($mahasiswa)
+            ->get(route('dashboard', [
+                'bulan' => now()->format('Y-m'),
+                'tanggal' => now()->toDateString(),
+            ]))
+            ->assertOk()
+            ->assertViewHas('kelompok', 'Kelompok 2')
+            ->assertSee('Jadwal Arab Dua')
+            ->assertSee('Jadwal Fiqih Dua')
+            ->assertSee('Tugas Arab Kelompok Dua')
+            ->assertSee('Tugas Fiqih Kelompok Dua')
+            ->assertDontSee('Jadwal Arab Satu')
+            ->assertDontSee('Jadwal Fiqih Satu')
+            ->assertDontSee('Tugas Arab Kelompok Satu')
+            ->assertDontSee('Tugas Fiqih Kelompok Satu');
+    }
+
     public function test_ringkasan_tugas_menampilkan_tugas_terpublikasi_saja(): void
     {
         [$mahasiswa, $mapel] = $this->mahasiswa();
@@ -162,6 +277,55 @@ class MahasiswaDashboardTest extends TestCase
             ->assertSee('Tugas Dinilai Terbit')
             ->assertSee('87</span>/100', false)
             ->assertDontSee('43</span>/100', false);
+    }
+
+    public function test_dashboard_hanya_menampilkan_data_mahasiswa_yang_login(): void
+    {
+        [$mahasiswa, $mapel] = $this->mahasiswa();
+        $mahasiswaLain = User::factory()->create([
+            'name' => 'Mahasiswa Lain',
+            'role' => 'mahasiswa',
+            'status' => 'aktif',
+        ]);
+        $guru = $this->guru();
+
+        $this->tempatkan($mahasiswaLain, $this->kelompok(1));
+        $this->absensi($mahasiswaLain, $mapel, 'alpa', 2);
+
+        $tugasLain = $this->tugas($guru, $mapel, 'Tugas Yang Dinilai Mahasiswa Lain');
+        PengumpulanTugas::factory()->nilaiDipublikasikan(99, 'Nilai mahasiswa lain.')->create([
+            'tugas_id' => $tugasLain->id,
+            'user_id' => $mahasiswaLain->id,
+        ]);
+
+        $pengaturan = PengaturanPembayaran::factory()->create();
+        $this->tagihan($mahasiswa, $pengaturan, ['nominal' => 1500000]);
+        $this->tagihan($mahasiswaLain, $pengaturan, [
+            'nominal' => 4200000,
+            'status' => 'lunas',
+        ]);
+
+        SuratPerizinan::factory()->create(['user_id' => $mahasiswa->id]);
+        SuratPerizinan::factory()->create(['user_id' => $mahasiswaLain->id]);
+        Notifikasi::kirim(
+            $mahasiswaLain,
+            Notifikasi::TIPE_TUGAS_BARU,
+            'Notifikasi Milik Mahasiswa Lain',
+            'Pesan yang tidak boleh muncul.',
+            route('tugas.mhs.index'),
+            'uji:mahasiswa-lain'
+        );
+
+        $this->actingAs($mahasiswa)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Total pertemuan: 1 kali')
+            ->assertSee('Rp 1.500.000')
+            ->assertSee('Total 1 pengajuan surat dan perizinan.')
+            ->assertDontSee('Rp 4.200.000')
+            ->assertDontSee('99</span>/100', false)
+            ->assertDontSee('Total 2 pengajuan surat dan perizinan.')
+            ->assertDontSee('Notifikasi Milik Mahasiswa Lain');
     }
 
     public function test_dashboard_menampilkan_pengumuman_yang_dipublikasikan(): void
@@ -224,29 +388,90 @@ class MahasiswaDashboardTest extends TestCase
     {
         [$mahasiswa] = $this->mahasiswa();
 
-        PengaturanPembayaran::factory()->mendekatiJatuhTempo()->create();
+        $pengaturan = PengaturanPembayaran::factory()->mendekatiJatuhTempo()->create();
+        $jatuhTempoTagihan = now()->addDays(5);
+        $this->tagihan($mahasiswa, $pengaturan, [
+            'angsuran_ke' => 2,
+            'nominal' => 1750000,
+            'jatuh_tempo' => $jatuhTempoTagihan->toDateString(),
+        ]);
 
         $this->actingAs($mahasiswa)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('Rp 2.500.000')
-            ->assertSee('Tahap 1')
+            ->assertSee('Rp 1.750.000')
+            ->assertSee('Tahap 2')
             ->assertSee('7322022268')
             ->assertSee('Salin No. Rek')
-            ->assertSee('Pengingat: jatuh tempo tinggal 3 hari');
+            ->assertSee('Pengingat: jatuh tempo tinggal 5 hari')
+            ->assertSee($jatuhTempoTagihan->locale('id')->translatedFormat('d F Y'))
+            ->assertDontSee('Rp 2.500.000');
+
+        $this->assertDatabaseHas('notifikasis', [
+            'user_id' => $mahasiswa->id,
+            'tipe' => Notifikasi::TIPE_PEMBAYARAN,
+            'pesan' => 'Tagihan Tahap 2 sebesar Rp 1.750.000 jatuh tempo pada '.$jatuhTempoTagihan->locale('id')->translatedFormat('d F Y').'.',
+        ]);
+    }
+
+    public function test_pengingat_tidak_ditampilkan_jika_jatuh_tempo_tagihan_melewihi_tujuh_hari(): void
+    {
+        [$mahasiswa] = $this->mahasiswa();
+
+        $pengaturan = PengaturanPembayaran::factory()->mendekatiJatuhTempo()->create();
+        $jatuhTempoTagihan = now()->addDays(10);
+        $this->tagihan($mahasiswa, $pengaturan, [
+            'jatuh_tempo' => $jatuhTempoTagihan->toDateString(),
+        ]);
+
+        $this->actingAs($mahasiswa)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Tagihan belum dibayar. Bayar sebelum '.$jatuhTempoTagihan->locale('id')->translatedFormat('d F Y').'.')
+            ->assertDontSee('Pengingat: jatuh tempo');
+
+        $this->assertDatabaseMissing('notifikasis', [
+            'user_id' => $mahasiswa->id,
+            'tipe' => Notifikasi::TIPE_PEMBAYARAN,
+        ]);
     }
 
     public function test_dashboard_menampilkan_status_terlambat_saat_jatuh_tempo_terlewati(): void
     {
         [$mahasiswa] = $this->mahasiswa();
 
-        PengaturanPembayaran::factory()->terlewat()->create();
+        $pengaturan = PengaturanPembayaran::factory()->terlewat()->create();
+        $this->tagihan($mahasiswa, $pengaturan);
 
         $this->actingAs($mahasiswa)
             ->get(route('dashboard'))
             ->assertOk()
             ->assertSee('Terlambat')
             ->assertSee('Tagihan melewati jatuh tempo');
+    }
+
+    public function test_dashboard_tidak_membuat_tagihan_default_untuk_mahasiswa_tanpa_tagihan(): void
+    {
+        $mahasiswa = User::factory()->create(['role' => 'mahasiswa', 'status' => 'aktif']);
+        $mahasiswaLain = User::factory()->create(['role' => 'mahasiswa', 'status' => 'aktif']);
+        $pengaturan = PengaturanPembayaran::factory()->mendekatiJatuhTempo()->create();
+
+        $this->tagihan($mahasiswaLain, $pengaturan, ['nominal' => 4200000]);
+
+        $this->actingAs($mahasiswa)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Belum memiliki tagihan pembayaran untuk periode ini.')
+            ->assertDontSee('Rp 2.500.000')
+            ->assertDontSee('Rp 4.200.000')
+            ->assertDontSee('7322022268')
+            ->assertDontSee('Pengingat: jatuh tempo');
+
+        $this->assertDatabaseCount('pembayarans', 1);
+        $this->assertDatabaseMissing('notifikasis', [
+            'user_id' => $mahasiswa->id,
+            'tipe' => Notifikasi::TIPE_PEMBAYARAN,
+        ]);
     }
 
     public function test_status_lunas_hanya_mengikuti_konfirmasi_rektorat(): void
@@ -331,18 +556,14 @@ class MahasiswaDashboardTest extends TestCase
     }
 
     /**
-     * Mahasiswa beserta kelompok pembelajaran yang tercatat pada absensi.
+     * Mahasiswa dengan penempatan kelompok aktif dan satu catatan absensi.
      *
      * @param  array<string, mixed>  $atribut
      * @return array{0: User, 1: MataPelajaran}
      */
-    private function mahasiswa(array $atribut = [], string $kelompok = 'Kelompok 1'): array
+    private function mahasiswa(array $atribut = [], int $nomorKelompok = 1): array
     {
-        $mapel = MataPelajaran::query()->create([
-            'nama' => 'Bahasa Arab Dasar',
-            'kode' => 'BA-01',
-            'kategori' => 'Bahasa',
-        ]);
+        $mapel = $this->mapel();
 
         $mahasiswa = User::factory()->create(array_merge([
             'name' => 'Siti Aminah',
@@ -351,9 +572,96 @@ class MahasiswaDashboardTest extends TestCase
             'status' => 'aktif',
         ], $atribut));
 
-        $this->absensi($mahasiswa, $mapel, 'hadir', 1, $kelompok);
+        $this->tempatkan($mahasiswa, $this->kelompok($nomorKelompok));
+        $this->absensi($mahasiswa, $mapel, 'hadir', 1, 'Kelompok '.$nomorKelompok);
 
         return [$mahasiswa, $mapel];
+    }
+
+    private function mapel(string $nama = 'Bahasa Arab Dasar', string $kode = 'BA-01'): MataPelajaran
+    {
+        return MataPelajaran::query()->create([
+            'nama' => $nama,
+            'kode' => $kode,
+            'kategori' => 'Bahasa',
+        ]);
+    }
+
+    private function kelompok(int $nomor): KelompokBelajar
+    {
+        return KelompokBelajar::firstOrCreate(
+            ['nomor_kelompok' => $nomor],
+            ['nama_kelompok' => 'Kelompok '.$nomor]
+        );
+    }
+
+    private function tempatkan(
+        User $mahasiswa,
+        KelompokBelajar $kelompok,
+        string $status = 'aktif',
+    ): PenempatanKelompokBelajar {
+        Pendaftaran::query()->updateOrCreate(
+            ['user_id' => $mahasiswa->id],
+            [
+                'nama_lengkap' => $mahasiswa->name,
+                'nim' => $mahasiswa->nim ?: 'NIM-'.$mahasiswa->id,
+                'tempat_lahir' => 'Padang',
+                'tanggal_lahir' => '2005-01-01',
+                'jenis_kelamin' => 'Perempuan',
+                'no_hp' => '081234567890',
+                'program_studi' => 'Sistem Informasi',
+                'fakultas' => 'Sains dan Teknologi',
+                'semester' => 1,
+                'status' => 'disetujui',
+                'tahun_angkatan' => '2024',
+            ],
+        );
+
+        return PenempatanKelompokBelajar::query()->updateOrCreate(
+            ['user_id' => $mahasiswa->id],
+            [
+                'kelompok_belajar_id' => $kelompok->id,
+                'status' => $status,
+                'ditugaskan_pada' => now(),
+                'dicabut_pada' => $status === 'aktif' ? null : now(),
+            ],
+        );
+    }
+
+    private function jadwal(
+        MataPelajaran $mapel,
+        string $kelompok,
+        string $ruangan,
+        ?string $hari = null,
+        ?string $namaMataPelajaran = null,
+    ): JadwalPembelajaran {
+        return JadwalPembelajaran::query()->create([
+            'mata_pelajaran_id' => $mapel->id,
+            'nama_mata_pelajaran' => $namaMataPelajaran ?: $mapel->nama,
+            'kelompok' => $kelompok,
+            'guru_pengampu' => 'Ustaz Fauzan',
+            'hari' => $hari ?? JadwalPembelajaran::HARI[now()->dayOfWeekIso],
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '09:30',
+            'ruangan' => $ruangan,
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $atribut
+     */
+    private function tagihan(
+        User $mahasiswa,
+        PengaturanPembayaran $pengaturan,
+        array $atribut = [],
+    ): Pembayaran {
+        return Pembayaran::query()->create(array_merge([
+            'user_id' => $mahasiswa->id,
+            'periode' => $pengaturan->periode,
+            'nominal' => $pengaturan->nominal,
+            'jatuh_tempo' => $pengaturan->jatuh_tempo?->toDateString(),
+            'status' => 'belum_lunas',
+        ], $atribut));
     }
 
     private function absensi(

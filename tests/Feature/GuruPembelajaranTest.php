@@ -5,9 +5,12 @@ namespace Tests\Feature;
 use App\Models\AbsensiPembelajaran;
 use App\Models\ActivityLog;
 use App\Models\JadwalPembelajaran;
+use App\Models\KelompokBelajar;
 use App\Models\KelompokPengajar;
 use App\Models\MataPelajaran;
 use App\Models\Notifikasi;
+use App\Models\Pendaftaran;
+use App\Models\PenempatanKelompokBelajar;
 use App\Models\PengumpulanTugas;
 use App\Models\PertemuanPembelajaran;
 use App\Models\Tugas;
@@ -29,7 +32,7 @@ class GuruPembelajaranTest extends TestCase
     public function test_alur_guru_lengkap_dari_memulai_pertemuan_sampai_reopen_detail(): void
     {
         [$guru, $mapel] = $this->guruDenganJadwal();
-        $mahasiswa = $this->mahasiswaKelompok($mapel);
+        $mahasiswa = $this->mahasiswaKelompok();
 
         $this->actingAs($guru)
             ->get(route('guru.pembelajaran'))
@@ -110,7 +113,7 @@ class GuruPembelajaranTest extends TestCase
     public function test_guru_dapat_memulai_pertemuan_berikutnya_sesuai_progres(): void
     {
         [$guru, $mapel] = $this->guruDenganJadwal();
-        $this->mahasiswaKelompok($mapel);
+        $this->mahasiswaKelompok();
 
         $this->actingAs($guru)->post(route('guru.pembelajaran.mulai'), $this->parameterMulai($mapel))
             ->assertRedirect()
@@ -151,7 +154,7 @@ class GuruPembelajaranTest extends TestCase
         $this->buatJadwal($mapelLain, 'Kelompok 1', $guru->name, self::PERIODE);
         $this->buatJadwal($mapelGanjil, 'Kelompok 1', $guru->name, 'Semester Genap 2026/2027');
 
-        $this->mahasiswaKelompok($mapelGanjil);
+        $this->mahasiswaKelompok();
 
         $pertemuanGanjil = $this->mulaiPertemuan($guru, $mapelGanjil, self::PERIODE);
         $this->isiAbsensi($guru, $pertemuanGanjil, 'hadir');
@@ -191,7 +194,7 @@ class GuruPembelajaranTest extends TestCase
     public function test_absensi_tersimpan_dan_koreksi_tercatat_pada_detail_pertemuan(): void
     {
         [$guru, $mapel] = $this->guruDenganJadwal();
-        $mahasiswa = $this->mahasiswaKelompok($mapel);
+        $mahasiswa = $this->mahasiswaKelompok();
         $pertemuan = $this->mulaiPertemuan($guru, $mapel);
 
         $this->isiAbsensi($guru, $pertemuan, 'izin', 'Ada urusan keluarga');
@@ -232,7 +235,7 @@ class GuruPembelajaranTest extends TestCase
     public function test_status_absensi_di_luar_hadir_izin_sakit_alpa_ditolak(): void
     {
         [$guru, $mapel] = $this->guruDenganJadwal();
-        $mahasiswa = $this->mahasiswaKelompok($mapel);
+        $mahasiswa = $this->mahasiswaKelompok();
         $pertemuan = $this->mulaiPertemuan($guru, $mapel);
 
         $this->actingAs($guru)
@@ -241,13 +244,13 @@ class GuruPembelajaranTest extends TestCase
             ])
             ->assertSessionHasErrors('absensi.'.$mahasiswa->id.'.status');
 
-        $this->assertDatabaseCount('absensi_pembelajarans', 1); // hanya baris keanggotaan kelompok
+        $this->assertDatabaseCount('absensi_pembelajarans', 0);
     }
 
     public function test_pertemuan_tidak_dapat_diselesaikan_tanpa_absensi(): void
     {
         [$guru, $mapel] = $this->guruDenganJadwal();
-        $this->mahasiswaKelompok($mapel);
+        $this->mahasiswaKelompok();
         $pertemuan = $this->mulaiPertemuan($guru, $mapel);
 
         $this->actingAs($guru)
@@ -288,7 +291,7 @@ class GuruPembelajaranTest extends TestCase
     public function test_monitoring_musyrifah_membaca_progres_absensi_materi_tugas_dan_nilai(): void
     {
         [$guru, $mapel] = $this->guruDenganJadwal();
-        $mahasiswa = $this->mahasiswaKelompok($mapel);
+        $mahasiswa = $this->mahasiswaKelompok();
 
         // Cegah seeder otomatis pada halaman monitoring.
         KelompokPengajar::query()->create([
@@ -351,7 +354,7 @@ class GuruPembelajaranTest extends TestCase
     public function test_monitoring_musyrifah_menampilkan_rekap_absensi_melalui_menu_absensi(): void
     {
         [$guru, $mapel] = $this->guruDenganJadwal();
-        $this->mahasiswaKelompok($mapel);
+        $this->mahasiswaKelompok();
         $pertemuan = $this->mulaiPertemuan($guru, $mapel);
         $this->isiAbsensi($guru, $pertemuan, 'hadir');
 
@@ -368,7 +371,7 @@ class GuruPembelajaranTest extends TestCase
     public function test_guru_tidak_dapat_mengakses_pertemuan_guru_lain(): void
     {
         [$guru, $mapel] = $this->guruDenganJadwal();
-        $mahasiswa = $this->mahasiswaKelompok($mapel);
+        $mahasiswa = $this->mahasiswaKelompok();
         $pertemuan = $this->mulaiPertemuan($guru, $mapel);
 
         $guruLain = User::factory()->create([
@@ -440,7 +443,7 @@ class GuruPembelajaranTest extends TestCase
     public function test_menu_penilaian_menampilkan_tugas_dan_rekap_nilai_sesuai_penugasan(): void
     {
         [$guru, $mapel] = $this->guruDenganJadwal();
-        $mahasiswa = $this->mahasiswaKelompok($mapel);
+        $mahasiswa = $this->mahasiswaKelompok();
 
         $tugas = Tugas::factory()->dipublikasikan()->create([
             'user_id' => $guru->id,
@@ -566,7 +569,7 @@ class GuruPembelajaranTest extends TestCase
         ]);
     }
 
-    private function mahasiswaKelompok(MataPelajaran $mapel, string $kelompok = 'Kelompok 1'): User
+    private function mahasiswaKelompok(int $nomorKelompok = 1): User
     {
         $mahasiswa = User::factory()->create([
             'name' => 'Siti Aminah',
@@ -575,16 +578,50 @@ class GuruPembelajaranTest extends TestCase
             'status' => 'aktif',
         ]);
 
-        AbsensiPembelajaran::query()->create([
-            'user_id' => $mahasiswa->id,
-            'mata_pelajaran_id' => $mapel->id,
-            'kelompok' => $kelompok,
-            'pertemuan_ke' => 1,
-            'tanggal' => now()->toDateString(),
-            'status' => 'hadir',
-        ]);
+        $this->buatPendaftaranDisetujui($mahasiswa);
+        $this->tempatkan($mahasiswa, $this->kelompok($nomorKelompok));
 
         return $mahasiswa;
+    }
+
+    private function kelompok(int $nomor): KelompokBelajar
+    {
+        return KelompokBelajar::query()->firstOrCreate(
+            ['nomor_kelompok' => $nomor],
+            [
+                'nama_kelompok' => 'Kelompok '.$nomor,
+                'keterangan' => 'Kelompok Belajar '.$nomor,
+            ]
+        );
+    }
+
+    private function buatPendaftaranDisetujui(User $mahasiswa): Pendaftaran
+    {
+        return Pendaftaran::query()->create([
+            'user_id' => $mahasiswa->id,
+            'nama_lengkap' => $mahasiswa->name,
+            'nim' => $mahasiswa->nim,
+            'tempat_lahir' => 'Padang',
+            'tanggal_lahir' => '2005-01-01',
+            'jenis_kelamin' => 'Perempuan',
+            'no_hp' => '081234567890',
+            'program_studi' => 'Sistem Informasi',
+            'fakultas' => 'Sains dan Teknologi',
+            'semester' => 1,
+            'status' => 'disetujui',
+            'tahun_angkatan' => '2024',
+        ]);
+    }
+
+    private function tempatkan(User $mahasiswa, KelompokBelajar $kelompok): PenempatanKelompokBelajar
+    {
+        return PenempatanKelompokBelajar::query()->create([
+            'user_id' => $mahasiswa->id,
+            'kelompok_belajar_id' => $kelompok->id,
+            'status' => 'aktif',
+            'ditugaskan_pada' => now(),
+            'dicabut_pada' => null,
+        ]);
     }
 
     /**
@@ -623,10 +660,7 @@ class GuruPembelajaranTest extends TestCase
         string $status,
         ?string $catatan = null,
     ): void {
-        $mahasiswa = User::query()
-            ->whereIn('id', AbsensiPembelajaran::query()->where('kelompok', $pertemuan->kelompok)->pluck('user_id'))
-            ->whereRaw('LOWER(role) = ?', ['mahasiswa'])
-            ->firstOrFail();
+        $mahasiswa = User::mahasiswaKelompok($pertemuan->kelompok)->firstOrFail();
 
         $this->actingAs($guru)
             ->put(route('guru.pembelajaran.absensi', $pertemuan), [

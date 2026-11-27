@@ -5,10 +5,10 @@ namespace App\Services;
 use App\Models\AbsensiPembelajaran;
 use App\Models\JadwalPembelajaran;
 use App\Models\Kamar;
-use App\Models\KelompokBelajarAnggota;
 use App\Models\MataPelajaran;
 use App\Models\Pembayaran;
 use App\Models\Pendaftaran;
+use App\Models\PenempatanKelompokBelajar;
 use App\Models\PengumpulanTugas;
 use App\Models\PertemuanPembelajaran;
 use App\Models\SuratPerizinan;
@@ -254,11 +254,13 @@ class LaporanMahadService
      */
     public function opsiMataPelajaranKehadiran(): array
     {
+        $adaPenempatanAktif = PenempatanKelompokBelajar::query()
+            ->aktif()
+            ->mahasiswaDisetujui()
+            ->exists();
+
         return MataPelajaran::query()
-            ->where(function ($query): void {
-                $query->whereHas('absensis')
-                    ->orWhereHas('kelompokAnggotas', fn ($anggota) => $anggota->whereRaw('LOWER(status) = ?', ['aktif']));
-            })
+            ->when(! $adaPenempatanAktif, fn ($query) => $query->whereHas('absensis'))
             ->orderBy('nama')
             ->get(['id', 'nama'])
             ->map(fn (MataPelajaran $mapel): array => [
@@ -275,9 +277,9 @@ class LaporanMahadService
      */
     public function opsiKelompokKehadiran(?int $mataPelajaranId = null): array
     {
-        $kelompokAktif = KelompokBelajarAnggota::query()
-            ->when($mataPelajaranId, fn ($query) => $query->where('mata_pelajaran_id', $mataPelajaranId))
-            ->whereRaw('LOWER(status) = ?', ['aktif'])
+        $kelompokAktif = PenempatanKelompokBelajar::query()
+            ->aktif()
+            ->mahasiswaDisetujui()
             ->with('kelompokBelajar:id,nama_kelompok')
             ->get()
             ->pluck('kelompokBelajar.nama_kelompok');
@@ -361,45 +363,48 @@ class LaporanMahadService
             ->when($kelompok !== '', fn ($query) => $query->where('kelompok', $kelompok))
             ->get();
 
-        $anggota = KelompokBelajarAnggota::query()
+        $penempatanAktif = PenempatanKelompokBelajar::query()
             ->with([
                 'user' => fn ($query) => $query->select('id', 'name', 'nim'),
                 'user.pendaftarans' => fn ($query) => $query
                     ->where('status', 'disetujui')
                     ->orderByDesc('id')
                     ->select('id', 'user_id', 'program_studi'),
-                'mataPelajaran' => fn ($query) => $query->select('id', 'nama'),
                 'kelompokBelajar:id,nama_kelompok',
             ])
-            ->whereRaw('LOWER(status) = ?', ['aktif'])
-            ->when($mataPelajaranId, fn ($query) => $query->where('mata_pelajaran_id', $mataPelajaranId))
-            ->when($kelompok !== '', fn ($query) => $query->whereHas(
-                'kelompokBelajar',
-                fn ($kelompokQuery) => $kelompokQuery->where('nama_kelompok', $kelompok)
-            ))
-            ->whereHas('user', fn ($query) => $query
-                ->whereRaw('LOWER(role) = ?', ['mahasiswa'])
-                ->whereHas('pendaftarans', fn ($pendaftaran) => $pendaftaran->where('status', 'disetujui')))
+            ->aktif()
+            ->mahasiswaDisetujui()
+            ->when($kelompok !== '', fn ($query) => $query->untukKelompok($kelompok))
             ->get();
 
-        $peserta = $anggota->mapWithKeys(function (KelompokBelajarAnggota $item): array {
-            $key = $this->kunciPesertaKehadiran(
-                (int) $item->user_id,
-                (int) $item->mata_pelajaran_id,
-                $item->kelompokBelajar?->nama_kelompok,
-            );
+        $mataPelajaran = MataPelajaran::query()
+            ->when($mataPelajaranId, fn ($query) => $query->whereKey($mataPelajaranId))
+            ->orderBy('id')
+            ->get(['id', 'nama']);
 
-            return [$key => [
-                'user_id' => (int) $item->user_id,
-                'nim' => $item->user?->nim ?: '-',
-                'nama' => $item->user?->name ?? 'Mahasiswa',
-                'program_studi' => $this->programStudi($item->user),
-                'mata_pelajaran_id' => (int) $item->mata_pelajaran_id,
-                'mata_pelajaran' => $item->mataPelajaran?->nama ?: '-',
-                'kelompok' => $item->kelompokBelajar?->nama_kelompok ?: 'Tanpa Kelompok',
-                'absensi' => collect(),
-            ]];
-        });
+        $peserta = collect();
+
+        foreach ($penempatanAktif as $item) {
+            foreach ($mataPelajaran as $mapel) {
+                $namaKelompok = $item->kelompokBelajar?->nama_kelompok ?: 'Tanpa Kelompok';
+                $key = $this->kunciPesertaKehadiran(
+                    (int) $item->user_id,
+                    (int) $mapel->id,
+                    $namaKelompok,
+                );
+
+                $peserta->put($key, [
+                    'user_id' => (int) $item->user_id,
+                    'nim' => $item->user?->nim ?: '-',
+                    'nama' => $item->user?->name ?? 'Mahasiswa',
+                    'program_studi' => $this->programStudi($item->user),
+                    'mata_pelajaran_id' => (int) $mapel->id,
+                    'mata_pelajaran' => $mapel->nama ?: '-',
+                    'kelompok' => $namaKelompok,
+                    'absensi' => collect(),
+                ]);
+            }
+        }
 
         foreach ($absensi->groupBy(fn (AbsensiPembelajaran $item): string => $this->kunciPesertaKehadiran(
             (int) $item->user_id,

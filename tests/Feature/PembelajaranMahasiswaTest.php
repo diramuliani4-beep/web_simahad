@@ -5,8 +5,9 @@ namespace Tests\Feature;
 use App\Models\AbsensiPembelajaran;
 use App\Models\JadwalPembelajaran;
 use App\Models\KelompokBelajar;
-use App\Models\KelompokBelajarAnggota;
 use App\Models\MataPelajaran;
+use App\Models\Pendaftaran;
+use App\Models\PenempatanKelompokBelajar;
 use App\Models\PertemuanPembelajaran;
 use App\Models\Tugas;
 use App\Models\User;
@@ -49,7 +50,7 @@ class PembelajaranMahasiswaTest extends TestCase
         ]);
 
         (new PembelajaranSeeder)->run();
-        $this->tempatkanSemuaMapel($user, $this->kelompok(1));
+        $this->tempatkan($user, $this->kelompok(1));
 
         $response = $this->actingAs($user)->get(route('pembelajaran.mhs'));
 
@@ -77,7 +78,7 @@ class PembelajaranMahasiswaTest extends TestCase
         ]);
 
         (new PembelajaranSeeder)->run();
-        $this->tempatkanSemuaMapel($userLulus, $this->kelompok(1));
+        $this->tempatkan($userLulus, $this->kelompok(1));
 
         $response = $this->actingAs($userLulus)->get(route('pembelajaran.mhs'));
 
@@ -111,7 +112,7 @@ class PembelajaranMahasiswaTest extends TestCase
             'judul' => 'Tugas Kelompok Kedua',
         ]);
 
-        $this->tempatkan($mahasiswa, $mapel, $this->kelompok(1));
+        $this->tempatkan($mahasiswa, $this->kelompok(1));
 
         $response = $this->actingAs($mahasiswa)->get(route('pembelajaran.mhs'));
 
@@ -134,7 +135,7 @@ class PembelajaranMahasiswaTest extends TestCase
 
         (new PembelajaranSeeder)->run();
         $mapel = MataPelajaran::first();
-        $this->tempatkan($user, $mapel, $this->kelompok(1));
+        $this->tempatkan($user, $this->kelompok(1));
 
         $response = $this->actingAs($user)->getJson(route('pembelajaran.mhs.detail_pertemuan', $mapel->id));
 
@@ -150,18 +151,81 @@ class PembelajaranMahasiswaTest extends TestCase
         $this->assertCount(16, $response->json('pertemuan'));
     }
 
-    public function test_detail_pertemuan_menolak_mata_pelajaran_di_luar_kelompok_mahasiswa(): void
+    public function test_detail_pertemuan_menampilkan_semua_mata_pelajaran_untuk_penempatan_global(): void
     {
         $mahasiswa = User::factory()->create(['role' => 'mahasiswa']);
         [$mapel, $jadwal] = $this->buatMapelDenganJadwal();
         $mapelLain = $this->buatMapel('Bahasa Arab', '111');
 
         $this->simpanAbsensi($mahasiswa, $mapel, $jadwal, 1, 'hadir');
-        $this->tempatkan($mahasiswa, $mapel, $this->kelompok(1));
+        $this->tempatkan($mahasiswa, $this->kelompok(1));
 
         $this->actingAs($mahasiswa)
             ->getJson(route('pembelajaran.mhs.detail_pertemuan', $mapelLain->id))
-            ->assertForbidden();
+            ->assertOk()
+            ->assertJsonPath('mapel.id', $mapelLain->id)
+            ->assertJsonPath('mapel.kelompok', 'Kelompok 1')
+            ->assertJsonCount(16, 'pertemuan');
+    }
+
+    public function test_perpindahan_kelompok_global_mengganti_jadwal_materi_dan_tugas_semua_mapel(): void
+    {
+        $mahasiswa = User::factory()->create(['role' => 'mahasiswa']);
+        $mapelArab = $this->buatMapel('Bahasa Arab Global', 'BA-GLOBAL');
+        $mapelFiqih = $this->buatMapel('Fiqih Global', 'FI-GLOBAL');
+        $kelompok1 = $this->kelompok(1);
+        $kelompok2 = $this->kelompok(2);
+
+        foreach ([$mapelArab, $mapelFiqih] as $mapel) {
+            $this->buatJadwal($mapel, 'Kelompok 1', 'Senin', 'Ruang Lama '.$mapel->kode);
+            $this->buatJadwal($mapel, 'Kelompok 2', 'Rabu', 'Ruang Baru '.$mapel->kode);
+            $this->buatMateri($mapel, 'Kelompok 1', 'Materi Lama '.$mapel->kode);
+            $this->buatMateri($mapel, 'Kelompok 2', 'Materi Baru '.$mapel->kode);
+
+            Tugas::factory()->dipublikasikan()->create([
+                'mata_pelajaran_id' => $mapel->id,
+                'nama_mata_pelajaran' => $mapel->nama,
+                'kelompok' => 'Kelompok 1',
+                'judul' => 'Tugas Lama '.$mapel->kode,
+            ]);
+            Tugas::factory()->dipublikasikan()->create([
+                'mata_pelajaran_id' => $mapel->id,
+                'nama_mata_pelajaran' => $mapel->nama,
+                'kelompok' => 'Kelompok 2',
+                'judul' => 'Tugas Baru '.$mapel->kode,
+            ]);
+        }
+
+        $penempatan = $this->tempatkan($mahasiswa, $kelompok1);
+
+        $this->actingAs($mahasiswa)
+            ->get(route('pembelajaran.mhs'))
+            ->assertOk()
+            ->assertSee('Ruang Lama BA-GLOBAL')
+            ->assertSee('Ruang Lama FI-GLOBAL')
+            ->assertSee('Materi Lama BA-GLOBAL')
+            ->assertSee('Materi Lama FI-GLOBAL')
+            ->assertSee('Tugas Lama BA-GLOBAL')
+            ->assertSee('Tugas Lama FI-GLOBAL')
+            ->assertDontSee('Ruang Baru BA-GLOBAL')
+            ->assertDontSee('Materi Baru FI-GLOBAL')
+            ->assertDontSee('Tugas Baru BA-GLOBAL');
+
+        $penempatan->update(['kelompok_belajar_id' => $kelompok2->id]);
+        $mahasiswa->unsetRelation('penempatanKelompokBelajarAktif');
+
+        $this->actingAs($mahasiswa)
+            ->get(route('pembelajaran.mhs'))
+            ->assertOk()
+            ->assertSee('Ruang Baru BA-GLOBAL')
+            ->assertSee('Ruang Baru FI-GLOBAL')
+            ->assertSee('Materi Baru BA-GLOBAL')
+            ->assertSee('Materi Baru FI-GLOBAL')
+            ->assertSee('Tugas Baru BA-GLOBAL')
+            ->assertSee('Tugas Baru FI-GLOBAL')
+            ->assertDontSee('Ruang Lama BA-GLOBAL')
+            ->assertDontSee('Materi Lama FI-GLOBAL')
+            ->assertDontSee('Tugas Lama BA-GLOBAL');
     }
 
     public function test_detail_kehadiran_hanya_menampilkan_data_mahasiswa_yang_login(): void
@@ -174,7 +238,7 @@ class PembelajaranMahasiswaTest extends TestCase
         $this->simpanAbsensi($mahasiswa, $mapel, $jadwal, 1, 'hadir');
         $this->simpanAbsensi($mahasiswa, $mapel, $jadwal, 2, 'izin');
         $this->simpanAbsensi($mahasiswaLain, $mapel, $jadwal, 3, 'alpa');
-        $this->tempatkan($mahasiswa, $mapel, $this->kelompok(1));
+        $this->tempatkan($mahasiswa, $this->kelompok(1));
 
         $response = $this->actingAs($mahasiswa)
             ->getJson(route('pembelajaran.mhs.detail_pertemuan', $mapel->id));
@@ -209,7 +273,7 @@ class PembelajaranMahasiswaTest extends TestCase
         $mahasiswa = User::factory()->create(['role' => 'mahasiswa']);
 
         (new PembelajaranSeeder)->run();
-        $this->tempatkanSemuaMapel($mahasiswa, $this->kelompok(1));
+        $this->tempatkan($mahasiswa, $this->kelompok(1));
 
         $this->actingAs($mahasiswa)
             ->get(route('dashboard'))
@@ -223,30 +287,33 @@ class PembelajaranMahasiswaTest extends TestCase
             ->assertSee('Lihat Kehadiran &amp; Pertemuan', false);
     }
 
-    /**
-     * Menempatkan mahasiswa pada satu kelompok untuk seluruh mata pelajaran.
-     */
-    private function tempatkanSemuaMapel(User $mahasiswa, KelompokBelajar $kelompok): void
+    private function tempatkan(User $mahasiswa, KelompokBelajar $kelompok): PenempatanKelompokBelajar
     {
-        foreach (MataPelajaran::all() as $mapel) {
-            $this->tempatkan($mahasiswa, $mapel, $kelompok);
-        }
-    }
-
-    /**
-     * Menyimpan penetapan kelompok belajar mahasiswa pada satu mata pelajaran.
-     */
-    private function tempatkan(User $mahasiswa, MataPelajaran $mapel, KelompokBelajar $kelompok): KelompokBelajarAnggota
-    {
-        return KelompokBelajarAnggota::updateOrCreate(
+        Pendaftaran::query()->updateOrCreate(
+            ['user_id' => $mahasiswa->id],
             [
-                'user_id' => $mahasiswa->id,
-                'mata_pelajaran_id' => $mapel->id,
+                'nama_lengkap' => $mahasiswa->name,
+                'nim' => $mahasiswa->nim ?: 'NIM-'.$mahasiswa->id,
+                'tempat_lahir' => 'Padang',
+                'tanggal_lahir' => '2005-01-01',
+                'jenis_kelamin' => 'Perempuan',
+                'no_hp' => '081234567890',
+                'program_studi' => 'Sistem Informasi',
+                'fakultas' => 'Sains dan Teknologi',
+                'semester' => 1,
+                'status' => 'disetujui',
+                'tahun_angkatan' => '2024',
             ],
+        );
+
+        return PenempatanKelompokBelajar::query()->updateOrCreate(
+            ['user_id' => $mahasiswa->id],
             [
                 'kelompok_belajar_id' => $kelompok->id,
                 'status' => 'aktif',
-            ]
+                'ditugaskan_pada' => now(),
+                'dicabut_pada' => null,
+            ],
         );
     }
 

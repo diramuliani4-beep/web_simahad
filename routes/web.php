@@ -259,7 +259,17 @@ Route::middleware('auth')->group(function () {
         ->name('pembayaran.keterlambatan');
 
     Route::get('/pembayaran/keterlambatan/{pengajuan}/surat', [PembayaranController::class, 'suratKeterlambatan'])
+        ->whereNumber('pengajuan')
         ->name('pembayaran.keterlambatan.surat');
+
+    Route::post('/pembayaran/keterlambatan/{pengajuan}/dokumen', [PembayaranController::class, 'unggahDokumenKeterlambatan'])
+        ->whereNumber('pengajuan')
+        ->name('pembayaran.keterlambatan.dokumen');
+
+    Route::get('/pembayaran/keterlambatan/{pengajuan}/dokumen/{dokumen}', [PembayaranController::class, 'dokumenKeterlambatan'])
+        ->whereNumber('pengajuan')
+        ->whereNumber('dokumen')
+        ->name('pembayaran.keterlambatan.dokumen.lihat');
 
     // Pendaftaran mahasiswa
     Route::get('/pendaftaran', function () {
@@ -390,7 +400,18 @@ Route::middleware('auth')->group(function () {
     ])->name('surat.perizinan.mhs.pengajuan.store')
         ->middleware(PastikanPendaftaranDisetujui::class);
 
-    // Izin kegiatan fakultas/prodi dan kampus
+    Route::get('/surat-perizinan-mhs/pengajuan-izin-darurat', [
+        PengajuanIzinPulangController::class,
+        'darurat',
+    ])->name('surat.perizinan.mhs.pengajuan.darurat');
+
+    Route::post('/surat-perizinan-mhs/pengajuan-izin-darurat', [
+        PengajuanIzinPulangController::class,
+        'simpanDarurat',
+    ])->name('surat.perizinan.mhs.pengajuan.darurat.store')
+        ->middleware(PastikanPendaftaranDisetujui::class);
+
+    // Izin kegiatan resmi fakultas/prodi
     Route::get('/surat-perizinan-mhs/kegiatan', [
         SuratPerizinanMhsController::class,
         'kegiatan',
@@ -418,6 +439,11 @@ Route::middleware('auth')->group(function () {
         SuratPerizinanMhsController::class,
         'cetakSemester',
     ])->whereNumber('suratPerizinan')->name('surat.perizinan.mhs.semester.cetak');
+
+    Route::get('/surat-perizinan-mhs/{suratPerizinan}/unduh-pdf', [
+        SuratPerizinanMhsController::class,
+        'unduhSemester',
+    ])->whereNumber('suratPerizinan')->name('surat.perizinan.mhs.semester.pdf');
 
     Route::post('/surat-perizinan-mhs/{suratPerizinan}/unggah-surat', [
         SuratPerizinanMhsController::class,
@@ -1110,6 +1136,11 @@ Route::middleware('auth')->group(function () {
         MusyrifahSuratPerizinanController::class,
         'verifikasiSurat',
     ])->whereNumber('suratPerizinan')->name('musyrifah.surat_perizinan.verifikasi');
+
+    Route::post('/musyrifah/surat-perizinan/{suratPerizinan}/waktu', [
+        MusyrifahSuratPerizinanController::class,
+        'catatWaktu',
+    ])->whereNumber('suratPerizinan')->name('musyrifah.surat_perizinan.waktu');
 
     Route::get('/musyrifah/surat-perizinan/{suratPerizinan}/dokumen/{jenis}', [
         MusyrifahSuratPerizinanController::class,

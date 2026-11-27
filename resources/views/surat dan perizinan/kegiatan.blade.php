@@ -1,16 +1,14 @@
 @extends('layouts.surat-perizinan')
 
 @php
-    $labelJenis = $jenis === \App\Models\SuratPerizinan::JENIS_KEGIATAN_KAMPUS
-        ? 'Izin Kegiatan Kampus'
-        : 'Izin Kegiatan Fakultas/Prodi';
+    $labelJenis = 'Izin Kegiatan Fakultas/Prodi';
 @endphp
 
 @section('title', $labelJenis)
 @section('judul', $labelJenis)
-@section('keterangan', 'Lengkapi data kegiatan dan unggah surat resmi dari fakultas, prodi, atau penyelenggara sebagai dokumen pendukung. Berkas PDF/JPG/PNG maksimal 5 MB.')
+@section('keterangan', 'Lengkapi data kegiatan dan wajib unggah surat resmi Fakultas/Prodi sebagai dokumen pendukung. Berkas PDF/JPG/PNG maksimal 5 MB.')
 
-@section('konten')
+@section('konten-form')
     <div class="sp-card">
         <h2>Formulir {{ $labelJenis }}</h2>
 
@@ -18,22 +16,7 @@
             @csrf
 
             <div class="sp-grid">
-                <div class="sp-field sp-field--full">
-                    <label for="jenis">Jenis Izin Kegiatan <span>*</span></label>
-                    <select id="jenis" name="jenis" required>
-                        <option value="{{ \App\Models\SuratPerizinan::JENIS_KEGIATAN_FAKULTAS }}"
-                            @selected(old('jenis', $jenis) === \App\Models\SuratPerizinan::JENIS_KEGIATAN_FAKULTAS)>
-                            Izin Kegiatan Fakultas/Prodi
-                        </option>
-                        <option value="{{ \App\Models\SuratPerizinan::JENIS_KEGIATAN_KAMPUS }}"
-                            @selected(old('jenis', $jenis) === \App\Models\SuratPerizinan::JENIS_KEGIATAN_KAMPUS)>
-                            Izin Kegiatan Kampus
-                        </option>
-                    </select>
-                    @error('jenis')
-                        <span class="sp-error">{{ $message }}</span>
-                    @enderror
-                </div>
+                <input type="hidden" name="jenis" value="{{ \App\Models\SuratPerizinan::JENIS_KEGIATAN_FAKULTAS }}">
 
                 <div class="sp-field sp-field--full">
                     <label for="nama_kegiatan">Nama Kegiatan <span>*</span></label>
@@ -59,7 +42,7 @@
                         name="penyelenggara"
                         value="{{ old('penyelenggara') }}"
                         maxlength="255"
-                        placeholder="Fakultas / Prodi / Penyelenggara"
+                        placeholder="Nama Fakultas / Program Studi"
                         required
                     >
                     @error('penyelenggara')
@@ -144,7 +127,7 @@
                 </div>
 
                 <div class="sp-field sp-field--full">
-                    <label for="dokumen">Surat Resmi Pendukung <span>*</span></label>
+                    <label for="dokumen">Surat Resmi Fakultas/Prodi <span>*</span></label>
                     <input type="file" id="dokumen" name="dokumen" accept=".pdf,.jpg,.jpeg,.png" required>
                     <span class="sp-hint">Format PDF, JPG, JPEG, atau PNG. Ukuran maksimal 5 MB.</span>
                     @error('dokumen')
@@ -166,7 +149,7 @@
         <h2>Riwayat Izin Kegiatan</h2>
 
         <div class="sp-table-wrap">
-            <table class="sp-table">
+            <table class="sp-table sp-table--kegiatan">
                 <thead>
                     <tr>
                         <th>Tanggal Ajuan</th>
@@ -180,16 +163,16 @@
                 <tbody>
                     @forelse ($riwayatKegiatan as $izin)
                         <tr>
-                            <td>{{ $izin->created_at?->locale('id')->translatedFormat('d M Y') }}</td>
-                            <td>{{ $izin->labelJenis() }}</td>
-                            <td>{{ $izin->nama_kegiatan ?: '-' }}</td>
-                            <td>{{ $izin->periodeTeks() }}</td>
-                            <td>
+                            <td data-label="Tanggal Ajuan">{{ $izin->created_at?->locale('id')->translatedFormat('d M Y') }}</td>
+                            <td data-label="Jenis">{{ $izin->labelJenis() }}</td>
+                            <td data-label="Kegiatan">{{ $izin->nama_kegiatan ?: '-' }}</td>
+                            <td data-label="Periode">{{ $izin->periodeTeks() }}</td>
+                            <td data-label="Status">
                                 <span class="sp-badge sp-badge--{{ $izin->kelasStatus() }}">
                                     {{ $izin->labelStatus() }}
                                 </span>
                             </td>
-                            <td>
+                            <td data-label="Berkas">
                                 @if ($izin->punyaDokumen())
                                     <a class="sp-mini" href="{{ route('surat.perizinan.mhs.dokumen', [$izin, 'pendukung']) }}" target="_blank" rel="noopener">
                                         Lihat Surat
@@ -200,7 +183,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr>
+                        <tr class="sp-empty-row">
                             <td colspan="6" class="sp-empty">Belum ada pengajuan izin kegiatan.</td>
                         </tr>
                     @endforelse

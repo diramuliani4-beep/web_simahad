@@ -62,7 +62,7 @@ class Pembayaran extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'nominal' => 'decimal:2',
+        'nominal' => 'integer',
         'angsuran_ke' => 'integer',
         'jatuh_tempo' => 'date',
         'tanggal_bayar' => 'datetime',
@@ -234,8 +234,7 @@ class Pembayaran extends Model
     }
 
     /**
-     * Ringkasan tagihan periode aktif untuk ditampilkan pada dashboard
-     * dan halaman detail pembayaran mahasiswa.
+     * Ringkasan tagihan milik mahasiswa pada periode aktif untuk dashboard.
      *
      * @return array<string, mixed>
      */
@@ -277,9 +276,10 @@ class Pembayaran extends Model
 
         $status = match (true) {
             ! $dibuka => 'belum_dibuka',
+            $tagihan === null => 'belum_ada_tagihan',
             in_array($statusTercatat, ['lunas', 'paid', 'terkonfirmasi'], true) => 'lunas',
             in_array($statusTercatat, ['menunggu', 'menunggu_konfirmasi', 'pending'], true) => 'menunggu',
-            $pengaturan->sudahJatuhTempo() => 'terlambat',
+            $tagihan->terlambat() => 'terlambat',
             default => 'belum_lunas',
         };
 
@@ -288,10 +288,12 @@ class Pembayaran extends Model
             'menunggu' => 'Menunggu Konfirmasi',
             'terlambat' => 'Terlambat',
             'belum_dibuka' => 'Belum Ada Periode Aktif',
+            'belum_ada_tagihan' => 'Belum Ada Tagihan',
             default => 'Belum Lunas',
         };
 
-        $nominal = (float) ($tagihan?->nominal ?? $pengaturan->nominal);
+        $nominal = (float) ($tagihan?->nominal ?? 0);
+        $sisaHariTagihan = $tagihan?->sisaHari();
 
         return [
             'pengaturan' => $pengaturan,
@@ -307,13 +309,15 @@ class Pembayaran extends Model
                 'terlambat' => 'terlambat',
                 default => 'belum',
             },
-            'va_nomor' => $dibuka ? PengaturanPembayaran::REKENING_NOMOR_RESMI : null,
-            'tahap' => $tagihan?->labelTahap() ?? $pengaturan->nama_tahap,
-            'jatuh_tempo' => $tagihan?->jatuh_tempo ? $tagihan->jatuhTempoTeks() : $pengaturan->jatuhTempoTeks(),
-            'sisa_hari' => $tagihan?->jatuh_tempo ? $tagihan->sisaHari() : $pengaturan->sisaHari(),
-            'pengingat' => $dibuka
+            'va_nomor' => $tagihan !== null && $dibuka ? PengaturanPembayaran::REKENING_NOMOR_RESMI : null,
+            'tahap' => $tagihan?->labelTahap(),
+            'jatuh_tempo' => $tagihan?->jatuhTempoTeks(),
+            'sisa_hari' => $sisaHariTagihan,
+            'pengingat' => $tagihan !== null
+                && $dibuka
                 && in_array($status, ['belum_lunas', 'menunggu', 'terlambat'], true)
-                && $pengaturan->dalamMasaPengingat(),
+                && $sisaHariTagihan !== null
+                && $sisaHariTagihan <= 7,
         ];
     }
 }

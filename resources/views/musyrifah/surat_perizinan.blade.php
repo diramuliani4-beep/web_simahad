@@ -137,24 +137,22 @@
     #simahad-perizinan .sp-panel-badge--empty { border-color: #cdebd5; background: #eaf8ef; color: #187044; }
 
     /* Filter serupa deretan pencarian dan select di Daftar Kamar. */
-    #simahad-perizinan .sp-filters { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 10px; padding: 14px 20px 17px; }
-    #simahad-perizinan .sp-field { flex: 1 1 145px; min-width: 125px; }
-    #simahad-perizinan .sp-field--search { flex: 2 1 240px; min-width: 190px; }
-    #simahad-perizinan .sp-field--date { flex: 0 1 155px; min-width: 128px; }
-    #simahad-perizinan .sp-label { display: block; margin-bottom: 6px; color: #746771; font-size: 11px; font-weight: 700; }
+    #simahad-perizinan .sp-filters { display: grid; grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)) minmax(0, .8fr) minmax(0, .8fr); align-items: end; gap: 12px; padding: 16px 20px 18px; }
+    #simahad-perizinan .sp-field { min-width: 0; }
+    #simahad-perizinan .sp-label { display: block; margin-bottom: 7px; color: #746771; font-size: 12.5px; font-weight: 700; line-height: 1.4; }
     #simahad-perizinan .sp-input, #simahad-perizinan .sp-select {
-        display: block; width: 100%; min-width: 0; height: 41px; padding: 0 12px;
+        display: block; width: 100%; max-width: 100%; min-width: 0; min-height: 48px; height: 48px; padding: 0 13px;
         border: 1px solid #e5dfe4; border-radius: 8px; background: #fff;
-        color: #41373b; font-size: 12px; outline: none;
+        color: #41373b; font-size: 14px; outline: none;
     }
     #simahad-perizinan .sp-input::placeholder { color: #a3979d; }
     #simahad-perizinan .sp-input:focus, #simahad-perizinan .sp-select:focus { border-color: #b47989; box-shadow: 0 0 0 3px rgba(128, 11, 34, .07); }
-    #simahad-perizinan .sp-filter-actions { display: flex; align-items: center; flex: 0 0 auto; flex-wrap: wrap; gap: 8px; }
+    #simahad-perizinan .sp-filter-actions { display: flex; grid-column: 1 / -1; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; padding-top: 2px; }
     #simahad-perizinan .sp-btn {
         display: inline-flex; justify-content: center; align-items: center; gap: 7px;
-        min-height: 41px; padding: 9px 14px;
+        min-height: 48px; padding: 11px 18px;
         border: 1px solid #e6d8dc; border-radius: 8px;
-        background: #fff; color: #754354; font-size: 11.5px; font-weight: 700;
+        background: #fff; color: #754354; font-size: 13px; font-weight: 700;
         white-space: nowrap; cursor: pointer; text-align: center;
         transition: background .16s ease, box-shadow .16s ease;
     }
@@ -166,11 +164,11 @@
     #simahad-perizinan .sp-filter-note strong { color: var(--sp-wine); }
 
     /* Tabel desktop setara Pengajuan Kamar: header maroon, sel lebih rapat. */
-    #simahad-perizinan .sp-table-wrap { display: block !important; width: 100% !important; max-width: 100%; min-width: 0; overflow-x: auto; overscroll-behavior-inline: contain; }
+    #simahad-perizinan .sp-table-wrap { display: block !important; width: 100% !important; max-width: 100%; min-width: 0; overflow-x: auto; overscroll-behavior-inline: contain; border-radius: 10px; }
     #simahad-perizinan .sp-table { width: 100%; min-width: 940px; border-collapse: separate; border-spacing: 0; background: #fff; }
     #simahad-perizinan .sp-table--quota { min-width: 620px; }
-    #simahad-perizinan .sp-table thead th { padding: 12px 13px; border: 0; background: var(--sp-wine); color: #fff; font-size: 11.5px; font-weight: 650; text-align: left; white-space: nowrap; }
-    #simahad-perizinan .sp-table tbody td { padding: 12px 13px; border-bottom: 1px solid #f1e8eb; color: #534c50; font-size: 12px; line-height: 1.55; vertical-align: middle; }
+    #simahad-perizinan .sp-table thead th { padding: 13px 14px; border: 0; background: var(--sp-wine); color: #fff; font-size: 12px; font-weight: 650; text-align: left; white-space: nowrap; }
+    #simahad-perizinan .sp-table tbody td { padding: 13px 14px; border-bottom: 1px solid #f1e8eb; color: #534c50; font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; vertical-align: middle; }
     #simahad-perizinan .sp-table tbody tr:nth-child(even) { background: #fdfafb; }
     #simahad-perizinan .sp-table tbody tr:hover { background: #fcf4f6; }
     #simahad-perizinan .sp-table tbody tr:last-child td { border-bottom: none; }
@@ -185,7 +183,7 @@
     #simahad-perizinan .sp-badge--ditolak { background: #ffebee; color: #a52443; }
     #simahad-perizinan .sp-badge--selesai { background: #eaf1ff; color: #245fa9; }
     #simahad-perizinan .sp-badge--dibatalkan { background: #f0eff1; color: #655d64; }
-    #simahad-perizinan .sp-detail { display: inline-flex; align-items: center; justify-content: center; min-height: 33px; padding: 7px 12px; border: 1px solid #dfcfd4; border-radius: 8px; background: #fff; color: var(--sp-wine); font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+    #simahad-perizinan .sp-detail { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 9px 14px; border: 1px solid #dfcfd4; border-radius: 8px; background: #fff; color: var(--sp-wine); font-size: 12.5px; font-weight: 700; white-space: nowrap; }
     #simahad-perizinan .sp-detail:hover { background: #fdf4f6; }
     #simahad-perizinan .sp-quota-ok { color: #168047; font-weight: 700; }
     #simahad-perizinan .sp-quota-full { color: #a52443; font-weight: 700; }
@@ -199,12 +197,10 @@
     @container perizinan-layout (max-width: 790px) {
         .sp-heading { align-items: flex-start !important; }
         .sp-panel-head { padding: 15px 16px !important; }
-        .sp-filters { padding: 14px 16px !important; }
+        .sp-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 14px 16px 16px !important; }
+        .sp-field--search { grid-column: 1 / -1; }
         .sp-filter-note { padding: 0 16px 14px !important; }
-        .sp-field--search { flex-basis: 100%; }
-        .sp-field { flex-grow: 1; }
-        .sp-field--date { flex-grow: 1; }
-        .sp-filter-actions { flex: 1 1 100%; justify-content: flex-end; }
+        .sp-panel-footer { padding: 12px 16px; }
     }
     @container perizinan-layout (max-width: 680px) {
         .sp-heading { gap: 12px !important; }
@@ -219,7 +215,7 @@
         .sp-table tbody { display: block; }
         .sp-table tbody tr:not(.sp-empty-row) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px 12px; margin: 10px 14px; padding: 13px; border: 1px solid #e9dfe3; border-radius: 10px; background: #fff !important; }
         .sp-table tbody tr:not(.sp-empty-row) td { display: block; width: auto; min-width: 0; padding: 0 !important; border: 0 !important; white-space: normal !important; overflow-wrap: anywhere; }
-        .sp-table tbody tr:not(.sp-empty-row) td::before { content: attr(data-label); display: block; margin-bottom: 3px; color: #8a7e87; font-size: 10px; font-weight: 700; }
+        .sp-table tbody tr:not(.sp-empty-row) td::before { content: attr(data-label); display: block; margin-bottom: 4px; color: #8a7e87; font-size: 11px; font-weight: 700; }
         .sp-table--permits tbody td:nth-child(2),
         .sp-table--permits tbody td:nth-child(4),
         .sp-table--permits tbody td:nth-child(7),
@@ -232,10 +228,10 @@
     @container perizinan-layout (max-width: 440px) {
         .sp-stats { grid-template-columns: minmax(0, 1fr) !important; }
         .sp-stat { min-height: 79px !important; }
-        .sp-filters { flex-direction: column; align-items: stretch; }
-        .sp-field, .sp-field--search, .sp-field--date, .sp-filter-actions { flex: 0 0 auto; min-width: 0; width: 100%; }
+        .sp-filters { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+        .sp-field--search { grid-column: auto; }
         .sp-filter-actions > * { flex: 1 1 0; }
-        .sp-table tbody tr:not(.sp-empty-row) { grid-template-columns: minmax(0, 1fr); }
+        .sp-table tbody tr:not(.sp-empty-row) { grid-template-columns: minmax(0, 1fr); margin: 10px; }
         .sp-table tbody tr:not(.sp-empty-row) td { grid-column: 1 / -1; }
     }
     @media (prefers-reduced-motion: reduce) {
@@ -340,7 +336,7 @@
                 <a href="{{ route('musyrifah.surat_perizinan') }}" class="sp-btn">Reset</a>
             </div>
         </form>
-        <p class="sp-filter-note">Menampilkan <strong>{{ number_format($jumlahHasil, 0, ',', '.') }}</strong> pengajuan berdasarkan filter dan wilayah penempatan.</p>
+        <p class="sp-filter-note">Menampilkan <strong>{{ number_format($jumlahHasil, 0, ',', '.') }}</strong> pengajuan berdasarkan filter, wilayah penempatan, dan Musyrifah yang ditugaskan.</p>
     </section>
 
     <section class="sp-panel" aria-labelledby="sp-list-heading">
@@ -360,8 +356,13 @@
                             <td data-label="No.">{{ $indeks + 1 }}</td>
                             <td data-label="Mahasiswa"><span class="sp-name">{{ $izin->user?->name ?? '-' }}</span></td>
                             <td data-label="NIM">{{ $izin->user?->nim ?: '-' }}</td>
-                            <td data-label="Jenis Izin">{{ $izin->labelJenis() }}</td>
-                            <td data-label="Tanggal Ajuan" class="sp-date">{{ $izin->created_at?->locale('id')->translatedFormat('d M Y') ?? '-' }}</td>
+                            <td data-label="Jenis Izin">
+                                {{ $izin->labelJenis() }}
+                                @if ($izin->izinDarurat())
+                                    <div style="margin-top:6px"><span class="sp-badge sp-badge--dibatalkan">Bebas kuota reguler</span></div>
+                                @endif
+                            </td>
+                            <td data-label="Tanggal Ajuan" class="sp-date">{{ $izin->created_at?->copy()->timezone('Asia/Jakarta')->locale('id')->translatedFormat('d M Y') ?? '-' }}</td>
                             <td data-label="Periode">{{ $izin->periodeTeks() }}</td>
                             <td data-label="Tujuan / Lokasi" class="sp-destination">{{ $izin->tujuanTeks() }}</td>
                             <td data-label="Status"><span class="sp-badge sp-badge--{{ $izin->kelasStatus() }}">{{ $izin->labelStatus() }}</span></td>
@@ -405,7 +406,7 @@
                 </tbody>
             </table>
         </div>
-        <div class="sp-panel-footer">Kuota dihitung dari data surat pulang mingguan yang memenuhi aturan kuota pada bulan berjalan.</div>
+        <div class="sp-panel-footer">Kuota dihitung hanya dari izin pulang mingguan yang sudah disetujui atau selesai. Pengajuan menunggu dan izin darurat/khusus tidak mengurangi kuota reguler.</div>
     </section>
 </div>
 @endsection

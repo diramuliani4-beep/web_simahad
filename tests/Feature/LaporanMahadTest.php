@@ -5,10 +5,10 @@ namespace Tests\Feature;
 use App\Models\AbsensiPembelajaran;
 use App\Models\Kamar;
 use App\Models\KelompokBelajar;
-use App\Models\KelompokBelajarAnggota;
 use App\Models\MataPelajaran;
 use App\Models\Pembayaran;
 use App\Models\Pendaftaran;
+use App\Models\PenempatanKelompokBelajar;
 use App\Models\User;
 use App\Services\LaporanMahadService;
 use DOMDocument;
@@ -231,12 +231,7 @@ class LaporanMahadTest extends TestCase
             'nama_kelompok' => 'Kelompok Kosong',
             'nomor_kelompok' => 90,
         ]);
-        KelompokBelajarAnggota::query()->create([
-            'kelompok_belajar_id' => $kelompok->id,
-            'user_id' => $mahasiswa->id,
-            'mata_pelajaran_id' => $mapel->id,
-            'status' => 'aktif',
-        ]);
+        $this->buatPenempatanAktif($mahasiswa, $kelompok);
         $this->buatPendaftaranDisetujui($mahasiswa);
         $musyrifah = User::factory()->create(['role' => 'musyrifah']);
 
@@ -269,6 +264,87 @@ class LaporanMahadTest extends TestCase
                 }
 
                 return true;
+            });
+    }
+
+    public function test_laporan_kehadiran_mencakup_semua_mata_pelajaran_untuk_penempatan_global(): void
+    {
+        $this->travelTo('2026-11-25 09:00:00');
+        $mahasiswa = $this->mahasiswaUji('2317000107', 'Aulia Penempatan Global');
+        $mapelAkhlak = $this->mataPelajaranUji('Akhlak Global', 'AKH-GLOBAL');
+        $mapelBahasa = $this->mataPelajaranUji('Bahasa Global', 'BHS-GLOBAL');
+        $kelompok = KelompokBelajar::query()->create([
+            'nama_kelompok' => 'Kelompok Global',
+            'nomor_kelompok' => 91,
+        ]);
+        $this->buatPendaftaranDisetujui($mahasiswa);
+        $this->buatPenempatanAktif($mahasiswa, $kelompok);
+        $musyrifah = User::factory()->create(['role' => 'musyrifah']);
+        $jumlahMataPelajaran = MataPelajaran::query()->count();
+
+        $this->actingAs($musyrifah)
+            ->get(route('musyrifah.laporan.detail', [
+                'jenis' => 'kehadiran',
+                'periode' => '2026-11',
+                'kelompok' => $kelompok->nama_kelompok,
+                'cari' => $mahasiswa->nim,
+            ]))
+            ->assertOk()
+            ->assertViewHas('laporan', function (array $laporan) use ($mapelAkhlak, $mapelBahasa, $kelompok, $jumlahMataPelajaran): bool {
+                $baris = collect($laporan['baris'])->keyBy('mata_pelajaran');
+
+                if (count($baris) !== $jumlahMataPelajaran) {
+                    return false;
+                }
+
+                foreach ([$mapelAkhlak, $mapelBahasa] as $mapel) {
+                    $item = $baris->get($mapel->nama);
+
+                    if ($item === null
+                        || $item['kelompok'] !== $kelompok->nama_kelompok
+                        || $item['total'] !== 0
+                        || $item['pertemuan_1'] !== '') {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+    }
+
+    public function test_laporan_kehadiran_menyaring_penempatan_global_berdasarkan_mata_pelajaran(): void
+    {
+        $this->travelTo('2026-11-25 09:00:00');
+        $mahasiswa = $this->mahasiswaUji('2317000108', 'Aulia Filter Global');
+        $mapelAkhlak = $this->mataPelajaranUji('Akhlak Filter Global', 'AKH-FILTER-GLOBAL');
+        $mapelBahasa = $this->mataPelajaranUji('Bahasa Filter Global', 'BHS-FILTER-GLOBAL');
+        $kelompok = KelompokBelajar::query()->create([
+            'nama_kelompok' => 'Kelompok Filter Global',
+            'nomor_kelompok' => 92,
+        ]);
+        $this->buatPendaftaranDisetujui($mahasiswa);
+        $this->buatPenempatanAktif($mahasiswa, $kelompok);
+        $musyrifah = User::factory()->create(['role' => 'musyrifah']);
+
+        $this->actingAs($musyrifah)
+            ->get(route('musyrifah.laporan.detail', [
+                'jenis' => 'kehadiran',
+                'periode' => '2026-11',
+                'mata_pelajaran' => $mapelBahasa->id,
+                'kelompok' => $kelompok->nama_kelompok,
+                'cari' => $mahasiswa->nim,
+            ]))
+            ->assertOk()
+            ->assertViewHas('laporan', function (array $laporan) use ($mapelBahasa, $kelompok): bool {
+                if (count($laporan['baris']) !== 1) {
+                    return false;
+                }
+
+                $baris = $laporan['baris'][0];
+
+                return $baris['mata_pelajaran'] === $mapelBahasa->nama
+                    && $baris['kelompok'] === $kelompok->nama_kelompok
+                    && $baris['total'] === 0;
             });
     }
 
@@ -510,6 +586,17 @@ class LaporanMahadTest extends TestCase
             'semester' => 1,
             'status' => 'disetujui',
             'tahun_angkatan' => '2023',
+        ]);
+    }
+
+    private function buatPenempatanAktif(User $mahasiswa, KelompokBelajar $kelompok): PenempatanKelompokBelajar
+    {
+        return PenempatanKelompokBelajar::query()->create([
+            'user_id' => $mahasiswa->id,
+            'kelompok_belajar_id' => $kelompok->id,
+            'status' => 'aktif',
+            'ditugaskan_pada' => now(),
+            'dicabut_pada' => null,
         ]);
     }
 

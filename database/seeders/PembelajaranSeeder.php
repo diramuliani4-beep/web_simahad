@@ -5,9 +5,9 @@ namespace Database\Seeders;
 use App\Models\AbsensiPembelajaran;
 use App\Models\JadwalPembelajaran;
 use App\Models\KelompokBelajar;
-use App\Models\KelompokBelajarAnggota;
 use App\Models\KelompokPengajar;
 use App\Models\MataPelajaran;
+use App\Models\PenempatanKelompokBelajar;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -353,7 +353,7 @@ class PembelajaranSeeder extends Seeder
             }
         }
 
-        // 6. Data Anggota Kelompok Belajar (Mahasiswa Disetujui)
+        // 6. One global group placement for each approved student.
         $kelompoks = KelompokBelajar::orderBy('nomor_kelompok')->get();
         $mahasiswaDisetujui = User::whereRaw('LOWER(role) = ?', ['mahasiswa'])
             ->whereHas('pendaftarans', fn ($q) => $q->where('status', 'disetujui'))
@@ -361,21 +361,24 @@ class PembelajaranSeeder extends Seeder
 
         if ($kelompoks->isNotEmpty()) {
             foreach ($mahasiswaDisetujui as $uIdx => $u) {
-                foreach ($allMapels as $mIdx => $m) {
-                    $kIndex = ($uIdx + $mIdx) % $kelompoks->count();
-                    $k = $kelompoks[$kIndex];
-                    KelompokBelajarAnggota::updateOrCreate(
-                        [
-                            'user_id' => $u->id,
-                            'mata_pelajaran_id' => $m->id,
-                        ],
-                        [
-                            'kelompok_belajar_id' => $k->id,
-                            'status' => 'aktif',
-                            'keterangan' => 'Penempatan kelompok akademik semester',
-                        ]
-                    );
-                }
+                $nomorKelompok = match ($u->email) {
+                    'mahasiswa@asrama.ac.id', 'ahmad@asrama.ac.id' => 1,
+                    'nana@gmail.com' => 2,
+                    default => ($uIdx % $kelompoks->count()) + 1,
+                };
+                $k = $kelompoks->first(fn (KelompokBelajar $kelompok) => (int) $kelompok->nomor_kelompok === $nomorKelompok)
+                    ?? $kelompoks[$uIdx % $kelompoks->count()];
+
+                PenempatanKelompokBelajar::updateOrCreate(
+                    ['user_id' => $u->id],
+                    [
+                        'kelompok_belajar_id' => $k->id,
+                        'status' => 'aktif',
+                        'keterangan' => 'Penempatan kelompok akademik semester',
+                        'ditugaskan_pada' => now(),
+                        'dicabut_pada' => null,
+                    ]
+                );
             }
         }
     }

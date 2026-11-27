@@ -17,13 +17,11 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class TugasMhsController extends Controller
 {
-    /**
-     * Daftar tugas untuk kelompok aktif mahasiswa di masing-masing mata pelajaran.
-     * Sumber keanggotaan: penempatan oleh Musyrifah, BUKAN absensi lama.
-     */
+    /** List published tasks for the student's single active group. */
     public function index(Request $request): View
     {
         $mahasiswa = $this->mahasiswa($request);
+        $kelompok = $mahasiswa->penempatanKelompokBelajarAktif?->kelompokBelajar?->nama_kelompok;
 
         $filter = $request->validate([
             'cari' => ['nullable', 'string', 'max:100'],
@@ -65,11 +63,9 @@ class TugasMhsController extends Controller
 
         $statistik = [
             'total' => $semua->count(),
-            'belum' => $semua->filter(fn (Tugas $tugas) =>
-                $tugas->statusUntuk($tugas->pengumpulan->first())['status'] === Tugas::STATUS_BELUM_DIKUMPULKAN
+            'belum' => $semua->filter(fn (Tugas $tugas) => $tugas->statusUntuk($tugas->pengumpulan->first())['status'] === Tugas::STATUS_BELUM_DIKUMPULKAN
             )->count(),
-            'dinilai' => $semua->filter(fn (Tugas $tugas) =>
-                $tugas->statusUntuk($tugas->pengumpulan->first())['status'] === Tugas::STATUS_SUDAH_DINILAI
+            'dinilai' => $semua->filter(fn (Tugas $tugas) => $tugas->statusUntuk($tugas->pengumpulan->first())['status'] === Tugas::STATUS_SUDAH_DINILAI
             )->count(),
         ];
 
@@ -84,9 +80,7 @@ class TugasMhsController extends Controller
 
         return view('Mahasiswa.tugas_mhs', [
             'mahasiswa' => $mahasiswa,
-            // Kompatibilitas sementara dengan Blade lama; tidak ada kelompok global.
-            // Hapus badge kelompok umum saat Blade Tugas Mahasiswa diperbaiki.
-            'kelompok' => 'Sesuai mata pelajaran',
+            'kelompok' => $kelompok,
             'daftarTugas' => $daftar,
             'filter' => $filter,
             'statistik' => $statistik,
@@ -203,29 +197,12 @@ class TugasMhsController extends Controller
         return response()->file(Storage::disk('local')->path($pengumpulan->file_path));
     }
 
-    /**
-     * Tugas diterbitkan yang ditujukan kepada kelompok AKTIF mahasiswa
-     * pada mata pelajaran tersebut.
-     *
-     * Cocokkan dengan kelompok_belajar_anggotas + kelompok_belajars yang
-     * dikelola Musyrifah. `whereExists` menghindari tugas duplikat bila
-     * terdapat lebih dari satu baris keanggotaan yang cocok.
-     *
-     * @return Builder<Tugas>
-     */
+    /** @return Builder<Tugas> */
     private function tugasUntukMahasiswa(User $mahasiswa): Builder
     {
         return Tugas::query()
             ->dipublikasikan()
-            ->whereExists(function ($query) use ($mahasiswa) {
-                $query->selectRaw('1')
-                    ->from('kelompok_belajar_anggotas as anggota')
-                    ->join('kelompok_belajars as kelompok', 'kelompok.id', '=', 'anggota.kelompok_belajar_id')
-                    ->whereColumn('anggota.mata_pelajaran_id', 'tugas.mata_pelajaran_id')
-                    ->whereColumn('kelompok.nama_kelompok', 'tugas.kelompok')
-                    ->where('anggota.user_id', $mahasiswa->id)
-                    ->where('anggota.status', 'aktif');
-            });
+            ->untukAnggota($mahasiswa);
     }
 
     /** Penjagaan hak akses yang sama untuk detail, unggah, dan unduhan. */

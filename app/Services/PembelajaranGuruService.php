@@ -3,15 +3,15 @@
 namespace App\Services;
 
 use App\Models\JadwalPembelajaran;
-use App\Models\KelompokBelajarAnggota;
+use App\Models\PenempatanKelompokBelajar;
 use App\Models\PertemuanPembelajaran;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
 /**
- * Sumber aturan pembelajaran Guru.
- * Keanggotaan peserta berasal dari penempatan per mata pelajaran oleh Musyrifah.
+ * Guru learning rules.
+ * Participants come from each student's single active group placement.
  */
 class PembelajaranGuruService
 {
@@ -50,7 +50,7 @@ class PembelajaranGuruService
      * Jadwal yang sedang dipilih Guru dari parameter mapel/kelompok/periode.
      * Setiap filter boleh dipakai sendiri; tidak harus mengirim mata_pelajaran.
      *
-     * @param Collection<int, JadwalPembelajaran> $penugasan
+     * @param  Collection<int, JadwalPembelajaran>  $penugasan
      */
     public function pilih(
         Collection $penugasan,
@@ -66,8 +66,7 @@ class PembelajaranGuruService
             return $penugasan->first();
         }
 
-        return $penugasan->first(fn (JadwalPembelajaran $jadwal) =>
-            ($mataPelajaranId === null || (int) $jadwal->mata_pelajaran_id === $mataPelajaranId)
+        return $penugasan->first(fn (JadwalPembelajaran $jadwal) => ($mataPelajaranId === null || (int) $jadwal->mata_pelajaran_id === $mataPelajaranId)
             && (blank($kelompok) || $jadwal->kelompok === $kelompok)
             && (blank($periode) || $this->periode($jadwal) === $periode)
         );
@@ -80,8 +79,7 @@ class PembelajaranGuruService
         string $kelompok,
         ?string $periode = null
     ): JadwalPembelajaran {
-        $jadwal = $this->penugasan($guru)->first(fn (JadwalPembelajaran $item) =>
-            (int) $item->mata_pelajaran_id === $mataPelajaranId
+        $jadwal = $this->penugasan($guru)->first(fn (JadwalPembelajaran $item) => (int) $item->mata_pelajaran_id === $mataPelajaranId
             && $item->kelompok === $kelompok
             && (blank($periode) || $this->periode($item) === $periode)
         );
@@ -103,8 +101,7 @@ class PembelajaranGuruService
     public function pastikanMilikGuru(User $guru, PertemuanPembelajaran $pertemuan): void
     {
         $valid = (int) $pertemuan->guru_id === (int) $guru->getKey()
-            || $this->penugasan($guru)->contains(fn (JadwalPembelajaran $jadwal) =>
-                (int) $jadwal->mata_pelajaran_id === (int) $pertemuan->mata_pelajaran_id
+            || $this->penugasan($guru)->contains(fn (JadwalPembelajaran $jadwal) => (int) $jadwal->mata_pelajaran_id === (int) $pertemuan->mata_pelajaran_id
                 && $jadwal->kelompok === $pertemuan->kelompok
                 && $this->periode($jadwal) === $pertemuan->periode
             );
@@ -172,27 +169,22 @@ class PembelajaranGuruService
     }
 
     /**
-     * Peserta pada pasangan mata pelajaran DAN kelompok, ditentukan Musyrifah.
-     * Pendaftaran harus disetujui dan keanggotaan harus aktif.
+     * Approved students in a globally active group.
      *
      * @return Collection<int, User>
      */
-    public function mahasiswaPerMataPelajaran(int $mataPelajaranId, string $kelompok): Collection
+    public function mahasiswa(string $kelompok): Collection
     {
         $kelompok = trim($kelompok);
 
-        if ($mataPelajaranId < 1 || $kelompok === '') {
+        if ($kelompok === '') {
             return collect();
         }
 
-        return KelompokBelajarAnggota::query()
-            ->where('mata_pelajaran_id', $mataPelajaranId)
-            ->where('status', 'aktif')
-            ->whereHas('kelompokBelajar', fn ($query) => $query->where('nama_kelompok', $kelompok))
-            ->whereHas('user', fn ($query) => $query
-                ->whereRaw('LOWER(role) = ?', ['mahasiswa'])
-                ->whereHas('pendaftarans', fn ($pendaftaran) => $pendaftaran->where('status', 'disetujui'))
-            )
+        return PenempatanKelompokBelajar::query()
+            ->aktif()
+            ->mahasiswaDisetujui()
+            ->untukKelompok($kelompok)
             ->with('user')
             ->get()
             ->pluck('user')
@@ -200,6 +192,20 @@ class PembelajaranGuruService
             ->unique('id')
             ->sortBy('name')
             ->values();
+    }
+
+    /**
+     * Approved students in the schedule's globally active group.
+     *
+     * @return Collection<int, User>
+     */
+    public function mahasiswaPerMataPelajaran(int $mataPelajaranId, string $kelompok): Collection
+    {
+        if ($mataPelajaranId < 1) {
+            return collect();
+        }
+
+        return $this->mahasiswa($kelompok);
     }
 
     /** @return Collection<int, User> */
@@ -221,7 +227,7 @@ class PembelajaranGuruService
     }
 
     /**
-     * @param Collection<int, JadwalPembelajaran> $penugasan
+     * @param  Collection<int, JadwalPembelajaran>  $penugasan
      * @return array<int, string>
      */
     public function pilihanMataPelajaran(Collection $penugasan): array
@@ -235,7 +241,7 @@ class PembelajaranGuruService
     }
 
     /**
-     * @param Collection<int, JadwalPembelajaran> $penugasan
+     * @param  Collection<int, JadwalPembelajaran>  $penugasan
      * @return array<int, string>
      */
     public function pilihanKelompok(Collection $penugasan): array
@@ -244,7 +250,7 @@ class PembelajaranGuruService
     }
 
     /**
-     * @param Collection<int, JadwalPembelajaran> $penugasan
+     * @param  Collection<int, JadwalPembelajaran>  $penugasan
      * @return array<int, string>
      */
     public function pilihanPeriode(Collection $penugasan): array

@@ -6,7 +6,9 @@ use App\Models\ActivityLog;
 use App\Models\AngsuranPembayaran;
 use App\Models\Notifikasi;
 use App\Models\Pembayaran;
+use App\Models\PengajuanKeterlambatanDokumen;
 use App\Models\PengajuanKeterlambatanPembayaran;
+use App\Models\PengajuanKeterlambatanRiwayat;
 use App\Models\PengaturanPembayaran;
 use App\Models\User;
 use App\Services\AuditTrailService;
@@ -76,7 +78,18 @@ class MusyrifahPembayaranController extends Controller
         $this->pastikanPengelola($request);
 
         $pembayaran = $this->layanan->queryPembayaran($request->user())
-            ->with(['user', 'verifikator', 'pengajuanKeterlambatan', 'jadwalPembayaran'])
+            ->with([
+                'user',
+                'verifikator',
+                'pengajuanKeterlambatan' => fn ($query) => $query
+                    ->with([
+                        'dokumenTerakhir',
+                        'dokumens' => fn ($query) => $query->with('pengunggah')->orderBy('versi'),
+                        'riwayats' => fn ($riwayat) => $riwayat->with('pengubah')->orderBy('id'),
+                    ])
+                    ->latest('id'),
+                'jadwalPembayaran',
+            ])
             ->findOrFail($id);
         $user = $pembayaran->user;
 
@@ -249,16 +262,18 @@ class MusyrifahPembayaranController extends Controller
         $this->pastikanPengelola($request);
 
         $validated = $request->validate([
-            'nominal' => ['required', 'numeric', 'min:1'],
+            'nominal' => ['required', 'integer', 'min:1', 'max:'.AngsuranPembayaran::NOMINAL_MAKSIMUM],
         ], [
             'nominal.required' => 'Nominal tagihan wajib diisi.',
-            'nominal.numeric' => 'Nominal tagihan harus berupa angka.',
+            'nominal.integer' => 'Nominal tagihan harus berupa bilangan bulat tanpa desimal.',
+            'nominal.min' => 'Nominal tagihan minimal Rp1.',
+            'nominal.max' => 'Nominal tagihan terlalu besar.',
         ]);
 
         $pembayaran = $this->layanan->queryPembayaran($request->user())->findOrFail($id);
 
         try {
-            $pembayaran = $this->layanan->perbaruiNominal($pembayaran, (float) $validated['nominal'], $request->user());
+            $pembayaran = $this->layanan->perbaruiNominal($pembayaran, (int) $validated['nominal'], $request->user());
         } catch (ValidationException $exception) {
             return response()->json([
                 'success' => false,
@@ -279,6 +294,7 @@ class MusyrifahPembayaranController extends Controller
     public function simpanJadwal(Request $request): RedirectResponse|JsonResponse
     {
         $this->pastikanMusyrifah($request);
+        $this->normalisasiNominalAngsuran($request);
 
         $validated = $request->validate([
             'pengaturan_id' => ['nullable', 'integer', Rule::exists('pengaturan_pembayarans', 'id')],
@@ -286,13 +302,16 @@ class MusyrifahPembayaranController extends Controller
             'angsuran' => ['required', 'array', 'min:1', 'max:3'],
             'angsuran.*.angsuran_ke' => ['required', 'integer', 'distinct', Rule::in([1, 2, 3])],
             'angsuran.*.nama_tahap' => ['nullable', 'string', 'max:80'],
-            'angsuran.*.nominal' => ['required', 'numeric', 'min:1'],
+            'angsuran.*.nominal' => ['required', 'integer', 'min:1', 'max:'.AngsuranPembayaran::NOMINAL_MAKSIMUM],
             'angsuran.*.tanggal_mulai' => ['nullable', 'date'],
             'angsuran.*.jatuh_tempo' => ['required', 'date'],
             'angsuran.*.reminder_hari' => ['required', 'integer', 'min:0', 'max:30'],
         ], [
             'angsuran.required' => 'Jadwal angsuran wajib diisi.',
             'angsuran.*.nominal.required' => 'Nominal angsuran wajib diisi.',
+            'angsuran.*.nominal.integer' => 'Nominal angsuran harus berupa bilangan bulat tanpa desimal.',
+            'angsuran.*.nominal.min' => 'Nominal angsuran minimal Rp1.',
+            'angsuran.*.nominal.max' => 'Nominal angsuran terlalu besar.',
             'angsuran.*.jatuh_tempo.required' => 'Jatuh tempo angsuran wajib diisi.',
             'angsuran.*.reminder_hari.required' => 'Jumlah hari pengingat wajib diisi.',
         ]);
@@ -327,6 +346,30 @@ class MusyrifahPembayaranController extends Controller
         }
 
         return back()->with('success', 'Jadwal angsuran berhasil diperbarui. Tagihan yang belum dibayar mengikuti jadwal baru.');
+    }
+
+    private function normalisasiNominalAngsuran(Request $request): void
+    {
+        $daftarAngsuran = $request->input('angsuran');
+
+        if (! is_array($daftarAngsuran)) {
+            return;
+        }
+
+        foreach ($daftarAngsuran as $indeks => $baris) {
+            if (! is_array($baris) || ! is_string($baris['nominal'] ?? null)) {
+                continue;
+            }
+
+            $nominal = preg_replace('/^rp\s*/iu', '', trim($baris['nominal']));
+            $daftarAngsuran[$indeks]['nominal'] = $nominal;
+
+            if (preg_match('/^\d{1,3}(?:\.\d{3})+$/', $nominal) === 1) {
+                $daftarAngsuran[$indeks]['nominal'] = str_replace('.', '', $nominal);
+            }
+        }
+
+        $request->merge(['angsuran' => $daftarAngsuran]);
     }
 
     /**
@@ -440,9 +483,10 @@ class MusyrifahPembayaranController extends Controller
 
         $validated = $request->validate([
             'keputusan' => ['required', Rule::in(['setuju', 'tolak'])],
-            'catatan' => ['required_if:keputusan,tolak', 'nullable', 'string', 'max:500'],
+            'catatan' => ['required_if:keputusan,tolak', 'min:3', 'nullable', 'string', 'max:500'],
         ], [
             'catatan.required_if' => 'Alasan penolakan pengajuan wajib diisi.',
+            'catatan.min' => 'Alasan penolakan minimal 3 karakter.',
         ]);
 
         $pengajuan = $this->layanan->queryPengajuan($request->user())->with('pembayaran')->findOrFail($id);
@@ -611,7 +655,14 @@ class MusyrifahPembayaranController extends Controller
     protected function ambilPengajuan(User $pengelola): array
     {
         return $this->layanan->queryPengajuan($pengelola)
-            ->with(['user', 'pembayaran', 'pemroses'])
+            ->with([
+                'user',
+                'pembayaran',
+                'pemroses',
+                'dokumenTerakhir',
+                'dokumens' => fn ($query) => $query->with('pengunggah')->orderBy('versi'),
+                'riwayats' => fn ($query) => $query->with('pengubah')->orderBy('id'),
+            ])
             ->latest('id')
             ->get()
             ->map(fn (PengajuanKeterlambatanPembayaran $pengajuan): array => $this->petakanPengajuan($pengajuan))
@@ -643,6 +694,41 @@ class MusyrifahPembayaranController extends Controller
             'pemroses' => $pengajuan->pemroses?->name,
             'diproses_pada' => $pengajuan->diproses_pada?->locale('id')->translatedFormat('d F Y, H:i'),
             'surat_url' => route('pembayaran.keterlambatan.surat', $pengajuan->id),
+            'dokumen_wajib' => (bool) $pengajuan->dokumen_wajib,
+            'siap_diputuskan' => $pengajuan->siapDiputuskan(),
+            'dokumen_terakhir_versi' => $pengajuan->dokumenTerakhir?->versi,
+            'dokumen_terakhir_nama' => $pengajuan->dokumenTerakhir?->nama_asli,
+            'dokumen_terakhir_url' => $pengajuan->dokumenTerakhir
+                ? route('pembayaran.keterlambatan.dokumen.lihat', [$pengajuan->id, $pengajuan->dokumenTerakhir->id])
+                : null,
+            'dokumens' => $pengajuan->dokumens
+                ->map(fn (PengajuanKeterlambatanDokumen $dokumen): array => [
+                    'id' => $dokumen->id,
+                    'versi' => $dokumen->versi,
+                    'nama_asli' => $dokumen->nama_asli,
+                    'ukuran_kb' => number_format($dokumen->ukuran / 1024, 0, ',', '.'),
+                    'diunggah_pada' => $dokumen->created_at?->locale('id')->translatedFormat('d F Y, H:i'),
+                    'pengunggah' => $dokumen->pengunggah?->name,
+                    'url' => route('pembayaran.keterlambatan.dokumen.lihat', [$pengajuan->id, $dokumen->id]),
+                ])
+                ->values()
+                ->all(),
+            'riwayats' => $pengajuan->riwayats
+                ->map(fn (PengajuanKeterlambatanRiwayat $riwayat): array => [
+                    'id' => $riwayat->id,
+                    'dokumen_id' => $riwayat->dokumen_id,
+                    'status_sebelum' => $riwayat->status_sebelum,
+                    'status_sebelum_label' => $riwayat->status_sebelum
+                        ? PengajuanKeterlambatanPembayaran::labelStatus($riwayat->status_sebelum)
+                        : null,
+                    'status_sesudah' => $riwayat->status_sesudah,
+                    'status_sesudah_label' => PengajuanKeterlambatanPembayaran::labelStatus($riwayat->status_sesudah),
+                    'catatan' => $riwayat->catatan,
+                    'pengubah' => $riwayat->pengubah?->name,
+                    'diubah_pada' => $riwayat->created_at?->locale('id')->translatedFormat('d F Y, H:i'),
+                ])
+                ->values()
+                ->all(),
             'menunggu' => $pengajuan->masihMenunggu(),
         ];
     }

@@ -3,8 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\AbsensiPembelajaran;
+use App\Models\KelompokBelajar;
 use App\Models\MataPelajaran;
 use App\Models\Notifikasi;
+use App\Models\Pendaftaran;
+use App\Models\PenempatanKelompokBelajar;
 use App\Models\PengumpulanTugas;
 use App\Models\Tugas;
 use App\Models\User;
@@ -34,6 +37,72 @@ class TugasMahasiswaTest extends TestCase
             ->assertSee('Tugas Kelompok Satu')
             ->assertDontSee('Tugas Masih Draft')
             ->assertDontSee('Tugas Kelompok Dua');
+    }
+
+    public function test_absensi_sendirian_tidak_memberikan_akses_tugas(): void
+    {
+        $mahasiswa = User::factory()->create([
+            'name' => 'Siti Aminah',
+            'nim' => '2317020111',
+            'role' => 'mahasiswa',
+            'status' => 'aktif',
+        ]);
+        $mapel = $this->mataPelajaran();
+        $tugas = $this->tugas($this->guru(), $mapel);
+
+        $this->buatPendaftaranDisetujui($mahasiswa);
+        AbsensiPembelajaran::query()->create([
+            'user_id' => $mahasiswa->id,
+            'mata_pelajaran_id' => $mapel->id,
+            'kelompok' => 'Kelompok 1',
+            'pertemuan_ke' => 1,
+            'tanggal' => now()->toDateString(),
+            'status' => 'hadir',
+        ]);
+
+        $this->actingAs($mahasiswa)
+            ->get(route('tugas.mhs.index'))
+            ->assertOk()
+            ->assertDontSee($tugas->judul);
+
+        $this->actingAs($mahasiswa)
+            ->get(route('tugas.mhs.show', $tugas))
+            ->assertNotFound();
+    }
+
+    public function test_perpindahan_kelompok_global_mengganti_tugas_dan_akses_detail_semua_mapel(): void
+    {
+        [$mahasiswa, $mapel] = $this->mahasiswaDenganKelompok();
+        $mapelLain = $this->mataPelajaran('Fiqih Ibadah', 'FI-01');
+        $guru = $this->guru();
+
+        $tugasLamaPertama = $this->tugas($guru, $mapel, 'Tugas Lama Bahasa Arab', 'Kelompok 1');
+        $tugasBaruPertama = $this->tugas($guru, $mapel, 'Tugas Baru Bahasa Arab', 'Kelompok 2');
+        $tugasLamaKedua = $this->tugas($guru, $mapelLain, 'Tugas Lama Fiqih', 'Kelompok 1');
+        $tugasBaruKedua = $this->tugas($guru, $mapelLain, 'Tugas Baru Fiqih', 'Kelompok 2');
+
+        $penempatan = PenempatanKelompokBelajar::query()
+            ->where('user_id', $mahasiswa->id)
+            ->firstOrFail();
+        $penempatan->update(['kelompok_belajar_id' => $this->kelompok(2)->id]);
+        $mahasiswa->unsetRelation('penempatanKelompokBelajarAktif');
+
+        $this->actingAs($mahasiswa)
+            ->get(route('tugas.mhs.index'))
+            ->assertOk()
+            ->assertSee($tugasBaruPertama->judul)
+            ->assertSee($tugasBaruKedua->judul)
+            ->assertDontSee($tugasLamaPertama->judul)
+            ->assertDontSee($tugasLamaKedua->judul);
+
+        $this->actingAs($mahasiswa)
+            ->get(route('tugas.mhs.show', $tugasLamaPertama))
+            ->assertNotFound();
+
+        $this->actingAs($mahasiswa)
+            ->get(route('tugas.mhs.show', $tugasBaruKedua))
+            ->assertOk()
+            ->assertSee($tugasBaruKedua->judul);
     }
 
     public function test_guru_tidak_dapat_membuka_halaman_tugas_mahasiswa(): void
@@ -185,17 +254,13 @@ class TugasMahasiswaTest extends TestCase
     }
 
     /**
-     * Mahasiswa beserta kelompok pembelajaran yang tercatat pada absensi.
+     * Mahasiswa dengan pendaftaran disetujui dan satu penempatan kelompok global.
      *
      * @return array{0: User, 1: MataPelajaran}
      */
-    private function mahasiswaDenganKelompok(string $kelompok = 'Kelompok 1'): array
+    private function mahasiswaDenganKelompok(int $nomorKelompok = 1): array
     {
-        $mapel = MataPelajaran::query()->create([
-            'nama' => 'Bahasa Arab Dasar',
-            'kode' => 'BA-01',
-            'kategori' => 'Bahasa',
-        ]);
+        $mapel = $this->mataPelajaran();
 
         $mahasiswa = User::factory()->create([
             'name' => 'Siti Aminah',
@@ -204,16 +269,59 @@ class TugasMahasiswaTest extends TestCase
             'status' => 'aktif',
         ]);
 
-        AbsensiPembelajaran::query()->create([
-            'user_id' => $mahasiswa->id,
-            'mata_pelajaran_id' => $mapel->id,
-            'kelompok' => $kelompok,
-            'pertemuan_ke' => 1,
-            'tanggal' => now()->toDateString(),
-            'status' => 'hadir',
-        ]);
+        $this->buatPendaftaranDisetujui($mahasiswa);
+        $this->tempatkan($mahasiswa, $this->kelompok($nomorKelompok));
 
         return [$mahasiswa, $mapel];
+    }
+
+    private function mataPelajaran(string $nama = 'Bahasa Arab Dasar', string $kode = 'BA-01'): MataPelajaran
+    {
+        return MataPelajaran::query()->create([
+            'nama' => $nama,
+            'kode' => $kode,
+            'kategori' => 'Bahasa',
+        ]);
+    }
+
+    private function kelompok(int $nomor): KelompokBelajar
+    {
+        return KelompokBelajar::query()->firstOrCreate(
+            ['nomor_kelompok' => $nomor],
+            [
+                'nama_kelompok' => 'Kelompok '.$nomor,
+                'keterangan' => 'Kelompok Belajar '.$nomor,
+            ]
+        );
+    }
+
+    private function buatPendaftaranDisetujui(User $mahasiswa): Pendaftaran
+    {
+        return Pendaftaran::query()->create([
+            'user_id' => $mahasiswa->id,
+            'nama_lengkap' => $mahasiswa->name,
+            'nim' => $mahasiswa->nim,
+            'tempat_lahir' => 'Padang',
+            'tanggal_lahir' => '2005-01-01',
+            'jenis_kelamin' => 'Perempuan',
+            'no_hp' => '081234567890',
+            'program_studi' => 'Sistem Informasi',
+            'fakultas' => 'Sains dan Teknologi',
+            'semester' => 1,
+            'status' => 'disetujui',
+            'tahun_angkatan' => '2024',
+        ]);
+    }
+
+    private function tempatkan(User $mahasiswa, KelompokBelajar $kelompok): PenempatanKelompokBelajar
+    {
+        return PenempatanKelompokBelajar::query()->create([
+            'user_id' => $mahasiswa->id,
+            'kelompok_belajar_id' => $kelompok->id,
+            'status' => 'aktif',
+            'ditugaskan_pada' => now(),
+            'dicabut_pada' => null,
+        ]);
     }
 
     private function guru(): User

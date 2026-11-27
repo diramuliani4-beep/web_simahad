@@ -2,16 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\SuratPerizinanDicatat;
 use App\Models\SuratPerizinan;
 use App\Models\User;
+use App\Services\SuratPerizinanService;
+use App\Services\SuratPulangSemesterPdfService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Throwable;
 
 class SuratPerizinanMhsController extends Controller
 {
@@ -23,6 +29,7 @@ class SuratPerizinanMhsController extends Controller
         $user = $this->penggunaMahasiswa($request);
 
         $pengajuans = $user->suratPerizinans()
+            ->with(['musyrifah', 'riwayats'])
             ->latest('id')
             ->get();
 
@@ -42,40 +49,32 @@ class SuratPerizinanMhsController extends Controller
     }
 
     /**
-     * Formulir izin kegiatan fakultas/prodi maupun kampus.
+     * Formulir izin kegiatan resmi fakultas/prodi.
      */
     public function kegiatan(Request $request): View
     {
         $user = $this->penggunaMahasiswa($request);
 
-        $jenis = $request->query('jenis');
-
-        if (! in_array($jenis, [SuratPerizinan::JENIS_KEGIATAN_FAKULTAS, SuratPerizinan::JENIS_KEGIATAN_KAMPUS], true)) {
-            $jenis = SuratPerizinan::JENIS_KEGIATAN_FAKULTAS;
-        }
-
         return view('surat dan perizinan.kegiatan', [
             'user' => $user,
-            'jenis' => $jenis,
+            'jenis' => SuratPerizinan::JENIS_KEGIATAN_FAKULTAS,
             'riwayatKegiatan' => $user->suratPerizinans()
                 ->whereIn('jenis', [SuratPerizinan::JENIS_KEGIATAN_FAKULTAS, SuratPerizinan::JENIS_KEGIATAN_KAMPUS])
+                ->with('riwayats')
                 ->latest('id')
                 ->get(),
         ]);
     }
 
     /**
-     * Menyimpan pengajuan izin kegiatan fakultas/prodi maupun kampus.
+     * Menyimpan pengajuan izin kegiatan resmi fakultas/prodi.
      */
-    public function simpanKegiatan(Request $request): RedirectResponse
+    public function simpanKegiatan(Request $request, SuratPerizinanService $suratService): RedirectResponse
     {
         $user = $this->penggunaMahasiswa($request);
 
         $validated = $request->validate([
-            'jenis' => ['required', Rule::in([
-                SuratPerizinan::JENIS_KEGIATAN_FAKULTAS,
-                SuratPerizinan::JENIS_KEGIATAN_KAMPUS,
-            ])],
+            'jenis' => ['required', Rule::in([SuratPerizinan::JENIS_KEGIATAN_FAKULTAS])],
             'nama_kegiatan' => ['required', 'string', 'max:255'],
             'penyelenggara' => ['required', 'string', 'max:255'],
             'lokasi' => ['required', 'string', 'max:255'],
@@ -118,24 +117,27 @@ class SuratPerizinanMhsController extends Controller
                 ->withInput();
         }
 
-        $pengajuan = $user->suratPerizinans()->create([
-            'jenis' => $validated['jenis'],
-            'status' => SuratPerizinan::STATUS_MENUNGGU,
-            'nama_kegiatan' => trim($validated['nama_kegiatan']),
-            'penyelenggara' => trim($validated['penyelenggara']),
-            'lokasi' => trim($validated['lokasi']),
-            'waktu_mulai' => $validated['waktu_mulai'] ?? null,
-            'waktu_selesai' => $validated['waktu_selesai'] ?? null,
-            'tanggal_mulai' => $validated['tanggal_mulai'],
-            'tanggal_selesai' => $validated['tanggal_selesai'],
-            'durasi_hari' => Carbon::parse($validated['tanggal_mulai'])
-                ->diffInDays(Carbon::parse($validated['tanggal_selesai'])) + 1,
-            'alasan' => trim($validated['alasan']),
-            'dokumen_path' => $path,
-            'dokumen_nama' => $request->file('dokumen')->getClientOriginalName(),
-        ]);
+        try {
+            $pengajuan = $suratService->buatPengajuan($user, [
+                'jenis' => $validated['jenis'],
+                'nama_kegiatan' => trim($validated['nama_kegiatan']),
+                'penyelenggara' => trim($validated['penyelenggara']),
+                'lokasi' => trim($validated['lokasi']),
+                'waktu_mulai' => $validated['waktu_mulai'] ?? null,
+                'waktu_selesai' => $validated['waktu_selesai'] ?? null,
+                'tanggal_mulai' => $validated['tanggal_mulai'],
+                'tanggal_selesai' => $validated['tanggal_selesai'],
+                'durasi_hari' => Carbon::parse($validated['tanggal_mulai'])
+                    ->diffInDays(Carbon::parse($validated['tanggal_selesai'])) + 1,
+                'alasan' => trim($validated['alasan']),
+                'dokumen_path' => $path,
+                'dokumen_nama' => $request->file('dokumen')->getClientOriginalName(),
+            ], 'Pengajuan izin kegiatan fakultas/prodi dikirim mahasiswa.');
+        } catch (Throwable $exception) {
+            Storage::disk('local')->delete($path);
 
-        $pengajuan->catatRiwayat(SuratPerizinan::STATUS_MENUNGGU, 'Pengajuan dikirim mahasiswa.', $user);
+            throw $exception;
+        }
 
         return redirect()
             ->route('surat.perizinan.mhs')
@@ -151,8 +153,13 @@ class SuratPerizinanMhsController extends Controller
 
         return view('surat dan perizinan.surat_pulang_semester', [
             'user' => $user,
+            'pendaftaran' => $user->pendaftarans()
+                ->where('status', 'disetujui')
+                ->latest('id')
+                ->first(),
             'pengajuans' => $user->suratPerizinans()
                 ->where('jenis', SuratPerizinan::JENIS_SEMESTER)
+                ->with(['musyrifah', 'riwayats'])
                 ->latest('id')
                 ->get(),
         ]);
@@ -161,30 +168,64 @@ class SuratPerizinanMhsController extends Controller
     /**
      * Membuat permohonan surat pulang semester yang dapat dicetak mahasiswa.
      */
-    public function semesterStore(Request $request): RedirectResponse
+    public function semesterStore(Request $request, SuratPerizinanService $suratService): RedirectResponse
     {
         $user = $this->penggunaMahasiswa($request);
 
         $validated = $request->validate([
-            'alasan' => ['nullable', 'string', 'max:2000'],
+            'tanggal_mulai' => ['required', 'date', 'after_or_equal:today'],
+            'tanggal_selesai' => ['required', 'date', 'after_or_equal:tanggal_mulai'],
+            'lokasi' => ['required', 'string', 'max:255'],
+            'alasan' => ['required', 'string', 'min:10', 'max:2000'],
+            'keterangan' => ['nullable', 'string', 'max:255'],
+            'transportasi' => ['nullable', 'string', 'max:255'],
         ], [
-            'alasan.max' => 'Keterangan maksimal 2000 karakter.',
+            'tanggal_mulai.required' => 'Tanggal pulang wajib diisi.',
+            'tanggal_mulai.after_or_equal' => 'Tanggal pulang tidak boleh tanggal yang sudah lewat.',
+            'tanggal_selesai.required' => 'Tanggal kembali wajib diisi.',
+            'tanggal_selesai.after_or_equal' => 'Tanggal kembali tidak boleh sebelum tanggal pulang.',
+            'lokasi.required' => 'Tujuan pulang wajib diisi.',
+            'lokasi.max' => 'Tujuan pulang maksimal 255 karakter.',
+            'alasan.required' => 'Alasan pulang wajib diisi.',
+            'alasan.min' => 'Alasan pulang minimal 10 karakter.',
+            'alasan.max' => 'Alasan pulang maksimal 2000 karakter.',
+            'keterangan.max' => 'Keterangan maksimal 255 karakter.',
+            'transportasi.max' => 'Transportasi maksimal 255 karakter.',
         ]);
 
-        $pengajuan = DB::transaction(function () use ($user, $validated): SuratPerizinan {
-            $pengajuan = $user->suratPerizinans()->create([
-                'jenis' => SuratPerizinan::JENIS_SEMESTER,
-                'status' => SuratPerizinan::STATUS_MENUNGGU,
-                'tanggal_mulai' => now()->toDateString(),
-                'alasan' => filled($validated['alasan'] ?? null) ? trim($validated['alasan']) : null,
+        $pendaftaran = $user->pendaftarans()
+            ->where('status', 'disetujui')
+            ->latest('id')
+            ->first();
+        $nama = trim((string) ($user->name ?: $pendaftaran?->nama_lengkap));
+        $nim = trim((string) ($user->nim ?: $pendaftaran?->nim));
+        $prodi = trim((string) $pendaftaran?->program_studi);
+
+        if ($nama === '' || $nim === '' || $prodi === '') {
+            throw ValidationException::withMessages([
+                'tanggal_mulai' => 'Identitas surat belum lengkap. Pastikan nama, NIM, dan program studi pada data mahasiswa sudah terisi.',
             ]);
+        }
+
+        $mulai = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
+        $kembali = Carbon::parse($validated['tanggal_selesai'])->startOfDay();
+
+        $pengajuan = DB::transaction(function () use ($user, $validated, $suratService, $mulai, $kembali): SuratPerizinan {
+            $pengajuan = $suratService->buatPengajuan($user, [
+                'jenis' => SuratPerizinan::JENIS_SEMESTER,
+                'tanggal_mulai' => $mulai->toDateString(),
+                'tanggal_selesai' => $kembali->toDateString(),
+                'durasi_hari' => (int) $mulai->diffInDays($kembali) + 1,
+                'lokasi' => trim($validated['lokasi']),
+                'alasan' => trim($validated['alasan']),
+                'keterangan' => filled($validated['keterangan'] ?? null) ? trim($validated['keterangan']) : null,
+                'transportasi' => filled($validated['transportasi'] ?? null) ? trim($validated['transportasi']) : null,
+            ], 'Permohonan surat pulang semester dibuat.');
 
             // Nomor surat dibentuk dari identitas pengajuan agar unik dan mudah ditelusuri.
             $pengajuan->update([
                 'nomor_surat' => 'SPM/'.now()->format('Ymd').'/'.str_pad((string) $pengajuan->id, 4, '0', STR_PAD_LEFT),
             ]);
-
-            $pengajuan->catatRiwayat(SuratPerizinan::STATUS_MENUNGGU, 'Permohonan surat pulang semester dibuat.', $user);
 
             return $pengajuan;
         });
@@ -209,7 +250,31 @@ class SuratPerizinanMhsController extends Controller
             'surat' => $suratPerizinan,
             'user' => $user,
             'kamar' => $user->kamar,
-            'pendaftaran' => $user->pendaftarans()->latest('id')->first(),
+            'pendaftaran' => $user->pendaftarans()
+                ->where('status', 'disetujui')
+                ->latest('id')
+                ->first(),
+        ]);
+    }
+
+    /**
+     * Mengunduh surat pulang semester sebagai PDF resmi.
+     */
+    public function unduhSemester(
+        Request $request,
+        SuratPerizinan $suratPerizinan,
+        SuratPulangSemesterPdfService $pdfService,
+    ): Response {
+        $user = $this->penggunaMahasiswa($request);
+        $this->pastikanMilikSendiri($user, $suratPerizinan);
+
+        abort_unless($suratPerizinan->suratSemester(), 404);
+
+        $namaBerkas = 'surat-izin-pulang-'.preg_replace('/[^A-Za-z0-9_-]+/', '-', (string) $suratPerizinan->nomor_surat).'.pdf';
+
+        return response($pdfService->render($suratPerizinan), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$namaBerkas.'"',
         ]);
     }
 
@@ -244,22 +309,35 @@ class SuratPerizinanMhsController extends Controller
 
         $pathLama = $suratPerizinan->surat_tertanda_path;
 
-        $suratPerizinan->update([
-            'surat_tertanda_path' => $pathBaru,
-            'surat_tertanda_nama' => $request->file('surat_tertanda')->getClientOriginalName(),
-            'surat_diunggah_pada' => now(),
-            'status' => SuratPerizinan::STATUS_MENUNGGU,
-        ]);
+        try {
+            DB::transaction(function () use ($suratPerizinan, $request, $user, $pathBaru): void {
+                $suratPerizinan->update([
+                    'surat_tertanda_path' => $pathBaru,
+                    'surat_tertanda_nama' => $request->file('surat_tertanda')->getClientOriginalName(),
+                    'surat_diunggah_pada' => now(),
+                    'status' => SuratPerizinan::STATUS_MENUNGGU,
+                    'keputusan_oleh' => null,
+                    'keputusan_nama' => null,
+                    'keputusan_pada' => null,
+                    'catatan_musyrifah' => null,
+                ]);
+
+                $suratPerizinan->catatRiwayat(
+                    SuratPerizinan::STATUS_MENUNGGU,
+                    'Mahasiswa mengunggah surat bertanda tangan orang tua.',
+                    $user,
+                    SuratPerizinanDicatat::SURAT_DIUPLOAD,
+                );
+            });
+        } catch (Throwable $exception) {
+            Storage::disk('local')->delete($pathBaru);
+
+            throw $exception;
+        }
 
         if (filled($pathLama) && $pathLama !== $pathBaru) {
             Storage::disk('local')->delete($pathLama);
         }
-
-        $suratPerizinan->catatRiwayat(
-            SuratPerizinan::STATUS_MENUNGGU,
-            'Mahasiswa mengunggah surat bertanda tangan orang tua.',
-            $user
-        );
 
         return redirect()
             ->route('surat.perizinan.mhs.semester')
@@ -267,7 +345,7 @@ class SuratPerizinanMhsController extends Controller
     }
 
     /**
-     * Membatalkan pengajuan yang belum diputus dan mengembalikan slot kuota.
+     * Membatalkan pengajuan yang belum diputus.
      */
     public function batalkan(Request $request, SuratPerizinan $suratPerizinan): RedirectResponse
     {
@@ -285,8 +363,9 @@ class SuratPerizinanMhsController extends Controller
 
         $suratPerizinan->catatRiwayat(
             SuratPerizinan::STATUS_DIBATALKAN,
-            'Pengajuan dibatalkan mahasiswa sehingga slot kuota dikembalikan.',
-            $user
+            'Pengajuan dibatalkan mahasiswa.',
+            $user,
+            SuratPerizinanDicatat::DIBATALKAN,
         );
 
         return redirect()

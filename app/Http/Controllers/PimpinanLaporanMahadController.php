@@ -108,6 +108,7 @@ class PimpinanLaporanMahadController extends Controller
             'keyword' => $keyword,
             'opsiPeriode' => $this->laporanMahad->opsiPeriode(),
             'filterAction' => route($this->namaRoute($jenis)),
+            'modeMonitoring' => true,
             'unduhUrl' => route('pimpinan.laporan.unduh', [
                 'jenis' => $jenis,
                 'periode' => $periode,

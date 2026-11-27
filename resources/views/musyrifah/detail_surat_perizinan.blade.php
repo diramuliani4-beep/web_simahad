@@ -6,21 +6,33 @@
     $gedungWilayah = trim((string) ($akunMusyrifah?->gedung_penempatan ?? ''));
     $lantaiWilayah = (int) ($akunMusyrifah?->lantai_penempatan ?? 0);
     // Tombol hanya ditampilkan pada status yang dapat diproses; controller tetap memvalidasi wilayah.
-    $bolehDiputus = ! $pengajuan->suratSemester() && $pengajuan->masihMenunggu();
-    $bolehDiverifikasi = $pengajuan->suratSemester()
-        && $pengajuan->punyaSuratTertanda()
-        && ! in_array($pengajuan->status, [SuratPerizinan::STATUS_SELESAI, SuratPerizinan::STATUS_DIBATALKAN], true);
+    $formatWaktuWib = static fn ($waktu, string $format = 'd F Y H:i'): string => $waktu
+        ? $waktu->copy()->timezone('Asia/Jakarta')->locale('id')->translatedFormat($format).' WIB'
+        : '-';
+    $bolehDiputus = $pengajuan->masihMenunggu();
+    $dokumenPersetujuanLengkap = $pengajuan->suratSemester()
+        ? $pengajuan->punyaSuratTertanda()
+        : ($pengajuan->izinKegiatan() ? $pengajuan->punyaDokumen() : true);
+    $bolehCatatWaktu = $pengajuan->suratSemester() && $pengajuan->status === SuratPerizinan::STATUS_DISETUJUI;
 @endphp
 @section('title', 'Detail Pengajuan Perizinan')
 @section('content')
 <style>
     .rincian {
+        --rincian-gutter: 20px;
         width: 100%;
+        min-width: 0;
+        max-width: 100%;
         color: #080808;
+        container: rincian-perizinan / inline-size;
     }
 
+    .rincian *, .rincian *::before, .rincian *::after { box-sizing: border-box; }
+    .rincian button, .rincian input, .rincian select, .rincian textarea { font-family: inherit; }
+    .rincian :is(a, button, input, select, textarea):focus-visible { outline: 2px solid rgba(128, 13, 34, .65); outline-offset: 2px; }
+
     .rincian-wilayah {
-        margin: 0 20px 20px;
+        margin: 0 var(--rincian-gutter) 20px;
         padding: 13px 17px;
         background: #f8edef;
         border: 1px solid #e9ccd3;
@@ -40,8 +52,10 @@
         align-items: flex-end;
         justify-content: space-between;
         gap: 12px;
-        margin: 0 20px 22px;
+        margin: 0 var(--rincian-gutter) 22px;
     }
+
+    .rincian__kepala > div { min-width: 0; flex: 1 1 320px; }
 
     .rincian__kepala h1 {
         font-size: 28px;
@@ -76,11 +90,15 @@
     }
 
     .rincian-alert {
-        margin: 0 20px 18px;
+        margin: 0 var(--rincian-gutter) 18px;
         padding: 12px 16px;
+        border: 1px solid;
         border-radius: 10px;
         font-size: 14px;
+        overflow-wrap: anywhere;
     }
+
+    .rincian-alert ul { margin: 6px 0 0 18px; padding: 0; }
 
     .rincian-alert--sukses {
         background: #eaf6ee;
@@ -98,18 +116,21 @@
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 18px;
-        margin: 0 20px 20px;
+        margin: 0 var(--rincian-gutter) 20px;
     }
 
     .rincian-kartu {
-        padding: 18px;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        padding: 22px;
         border: 1px solid #d9c2c8;
         border-radius: 14px;
         background: #fff;
     }
 
     .rincian-kartu--penuh {
-        margin: 0 20px 20px;
+        margin: 0 var(--rincian-gutter) 20px;
     }
 
     .rincian-kartu h2 {
@@ -126,20 +147,22 @@
 
     .rincian-tabel th,
     .rincian-tabel td {
-        padding: 7px 0;
-        font-size: 13.5px;
+        padding: 9px 0;
+        font-size: 14px;
         text-align: left;
         vertical-align: top;
     }
 
     .rincian-tabel th {
         width: 42%;
+        overflow-wrap: anywhere;
         font-weight: 600;
         color: #4b5563;
     }
 
     .rincian-tabel td {
         color: #111;
+        overflow-wrap: anywhere;
     }
 
     .rincian-badge {
@@ -224,12 +247,14 @@
 
     .rincian-opsi label {
         display: inline-flex;
+        flex: 1 1 150px;
         align-items: center;
         gap: 8px;
-        padding: 9px 14px;
+        min-height: 48px;
+        padding: 12px 16px;
         border: 1px solid #cdb4ba;
         border-radius: 10px;
-        font-size: 13.5px;
+        font-size: 14.5px;
         font-weight: 600;
         cursor: pointer;
     }
@@ -239,14 +264,51 @@
         background: #fdf6f7;
     }
 
-    .rincian-keputusan textarea {
+    .rincian-waktu {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .rincian-waktu label {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .rincian-waktu input {
+        display: block;
         width: 100%;
-        min-height: 92px;
-        padding: 11px 13px;
+        max-width: 100%;
+        min-width: 0;
+        min-height: 48px;
+        padding: 12px 14px;
         border: 1px solid #cdb4ba;
         border-radius: 10px;
         font-family: inherit;
-        font-size: 13.5px;
+        font-size: 15px;
+    }
+
+    .rincian-waktu input:focus {
+        outline: none;
+        border-color: #800d22;
+        box-shadow: 0 0 0 3px rgba(128, 13, 34, .12);
+    }
+
+    .rincian-keputusan textarea {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        min-height: 140px;
+        padding: 12px 14px;
+        border: 1px solid #cdb4ba;
+        border-radius: 10px;
+        font-family: inherit;
+        font-size: 15px;
         resize: vertical;
     }
 
@@ -257,20 +319,25 @@
     }
 
     .rincian-keputusan label.judul {
-        font-size: 13px;
+        font-size: 14px;
+        line-height: 1.45;
         font-weight: 600;
         color: #374151;
     }
 
     .rincian-btn {
+        display: inline-flex;
         align-self: flex-start;
-        padding: 10px 20px;
+        justify-content: center;
+        align-items: center;
+        min-height: 48px;
+        padding: 12px 22px;
         border: 1px solid #800d22;
         border-radius: 9px;
         background: #800d22;
         color: #fff;
         font-family: inherit;
-        font-size: 13.5px;
+        font-size: 14.5px;
         font-weight: 700;
         cursor: pointer;
     }
@@ -288,6 +355,7 @@
         font-size: 13px;
         color: #4b5563;
         line-height: 1.6;
+        overflow-wrap: anywhere;
     }
 
     .rincian-riwayat {
@@ -336,37 +404,56 @@
         font-size: 13px;
         color: #374151;
         line-height: 1.6;
+        overflow-wrap: anywhere;
     }
 
     .rincian-kosong {
         font-size: 13.5px;
         color: #6b7280;
         line-height: 1.6;
+        overflow-wrap: anywhere;
     }
-    @media (max-width: 900px) {
-        .rincian-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-    @media (max-width: 768px) {
-        .rincian__kepala,
+    @container rincian-perizinan (max-width: 900px) {
         .rincian-grid,
-        .rincian-kartu--penuh,
-        .rincian-wilayah,
-        .rincian-alert {
-            margin-left: 0;
-            margin-right: 0;
+        .rincian-waktu {
+            grid-template-columns: minmax(0, 1fr);
         }
-        .rincian__kepala h1 {
-            font-size: 23px;
-        }
+        .rincian-grid { gap: 16px; }
+    }
+    @container rincian-perizinan (max-width: 700px) {
+        .rincian { --rincian-gutter: 0px; }
+        .rincian__kepala { align-items: flex-start; }
+        .rincian__kepala > div { flex-basis: 100%; }
+        .rincian__kepala h1 { font-size: 23px; }
+        .rincian__kepala p { font-size: 13px; }
+        .rincian__kepala a { min-height: 44px; padding: 10px 15px; }
+        .rincian-wilayah { padding: 12px 14px; font-size: 12.5px; }
+        .rincian-alert { padding: 11px 14px; font-size: 13px; }
+        .rincian-kartu { padding: 16px; }
+        .rincian-tabel th, .rincian-tabel td { padding: 9px 0; font-size: 13px; }
+        .rincian-berkas a { min-height: 42px; padding: 9px 13px; }
+        .rincian-keputusan { gap: 14px; }
+    }
+    @container rincian-perizinan (max-width: 480px) {
+        .rincian-tabel, .rincian-tabel tbody { display: block; width: 100%; }
+        .rincian-tabel tr { display: block; padding: 10px 0; border-bottom: 1px solid #f1e8eb; }
+        .rincian-tabel tr:last-child { border-bottom: 0; }
+        .rincian-tabel th, .rincian-tabel td { display: block; width: 100%; padding: 0; border: 0; }
+        .rincian-tabel th { margin-bottom: 3px; color: #82777d; font-size: 11px; font-weight: 700; }
+        .rincian-tabel td + .rincian-tabel td { margin-top: 0; }
+        .rincian-berkas a { flex: 1 1 100%; justify-content: center; text-align: center; }
+        .rincian-opsi { gap: 8px; }
+        .rincian-opsi label { flex-basis: 100%; }
+        .rincian-waktu input, .rincian-keputusan textarea { font-size: 16px; }
+        .rincian-btn { width: 100%; }
+        .rincian-riwayat__baris { padding-left: 19px; }
     }
 </style>
 <div class="rincian">
     <section class="rincian__kepala">
         <div>
             <h1>Detail Pengajuan Perizinan</h1>
-            <p>{{ $pengajuan->labelJenis() }} &middot; diajukan {{ $pengajuan->created_at?->locale('id')->translatedFormat('d F Y H:i') }} WIB</p>
+            <p>{{ $pengajuan->labelJenis() }} &middot; diajukan {{ $formatWaktuWib($pengajuan->created_at) }}</p>
         </div>
         <a href="{{ route('musyrifah.surat_perizinan') }}">Kembali ke Daftar</a>
     </section>
@@ -374,7 +461,17 @@
     <div class="rincian-wilayah" role="note">
         <strong>Wilayah verifikasi:</strong> Gedung {{ $gedungWilayah }} · Lantai {{ $lantaiWilayah }}.
         Detail ini hanya dapat diakses oleh Musyrifah yang memiliki kewenangan wilayah penempatan mahasiswa.
+        @if ($pengajuan->musyrifah)
+            Pengajuan secara otomatis ditugaskan kepada <strong>{{ $pengajuan->musyrifah->name }}</strong>.
+        @endif
     </div>
+
+    @if (session('success'))
+        <div class="rincian-alert rincian-alert--sukses" role="status">{{ session('success') }}</div>
+    @endif
+    @if (session('error'))
+        <div class="rincian-alert rincian-alert--gagal" role="alert">{{ session('error') }}</div>
+    @endif
 
     @if ($errors->any())
         <div class="rincian-alert rincian-alert--gagal">
@@ -439,11 +536,15 @@
                 </tr>
                 <tr>
                     <th>Tanggal Pengajuan</th>
-                    <td>{{ $pengajuan->created_at?->locale('id')->translatedFormat('d F Y H:i') ?? '-' }} WIB</td>
+                    <td>{{ $formatWaktuWib($pengajuan->created_at) }}</td>
                 </tr>
                 <tr>
                     <th>Periode Izin</th>
                     <td>{{ $pengajuan->periodeTeks() }}</td>
+                </tr>
+                <tr>
+                    <th>Musyrifah Penanggung Jawab</th>
+                    <td>{{ $pengajuan->musyrifah?->name ?: 'Belum ditugaskan' }}</td>
                 </tr>
                 @if ($pengajuan->durasi_hari)
                     <tr>
@@ -452,10 +553,16 @@
                     </tr>
                 @endif
             </table>
-            @if ($pengajuan->izinPulang() && $kuotaPulang)
+            @if ($pengajuan->izinPulangMingguan() && $kuotaPulang)
                 <div class="rincian-kuota">
                     <span>Kuota {{ $kuotaPulang['bulan'] }}: {{ $kuotaPulang['terpakai'] }} / {{ $kuotaPulang['maksimal'] }}</span>
                     <span>Sisa {{ $kuotaPulang['sisa'] }} slot</span>
+                </div>
+                <p class="rincian-kosong" style="margin-top:8px">Hanya izin mingguan yang disetujui atau selesai yang mengurangi kuota.</p>
+            @elseif ($pengajuan->izinDarurat())
+                <div class="rincian-kuota">
+                    <span>Izin darurat/khusus</span>
+                    <span>Bebas kuota reguler</span>
                 </div>
             @endif
         </section>
@@ -508,17 +615,33 @@
                         @if ($pengajuan->punyaSuratTertanda())
                             Sudah diunggah
                             <div style="font-size:12.5px;color:#6b7280;">
-                                {{ $pengajuan->surat_diunggah_pada?->locale('id')->translatedFormat('d F Y H:i') }} WIB
+                                {{ $formatWaktuWib($pengajuan->surat_diunggah_pada) }}
                             </div>
                         @else
                             Belum diunggah mahasiswa
                         @endif
                     </td>
                 </tr>
+                <tr>
+                    <th>Waktu Keluar Ma’had</th>
+                    <td>{{ $formatWaktuWib($pengajuan->waktu_keluar) }}</td>
+                </tr>
+                <tr>
+                    <th>Waktu Kembali ke Ma’had</th>
+                    <td>{{ $formatWaktuWib($pengajuan->waktu_kembali) }}</td>
+                </tr>
             @endif
             <tr>
-                <th>Alasan / Keterangan</th>
+                <th>Alasan</th>
                 <td>{{ $pengajuan->alasan ?: '-' }}</td>
+            </tr>
+            <tr>
+                <th>Keterangan Tambahan</th>
+                <td>{{ $pengajuan->keterangan ?: '-' }}</td>
+            </tr>
+            <tr>
+                <th>Penjemputan / Transportasi</th>
+                <td>{{ $pengajuan->transportasi ?: '-' }}</td>
             </tr>
         </table>
         <h2 style="margin-top:18px;">Dokumen</h2>
@@ -562,7 +685,7 @@
                     </tr>
                     <tr>
                         <th>Waktu Keputusan</th>
-                        <td>{{ $pengajuan->keputusan_pada?->locale('id')->translatedFormat('d F Y H:i') ?? '-' }} WIB</td>
+                        <td>{{ $formatWaktuWib($pengajuan->keputusan_pada) }}</td>
                     </tr>
                 </table>
                 @if ($pengajuan->catatan_musyrifah)
@@ -579,7 +702,7 @@
                     <div class="rincian-riwayat__baris">
                         <strong>{{ $riwayat->labelStatus() }}</strong>
                         <small>
-                            {{ $riwayat->created_at?->locale('id')->translatedFormat('d F Y H:i') ?? '-' }} WIB
+                            {{ $formatWaktuWib($riwayat->created_at) }}
                             @if ($riwayat->nama_pengubah)
                                 &middot; oleh {{ $riwayat->nama_pengubah }}
                             @endif
@@ -596,13 +719,25 @@
     </div>
     @if ($bolehDiputus)
         <section class="rincian-kartu rincian-kartu--penuh">
-            <h2>Ambil Keputusan</h2>
+            <h2>Pemeriksaan Dokumen &amp; Keputusan</h2>
+            @if ($pengajuan->izinDarurat())
+                <p class="rincian-kosong" style="margin-bottom:12px">
+                    Proses izin darurat/khusus secara khusus. Persetujuan atau penolakan tidak mengurangi kuota izin pulang mingguan.
+                </p>
+            @endif
+            @if (! $dokumenPersetujuanLengkap)
+                <p class="rincian-kosong" style="margin-bottom:12px">
+                    Persetujuan dapat diberikan setelah {{ $pengajuan->suratSemester() ? 'surat bertanda tangan orang tua' : 'surat resmi Fakultas/Prodi' }} diunggah mahasiswa.
+                    Penolakan tetap dapat dicatat dengan alasan yang jelas.
+                </p>
+            @endif
             <form method="POST" action="{{ route('musyrifah.surat_perizinan.keputusan', $pengajuan) }}" class="rincian-keputusan">
                 @csrf
                 <div class="rincian-opsi">
                     <label>
                         <input type="radio" name="keputusan" value="{{ SuratPerizinan::STATUS_DISETUJUI }}" required
-                            @checked(old('keputusan') === SuratPerizinan::STATUS_DISETUJUI)>
+                            @checked(old('keputusan') === SuratPerizinan::STATUS_DISETUJUI)
+                            @disabled(! $dokumenPersetujuanLengkap)>
                         Setujui
                     </label>
                     <label>
@@ -610,13 +745,20 @@
                             @checked(old('keputusan') === SuratPerizinan::STATUS_DITOLAK)>
                         Tolak
                     </label>
+                    @if ($pengajuan->suratSemester())
+                        <label>
+                            <input type="radio" name="keputusan" value="{{ SuratPerizinan::STATUS_PERLU_PERBAIKAN }}" required
+                                @checked(old('keputusan') === SuratPerizinan::STATUS_PERLU_PERBAIKAN)>
+                            Perlu Perbaikan
+                        </label>
+                    @endif
                 </div>
-                <label class="judul" for="catatanKeputusan">Catatan Keputusan (wajib saat menolak)</label>
+                <label class="judul" for="catatanKeputusan">Catatan Keputusan (wajib saat menolak atau meminta perbaikan)</label>
                 <textarea
                     id="catatanKeputusan"
                     name="catatan_musyrifah"
                     maxlength="2000"
-                    placeholder="Tuliskan pertimbangan atau alasan keputusan."
+                    placeholder="Tuliskan pertimbangan, alasan penolakan, atau perbaikan yang diperlukan."
                 >{{ old('catatan_musyrifah') }}</textarea>
                 <button type="submit" class="rincian-btn">Simpan Keputusan</button>
             </form>
@@ -624,37 +766,39 @@
     @endif
     @if ($pengajuan->suratSemester())
         <section class="rincian-kartu rincian-kartu--penuh">
-            <h2>Verifikasi Surat Bertanda Tangan</h2>
-            @if ($bolehDiverifikasi)
-                <form method="POST" action="{{ route('musyrifah.surat_perizinan.verifikasi', $pengajuan) }}" class="rincian-keputusan">
+            <h2>Pencatatan Waktu Keluar dan Kembali</h2>
+            @if ($bolehCatatWaktu)
+                <form method="POST" action="{{ route('musyrifah.surat_perizinan.waktu', $pengajuan) }}" class="rincian-keputusan">
                     @csrf
-                    <div class="rincian-opsi">
-                        <label>
-                            <input type="radio" name="status" value="{{ SuratPerizinan::STATUS_SELESAI }}" required
-                                @checked(old('status') === SuratPerizinan::STATUS_SELESAI)>
-                            Sudah Diverifikasi
+                    <div class="rincian-waktu">
+                        <label for="waktuKeluar">
+                            Waktu Keluar Ma’had (WIB)
+                            <input
+                                type="datetime-local"
+                                id="waktuKeluar"
+                                name="waktu_keluar"
+                                value="{{ old('waktu_keluar', $pengajuan->waktu_keluar?->copy()->timezone('Asia/Jakarta')->format('Y-m-d\TH:i')) }}"
+                                max="{{ now()->timezone('Asia/Jakarta')->format('Y-m-d\TH:i') }}"
+                            >
                         </label>
-                        <label>
-                            <input type="radio" name="status" value="{{ SuratPerizinan::STATUS_PERLU_PERBAIKAN }}" required
-                                @checked(old('status') === SuratPerizinan::STATUS_PERLU_PERBAIKAN)>
-                            Perlu Perbaikan
+                        <label for="waktuKembali">
+                            Waktu Kembali ke Ma’had (WIB)
+                            <input
+                                type="datetime-local"
+                                id="waktuKembali"
+                                name="waktu_kembali"
+                                value="{{ old('waktu_kembali', $pengajuan->waktu_kembali?->copy()->timezone('Asia/Jakarta')->format('Y-m-d\TH:i')) }}"
+                                max="{{ now()->timezone('Asia/Jakarta')->format('Y-m-d\TH:i') }}"
+                            >
                         </label>
                     </div>
-                    <label class="judul" for="catatanVerifikasi">Catatan Verifikasi (wajib saat perlu perbaikan)</label>
-                    <textarea
-                        id="catatanVerifikasi"
-                        name="catatan_musyrifah"
-                        maxlength="2000"
-                        placeholder="Contoh: tanda tangan orang tua belum terbaca, mohon unggah ulang."
-                    >{{ old('catatan_musyrifah') }}</textarea>
-                    <button type="submit" class="rincian-btn">Simpan Verifikasi</button>
+                    <p class="rincian-kosong">Waktu kembali harus dicatat setelah waktu keluar. Setelah kembali, status surat menjadi selesai.</p>
+                    <button type="submit" class="rincian-btn">Simpan Waktu</button>
                 </form>
             @elseif ($pengajuan->status === SuratPerizinan::STATUS_SELESAI)
-                <p class="rincian-kosong">Surat ini sudah diverifikasi final.</p>
-            @elseif ($pengajuan->status === SuratPerizinan::STATUS_DIBATALKAN)
-                <p class="rincian-kosong">Surat ini dibatalkan oleh mahasiswa.</p>
+                <p class="rincian-kosong">Surat selesai. Waktu keluar dan kembali telah tercatat pada rincian izin.</p>
             @else
-                <p class="rincian-kosong">Menunggu mahasiswa mengunggah surat bertanda tangan orang tua.</p>
+                <p class="rincian-kosong">Pencatatan waktu tersedia setelah surat disetujui Musyrifah.</p>
             @endif
         </section>
     @endif
@@ -667,25 +811,12 @@
             var opsiKeputusan = formKeputusan.querySelectorAll('input[name="keputusan"]');
             function sinkronKeputusan() {
                 var terpilih = formKeputusan.querySelector('input[name="keputusan"]:checked');
-                catatanKeputusan.required = terpilih !== null && terpilih.value === 'ditolak';
+                catatanKeputusan.required = terpilih !== null && ['ditolak', 'perlu_perbaikan'].includes(terpilih.value);
             }
             opsiKeputusan.forEach(function (opsi) {
                 opsi.addEventListener('change', sinkronKeputusan);
             });
             sinkronKeputusan();
-        }
-        var formVerifikasi = document.querySelector('form[action*="verifikasi-surat"]');
-        if (formVerifikasi) {
-            var catatanVerifikasi = formVerifikasi.querySelector('#catatanVerifikasi');
-            var opsiVerifikasi = formVerifikasi.querySelectorAll('input[name="status"]');
-            function sinkronVerifikasi() {
-                var terpilih = formVerifikasi.querySelector('input[name="status"]:checked');
-                catatanVerifikasi.required = terpilih !== null && terpilih.value === 'perlu_perbaikan';
-            }
-            opsiVerifikasi.forEach(function (opsi) {
-                opsi.addEventListener('change', sinkronVerifikasi);
-            });
-            sinkronVerifikasi();
         }
     })();
 </script>

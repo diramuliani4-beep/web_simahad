@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Pengajuan keterlambatan pembayaran satu angsuran.
@@ -13,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class PengajuanKeterlambatanPembayaran extends Model
 {
+    public const STATUS_MENUNGGU_DOKUMEN = 'menunggu_dokumen';
+
     public const STATUS_MENUNGGU = 'menunggu';
 
     public const STATUS_DISETUJUI = 'disetujui';
@@ -23,9 +27,11 @@ class PengajuanKeterlambatanPembayaran extends Model
         'user_id',
         'pembayaran_id',
         'nomor_surat',
+        'pdf_sistem',
         'alasan',
         'tanggal_rencana_bayar',
         'status',
+        'dokumen_wajib',
         'catatan_musyrifah',
         'diproses_oleh',
         'diproses_pada',
@@ -35,6 +41,7 @@ class PengajuanKeterlambatanPembayaran extends Model
     {
         return [
             'tanggal_rencana_bayar' => 'date',
+            'dokumen_wajib' => 'boolean',
             'diproses_pada' => 'datetime',
         ];
     }
@@ -54,6 +61,27 @@ class PengajuanKeterlambatanPembayaran extends Model
         return $this->belongsTo(User::class, 'diproses_oleh');
     }
 
+    public function dokumens(): HasMany
+    {
+        return $this->hasMany(PengajuanKeterlambatanDokumen::class, 'pengajuan_id');
+    }
+
+    public function dokumenTerakhir(): HasOne
+    {
+        return $this->hasOne(PengajuanKeterlambatanDokumen::class, 'pengajuan_id')
+            ->latestOfMany();
+    }
+
+    public function riwayats(): HasMany
+    {
+        return $this->hasMany(PengajuanKeterlambatanRiwayat::class, 'pengajuan_id');
+    }
+
+    public function scopeMenungguDokumen(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_MENUNGGU_DOKUMEN);
+    }
+
     public function scopeMenunggu(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_MENUNGGU);
@@ -64,14 +92,56 @@ class PengajuanKeterlambatanPembayaran extends Model
         return $this->status === self::STATUS_MENUNGGU;
     }
 
+    public function ditolak(): bool
+    {
+        return $this->status === self::STATUS_DITOLAK;
+    }
+
     public function disetujui(): bool
     {
         return $this->status === self::STATUS_DISETUJUI;
     }
 
+    public function menungguDokumen(): bool
+    {
+        return $this->status === self::STATUS_MENUNGGU_DOKUMEN;
+    }
+
+    public function bisaUnggahDokumen(): bool
+    {
+        return $this->menungguDokumen()
+            || $this->ditolak()
+            || ($this->masihMenunggu() && ! $this->dokumen_wajib);
+    }
+
+    public function perluUnggahDokumen(): bool
+    {
+        return $this->menungguDokumen()
+            || ($this->masihMenunggu() && ! $this->dokumen_wajib);
+    }
+
+    public function siapDiputuskan(): bool
+    {
+        if (! $this->dokumen_wajib) {
+            return true;
+        }
+
+        if ($this->relationLoaded('dokumenTerakhir')) {
+            return $this->dokumenTerakhir !== null;
+        }
+
+        return $this->dokumenTerakhir()->exists();
+    }
+
     public function statusLabel(): string
     {
-        return match ($this->status) {
+        return self::labelStatus((string) $this->status);
+    }
+
+    public static function labelStatus(string $status): string
+    {
+        return match ($status) {
+            self::STATUS_MENUNGGU_DOKUMEN => 'Menunggu Unggahan Dokumen',
             self::STATUS_DISETUJUI => 'Disetujui',
             self::STATUS_DITOLAK => 'Ditolak',
             default => 'Menunggu Verifikasi',
@@ -81,6 +151,7 @@ class PengajuanKeterlambatanPembayaran extends Model
     public function kelasStatus(): string
     {
         return match ($this->status) {
+            self::STATUS_MENUNGGU_DOKUMEN => 'menunggu',
             self::STATUS_DISETUJUI => 'disetujui',
             self::STATUS_DITOLAK => 'ditolak',
             default => 'menunggu',

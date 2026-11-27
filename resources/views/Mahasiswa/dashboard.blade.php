@@ -1083,6 +1083,7 @@
                 $pengaturanBayar = $pembayaran['pengaturan'] ?? null;
                 $statusPendaftaran = $pendaftaran?->status ? ucwords(str_replace('_', ' ', $pendaftaran->status)) : 'Belum Mendaftar';
                 $statusAkun = $user->status ? ucwords(str_replace('_', ' ', $user->status)) : 'Belum Diketahui';
+                $labelKelompok = $kelompok ?: 'Belum memiliki kelompok belajar';
                 $kelasStatusAkun = in_array(strtolower((string) $user->status), ['aktif'], true) ? 'ok' : 'warning';
                 $programStudi = $pendaftaran?->program_studi ?: 'Mahasiswa Ma\'had';
                 $angkatan = $pendaftaran?->tahun_angkatan ?: '-';
@@ -1133,7 +1134,7 @@
                     <div class="student-info-col">
                         <div class="student-name">{{ $user->name }}</div>
                         <div class="student-program">{{ $programStudi }} &middot; Angkatan {{ $angkatan }}</div>
-                        <div class="student-status">{{ $kelompok }}</div>
+                        <div class="student-status">{{ $labelKelompok }}</div>
                     </div>
                 </div>
 
@@ -1160,9 +1161,9 @@
                         </span>
                     </div>
 
-                    <div class="status-chip">
+                    <div class="status-chip {{ $belumAdaKelompok ? 'warning' : 'ok' }}">
                         <span class="chip-label">Kelompok Belajar</span>
-                        <span class="chip-value">{{ $kelompok }}</span>
+                        <span class="chip-value">{{ $labelKelompok }}</span>
                     </div>
                 </div>
             </section>
@@ -1192,6 +1193,13 @@
                                         Periode {{ $pengaturanBayar->periode }} ({{ $pengaturanBayar->nama_tahap }}) akan dibuka pada {{ $pengaturanBayar->periodeDibukaTeks() }}.
                                     </div>
                                 @endif
+                            </div>
+                        @elseif ($pembayaran['status'] === 'belum_ada_tagihan')
+                            <div class="tagihan-center-wrap">
+                                <div class="tagihan-empty-title">Tagihan Pembayaran</div>
+                                <div class="tagihan-empty-desc">
+                                    Belum memiliki tagihan pembayaran untuk periode ini.
+                                </div>
                             </div>
                         @else
                             <div class="tagihan-body">
@@ -1286,6 +1294,11 @@
                             <span>Persentase kehadiran</span>
                             <span class="attendance-percentage-val">{{ $persentaseKehadiran }}%</span>
                         </div>
+                        @if ($belumAdaKelompok)
+                            <div class="ringkas-kosong">
+                                Belum memiliki kelompok belajar. Absensi akan tampil setelah Musyrifah menetapkan kelompok Anda.
+                            </div>
+                        @endif
                     </div>
 
                     <div class="card-detail-footer">
@@ -1338,7 +1351,11 @@
                 </div>
 
                 <div class="kalender-detail">
-                    @if ($kalender['tanggal_dipilih'])
+                    @if ($belumAdaKelompok)
+                        <div class="kalender-item-sub">
+                            Belum memiliki kelompok belajar. Jadwal akan tampil setelah Musyrifah menetapkan kelompok Anda.
+                        </div>
+                    @elseif ($kalender['tanggal_dipilih'])
                         <div class="kalender-detail-title">
                             Jadwal {{ $kalender['tanggal_dipilih']->locale('id')->translatedFormat('l, d F Y') }}
                         </div>
@@ -1403,7 +1420,11 @@
                                 </a>
                             @empty
                                 <div class="ringkas-kosong">
-                                    Belum ada tugas yang dipublikasikan untuk {{ $kelompok }}.
+                                    @if ($belumAdaKelompok)
+                                        Belum memiliki kelompok belajar. Tugas akan tampil setelah Musyrifah menetapkan kelompok Anda.
+                                    @else
+                                        Belum ada tugas yang dipublikasikan untuk {{ $labelKelompok }}.
+                                    @endif
                                 </div>
                             @endforelse
                         </div>
@@ -1436,7 +1457,11 @@
                                 </a>
                             @empty
                                 <div class="ringkas-kosong">
-                                    Belum ada nilai yang dipublikasikan oleh Guru.
+                                    @if ($belumAdaKelompok)
+                                        Belum memiliki kelompok belajar. Nilai akan tampil setelah Musyrifah menetapkan kelompok Anda.
+                                    @else
+                                        Belum ada nilai yang dipublikasikan oleh Guru.
+                                    @endif
                                 </div>
                             @endforelse
                         </div>

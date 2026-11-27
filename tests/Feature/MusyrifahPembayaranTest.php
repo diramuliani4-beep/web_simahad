@@ -274,7 +274,7 @@ class MusyrifahPembayaranTest extends TestCase
                     [
                         'angsuran_ke' => 2,
                         'nama_tahap' => 'Tahap 2',
-                        'nominal' => 1750000,
+                        'nominal' => '200000',
                         'tanggal_mulai' => now()->addDays(31)->toDateString(),
                         'jatuh_tempo' => now()->addDays(80)->toDateString(),
                         'reminder_hari' => 5,
@@ -282,7 +282,7 @@ class MusyrifahPembayaranTest extends TestCase
                     [
                         'angsuran_ke' => 3,
                         'nama_tahap' => 'Tahap 3',
-                        'nominal' => 1750000,
+                        'nominal' => '2.000.000',
                         'tanggal_mulai' => now()->addDays(91)->toDateString(),
                         'jatuh_tempo' => now()->addDays(140)->toDateString(),
                         'reminder_hari' => 3,
@@ -300,8 +300,13 @@ class MusyrifahPembayaranTest extends TestCase
         $this->assertDatabaseHas('angsuran_pembayarans', [
             'periode' => 'Januari 2027',
             'angsuran_ke' => 2,
-            'nominal' => 1750000,
+            'nominal' => 200000,
             'reminder_hari' => 5,
+        ]);
+        $this->assertDatabaseHas('angsuran_pembayarans', [
+            'periode' => 'Januari 2027',
+            'angsuran_ke' => 3,
+            'nominal' => 2000000,
         ]);
         $this->assertDatabaseHas('pembayarans', [
             'id' => $tagihan->id,
@@ -311,6 +316,102 @@ class MusyrifahPembayaranTest extends TestCase
             now()->addDay()->toDateString(),
             $pengaturan->fresh()->periode_dibuka_pada->toDateString()
         );
+
+        $jadwalKedua = AngsuranPembayaran::query()
+            ->where('periode', $pengaturan->periode)
+            ->where('angsuran_ke', 2)
+            ->firstOrFail();
+        $jadwalKetiga = AngsuranPembayaran::query()
+            ->where('periode', $pengaturan->periode)
+            ->where('angsuran_ke', 3)
+            ->firstOrFail();
+        $this->assertSame(200000, $jadwalKedua->nominal);
+        $this->assertSame(2000000, $jadwalKetiga->nominal);
+
+        $this->actingAs($mahasiswa)->get(route('pembayaran'))->assertOk();
+        $this->assertDatabaseHas('pembayarans', [
+            'user_id' => $mahasiswa->id,
+            'periode' => $pengaturan->periode,
+            'angsuran_ke' => 2,
+            'nominal' => 200000,
+        ]);
+        $this->assertDatabaseHas('pembayarans', [
+            'user_id' => $mahasiswa->id,
+            'periode' => $pengaturan->periode,
+            'angsuran_ke' => 3,
+            'nominal' => 2000000,
+        ]);
+
+        $tagihan->update(['status' => Pembayaran::STATUS_LUNAS, 'tanggal_bayar' => now()]);
+        $ringkasan = app(PembayaranAngsuranService::class)->ringkasan($mahasiswa);
+
+        $this->assertSame(3700000.0, $ringkasan['total']);
+        $this->assertSame(1500000.0, $ringkasan['dibayar']);
+        $this->assertSame(2200000.0, $ringkasan['sisa']);
+        $this->assertSame(2200000.0, $ringkasan['belum_dibayar']);
+    }
+
+    public function test_form_jadwal_menampilkan_nominal_bulat_berpemisah_ribuan(): void
+    {
+        [$musyrifah] = $this->pengguna();
+        PengaturanPembayaran::factory()->create(['periode' => 'Januari 2027']);
+
+        $this->actingAs($musyrifah)
+            ->get(route('musyrifah.pembayaran'))
+            ->assertOk()
+            ->assertSee('value="1.000.000"', false)
+            ->assertSee('value="2.000.000"', false)
+            ->assertSee('data-nominal-rupiah', false)
+            ->assertSee('data-min="1000000"', false)
+            ->assertSee('data-min="1"', false)
+            ->assertSee('data-max="9999999999999"', false)
+            ->assertSee('data-step="1"', false)
+            ->assertSee('inputmode="numeric"', false)
+            ->assertDontSee('step="1000"', false);
+    }
+
+    #[DataProvider('nominalJadwalTidakValid')]
+    public function test_jadwal_menolak_nominal_tidak_valid_422(int|string $nominal, string $pesan): void
+    {
+        $this->freezeTime();
+
+        [$musyrifah] = $this->pengguna();
+        $pengaturan = PengaturanPembayaran::factory()->create(['periode' => 'Januari 2027']);
+        app(PembayaranAngsuranService::class)->pastikanJadwal($pengaturan);
+
+        $this->actingAs($musyrifah)
+            ->postJson(route('musyrifah.pembayaran.jadwal'), [
+                'pengaturan_id' => $pengaturan->id,
+                'angsuran' => [[
+                    'angsuran_ke' => 2,
+                    'nama_tahap' => 'Tahap 2',
+                    'nominal' => $nominal,
+                    'tanggal_mulai' => now()->toDateString(),
+                    'jatuh_tempo' => now()->addDays(30)->toDateString(),
+                    'reminder_hari' => 5,
+                ]],
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['angsuran.0.nominal' => $pesan]);
+
+        $this->assertDatabaseHas('angsuran_pembayarans', [
+            'periode' => $pengaturan->periode,
+            'angsuran_ke' => 2,
+            'nominal' => 2000000,
+        ]);
+    }
+
+    /** @return array<string, array{0: int|string, 1: string}> */
+    public static function nominalJadwalTidakValid(): array
+    {
+        return [
+            'desimal' => ['200000.5', 'Nominal angsuran harus berupa bilangan bulat tanpa desimal.'],
+            'pemisah salah' => ['2.00', 'Nominal angsuran harus berupa bilangan bulat tanpa desimal.'],
+            'teks' => ['dua ratus ribu', 'Nominal angsuran harus berupa bilangan bulat tanpa desimal.'],
+            'nol' => [0, 'Nominal angsuran minimal Rp1.'],
+            'negatif' => [-1, 'Nominal angsuran minimal Rp1.'],
+            'terlalu besar' => [10000000000000, 'Nominal angsuran terlalu besar.'],
+        ];
     }
 
     public function test_angsuran_pertama_di_bawah_satu_juta_ditolak(): void
@@ -520,6 +621,265 @@ class MusyrifahPembayaranTest extends TestCase
         $this->assertDatabaseHas('pengajuan_keterlambatan_pembayarans', [
             'id' => $pengajuan->id,
             'status' => PengajuanKeterlambatanPembayaran::STATUS_MENUNGGU,
+        ]);
+    }
+
+    public function test_persetujuan_keterlambatan_ditolak_sebelum_dokumen_diunggah(): void
+    {
+        [$musyrifah, $mahasiswa] = $this->pengguna();
+        [$pengajuan, $tagihan] = $this->pengajuanMenungguDokumen($mahasiswa);
+        $jatuhTempoAwal = $tagihan->jatuh_tempo->toDateString();
+
+        $this->actingAs($musyrifah)
+            ->postJson(route('musyrifah.pembayaran.keterlambatan', $pengajuan->id), [
+                'keputusan' => 'setuju',
+            ])
+            ->assertStatus(422)
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('message', 'Dokumen surat yang ditandatangani dan dibubuhkan materai belum diunggah mahasiswa.');
+
+        $this->assertDatabaseHas('pengajuan_keterlambatan_pembayarans', [
+            'id' => $pengajuan->id,
+            'status' => PengajuanKeterlambatanPembayaran::STATUS_MENUNGGU_DOKUMEN,
+            'diproses_oleh' => null,
+        ]);
+        $this->assertSame($jatuhTempoAwal, $tagihan->fresh()->jatuh_tempo->toDateString());
+    }
+
+    public function test_alur_dokumen_surat_dapat_ditolak_diperbaiki_dan_disetujui_pada_pengajuan_yang_sama(): void
+    {
+        Storage::fake('local');
+
+        [$musyrifah, $mahasiswa] = $this->pengguna();
+        $this->pendaftaranDisetujui($mahasiswa);
+        [$pengajuan, $tagihan] = $this->pengajuanMenungguDokumen($mahasiswa);
+        $rencanaBayar = $pengajuan->tanggal_rencana_bayar->toDateString();
+
+        $suratMahasiswa = $this->actingAs($mahasiswa)
+            ->get(route('pembayaran.keterlambatan.surat', $pengajuan->id));
+
+        $suratMahasiswa->assertOk();
+        $this->assertStringStartsWith('%PDF', $suratMahasiswa->getContent());
+        $this->assertStringContainsString($mahasiswa->name, $suratMahasiswa->getContent());
+        $this->assertStringContainsString($mahasiswa->nim, $suratMahasiswa->getContent());
+        $this->assertStringContainsString('Sistem Informasi', $suratMahasiswa->getContent());
+        $this->assertStringContainsString('Sains dan Teknologi', $suratMahasiswa->getContent());
+        $this->assertStringContainsString('081234567890', $suratMahasiswa->getContent());
+        $pdfAsli = $suratMahasiswa->getContent();
+        $pathPdfAsli = $pengajuan->fresh()->pdf_sistem;
+        $this->assertNotNull($pathPdfAsli);
+        Storage::disk('local')->assertExists($pathPdfAsli);
+
+        $isiVersiPertama = "%PDF-1.4\nsurat versi pertama";
+        $this->actingAs($mahasiswa)
+            ->post(route('pembayaran.keterlambatan.dokumen', $pengajuan->id), [
+                'dokumen' => UploadedFile::fake()->createWithContent('surat-pertama.pdf', $isiVersiPertama),
+            ])
+            ->assertRedirect(route('pembayaran'))
+            ->assertSessionHas('success');
+
+        $dokumenPertama = $pengajuan->dokumens()->where('versi', 1)->sole();
+        $this->assertSame(PengajuanKeterlambatanPembayaran::STATUS_MENUNGGU, $pengajuan->fresh()->status);
+        $this->actingAs($mahasiswa)
+            ->get(route('pembayaran.keterlambatan.dokumen.lihat', [$pengajuan->id, $dokumenPertama->id]))
+            ->assertOk()
+            ->assertStreamedContent($isiVersiPertama);
+
+        $this->actingAs($musyrifah)
+            ->get(route('musyrifah.pembayaran'))
+            ->assertOk()
+            ->assertSee('Lihat Surat Pernyataan')
+            ->assertSee('Lihat Surat Bertanda Tangan')
+            ->assertSee('Versi 1');
+
+        $detail = $this->actingAs($musyrifah)
+            ->getJson(route('musyrifah.pembayaran.detail', $tagihan->id));
+
+        $detail->assertOk()
+            ->assertJsonPath('pengajuan.0.dokumen_wajib', true)
+            ->assertJsonPath('pengajuan.0.siap_diputuskan', true)
+            ->assertJsonPath('pengajuan.0.dokumen_terakhir_versi', 1)
+            ->assertJsonPath('pengajuan.0.dokumens.0.pengunggah', $mahasiswa->name);
+
+        $suratMusyrifah = $this->actingAs($musyrifah)
+            ->get(route('pembayaran.keterlambatan.surat', $pengajuan->id));
+        $dokumenMusyrifah = $this->actingAs($musyrifah)
+            ->get(route('pembayaran.keterlambatan.dokumen.lihat', [$pengajuan->id, $dokumenPertama->id]));
+
+        $suratMusyrifah->assertOk();
+        $this->assertSame($pdfAsli, $suratMusyrifah->getContent());
+        $dokumenMusyrifah->assertOk()->assertStreamedContent($isiVersiPertama);
+
+        $alasanPenolakan = 'Tanda tangan dan materai belum terlihat jelas.';
+        $this->actingAs($musyrifah)
+            ->postJson(route('musyrifah.pembayaran.keterlambatan', $pengajuan->id), [
+                'keputusan' => 'tolak',
+                'catatan' => $alasanPenolakan,
+            ])
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('pengajuan.status', PengajuanKeterlambatanPembayaran::STATUS_DITOLAK)
+            ->assertJsonPath('pengajuan.catatan_musyrifah', $alasanPenolakan);
+
+        $this->assertDatabaseHas('pengajuan_keterlambatan_pembayarans', [
+            'id' => $pengajuan->id,
+            'status' => PengajuanKeterlambatanPembayaran::STATUS_DITOLAK,
+            'catatan_musyrifah' => $alasanPenolakan,
+            'diproses_oleh' => $musyrifah->id,
+        ]);
+        $this->assertDatabaseHas('pengajuan_keterlambatan_riwayats', [
+            'pengajuan_id' => $pengajuan->id,
+            'dokumen_id' => $dokumenPertama->id,
+            'status_sebelum' => PengajuanKeterlambatanPembayaran::STATUS_MENUNGGU,
+            'status_sesudah' => PengajuanKeterlambatanPembayaran::STATUS_DITOLAK,
+            'catatan' => $alasanPenolakan,
+            'diubah_oleh' => $musyrifah->id,
+        ]);
+
+        $this->actingAs($mahasiswa)
+            ->get(route('pembayaran'))
+            ->assertOk()
+            ->assertSee($alasanPenolakan)
+            ->assertSee('Unggah Ulang Dokumen');
+
+        $isiVersiKedua = "%PDF-1.4\nsurat versi kedua";
+        $this->actingAs($mahasiswa)
+            ->post(route('pembayaran.keterlambatan.dokumen', $pengajuan->id), [
+                'dokumen' => UploadedFile::fake()->createWithContent('surat-kedua.pdf', $isiVersiKedua),
+            ])
+            ->assertRedirect(route('pembayaran'))
+            ->assertSessionHas('success');
+
+        $pengajuan->refresh();
+        $dokumenKedua = $pengajuan->dokumens()->where('versi', 2)->sole();
+        $this->assertSame(PengajuanKeterlambatanPembayaran::STATUS_MENUNGGU, $pengajuan->status);
+        $this->assertNull($pengajuan->catatan_musyrifah);
+        $this->assertNull($pengajuan->diproses_oleh);
+        $this->assertNull($pengajuan->diproses_pada);
+        $this->assertSame([1, 2], $pengajuan->dokumens()->orderBy('versi')->pluck('versi')->all());
+        $this->assertSame([
+            PengajuanKeterlambatanPembayaran::STATUS_MENUNGGU_DOKUMEN,
+            PengajuanKeterlambatanPembayaran::STATUS_MENUNGGU,
+            PengajuanKeterlambatanPembayaran::STATUS_DITOLAK,
+            PengajuanKeterlambatanPembayaran::STATUS_MENUNGGU,
+        ], $pengajuan->riwayats()->orderBy('id')->pluck('status_sesudah')->all());
+        Storage::disk('local')->assertExists($pathPdfAsli);
+        Storage::disk('local')->assertExists($dokumenPertama->path);
+        Storage::disk('local')->assertExists($dokumenKedua->path);
+
+        $this->actingAs($mahasiswa)
+            ->get(route('pembayaran.keterlambatan.dokumen.lihat', [$pengajuan->id, $dokumenPertama->id]))
+            ->assertOk()
+            ->assertStreamedContent($isiVersiPertama);
+        $this->actingAs($mahasiswa)
+            ->get(route('pembayaran.keterlambatan.dokumen.lihat', [$pengajuan->id, $dokumenKedua->id]))
+            ->assertOk()
+            ->assertStreamedContent($isiVersiKedua);
+
+        $this->actingAs($musyrifah)
+            ->getJson(route('musyrifah.pembayaran.detail', $tagihan->id))
+            ->assertOk()
+            ->assertJsonPath('pengajuan.0.status', PengajuanKeterlambatanPembayaran::STATUS_MENUNGGU)
+            ->assertJsonPath('pengajuan.0.dokumen_terakhir_versi', 2)
+            ->assertJsonCount(2, 'pengajuan.0.dokumens')
+            ->assertJsonCount(4, 'pengajuan.0.riwayats');
+
+        $this->actingAs($musyrifah)
+            ->postJson(route('musyrifah.pembayaran.keterlambatan', $pengajuan->id), [
+                'keputusan' => 'setuju',
+            ])
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('pengajuan.status', PengajuanKeterlambatanPembayaran::STATUS_DISETUJUI);
+
+        $this->assertDatabaseHas('pengajuan_keterlambatan_pembayarans', [
+            'id' => $pengajuan->id,
+            'status' => PengajuanKeterlambatanPembayaran::STATUS_DISETUJUI,
+            'diproses_oleh' => $musyrifah->id,
+        ]);
+        $this->assertDatabaseHas('pembayarans', [
+            'id' => $tagihan->id,
+            'status' => Pembayaran::STATUS_BELUM_LUNAS,
+        ]);
+        $this->assertSame($rencanaBayar, $tagihan->fresh()->jatuh_tempo->toDateString());
+        $this->assertSame(5, $pengajuan->riwayats()->count());
+        $this->assertDatabaseHas('pengajuan_keterlambatan_riwayats', [
+            'pengajuan_id' => $pengajuan->id,
+            'dokumen_id' => $dokumenKedua->id,
+            'status_sebelum' => PengajuanKeterlambatanPembayaran::STATUS_MENUNGGU,
+            'status_sesudah' => PengajuanKeterlambatanPembayaran::STATUS_DISETUJUI,
+            'diubah_oleh' => $musyrifah->id,
+        ]);
+
+        $this->actingAs($mahasiswa)
+            ->post(route('pembayaran.keterlambatan.dokumen', $pengajuan->id), [
+                'dokumen' => UploadedFile::fake()->createWithContent('surat-setelah-disetujui.pdf', "%PDF-1.4\ntidak boleh diunggah"),
+            ])
+            ->assertSessionHasErrors('dokumen');
+        $this->assertSame(2, $pengajuan->dokumens()->count());
+    }
+
+    #[DataProvider('lantaiVerifikasiSurat')]
+    public function test_dokumen_surat_hanya_dapat_diperiksa_musyrifah_lantai_yang_sesuai(int $lantai): void
+    {
+        Storage::fake('local');
+
+        [$musyrifahSesuai, $mahasiswa] = $this->pengguna([], $lantai);
+        $lantaiLain = $lantai === 3 ? 1 : $lantai + 1;
+        [$musyrifahLain] = $this->pengguna([
+            'name' => 'Mahasiswa Lantai '.$lantaiLain,
+            'email' => 'mahasiswa.surat.lantai.'.$lantaiLain.'@asrama.ac.id',
+            'nim' => '23179901'.str_pad((string) $lantaiLain, 2, '0', STR_PAD_LEFT),
+        ], $lantaiLain);
+        $this->pendaftaranDisetujui($mahasiswa);
+        [$pengajuan] = $this->pengajuanMenungguDokumen($mahasiswa);
+        $isiDokumen = "%PDF-1.4\nsurat lantai {$lantai}";
+
+        $this->actingAs($mahasiswa)
+            ->post(route('pembayaran.keterlambatan.dokumen', $pengajuan->id), [
+                'dokumen' => UploadedFile::fake()->createWithContent('surat-lantai-'.$lantai.'.pdf', $isiDokumen),
+            ])
+            ->assertSessionHasNoErrors();
+        $dokumen = $pengajuan->dokumens()->sole();
+
+        $this->actingAs($musyrifahSesuai)
+            ->get(route('musyrifah.pembayaran'))
+            ->assertOk()
+            ->assertSee($mahasiswa->name)
+            ->assertSee('Lihat Surat Bertanda Tangan');
+        $this->actingAs($musyrifahLain)
+            ->get(route('musyrifah.pembayaran'))
+            ->assertOk()
+            ->assertDontSee($mahasiswa->name);
+
+        $this->actingAs($musyrifahSesuai)
+            ->get(route('pembayaran.keterlambatan.surat', $pengajuan->id))
+            ->assertOk();
+        $this->actingAs($musyrifahLain)
+            ->get(route('pembayaran.keterlambatan.surat', $pengajuan->id))
+            ->assertForbidden();
+        $this->actingAs($musyrifahSesuai)
+            ->get(route('pembayaran.keterlambatan.dokumen.lihat', [$pengajuan->id, $dokumen->id]))
+            ->assertOk()
+            ->assertStreamedContent($isiDokumen);
+        $this->actingAs($musyrifahLain)
+            ->get(route('pembayaran.keterlambatan.dokumen.lihat', [$pengajuan->id, $dokumen->id]))
+            ->assertForbidden();
+        $this->actingAs($musyrifahLain)
+            ->postJson(route('musyrifah.pembayaran.keterlambatan', $pengajuan->id), [
+                'keputusan' => 'setuju',
+            ])
+            ->assertNotFound();
+
+        $this->actingAs($musyrifahSesuai)
+            ->postJson(route('musyrifah.pembayaran.keterlambatan', $pengajuan->id), [
+                'keputusan' => 'setuju',
+            ])
+            ->assertOk();
+        $this->assertDatabaseHas('pengajuan_keterlambatan_pembayarans', [
+            'id' => $pengajuan->id,
+            'status' => PengajuanKeterlambatanPembayaran::STATUS_DISETUJUI,
+            'diproses_oleh' => $musyrifahSesuai->id,
         ]);
     }
 
@@ -873,6 +1233,54 @@ class MusyrifahPembayaranTest extends TestCase
         $this->assertSame(2100000.0, (float) $tagihan->nominal);
     }
 
+    public function test_musyrifah_dapat_mengubah_nominal_tagihan_menjadi_bilangan_bulat(): void
+    {
+        [$musyrifah, $mahasiswa] = $this->pengguna();
+        $pembayaran = Pembayaran::query()->create([
+            'user_id' => $mahasiswa->id,
+            'periode' => 'Januari 2027',
+            'angsuran_ke' => 2,
+            'nominal' => 2000000,
+            'status' => Pembayaran::STATUS_BELUM_LUNAS,
+        ]);
+
+        $this->actingAs($musyrifah)
+            ->postJson(route('musyrifah.pembayaran.nominal', $pembayaran->id), ['nominal' => 200001])
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('pembayaran.nominal', 200001);
+
+        $this->assertSame(200001, $pembayaran->fresh()->nominal);
+        $this->assertDatabaseHas('pembayarans', [
+            'id' => $pembayaran->id,
+            'nominal' => 200001,
+        ]);
+    }
+
+    public function test_perbarui_nominal_tagihan_menolak_desimal_422(): void
+    {
+        [$musyrifah, $mahasiswa] = $this->pengguna();
+        $pembayaran = Pembayaran::query()->create([
+            'user_id' => $mahasiswa->id,
+            'periode' => 'Januari 2027',
+            'angsuran_ke' => 2,
+            'nominal' => 2000000,
+            'status' => Pembayaran::STATUS_BELUM_LUNAS,
+        ]);
+
+        $this->actingAs($musyrifah)
+            ->postJson(route('musyrifah.pembayaran.nominal', $pembayaran->id), ['nominal' => 200000.5])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('nominal')
+            ->assertJsonPath('errors.nominal.0', 'Nominal tagihan harus berupa bilangan bulat tanpa desimal.');
+
+        $this->assertSame(2000000, $pembayaran->fresh()->nominal);
+        $this->assertDatabaseHas('pembayarans', [
+            'id' => $pembayaran->id,
+            'nominal' => 2000000,
+        ]);
+    }
+
     public function test_nominal_tidak_dapat_diubah_saat_bukti_sedang_diperiksa(): void
     {
         [$musyrifah, $mahasiswa] = $this->pengguna();
@@ -1059,6 +1467,8 @@ class MusyrifahPembayaranTest extends TestCase
 
     public function test_musyrifah_dapat_membuka_surat_keterlambatan_mahasiswa_lantai_yang_sama(): void
     {
+        Storage::fake('local');
+
         [$musyrifah, $mahasiswa] = $this->pengguna();
         Pendaftaran::query()->create([
             'user_id' => $mahasiswa->id,
@@ -1095,6 +1505,7 @@ class MusyrifahPembayaranTest extends TestCase
 
         $surat->assertOk();
         $this->assertStringContainsString('application/pdf', $surat->headers->get('content-type'));
+        $this->assertStringContainsString('inline;', (string) $surat->headers->get('content-disposition'));
         $this->assertStringStartsWith('%PDF', $surat->getContent());
     }
 
@@ -1257,6 +1668,16 @@ class MusyrifahPembayaranTest extends TestCase
         ];
     }
 
+    /** @return array<string, array{0: int}> */
+    public static function lantaiVerifikasiSurat(): array
+    {
+        return [
+            'lantai satu' => [1],
+            'lantai dua' => [2],
+            'lantai tiga' => [3],
+        ];
+    }
+
     /** @return array<string, array{0: string}> */
     public static function peranPengelolaGlobal(): array
     {
@@ -1304,6 +1725,56 @@ class MusyrifahPembayaranTest extends TestCase
         ], $atributMahasiswa));
 
         return [$musyrifah, $mahasiswa];
+    }
+
+    /**
+     * @return array{0: PengajuanKeterlambatanPembayaran, 1: Pembayaran}
+     */
+    private function pengajuanMenungguDokumen(User $mahasiswa): array
+    {
+        $tagihan = Pembayaran::query()->create([
+            'user_id' => $mahasiswa->id,
+            'periode' => 'Januari 2027',
+            'angsuran_ke' => 1,
+            'nominal' => 1000000,
+            'jatuh_tempo' => now()->addDays(3)->toDateString(),
+            'status' => Pembayaran::STATUS_BELUM_LUNAS,
+        ]);
+        $pengajuan = PengajuanKeterlambatanPembayaran::query()->create([
+            'user_id' => $mahasiswa->id,
+            'pembayaran_id' => $tagihan->id,
+            'nomor_surat' => 'SKP/TEST/DOKUMEN-'.$mahasiswa->id.'/MAHAD',
+            'alasan' => 'Dana kiriman orang tua belum tersedia.',
+            'tanggal_rencana_bayar' => now()->addDays(21)->toDateString(),
+            'status' => PengajuanKeterlambatanPembayaran::STATUS_MENUNGGU_DOKUMEN,
+            'dokumen_wajib' => true,
+        ]);
+        $pengajuan->riwayats()->create([
+            'status_sebelum' => null,
+            'status_sesudah' => $pengajuan->status,
+            'catatan' => 'Pengajuan dibuat. Menunggu dokumen surat.',
+            'diubah_oleh' => $mahasiswa->id,
+        ]);
+
+        return [$pengajuan, $tagihan];
+    }
+
+    private function pendaftaranDisetujui(User $mahasiswa): Pendaftaran
+    {
+        return Pendaftaran::query()->create([
+            'user_id' => $mahasiswa->id,
+            'nama_lengkap' => $mahasiswa->name,
+            'nim' => $mahasiswa->nim,
+            'tempat_lahir' => 'Padang',
+            'tanggal_lahir' => '2003-01-01',
+            'jenis_kelamin' => 'Laki-laki',
+            'no_hp' => '081234567890',
+            'program_studi' => 'Sistem Informasi',
+            'fakultas' => 'Sains dan Teknologi',
+            'semester' => 1,
+            'status' => 'disetujui',
+            'tahun_angkatan' => '2023',
+        ]);
     }
 
     private function bukaTahapPertama(PengaturanPembayaran $pengaturan): void

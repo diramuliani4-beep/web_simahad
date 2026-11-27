@@ -16,11 +16,21 @@ class KelompokBelajar extends Model
         'keterangan',
     ];
 
-    /**
-     * Anggota mahasiswa yang terdaftar pada kelompok belajar ini.
-     */
+    /** Legacy subject-scoped membership history. */
     public function anggotas(): HasMany
     {
         return $this->hasMany(KelompokBelajarAnggota::class, 'kelompok_belajar_id');
+    }
+
+    /** All global placement history for this group. */
+    public function penempatans(): HasMany
+    {
+        return $this->hasMany(PenempatanKelompokBelajar::class, 'kelompok_belajar_id');
+    }
+
+    /** Approved students with an active global placement. */
+    public function penempatanAktif(): HasMany
+    {
+        return $this->penempatans()->aktif()->mahasiswaDisetujui();
     }
 }

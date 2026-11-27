@@ -16,11 +16,17 @@ class Tugas extends Model
     protected $table = 'tugas';
 
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_DIPUBLIKASIKAN = 'dipublikasikan';
+
     public const STATUS_BELUM_DIKUMPULKAN = 'belum_dikumpulkan';
+
     public const STATUS_SUDAH_DIKUMPULKAN = 'sudah_dikumpulkan';
+
     public const STATUS_MENUNGGU_PENILAIAN = 'menunggu_penilaian';
+
     public const STATUS_SUDAH_DINILAI = 'sudah_dinilai';
+
     public const STATUS_TERLAMBAT = 'terlambat';
 
     protected $fillable = [
@@ -173,29 +179,21 @@ class Tugas extends Model
     }
 
     /**
-     * Anggota aktif kelompok untuk mata pelajaran tugas ini.
-     * Keanggotaan ditentukan Musyrifah, bukan diduga dari catatan absensi.
+     * Approved students in the task's globally active group.
+     * Membership is assigned by Musyrifah, not inferred from attendance.
      *
      * @return Collection<int, User>
      */
     public function anggotaKelompok(): Collection
     {
-        if (! $this->mata_pelajaran_id || blank($this->kelompok)) {
+        if (blank($this->kelompok)) {
             return collect();
         }
 
-        return KelompokBelajarAnggota::query()
-            ->where('mata_pelajaran_id', $this->mata_pelajaran_id)
-            ->where('status', 'aktif')
-            ->whereHas('kelompokBelajar', function (Builder $query) {
-                $query->where('nama_kelompok', $this->kelompok);
-            })
-            ->whereHas('user', function (Builder $query) {
-                $query->whereRaw('LOWER(role) = ?', ['mahasiswa'])
-                    ->whereHas('pendaftarans', function (Builder $pendaftaran) {
-                        $pendaftaran->where('status', 'disetujui');
-                    });
-            })
+        return PenempatanKelompokBelajar::query()
+            ->aktif()
+            ->mahasiswaDisetujui()
+            ->untukKelompok((string) $this->kelompok)
             ->with('user')
             ->get()
             ->pluck('user')
@@ -240,10 +238,7 @@ class Tugas extends Model
         return $this->anggotaKelompok()->count();
     }
 
-    /**
-     * Batasi tugas pada mata pelajaran + kelompok yang benar untuk mahasiswa.
-     * Gunakan scope ini untuk fitur baru, bukan filter nama kelompok umum.
-     */
+    /** Limit tasks to the student's single active group for every subject. */
     public function scopeUntukAnggota(Builder $query, User $mahasiswa): Builder
     {
         if (strtolower(trim((string) $mahasiswa->role)) !== 'mahasiswa'
@@ -253,12 +248,11 @@ class Tugas extends Model
 
         return $query->whereExists(function ($subquery) use ($mahasiswa) {
             $subquery->selectRaw('1')
-                ->from('kelompok_belajar_anggotas as anggota')
-                ->join('kelompok_belajars as kelompok', 'kelompok.id', '=', 'anggota.kelompok_belajar_id')
-                ->whereColumn('anggota.mata_pelajaran_id', 'tugas.mata_pelajaran_id')
+                ->from('penempatan_kelompok_belajars as penempatan')
+                ->join('kelompok_belajars as kelompok', 'kelompok.id', '=', 'penempatan.kelompok_belajar_id')
                 ->whereColumn('kelompok.nama_kelompok', 'tugas.kelompok')
-                ->where('anggota.user_id', $mahasiswa->getKey())
-                ->where('anggota.status', 'aktif');
+                ->where('penempatan.user_id', $mahasiswa->getKey())
+                ->whereRaw('LOWER(penempatan.status) = ?', ['aktif']);
         });
     }
 

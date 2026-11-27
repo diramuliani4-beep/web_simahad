@@ -4,8 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\AbsensiPembelajaran;
 use App\Models\JadwalPembelajaran;
+use App\Models\KelompokBelajar;
 use App\Models\MataPelajaran;
 use App\Models\Notifikasi;
+use App\Models\Pendaftaran;
+use App\Models\PenempatanKelompokBelajar;
 use App\Models\PengumpulanTugas;
 use App\Models\Tugas;
 use App\Models\User;
@@ -38,7 +41,31 @@ class GuruTugasTest extends TestCase
     public function test_guru_dapat_membuat_tugas_terpublikasi_dan_mengirim_notifikasi(): void
     {
         [$guru, $mapel] = $this->guruDenganJadwal();
-        $mahasiswa = $this->mahasiswaKelompok($mapel);
+        $mahasiswa = $this->mahasiswaKelompok();
+        $tanpaPenempatan = User::factory()->create([
+            'name' => 'Mahasiswa Tanpa Penempatan',
+            'nim' => '2317020112',
+            'role' => 'mahasiswa',
+            'status' => 'aktif',
+        ]);
+        $penempatanNonaktif = User::factory()->create([
+            'name' => 'Mahasiswa Nonaktif',
+            'nim' => '2317020113',
+            'role' => 'mahasiswa',
+            'status' => 'aktif',
+        ]);
+
+        $this->buatPendaftaranDisetujui($tanpaPenempatan);
+        $this->buatPendaftaranDisetujui($penempatanNonaktif);
+        AbsensiPembelajaran::query()->create([
+            'user_id' => $tanpaPenempatan->id,
+            'mata_pelajaran_id' => $mapel->id,
+            'kelompok' => 'Kelompok 1',
+            'pertemuan_ke' => 1,
+            'tanggal' => now()->toDateString(),
+            'status' => 'hadir',
+        ]);
+        $this->tempatkan($penempatanNonaktif, $this->kelompok(1), 'tidak_aktif');
 
         $response = $this->actingAs($guru)->post(route('guru.tugas.store'), [
             'judul' => 'Tugas Mufradat Pekan Ini',
@@ -61,6 +88,14 @@ class GuruTugasTest extends TestCase
 
         $this->assertDatabaseHas('notifikasis', [
             'user_id' => $mahasiswa->id,
+            'tipe' => Notifikasi::TIPE_TUGAS_BARU,
+        ]);
+        $this->assertDatabaseMissing('notifikasis', [
+            'user_id' => $tanpaPenempatan->id,
+            'tipe' => Notifikasi::TIPE_TUGAS_BARU,
+        ]);
+        $this->assertDatabaseMissing('notifikasis', [
+            'user_id' => $penempatanNonaktif->id,
             'tipe' => Notifikasi::TIPE_TUGAS_BARU,
         ]);
     }
@@ -106,7 +141,7 @@ class GuruTugasTest extends TestCase
     public function test_daftar_pengumpulan_menampilkan_mahasiswa_kelompok_tujuan(): void
     {
         [$guru, $mapel] = $this->guruDenganJadwal();
-        $mahasiswa = $this->mahasiswaKelompok($mapel);
+        $mahasiswa = $this->mahasiswaKelompok();
         $tugas = $this->tugasDipublikasikan($guru, $mapel);
 
         $this->actingAs($guru)
@@ -119,7 +154,7 @@ class GuruTugasTest extends TestCase
     public function test_nilai_di_luar_rentang_nol_sampai_seratus_ditolak(): void
     {
         [$guru, $mapel] = $this->guruDenganJadwal();
-        $mahasiswa = $this->mahasiswaKelompok($mapel);
+        $mahasiswa = $this->mahasiswaKelompok();
         $tugas = $this->tugasDipublikasikan($guru, $mapel);
         $pengumpulan = $this->pengumpulan($tugas, $mahasiswa);
 
@@ -139,7 +174,7 @@ class GuruTugasTest extends TestCase
     public function test_guru_dapat_menilai_dan_perubahan_nilai_menyimpan_riwayat(): void
     {
         [$guru, $mapel] = $this->guruDenganJadwal();
-        $mahasiswa = $this->mahasiswaKelompok($mapel);
+        $mahasiswa = $this->mahasiswaKelompok();
         $tugas = $this->tugasDipublikasikan($guru, $mapel);
         $pengumpulan = $this->pengumpulan($tugas, $mahasiswa);
 
@@ -171,7 +206,7 @@ class GuruTugasTest extends TestCase
     public function test_publikasi_nilai_mengirim_notifikasi_kepada_mahasiswa(): void
     {
         [$guru, $mapel] = $this->guruDenganJadwal();
-        $mahasiswa = $this->mahasiswaKelompok($mapel);
+        $mahasiswa = $this->mahasiswaKelompok();
         $tugas = $this->tugasDipublikasikan($guru, $mapel);
         $pengumpulan = $this->pengumpulan($tugas, $mahasiswa);
 
@@ -226,7 +261,7 @@ class GuruTugasTest extends TestCase
         return [$guru, $mapel];
     }
 
-    private function mahasiswaKelompok(MataPelajaran $mapel, string $kelompok = 'Kelompok 1'): User
+    private function mahasiswaKelompok(int $nomorKelompok = 1): User
     {
         $mahasiswa = User::factory()->create([
             'name' => 'Siti Aminah',
@@ -235,16 +270,53 @@ class GuruTugasTest extends TestCase
             'status' => 'aktif',
         ]);
 
-        AbsensiPembelajaran::query()->create([
-            'user_id' => $mahasiswa->id,
-            'mata_pelajaran_id' => $mapel->id,
-            'kelompok' => $kelompok,
-            'pertemuan_ke' => 1,
-            'tanggal' => now()->toDateString(),
-            'status' => 'hadir',
-        ]);
+        $this->buatPendaftaranDisetujui($mahasiswa);
+        $this->tempatkan($mahasiswa, $this->kelompok($nomorKelompok));
 
         return $mahasiswa;
+    }
+
+    private function kelompok(int $nomor): KelompokBelajar
+    {
+        return KelompokBelajar::query()->firstOrCreate(
+            ['nomor_kelompok' => $nomor],
+            [
+                'nama_kelompok' => 'Kelompok '.$nomor,
+                'keterangan' => 'Kelompok Belajar '.$nomor,
+            ]
+        );
+    }
+
+    private function buatPendaftaranDisetujui(User $mahasiswa): Pendaftaran
+    {
+        return Pendaftaran::query()->create([
+            'user_id' => $mahasiswa->id,
+            'nama_lengkap' => $mahasiswa->name,
+            'nim' => $mahasiswa->nim,
+            'tempat_lahir' => 'Padang',
+            'tanggal_lahir' => '2005-01-01',
+            'jenis_kelamin' => 'Perempuan',
+            'no_hp' => '081234567890',
+            'program_studi' => 'Sistem Informasi',
+            'fakultas' => 'Sains dan Teknologi',
+            'semester' => 1,
+            'status' => 'disetujui',
+            'tahun_angkatan' => '2024',
+        ]);
+    }
+
+    private function tempatkan(
+        User $mahasiswa,
+        KelompokBelajar $kelompok,
+        string $status = 'aktif',
+    ): PenempatanKelompokBelajar {
+        return PenempatanKelompokBelajar::query()->create([
+            'user_id' => $mahasiswa->id,
+            'kelompok_belajar_id' => $kelompok->id,
+            'status' => $status,
+            'ditugaskan_pada' => now(),
+            'dicabut_pada' => $status === 'aktif' ? null : now(),
+        ]);
     }
 
     private function tugasDipublikasikan(User $guru, MataPelajaran $mapel): Tugas

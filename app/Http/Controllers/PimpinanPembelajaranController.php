@@ -19,11 +19,11 @@ class PimpinanPembelajaranController extends Controller
         $kelompokBelajar = KelompokBelajar::count() ?: 6;
         $targetPertemuan = 16;
 
-        $kelompokDb = KelompokBelajar::withCount('anggotas')->orderBy('nomor_kelompok')->get();
+        $kelompokDb = KelompokBelajar::withCount('penempatanAktif')->orderBy('nomor_kelompok')->get();
         if ($kelompokDb->isNotEmpty()) {
-            $daftarKelompok = $kelompokDb->map(fn ($k) => [
+            $daftarKelompok = $kelompokDb->map(fn (KelompokBelajar $k) => [
                 'nama' => $k->nama_kelompok,
-                'jumlah' => $k->anggotas_count > 0 ? $k->anggotas_count.' mahasiswa terdaftar' : 'Belum ada anggota',
+                'jumlah' => $k->penempatan_aktif_count > 0 ? $k->penempatan_aktif_count.' mahasiswa terdaftar' : 'Belum ada anggota',
             ])->toArray();
         } else {
             $daftarKelompok = [

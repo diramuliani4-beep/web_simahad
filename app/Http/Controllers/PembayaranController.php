@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Pembayaran;
+use App\Models\PengajuanKeterlambatanDokumen;
 use App\Models\PengajuanKeterlambatanPembayaran;
 use App\Models\User;
 use App\Services\PembayaranAngsuranService;
@@ -133,34 +134,98 @@ class PembayaranController extends Controller
         );
 
         return redirect()->route('pembayaran')->with('success', 'Pengajuan keterlambatan terkirim dengan nomor surat '.
-            $pengajuan->nomor_surat.'. Surat PDF dapat diperiksa pada riwayat pengajuan.');
+            $pengajuan->nomor_surat.'. Unduh PDF, cetak dan lengkapi tanda tangan serta materai, lalu unggah dokumen pada riwayat pengajuan.');
     }
 
     /**
      * Unduh surat pengajuan keterlambatan dalam format PDF.
      */
-    public function suratKeterlambatan(Request $request, PengajuanKeterlambatanPembayaran $pengajuan): Response
-    {
+    public function suratKeterlambatan(
+        Request $request,
+        PengajuanKeterlambatanPembayaran $pengajuan,
+        SuratKeterlambatanPdfService $surat
+    ): Response {
         $pengguna = $request->user();
-        $role = strtolower(trim((string) $pengguna?->role));
 
-        $bolehAkses = $pengguna && (
-            $pengajuan->user_id === $pengguna->id
-            || in_array($role, ['pengelola', 'admin'], true)
-            || ($role === 'musyrifah'
-                && $pengajuan->pembayaran
-                && $this->layanan->bolehAksesPembayaran($pengguna, $pengajuan->pembayaran))
-        );
+        abort_unless($pengguna && $this->bolehAksesPengajuan($pengguna, $pengajuan), 403);
 
-        abort_unless($bolehAkses, 403);
-
-        $pdf = app(SuratKeterlambatanPdfService::class)->render($pengajuan);
+        $pdf = $surat->pdfSistem($pengajuan);
         $namaBerkas = 'surat-keterlambatan-'.str_replace('/', '-', $pengajuan->nomor_surat).'.pdf';
+        $peran = strtolower(trim((string) $pengguna->role));
+        $disposition = $peran === 'mahasiswa' ? 'attachment' : 'inline';
 
         return response($pdf, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="'.$namaBerkas.'"',
+            'Content-Disposition' => $disposition.'; filename="'.$namaBerkas.'"',
         ]);
+    }
+
+    /**
+     * Unggah scan/foto surat yang telah ditandatangani dan dibubuhkan materai.
+     */
+    public function unggahDokumenKeterlambatan(
+        Request $request,
+        PengajuanKeterlambatanPembayaran $pengajuan
+    ): RedirectResponse {
+        $mahasiswa = $this->mahasiswa($request);
+
+        abort_unless($pengajuan->user_id === $mahasiswa->id, 403);
+
+        $validated = $request->validate([
+            'dokumen' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+        ], [
+            'dokumen.required' => 'Dokumen surat wajib dipilih.',
+            'dokumen.mimes' => 'Dokumen surat harus berformat PDF, JPG, JPEG, atau PNG.',
+            'dokumen.max' => 'Ukuran dokumen surat maksimal 5 MB.',
+        ]);
+
+        try {
+            $pengajuan = $this->layanan->unggahDokumenKeterlambatan(
+                $mahasiswa,
+                $pengajuan,
+                $validated['dokumen']
+            );
+        } catch (ValidationException $exception) {
+            return back()->withErrors($exception->errors());
+        }
+
+        $versi = $pengajuan->dokumenTerakhir?->versi;
+        $this->catatAktivitas(
+            $mahasiswa,
+            'Unggah Dokumen Surat Keterlambatan',
+            'Mahasiswa '.$mahasiswa->name.' ('.$mahasiswa->nim.') mengunggah dokumen surat keterlambatan '.
+                $pengajuan->nomor_surat.($versi ? ' versi '.$versi : '').'.',
+            $request
+        );
+
+        return redirect()->route('pembayaran')->with('success', 'Dokumen surat keterlambatan berhasil diunggah '.
+            ($versi ? 'sebagai versi '.$versi.' ' : '').'dan menunggu pemeriksaan Musyrifah.');
+    }
+
+    /**
+     * Pratinjau dokumen mahasiswa tanpa membuka path penyimpanan secara publik.
+     */
+    public function dokumenKeterlambatan(
+        Request $request,
+        PengajuanKeterlambatanPembayaran $pengajuan,
+        PengajuanKeterlambatanDokumen $dokumen
+    ): StreamedResponse {
+        abort_unless($dokumen->pengajuan_id === $pengajuan->id, 404);
+
+        $pengguna = $request->user();
+
+        abort_unless($pengguna && $this->bolehAksesPengajuan($pengguna, $pengajuan), 403);
+        abort_unless(Storage::disk('local')->exists($dokumen->path), 404);
+
+        return Storage::disk('local')->response(
+            $dokumen->path,
+            $dokumen->nama_asli,
+            [
+                'Content-Type' => $dokumen->mime_type,
+                'X-Content-Type-Options' => 'nosniff',
+            ],
+            'inline'
+        );
     }
 
     /**
@@ -189,6 +254,17 @@ class PembayaranController extends Controller
             ['Content-Type' => 'application/octet-stream'],
             'inline'
         );
+    }
+
+    private function bolehAksesPengajuan(
+        User $pengguna,
+        PengajuanKeterlambatanPembayaran $pengajuan
+    ): bool {
+        $role = strtolower(trim((string) $pengguna->role));
+
+        return $pengajuan->user_id === $pengguna->id
+            || in_array($role, ['pengelola', 'admin'], true)
+            || ($role === 'musyrifah' && $this->layanan->bolehAksesPengajuan($pengguna, $pengajuan));
     }
 
     private function mahasiswa(Request $request): User

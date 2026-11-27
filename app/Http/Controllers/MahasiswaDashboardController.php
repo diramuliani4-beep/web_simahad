@@ -7,13 +7,14 @@ use App\Models\JadwalPembelajaran;
 use App\Models\Notifikasi;
 use App\Models\Pembayaran;
 use App\Models\Pendaftaran;
-use App\Models\PengaturanPembayaran;
 use App\Models\PengumpulanTugas;
 use App\Models\Pengumuman;
 use App\Models\SuratPerizinan;
 use App\Models\Tugas;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -41,7 +42,8 @@ class MahasiswaDashboardController extends Controller
         }
 
         $kamar = $user->kamar;
-        $kelompok = $user->kelompokPembelajaran();
+        $penempatan = $user->penempatanKelompokBelajarAktif;
+        $kelompok = $penempatan?->kelompokBelajar?->nama_kelompok;
         $pendaftaran = Pendaftaran::query()
             ->where('user_id', $user->id)
             ->latest('id')
@@ -49,9 +51,9 @@ class MahasiswaDashboardController extends Controller
 
         $ringkasanPembayaran = Pembayaran::ringkasanUntuk($user);
 
-        $absensi = $this->ringkasanAbsensi($user);
+        $absensi = $this->ringkasanAbsensi($user, $kelompok);
         $kalender = $this->kalenderPembelajaran($request, $kelompok);
-        $tugas = $this->ringkasanTugas($user, $kelompok);
+        $tugas = $this->ringkasanTugas($user);
 
         $this->siapkanPengingat($user, $ringkasanPembayaran, $tugas['semua']);
 
@@ -64,6 +66,7 @@ class MahasiswaDashboardController extends Controller
             'user' => $user,
             'kamar' => $kamar,
             'kelompok' => $kelompok,
+            'belumAdaKelompok' => blank($kelompok),
             'pendaftaran' => $pendaftaran,
             'ringkasanPembayaran' => $ringkasanPembayaran,
             'absensi' => $absensi,
@@ -83,14 +86,27 @@ class MahasiswaDashboardController extends Controller
         ]);
     }
 
-    /**
-     * Rekap kehadiran dari absensi pembelajaran yang sudah ada.
-     *
-     * @return array{total: int, hadir: int, izin: int, sakit: int, alpa: int, persentase: float}
-     */
-    private function ringkasanAbsensi(User $user): array
+    /** Limit learning records to the student's single active group. */
+    private function batasiKelompokAktif(Builder $query, ?string $kelompok): Builder
     {
-        $query = AbsensiPembelajaran::query()->where('user_id', $user->id);
+        if (blank($kelompok)) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->where('kelompok', $kelompok);
+    }
+
+    /**
+     * Rekap kehadiran pada kelompok aktif mahasiswa.
+     *
+     * @return array{total: int, hadir: int, izin: int, sakit: int, alpa: int, tidak_hadir: int, persentase: float}
+     */
+    private function ringkasanAbsensi(User $user, ?string $kelompok): array
+    {
+        $query = $this->batasiKelompokAktif(
+            AbsensiPembelajaran::query()->where('user_id', $user->id),
+            $kelompok
+        );
 
         $hadir = (clone $query)->where('status', 'hadir')->count();
         $izin = (clone $query)->where('status', 'izin')->count();
@@ -110,19 +126,18 @@ class MahasiswaDashboardController extends Controller
     }
 
     /**
-     * Kalender bulanan jadwal pembelajaran sesuai kelompok mahasiswa.
+     * Kalender bulanan jadwal sesuai kelompok aktif mahasiswa.
      *
      * @return array<string, mixed>
      */
-    private function kalenderPembelajaran(Request $request, string $kelompok): array
+    private function kalenderPembelajaran(Request $request, ?string $kelompok): array
     {
         $bulan = (string) $request->query('bulan', '');
         $awalBulan = preg_match('/^\d{4}-\d{2}$/', $bulan) === 1
             ? Carbon::createFromFormat('Y-m-d', $bulan.'-01')->startOfMonth()
             : Carbon::now()->startOfMonth();
 
-        $jadwal = JadwalPembelajaran::query()
-            ->untukKelompok($kelompok)
+        $jadwal = $this->batasiKelompokAktif(JadwalPembelajaran::query(), $kelompok)
             ->with('mataPelajaran')
             ->orderBy('jam_mulai')
             ->get();
@@ -180,13 +195,13 @@ class MahasiswaDashboardController extends Controller
      *
      * @return array{terbaru: Collection<int, array<string, mixed>>, semua: Collection<int, Tugas>, belum: int}
      */
-    private function ringkasanTugas(User $user, string $kelompok): array
+    private function ringkasanTugas(User $user): array
     {
         $semua = Tugas::query()
             ->dipublikasikan()
-            ->untukMahasiswa($kelompok)
+            ->untukAnggota($user)
             ->with(['mataPelajaran', 'guru'])
-            ->with(['pengumpulan' => fn ($query) => $query->where('user_id', $user->id)])
+            ->with(['pengumpulan' => fn (HasMany $query) => $query->where('user_id', $user->id)])
             ->orderByDesc('dipublikasikan_pada')
             ->orderByDesc('id')
             ->get();
@@ -214,15 +229,16 @@ class MahasiswaDashboardController extends Controller
     }
 
     /**
-     * Nilai yang sudah dipublikasikan Guru.
+     * Nilai yang dipublikasikan untuk tugas pada kelompok aktif mahasiswa.
      *
      * @return Collection<int, PengumpulanTugas>
      */
-    private function nilaiTerbaru(User $user)
+    private function nilaiTerbaru(User $user): Collection
     {
         return PengumpulanTugas::query()
             ->where('user_id', $user->id)
             ->nilaiDipublikasikan()
+            ->whereHas('tugas', fn (Builder $query) => $query->untukAnggota($user))
             ->with(['tugas.mataPelajaran'])
             ->orderByDesc('nilai_dipublikasikan_pada')
             ->limit(3)
@@ -255,26 +271,25 @@ class MahasiswaDashboardController extends Controller
      * @param  array<string, mixed>  $ringkasanPembayaran
      * @param  Collection<int, Tugas>  $semuaTugas
      */
-    private function siapkanPengingat(User $user, array $ringkasanPembayaran, $semuaTugas): void
+    private function siapkanPengingat(User $user, array $ringkasanPembayaran, Collection $semuaTugas): void
     {
-        $pengaturan = $ringkasanPembayaran['pengaturan'] ?? null;
+        $tagihan = $ringkasanPembayaran['tagihan'] ?? null;
 
-        if ($pengaturan instanceof PengaturanPembayaran
-            && $ringkasanPembayaran['dibuka']
-            && in_array($ringkasanPembayaran['status'], ['belum_lunas', 'menunggu', 'terlambat'], true)
-            && $pengaturan->dalamMasaPengingat()) {
+        if ($tagihan instanceof Pembayaran
+            && $ringkasanPembayaran['pengingat']
+            && in_array($ringkasanPembayaran['status'], ['belum_lunas', 'menunggu', 'terlambat'], true)) {
 
             $terlambat = $ringkasanPembayaran['status'] === 'terlambat';
 
             Notifikasi::kirim(
                 $user,
                 Notifikasi::TIPE_PEMBAYARAN,
-                $terlambat ? 'Tagihan melewati jatuh tempo' : 'Pengingat pembayaran '.$pengaturan->periode,
+                $terlambat ? 'Tagihan melewati jatuh tempo' : 'Pengingat pembayaran '.$tagihan->periode,
                 $terlambat
-                    ? 'Tagihan '.$pengaturan->nama_tahap.' sebesar '.$pengaturan->nominalRupiah().' telah melewati jatuh tempo '.$pengaturan->jatuhTempoTeks().'.'
-                    : 'Tagihan '.$pengaturan->nama_tahap.' sebesar '.$pengaturan->nominalRupiah().' jatuh tempo pada '.$pengaturan->jatuhTempoTeks().'.',
+                    ? 'Tagihan '.$tagihan->labelTahap().' sebesar '.$tagihan->nominal_rupiah.' telah melewati jatuh tempo '.$tagihan->jatuhTempoTeks().'.'
+                    : 'Tagihan '.$tagihan->labelTahap().' sebesar '.$tagihan->nominal_rupiah.' jatuh tempo pada '.$tagihan->jatuhTempoTeks().'.',
                 route('pembayaran.detail'),
-                'pembayaran:'.$pengaturan->periode.':'.$ringkasanPembayaran['status']
+                'pembayaran:'.$tagihan->periode.':'.$ringkasanPembayaran['status']
             );
         }
 

@@ -39,6 +39,14 @@ class SuratPerizinanFactory extends Factory
         ]);
     }
 
+    public function darurat(): static
+    {
+        return $this->state(fn (): array => [
+            'jenis' => SuratPerizinan::JENIS_DARURAT,
+            'keterangan' => 'Kondisi mendesak keluarga.',
+        ]);
+    }
+
     public function kegiatanFakultas(): static
     {
         return $this->state(fn (): array => [
